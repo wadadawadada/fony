@@ -99,8 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stationLabel.textContent = station.title || 'Unknown Station';
     currentTrackEl.textContent = station.bitrate || '';
 
-    // Используем прокси для аудиопотока
-    audioPlayer.src = `/.netlify/functions/proxy?url=${encodeURIComponent(station.url)}`;
+    audioPlayer.src = station.url;
     li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
     // Сброс и запуск таймера
