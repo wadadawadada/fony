@@ -14,10 +14,10 @@ export function renderPlaylist(playlistElement, stations) {
     progressDiv.classList.add('progress');
     li.appendChild(progressDiv);
 
-    // Если есть обложка (logo)
+    // Если есть обложка (logo), используем прокси для загрузки через HTTPS
     if (station.cover) {
       const icon = document.createElement('img');
-      icon.src = station.cover;
+      icon.src = `/.netlify/functions/proxy?url=${encodeURIComponent(station.cover)}`;
       icon.alt = "Station icon";
       icon.classList.add('station-icon');
       li.appendChild(icon);
