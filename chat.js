@@ -1,7 +1,7 @@
 // chat.js
 
 const GIST_ID = '30ec86f3084db72d8189d63b0414e202'; // замените на реальный Gist ID
-const GITHUB_TOKEN = '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'; // ваш GitHub-токен
+const GITHUB_TOKEN = 'ghp_...'; // ваш GitHub-токен
 const CHAT_FILENAME = 'radiochat.json';
 
 let currentGenre = '';
