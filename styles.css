@@ -36,11 +36,11 @@ html, body {
     box-sizing: border-box;
     background: linear-gradient(135deg, 
   #5587e4 0%, 
-  #A07862 20%, 
-  #D48954 40%, 
-  #5B7DB7 60%, 
+  #d68255 20%, 
+  #ec7b2a 40%, 
+  #4b85ea 60%, 
   #C36C8B 80%, 
-  #849F89 100%);
+  #55cbd8 100%);
     padding: 20px;
     overflow-y: auto;
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
@@ -129,7 +129,7 @@ html, body {
 .playlist-area {
     flex: 1;
     border-radius: 12px;
-    padding: 15px;
+    padding: 5px;
     overflow-y: auto;
     position: relative;
 }
@@ -138,11 +138,11 @@ html, body {
 #playlist {
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: 15px;
     overflow-x: hidden;
 }
 #playlist li {
-    background-color: #ffffff68;
+    background-color: #ffffff39;
     color: #333;
     padding: 10px;
     margin-bottom: 5px;
@@ -163,7 +163,7 @@ html, body {
     left: 0;
     height: 100%;
     width: var(--buffer-percent, 0%);
-    background-color: #00F2B8;
+    background-color: #171C2B;
     border-radius: 3px;
     z-index: 0;
     transition: width 0.3s ease;
@@ -172,9 +172,12 @@ html, body {
 #playlist li:hover {
     background-color: #00F2B8;
     color: #171C2B;
+    scale: 1.02;
+    transition: all 0.3s ease-in-out;
 }
 #playlist li.active {
     /* outline: 2px solid #ff715b; */
+    color: #00F2B8;
 }
 #playlist li img.station-icon {
     width: 40px;
@@ -293,6 +296,7 @@ html, body {
 .genre-select {
   scrollbar-width: thin;
   scrollbar-color: #00F2B8 #f2f2f265;
+  border-radius: 22px;
 }
 
 .genre-select {
