@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Audity Internet Radio</title>
+  <!-- Общие стили -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Стили плеера (размещение кнопок, экран, диоды и т. д.) -->
+  <link rel="stylesheet" href="player.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Ruda:wght@400;700;900&display=swap"
+    rel="stylesheet"
+  >
+</head>
+<body>
+
+<div class="container">
+  <!-- Левая часть: плеер + чат -->
+  <div class="left-panel">
+    
+    <!-- Верхняя полоса с логотипом, центрированным -->
+    <div class="top-bar">
+      <span class="logo">AUDITY</span>
+    </div>
+
+    <!-- Экран + диоды (экран для названия станции, таймера и трека) -->
+    <div class="screen-and-diods">
+      <div class="screen">
+        <!-- Левая группа: stream-icon + station-label -->
+        <div class="left-group">
+          <img src="/img/stream_icon.svg" alt="Stream Icon" class="stream-icon">
+          <span id="stationLabel" class="station-label">Radiostation Name</span>
+        </div>
+        <!-- Центральная группа: play-timer -->
+        <div class="center-group">
+          <span id="playTimer" class="play-timer">0:00</span>
+        </div>
+        <!-- Правая группа: track-icon + track-name -->
+        <div class="right-group">
+          <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+          <span id="currentTrack" class="track-name">Artist - Track</span>
+        </div>
+      </div>
+      <!-- Диоды (diods.svg), шириной как экран -->
+      <div class="diods-row">
+        <img src="/img/diods.svg" alt="Diods" class="diods-img">
+      </div>
+    </div>
+
+    <!-- Блок управления плеером -->
+    <div class="player-controls">
+      <!-- Левая колонка: shuffle, rr, random -->
+      <div class="left-stack">
+        <img src="/img/shuffle.svg" alt="Shuffle" id="shuffleBtn" class="player-btn">
+        <img src="/img/rr.svg" alt="Previous" id="rrBtn" class="player-btn">
+        <img src="/img/random_button.svg" alt="Random playlist" id="randomBtn" class="player-btn">
+      </div>
+
+      <!-- Центр: большой круг с кнопкой Play/Pause -->
+      <div class="center-circle">
+        <img src="/img/play_ellipse.svg" alt="Ellipse" class="play-ellipse">
+        <img src="/img/play_button.svg" alt="Play/Pause" id="playPauseBtn" class="player-btn play-btn">
+      </div>
+
+      <!-- Правая колонка: fav, ff, регулятор громкости -->
+      <div class="right-stack">
+        <img src="/img/fav.svg" alt="Favorite" id="favBtn" class="player-btn">
+        <img src="/img/ff.svg" alt="Next" id="ffBtn" class="player-btn">
+        <div class="volume-container">
+          <img src="/img/volume_scale.svg" alt="Volume scale" class="volume-scale">
+          <div class="volume-slider">
+            <img src="/img/volume_line.svg" alt="Volume line" class="volume-line">
+            <img src="/img/volume_knob.svg" alt="Volume knob" class="volume-knob">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Аудио (без стандартных контролов) -->
+    <audio id="audioPlayer" volume="1"></audio>
+
+    <!-- Чат -->
+    <div class="chat-container" id="chat">
+      <div id="chatHeader" class="chat-header">
+        <span id="chatGenre">Chat in /Techno genre</span>
+        <div id="chatUsernameContainer" class="chat-username-box">
+          <input type="text" id="chatUsernameInput" placeholder="Enter Username">
+        </div>
+      </div>
+      <div id="chatMessages" class="chat-messages"></div>
+      <div id="chatInputContainer" class="chat-input-box">
+        <input type="text" id="chatInput" placeholder="Enter message...">
+        <button id="chatSendBtn" class="chat-send-btn">
+          <img src="/img/send.svg" alt="Send">
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Правая часть: плейлист -->
+  <div class="right-panel">
+    <!-- Шапка (Genre + select) -->
+    <div class="genre-box">
+      <label for="playlistSelect">Genre:</label>
+      <select id="playlistSelect" class="genre-select">
+        <option value="genres/african.m3u">African</option>
+        <option value="genres/asian.m3u">Asian</option>
+        <option value="genres/blues.m3u">Blues</option>
+        <option value="genres/chillout.m3u">Chillout</option>
+        <option value="genres/classical.m3u">Classical</option>
+        <option value="genres/downtempo.m3u">Downtempo</option>
+        <option value="genres/drum_and_bass.m3u">Drum &amp; Bass</option>
+        <option value="genres/electronic.m3u">Electronic</option>
+        <option value="genres/funk.m3u">Funk</option>
+        <option value="genres/goa.m3u">Goa</option>
+        <option value="genres/house.m3u">House</option>
+        <option value="genres/industrial.m3u">Industrial</option>
+        <option value="genres/jazz.m3u">Jazz</option>
+        <option value="genres/jungle.m3u">Jungle</option>
+        <option value="genres/lounge.m3u">Lounge</option>
+        <option value="genres/rap.m3u">Rap</option>
+        <option value="genres/reggae.m3u">Reggae</option>
+        <option value="genres/rnb.m3u">RnB</option>
+        <option value="genres/techno.m3u">Techno</option>
+        <option value="genres/world.m3u">World</option>
+      </select>
+    </div>
+
+    <!-- Список станций -->
+    <div class="playlist-area" id="playlistContent">
+      <div id="playlistLoader" class="hidden"></div>
+      <ul id="playlist"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- Подключение основного JS -->
+<script type="module" src="main.js"></script>
+</body>
+</html>

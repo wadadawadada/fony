@@ -1,0 +1,185 @@
+/* player.css */
+
+/* Обёртка для экрана и диодов */
+.screen-and-diods {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  /* Экран (название станции, таймера и трека) */
+  .screen {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background-color: #171C2B;
+    border: 2px solid #686868;
+    border-radius: 50px;
+    padding: 15px;
+    width: 95%;
+    margin-bottom: 10px;
+  }
+  
+  /* Группы внутри экрана */
+  .left-group,
+  .center-group,
+  .right-group {
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Левая группа: stream-icon и station-label */
+  .left-group {
+    flex: 1;
+    gap: 5px;
+  }
+  
+  /* Центральная группа: play-timer */
+  .center-group {
+    flex: 0;
+    justify-content: center;
+  }
+  
+  /* Правая группа: track-icon и track-name */
+  .right-group {
+    flex: 1;
+    justify-content: flex-end;
+    gap: 5px;
+  }
+  
+  /* Иконки на экране */
+  .stream-icon,
+  .track-icon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .track-icon {
+    height: 14px;
+  }
+  
+  /* Название станции и трека с горизонтальной прокруткой при переполнении */
+  .station-label {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #00F2B8;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .track-name {
+    font-size: 1rem;
+    color: #fff;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  /* Диоды */
+  .diods-row {
+    display: flex;
+    justify-content: center;
+  }
+  .diods-img {
+    width: 100%; /* совпадает с шириной .screen */
+    height: auto;
+  }
+  
+  /* Блок с кнопками управления */
+  .player-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 50px; /* Расстояние между левым/центральным/правым блоками */
+  }
+  
+  /* Левая колонка (shuffle, rr, random) и правая колонка (fav, ff, volume) */
+  .left-stack,
+  .right-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px; /* Расстояние между кнопками в колонке */
+  }
+  
+  /* Центр (большой круг с play/pause) */
+  .center-circle {
+    position: relative;
+    width: 200px;
+    height: 200px;
+  }
+  .play-ellipse {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: 200px;
+  }
+  .play-btn {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    cursor: pointer;
+  }
+  
+  /* Общие стили для кнопок (SVG) */
+  .player-btn {
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    filter: drop-shadow(0px 10px 4px rgba(0, 0, 0, 0.25))
+            drop-shadow(0px 12px 3px rgba(0, 0, 0, 0.22));
+  }
+  .player-btn:hover {
+    transition: all 0.3s ease-in-out;
+    transform: scale(0.95);
+    filter: drop-shadow(0px 9px 6px rgba(0, 0, 0, 0.25))
+            drop-shadow(0px 11px 5px rgba(0, 0, 0, 0.079));
+  }
+  
+  /* Конкретные размеры кнопок */
+  #playPauseBtn {
+    width: 120px;
+    height: 120px;
+  }
+  #ffBtn, #rrBtn {
+    width: 65px;
+    height: 65px;
+  }
+  #randomBtn {
+    width: 113px;
+    height: 32px;
+  }
+  #shuffleBtn,
+  #favBtn {
+    width: 38px;
+    height: 38px;
+  }
+  
+  /* Регулятор громкости */
+  .volume-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px; /* небольшой отступ сверху */
+  }
+  .volume-scale {
+    margin-bottom: 5px;
+  }
+  .volume-slider {
+    position: relative;
+    cursor: pointer;
+  }
+  .volume-line {
+    display: block;
+    height: auto;
+  }
+  .volume-knob {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    width: 35px;
+    height: 35px;
+  }
+  
