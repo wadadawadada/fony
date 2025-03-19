@@ -155,10 +155,16 @@ svg {
     align-items: center;
 }
 .chat-username-box input {
-    border: 1px solid #ccc;
-    padding: 5px 8px;
-    border-radius: 4px;
+    border: 0px solid #ffffff;
+    padding: 5px 12px;
+    border-radius: 50px;
     outline: none;
+    background-color: #171C2B;
+    width: 100px;
+}
+.chat-username-box ::placeholder {
+color: #818181;
+font-family: 'Ruda', sans-serif;
 }
 .chat-messages {
     flex: 1;
@@ -228,6 +234,7 @@ svg {
 .genre-search::placeholder {
     color: rgba(255, 255, 255, 0.7);
     padding-left: 3px;
+    font-family: 'Ruda', sans-serif;
 }
 
 

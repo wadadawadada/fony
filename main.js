@@ -73,11 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
       item.classList.remove('active');
       item.style.setProperty('--buffer-percent', '0%');
     });
-
+  
     currentTrackIndex = index;
     const li = allLi[index];
     li.classList.add('active');
-
+  
     const station = stations[index];
     window.currentStationUrl = station.url;
     if (stationLabel) {
@@ -86,10 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentTrackEl) {
       currentTrackEl.textContent = '';
     }
-
+  
+    // Обновляем localStorage сразу при выборе станции
+    localStorage.setItem('lastStation', JSON.stringify({
+      genre: playlistSelect.value,
+      trackIndex: index
+    }));
+  
     audioPlayer.src = station.url;
-    li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
+    li.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  
     if (window.playTimerInterval) clearInterval(window.playTimerInterval);
     let playTimer = 0;
     const playTimerEl = document.getElementById('playTimer');
@@ -98,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       console.error("Элемент playTimer не найден!");
     }
-
+  
     simulateBuffering(li, () => {
       audioPlayer.play().catch(err => console.warn("Autoplay blocked:", err));
       fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
@@ -112,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 1000);
     });
   };
+  
 
   let fakeBufferIntervalId = null;
   function simulateBuffering(li, callback) {
@@ -203,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         localStorage.setItem('lastStation', JSON.stringify({
           genre: playlistSelect.value,
-          trackIndex: 0
+          trackIndex: currentTrackIndex
         }));
         searchInput.value = '';
         if (favoritesFilterBtn.classList.contains('active')) {
