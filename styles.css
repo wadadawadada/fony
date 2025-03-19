@@ -35,12 +35,12 @@ html, body {
     flex-direction: column;
     box-sizing: border-box;
     background: linear-gradient(135deg, 
-  #5587e4 0%, 
-  #d68255 20%, 
-  #ec7b2a 40%, 
-  #4b85ea 60%, 
-  #C36C8B 80%, 
-  #55cbd8 100%);
+        #5587e4 0%, 
+        #d68255 20%, 
+        #ec7b2a 40%, 
+        #4b85ea 60%, 
+        #C36C8B 80%, 
+        #55cbd8 100%);
     padding: 20px;
     overflow-y: auto;
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
@@ -306,8 +306,8 @@ html, body {
 }
 
 .genre-select option {
-    background: #171C2B; /* Цвет фона */
-    color: #fff; /* Цвет текста */
+    background: #171C2B;
+    color: #fff;
     font-family: 'Ruda', sans-serif;
 }
 
@@ -329,4 +329,47 @@ html, body {
 .genre-select::-webkit-scrollbar-thumb {
   background-color: #00F2B8;
   border-radius: 10px;
+}
+
+/* ===== Мобильная версия ===== */
+@media (max-width: 768px) {
+  /* Увеличение размеров элементов управления */
+  .player-controls {
+    gap: 30px;
+  }
+  .center-circle {
+    width: 250px;
+    height: 250px;
+  }
+  #playPauseBtn {
+    width: 180px;
+    height: 180px;
+  }
+  #ffBtn, #rrBtn {
+    width: 80px;
+    height: 80px;
+  }
+  #randomBtn {
+    width: 150px;
+    height: 40px;
+  }
+  #shuffleBtn, #favBtn {
+    width: 50px;
+    height: 50px;
+  }
+
+  /* Скрытие окна чата */
+  .chat-container {
+    display: none;
+  }
+
+  /* Фиксированная высота пунктов плейлиста (7 строк) */
+  #playlist li {
+    height: 25px;
+    overflow: hidden;
+  }
+  .playlist-area {
+    max-height: calc(7 * 50px); /* 7 строк по 50px каждая */
+    overflow-y: auto;
+  }
 }

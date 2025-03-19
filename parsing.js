@@ -146,23 +146,30 @@ export async function fetchAudioAnalysisMetadata(url) {
 // Основная функция, которая последовательно пытается получить метаданные.
 // Если ни один из методов не дал результата, возвращается "No Metadata".
 export async function getStreamMetadata(url) {
-  let metadata = await fetchIcyMetadata(url);
-  if (metadata && metadata.trim().length > 0) return metadata;
+  const methods = [
+    fetchIcyMetadata,
+    fetchID3Metadata,
+    fetchHTMLMetadata,
+    fetchRSSMetadata,
+    fetchManifestMetadata,
+    fetchAudioAnalysisMetadata
+  ];
 
-  metadata = await fetchID3Metadata(url);
-  if (metadata && metadata.trim().length > 0) return metadata;
+  // Запускаем все методы параллельно, трансформируя пустые результаты в отказ
+  const metadataPromises = methods.map(method =>
+    method(url).then(result => {
+      if (result && result.trim().length > 0) {
+        return result;
+      }
+      return Promise.reject("Empty metadata");
+    })
+  );
 
-  metadata = await fetchHTMLMetadata(url);
-  if (metadata && metadata.trim().length > 0) return metadata;
-
-  metadata = await fetchRSSMetadata(url);
-  if (metadata && metadata.trim().length > 0) return metadata;
-
-  metadata = await fetchManifestMetadata(url);
-  if (metadata && metadata.trim().length > 0) return metadata;
-
-  metadata = await fetchAudioAnalysisMetadata(url);
-  if (metadata && metadata.trim().length > 0) return metadata;
-
-  return "No Metadata";
+  try {
+    // Возвращает первый успешно выполненный результат
+    return await Promise.any(metadataPromises);
+  } catch (error) {
+    return "No Metadata";
+  }
 }
+
