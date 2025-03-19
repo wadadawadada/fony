@@ -6,6 +6,7 @@ import {
   initVolumeControl
 } from './controls.js';
 import { initChat, updateChat } from './chat.js';
+import { getStreamMetadata } from './parsing.js'; // Импорт функции парсинга метаданных
 
 document.addEventListener('DOMContentLoaded', () => {
   const audioPlayer = document.getElementById('audioPlayer');
@@ -29,6 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const defaultVolume = { value: 0.9 };
   audioPlayer.volume = defaultVolume.value;
   
+  let metadataInterval = null;
+
   const allGenres = [
     'genres/african.m3u',
     'genres/asian.m3u',
@@ -62,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return mins + ":" + (secs < 10 ? "0" + secs : secs);
   }
 
-  // Имитация "буферизации"
+  // Имитация "буферизации" для визуального эффекта
   let fakeBufferIntervalId = null;
   function simulateBuffering(li, callback) {
     if (fakeBufferIntervalId) {
@@ -83,7 +86,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 10);
   }
 
-  // Выбор станции в списке и запуск таймера воспроизведения
+  // Функция обновления метаданных потока, использующая универсальный метод из parsing.js
+  async function updateStreamMetadata(stationUrl) {
+    const streamTitle = await getStreamMetadata(stationUrl);
+    currentTrackEl.textContent = streamTitle && streamTitle.trim().length > 0
+      ? streamTitle
+      : "No Track Data";
+  }
+
+  // Запуск периодического опроса метаданных (например, раз в 30 секунд)
+  function startMetadataPolling(url) {
+    if (metadataInterval) clearInterval(metadataInterval);
+    updateStreamMetadata(url);
+    metadataInterval = setInterval(() => {
+      updateStreamMetadata(url);
+    }, 30000);
+  }
+
+  // При выборе станции в списке – запуск аудио и запрос метаданных
   window.onStationSelect = function(index) {
     const allLi = document.querySelectorAll('#playlist li');
     allLi.forEach(item => {
@@ -97,12 +117,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const station = stations[index];
     stationLabel.textContent = station.title || 'Unknown Station';
-    currentTrackEl.textContent = station.bitrate || '';
+    // Сброс информации о треке
+    currentTrackEl.textContent = '';
 
     audioPlayer.src = station.url;
     li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-    // Сброс и запуск таймера
+    // Сброс и запуск таймера воспроизведения
     if (window.playTimerInterval) clearInterval(window.playTimerInterval);
     let playTimer = 0;
     const playTimerEl = document.getElementById('playTimer');
@@ -112,8 +133,11 @@ document.addEventListener('DOMContentLoaded', () => {
       audioPlayer.play().catch(err => console.warn("Autoplay blocked:", err));
       fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
       updatePlayPauseButton(audioPlayer, playPauseBtn);
+      
+      // Запускаем опрос метаданных для получения информации о текущей композиции
+      startMetadataPolling(station.url);
 
-      // Запуск обновления таймера каждую секунду
+      // Обновление таймера каждую секунду
       window.playTimerInterval = setInterval(() => {
         playTimer++;
         playTimerEl.textContent = formatTime(playTimer);
@@ -128,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     playlistLoader.classList.add('hidden');
   }
 
+  // Загрузка и отрисовка плейлиста
   function loadAndRenderPlaylist(url, callback) {
     showPlaylistLoader();
     loadPlaylist(url)
@@ -147,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
+  // Восстановление последней выбранной станции
   const lastStationData = localStorage.getItem('lastStation');
   if (lastStationData) {
     try {
@@ -166,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndRenderPlaylist(playlistSelect.value);
   }
 
+  // Обработка изменения жанра
   playlistSelect.addEventListener('change', () => {
     fadeAudioOut(audioPlayer, 500, () => {
       loadAndRenderPlaylist(playlistSelect.value, () => {
