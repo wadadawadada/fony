@@ -21,7 +21,7 @@ export function updateShuffleButton(shuffleActive, shuffleBtn) {
   }
 }
 
-// Инициализация регулятора громкости
+// Инициализация регулятора громкости с поддержкой touch-событий для мобильных устройств
 export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, defaultVolume) {
   let isDragging = false;
 
@@ -35,22 +35,37 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
     volumeKnob.style.left = pos + "px";
   }
 
+  // Обработчики для мыши
   volumeKnob.addEventListener('mousedown', (e) => {
     isDragging = true;
     e.preventDefault();
   });
-
   document.addEventListener('mousemove', (e) => {
     if (isDragging) {
       updateVolume(e.clientX);
     }
   });
-
   document.addEventListener('mouseup', () => {
     isDragging = false;
   });
 
-  // При загрузке страницы выставляем положение ручки (исходя из defaultVolume)
+  // Обработчики для touch-событий
+  volumeKnob.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    // Предотвращаем стандартное поведение, чтобы не возникали дополнительные события
+    e.preventDefault();
+  });
+  document.addEventListener('touchmove', (e) => {
+    if (isDragging) {
+      const touch = e.touches[0];
+      updateVolume(touch.clientX);
+    }
+  });
+  document.addEventListener('touchend', () => {
+    isDragging = false;
+  });
+
+  // При загрузке страницы устанавливаем положение ручки (исходя из defaultVolume)
   window.addEventListener('load', () => {
     const rect = volumeSlider.getBoundingClientRect();
     volumeKnob.style.left = (defaultVolume.value * rect.width) + "px";

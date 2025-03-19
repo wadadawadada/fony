@@ -116,9 +116,10 @@ document.addEventListener('DOMContentLoaded', () => {
     li.classList.add('active');
 
     const station = stations[index];
-    stationLabel.textContent = station.title || 'Unknown Station';
+    // Обновляем текст названия станции (обёрнутый в scrolling-text)
+    stationLabel.querySelector('.scrolling-text').textContent = station.title || 'Unknown Station';
     // Сброс информации о треке
-    currentTrackEl.textContent = '';
+    currentTrackEl.querySelector('.scrolling-text').textContent = '';
 
     audioPlayer.src = station.url;
     li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -279,4 +280,24 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   initVolumeControl(audioPlayer, volumeSlider, volumeKnob, defaultVolume);
+
+  // Функция для обновления бегущей строки, если текст переполняет контейнер
+  function updateScrollingText() {
+    const textContainers = document.querySelectorAll('.station-label, .track-name');
+    textContainers.forEach(container => {
+      const scrollingText = container.querySelector('.scrolling-text');
+      if (scrollingText) {
+        // Сброс класса анимации
+        scrollingText.classList.remove('marquee');
+        // Если ширина содержимого больше ширины контейнера – включаем анимацию
+        if (scrollingText.scrollWidth > container.clientWidth) {
+          scrollingText.classList.add('marquee');
+        }
+      }
+    });
+  }
+
+  // Запуск проверки при загрузке и при изменении размеров окна
+  updateScrollingText();
+  window.addEventListener('resize', updateScrollingText);
 });
