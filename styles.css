@@ -374,4 +374,9 @@ svg {
   .playlist-area {
     height: 60%;
   }
+
+.genre-search {
+    display: none;
+}
+
 }

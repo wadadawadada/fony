@@ -197,6 +197,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-top: -1.5rem;
 }
 
 .volume-scale {
@@ -231,6 +232,18 @@
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+  }
+
+  .screen-and-diods {
+    margin-bottom: 20px;
+  }
+
+  .screen {
+    width: 90%;
+  }
+
+  .diods-row {
+    display: none;
   }
   
   /* Ограничение для station-label и track-name — примерно 10 символов */
