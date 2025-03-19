@@ -347,10 +347,12 @@ font-family: 'Ruda', sans-serif;
 }
 
 .genre-select option {
-    background: #171C2B;
+    background: #171c2b;
     color: #fff;
     font-family: 'Ruda', sans-serif;
+    padding: 8px 12px;
 }
+
 
 /* Webkit (Chrome, Safari) */
 .chat-messages::-webkit-scrollbar,
@@ -424,6 +426,12 @@ font-family: 'Ruda', sans-serif;
   }
   
   .genre-search {
-    display: none;
+    width: 100%;
+    margin-right: 1rem;
   }
+
+  .genre-search::placeholder {
+    max-width: 6ch;
+  }
+
 }

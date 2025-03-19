@@ -2,11 +2,7 @@
 <g filter="url(#filter0_ii_2010_99)">
 <circle cx="34.1914" cy="34.6689" r="33.9375" fill="url(#paint0_linear_2010_99)"/>
 </g>
-<g filter="url(#filter1_i_2010_99)">
-<path d="M54.0177 33.6194C54.6196 34.0273 54.6196 34.9141 54.0177 35.322L39.1391 45.4061C38.4562 45.8689 37.5337 45.3798 37.5337 44.5548L37.5337 24.3866C37.5337 23.5617 38.4562 23.0725 39.1391 23.5353L54.0177 33.6194Z" fill="#BCBCBC"/>
-<path d="M37.306 33.6194C37.9079 34.0273 37.9079 34.9141 37.306 35.322L22.4274 45.4061C21.7446 45.8689 20.8221 45.3798 20.8221 44.5548L20.8221 24.3866C20.8221 23.5617 21.7446 23.0725 22.4274 23.5353L37.306 33.6194Z" fill="#BCBCBC"/>
-</g>
-<path d="M22.708 45.82L37.0337 36.1106V44.5548C37.0337 45.7808 38.4047 46.5079 39.4196 45.82L54.2982 35.7359C55.1927 35.1296 55.1927 33.8118 54.2982 33.2055L39.4196 23.1214C38.4047 22.4336 37.0337 23.1606 37.0337 24.3866V32.8308L22.708 23.1214C21.6931 22.4336 20.3221 23.1606 20.3221 24.3866L20.3221 44.5548C20.3221 45.7808 21.6931 46.5079 22.708 45.82Z" stroke="#B7B7B7"/>
+<path d="M22.708 45.82L37.0337 36.1106V44.5548C37.0337 45.7808 38.4047 46.5079 39.4196 45.82L54.2982 35.7359C55.1927 35.1296 55.1927 33.8118 54.2982 33.2055L39.4196 23.1214C38.4047 22.4336 37.0337 23.1606 37.0337 24.3866V32.8308L22.708 23.1214C21.6931 22.4336 20.3221 23.1606 20.3221 24.3866L20.3221 44.5548C20.3221 45.7808 21.6931 46.5079 22.708 45.82Z" fill="#BCBCBC" stroke="#B7B7B7"/>
 <defs>
 <filter id="filter0_ii_2010_99" x="0.253906" y="0.731445" width="68.8749" height="69.2749" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
@@ -23,16 +19,6 @@
 <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
 <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
 <feBlend mode="normal" in2="effect1_innerShadow_2010_99" result="effect2_innerShadow_2010_99"/>
-</filter>
-<filter id="filter1_i_2010_99" x="19.8221" y="22.3547" width="35.647" height="26.2319" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-<feOffset dy="2"/>
-<feGaussianBlur stdDeviation="1.45"/>
-<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
-<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
-<feBlend mode="normal" in2="shape" result="effect1_innerShadow_2010_99"/>
 </filter>
 <linearGradient id="paint0_linear_2010_99" x1="22.5689" y1="3.05593" x2="45.1164" y2="68.6064" gradientUnits="userSpaceOnUse">
 <stop stop-color="#FBF8F8"/>
