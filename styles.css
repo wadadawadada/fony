@@ -216,6 +216,21 @@ svg {
     outline: none;
     cursor: pointer;
 }
+
+.genre-search {
+    border-radius: 50px;
+    padding: 3px;
+    border: 1px solid #ffffff;
+    background-color: rgba(20, 255, 200, 0);
+    margin-left: 1rem;
+}
+
+.genre-search::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+    padding-left: 3px;
+}
+
+
 .playlist-area {
     flex: 1;
     border-radius: 12px;
@@ -265,7 +280,7 @@ svg {
 }
 #playlist li:hover {
     background-color: #00F2B8;
-    color: #171C2B;
+    color: #ffffff;
     scale: 1.02;
     transition: all 0.3s ease-in-out;
 }
@@ -300,6 +315,8 @@ svg {
 .favorites-filter-icon {
   filter: brightness(0) invert(1); /* Make icon white */
   transition: filter 0.3s ease;
+  margin-left: 1rem;
+  cursor: pointer;
 }
 .favorites-filter-icon.active {
   /* Approximate filter to change the icon color to #07F2B8 */
