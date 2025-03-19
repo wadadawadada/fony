@@ -241,8 +241,7 @@
   
   /* Центрирование контейнера с кнопкой play/pause */
   .center-circle {
-    margin-left: auto;
-    margin-right: auto;
+    position: relative;
   }
   /* Уменьшение .play-ellipse на 15% и центрирование относительно play-btn */
   .play-ellipse {
