@@ -367,47 +367,11 @@ svg {
   .player-controls {
     margin-bottom: 20px;
   }
-}
-
-/* ===== Дополнительные стили ===== */
-
-/* Поле поиска (уменьшено в 1.5 раза) */
-.genre-search {
-  border-radius: 50px;
-  padding: 6px 8px;
-  font-size: 0.8rem;
-  border: none;
-  outline: none;
-  margin-left: 10px;
-}
-.genre-search::placeholder {
-  color: grey;
-}
-
-/* Иконка сердечка для избранного внутри строки плейлиста (уменьшена на 30%) */
-.favorite-heart {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  width: 14px;
-  height: auto;
-  filter: none;
-}
-.favorite-heart.active {
-  filter: invert(1);
-}
-
-/* Иконка фильтра избранного в шапке (между select и поиском):
-   изначально белая (через invert(1)), при активном состоянии – цвет #07F2B8 */
-.favorites-filter-icon {
-  cursor: pointer;
-  width: 20px;
-  height: auto;
-  margin-left: 10px;
-  filter: invert(1);
-}
-.favorites-filter-icon.active {
-  filter: brightness(0) saturate(100%) invert(30%) sepia(100%) saturate(3000%) hue-rotate(160deg) brightness(100%) contrast(100%);
+  /* Новые правила: скрыть чат и установить высоту плейлиста */
+  .chat-container {
+    display: none;
+  }
+  .playlist-area {
+    height: 60%;
+  }
 }

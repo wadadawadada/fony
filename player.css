@@ -260,4 +260,12 @@
   .player-controls {
     margin-bottom: 20px;
   }
+  
+  /* Новые правила для корректного позиционирования кнопки Play при нажатии */
+  .player-btn:hover {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  .play-btn:active {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
 }
