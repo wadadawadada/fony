@@ -1,5 +1,3 @@
-// Файл: main.js
-
 import { fadeAudioOut, fadeAudioIn } from './player.js';
 import { renderPlaylist, loadPlaylist } from './playlist.js';
 import {
@@ -8,9 +6,6 @@ import {
   initVolumeControl
 } from './controls.js';
 import { initChat, updateChat } from './chat.js';
-
-// ====== ДОБАВЛЕНА ССЫЛКА НА ВАШУ ФУНКЦИЮ-ПРОКСИ ======
-const proxyBase = 'https://<ВАШ_САЙТ>.netlify.app/.netlify/functions/audioProxy';
 
 document.addEventListener('DOMContentLoaded', () => {
   const audioPlayer = document.getElementById('audioPlayer');
@@ -33,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let shuffleActive = false;
   const defaultVolume = { value: 0.9 };
   audioPlayer.volume = defaultVolume.value;
-
+  
   const allGenres = [
     'genres/african.m3u',
     'genres/asian.m3u',
@@ -57,15 +52,17 @@ document.addEventListener('DOMContentLoaded', () => {
     'genres/world.m3u'
   ];
 
-  // Инициализируем чат для текущего жанра
+  // Инициализация чата для выбранного жанра
   initChat(playlistSelect.value);
 
+  // Функция форматирования секунд в формат m:ss
   function formatTime(seconds) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return mins + ":" + (secs < 10 ? "0" + secs : secs);
   }
 
+  // Имитация "буферизации"
   let fakeBufferIntervalId = null;
   function simulateBuffering(li, callback) {
     if (fakeBufferIntervalId) {
@@ -86,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 10);
   }
 
-  // ====== ГЛАВНАЯ ФУНКЦИЯ ВЫБОРА СТАНЦИИ ======
+  // Выбор станции в списке и запуск таймера воспроизведения
   window.onStationSelect = function(index) {
     const allLi = document.querySelectorAll('#playlist li');
     allLi.forEach(item => {
@@ -102,13 +99,10 @@ document.addEventListener('DOMContentLoaded', () => {
     stationLabel.textContent = station.title || 'Unknown Station';
     currentTrackEl.textContent = station.bitrate || '';
 
-    // ====== ВАЖНО: ЗДЕСЬ МЕНЯЕМ ПРЯМУЮ URL НА ПРОКСИ ======
-    // Вместо station.url => используем proxyBase + '?url=' + encodeURIComponent(...)
-    // Пример: https://ваш-сайт.netlify.app/.netlify/functions/audioProxy?url=http://...
-    audioPlayer.src = proxyBase + '?url=' + encodeURIComponent(station.url);
-
+    audioPlayer.src = station.url;
     li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
+    // Сброс и запуск таймера
     if (window.playTimerInterval) clearInterval(window.playTimerInterval);
     let playTimer = 0;
     const playTimerEl = document.getElementById('playTimer');
@@ -119,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
       updatePlayPauseButton(audioPlayer, playPauseBtn);
 
+      // Запуск обновления таймера каждую секунду
       window.playTimerInterval = setInterval(() => {
         playTimer++;
         playTimerEl.textContent = formatTime(playTimer);
@@ -152,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // Пытаемся загрузить последние настройки из localStorage
   const lastStationData = localStorage.getItem('lastStation');
   if (lastStationData) {
     try {
@@ -257,6 +251,5 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
   });
 
-  // Инициализация регулятора громкости
   initVolumeControl(audioPlayer, volumeSlider, volumeKnob, defaultVolume);
 });
