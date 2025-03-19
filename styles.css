@@ -9,6 +9,16 @@ html, body {
     background-color: #f2f2f2; /* Light grey background */
 }
 
+@font-face {
+    font-family: 'Technology';
+    src: url('/fonts/Technology-Regular.woff2') format('woff2'),
+        url('/fonts/Technology-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+
 svg {
     transform: translateZ(0);
     backface-visibility: hidden;
@@ -95,9 +105,11 @@ svg {
 }
 /* New style for the timer */
 .play-timer {
-    font-size: 1.2rem;
+    font-size: 2.5rem;
     color: #fff;
     margin: 0 10px;
+    font-family: 'Technology';
+    letter-spacing: 2px;
 }
 
 /* ===== Diodes ===== */
