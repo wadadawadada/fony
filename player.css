@@ -1,6 +1,6 @@
 /* player.css */
 
-/* Обёртка для экрана и диодов */
+/* Wrapper for screen and diodes */
 .screen-and-diods {
   display: flex;
   flex-direction: column;
@@ -8,9 +8,9 @@
   margin-bottom: 20px;
 }
 
-/* Экран (название станции, таймер и трека) */
+/* Screen (station name, timer, and track) */
 .screen {
-  position: relative; /* Для позиционирования play-timer */
+  position: relative; /* For positioning play-timer */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -23,7 +23,7 @@
   margin-bottom: 10px;
 }
 
-/* Группы внутри экрана */
+/* Groups inside the screen */
 .left-group,
 .center-group,
 .right-group {
@@ -31,14 +31,14 @@
   align-items: center;
 }
 
-/* Левая группа: stream-icon и station-label */
+/* Left group: stream-icon and station-label */
 .left-group {
   flex: 1;
   gap: 5px;
-  overflow: hidden; /* на случай, если содержимое будет слишком длинным */
+  overflow: hidden; /* In case the content is too long */
 }
 
-/* Центральная группа: play-timer */
+/* Center group: play-timer */
 .center-group {
   position: absolute;
   left: 50%;
@@ -46,7 +46,7 @@
   justify-content: center;
 }
 
-/* Правая группа: track-icon и track-name */
+/* Right group: track-icon and track-name */
 .right-group {
   flex: 1;
   justify-content: flex-end;
@@ -54,7 +54,7 @@
   overflow: hidden;
 }
 
-/* Иконки на экране */
+/* Icons on the screen */
 .stream-icon,
 .track-icon {
   width: 24px;
@@ -65,8 +65,8 @@
   height: 14px;
 }
 
-/* Оформление текста для station-label и track-name */
-/* Обязательно: оборачиваем текст в элемент с классом .scrolling-text */
+/* Text styling for station-label and track-name */
+/* Wrap text in .scrolling-text */
 .station-label,
 .track-name {
   position: relative;
@@ -74,26 +74,26 @@
   white-space: nowrap;
 }
 
-/* Стили для вложенного элемента со скроллом */
+/* Styling for scrolling text element */
 .station-label .scrolling-text,
 .track-name .scrolling-text {
   display: inline-block;
-  /* Анимация по умолчанию не применяется */
+  /* Default animation not applied */
 }
 
-/* Анимация будет включаться, если добавлен класс .marquee */
+/* Animation will be enabled if .marquee is added */
 .station-label .scrolling-text.marquee,
 .track-name .scrolling-text.marquee {
   animation: marquee 10s linear infinite;
 }
 
-/* Ключевые кадры для анимации бегущей строки */
+/* Keyframes for marquee animation */
 @keyframes marquee {
   0%   { transform: translateX(0%); }
   100% { transform: translateX(-100%); }
 }
 
-/* Стандартные размеры текста */
+/* Standard text sizes */
 .station-label {
   font-size: 1.2rem;
   font-weight: bold;
@@ -105,26 +105,26 @@
   color: #fff;
 }
 
-/* Диоды */
+/* Diodes */
 .diods-row {
   display: flex;
   justify-content: center;
 }
 
 .diods-img {
-  width: 100%; /* совпадает с шириной .screen */
+  width: 100%; /* same as screen width */
   height: auto;
 }
 
-/* Блок с кнопками управления */
+/* Player controls block */
 .player-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 50px; /* Расстояние между группами кнопок */
+  gap: 50px; /* Space between button groups */
 }
 
-/* Левая колонка (shuffle, rr, random) и правая колонка (fav, ff, volume) */
+/* Left stack (shuffle, rr, random) and right stack (fav, ff, volume) */
 .left-stack,
 .right-stack {
   display: flex;
@@ -133,7 +133,7 @@
   gap: 25px;
 }
 
-/* Центр (большой круг с play/pause) */
+/* Center (big circle with play/pause) */
 .center-circle {
   position: relative;
   width: 200px;
@@ -155,7 +155,7 @@
   cursor: pointer;
 }
 
-/* Общие стили для кнопок (SVG) */
+/* Common styling for buttons (SVG) */
 .player-btn {
   cursor: pointer;
   transition: all 0.3s ease-in-out;
@@ -170,7 +170,7 @@
           drop-shadow(0px 11px 5px rgba(0, 0, 0, 0.079));
 }
 
-/* Конкретные размеры кнопок */
+/* Specific button sizes */
 #playPauseBtn {
   width: 120px;
   height: 120px;
@@ -192,7 +192,7 @@
   height: 38px;
 }
 
-/* Регулятор громкости */
+/* Volume control */
 .volume-container {
   display: flex;
   flex-direction: column;
@@ -207,7 +207,7 @@
 .volume-slider {
   position: relative;
   cursor: pointer;
-  z-index: 10; /* Чтобы элемент громкости всегда получал события */
+  z-index: 10; /* Ensures volume element always receives events */
 }
 
 .volume-line {
@@ -225,9 +225,9 @@
   height: 55px;
 }
 
-/* ===== Мобильные доработки ===== */
+/* ===== Mobile Adjustments ===== */
 @media (max-width: 768px) {
-  /* Глобальные размеры: всё вписывается в экран */
+  /* Global sizes: everything fits within the screen */
   html, body, .container {
     width: 100vw;
     height: 100vh;
@@ -246,17 +246,17 @@
     display: none;
   }
   
-  /* Ограничение для station-label и track-name — примерно 10 символов */
+  /* Limit station-label and track-name to about 10 characters */
   .station-label,
   .track-name {
     max-width: 10ch;
   }
   
-  /* Центрирование контейнера с кнопкой play/pause */
+  /* Center the play/pause container */
   .center-circle {
     position: relative;
   }
-  /* Уменьшение .play-ellipse на 15% и центрирование относительно play-btn */
+  /* Scale down .play-ellipse by 15% and center it relative to play-btn */
   .play-ellipse {
     left: 50%;
     top: 50%;
@@ -269,12 +269,27 @@
     top: 50%;
     transform: translate(-50%, -50%);
   }
-  /* Подъём элементов управления вверх для создания пространства над плейлистом */
+  /* Raise control elements to create space above the playlist */
   .player-controls {
     margin-bottom: 20px;
   }
   
-  /* Новые правила для корректного позиционирования кнопки Play при нажатии */
+  /* --- New Mobile Overrides --- */
+  /* Prevent specific player buttons from shifting on hover or active in mobile view */
+  #ffBtn:hover,
+  #rrBtn:hover,
+  #randomBtn:hover,
+  #shuffleBtn:hover,
+  #favBtn:hover,
+  #ffBtn:active,
+  #rrBtn:active,
+  #randomBtn:active,
+  #shuffleBtn:active,
+  #favBtn:active {
+      transform: none !important;
+  }
+  
+  /* New rules for proper positioning of play button on active state */
   .player-btn:hover {
     transform: translate(-50%, -50%) scale(0.95);
   }
