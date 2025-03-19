@@ -6,7 +6,7 @@ import {
   initVolumeControl
 } from './controls.js';
 import { initChat, updateChat } from './chat.js';
-import { getStreamMetadata } from './parsing.js'; // Импорт функции парсинга метаданных
+import { getStreamMetadata } from './parsing.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const audioPlayer = document.getElementById('audioPlayer');
@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const playPauseBtn = document.getElementById('playPauseBtn');
   const volumeSlider = document.querySelector('.volume-slider');
   const volumeKnob = document.querySelector('.volume-knob');
+  const searchInput = document.getElementById('searchInput');
+  const favoritesFilterBtn = document.getElementById('favoritesFilterBtn');
 
   let stations = [];
   let currentTrackIndex = 0;
@@ -55,17 +57,62 @@ document.addEventListener('DOMContentLoaded', () => {
     'genres/world.m3u'
   ];
 
-  // Инициализация чата для выбранного жанра
   initChat(playlistSelect.value);
 
-  // Функция форматирования секунд в формат m:ss
+  // Функция форматирования времени
   function formatTime(seconds) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return mins + ":" + (secs < 10 ? "0" + secs : secs);
   }
 
-  // Имитация "буферизации" для визуального эффекта
+  // Функция выбора станции
+  window.onStationSelect = function(index) {
+    const allLi = document.querySelectorAll('#playlist li');
+    allLi.forEach(item => {
+      item.classList.remove('active');
+      item.style.setProperty('--buffer-percent', '0%');
+    });
+
+    currentTrackIndex = index;
+    const li = allLi[index];
+    li.classList.add('active');
+
+    const station = stations[index];
+    window.currentStationUrl = station.url;
+    if (stationLabel) {
+      stationLabel.textContent = station.title || 'Unknown Station';
+    }
+    if (currentTrackEl) {
+      currentTrackEl.textContent = '';
+    }
+
+    audioPlayer.src = station.url;
+    li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    if (window.playTimerInterval) clearInterval(window.playTimerInterval);
+    let playTimer = 0;
+    const playTimerEl = document.getElementById('playTimer');
+    if (playTimerEl) {
+      playTimerEl.textContent = formatTime(playTimer);
+    } else {
+      console.error("Элемент playTimer не найден!");
+    }
+
+    simulateBuffering(li, () => {
+      audioPlayer.play().catch(err => console.warn("Autoplay blocked:", err));
+      fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
+      updatePlayPauseButton(audioPlayer, playPauseBtn);
+      startMetadataPolling(station.url);
+      window.playTimerInterval = setInterval(() => {
+        playTimer++;
+        if (playTimerEl) {
+          playTimerEl.textContent = formatTime(playTimer);
+        }
+      }, 1000);
+    });
+  };
+
   let fakeBufferIntervalId = null;
   function simulateBuffering(li, callback) {
     if (fakeBufferIntervalId) {
@@ -86,15 +133,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 10);
   }
 
-  // Функция обновления метаданных потока, использующая универсальный метод из parsing.js
   async function updateStreamMetadata(stationUrl) {
     const streamTitle = await getStreamMetadata(stationUrl);
-    currentTrackEl.textContent = streamTitle && streamTitle.trim().length > 0
-      ? streamTitle
-      : "No Track Data";
+    if (currentTrackEl) {
+      currentTrackEl.textContent = streamTitle && streamTitle.trim().length > 0
+        ? streamTitle
+        : "No Track Data";
+    }
   }
 
-  // Запуск периодического опроса метаданных (например, раз в 30 секунд)
   function startMetadataPolling(url) {
     if (metadataInterval) clearInterval(metadataInterval);
     updateStreamMetadata(url);
@@ -103,49 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 30000);
   }
 
-  // При выборе станции в списке – запуск аудио и запрос метаданных
-  window.onStationSelect = function(index) {
-    const allLi = document.querySelectorAll('#playlist li');
-    allLi.forEach(item => {
-      item.classList.remove('active');
-      item.style.setProperty('--buffer-percent', '0%');
-    });
-
-    currentTrackIndex = index;
-    const li = allLi[index];
-    li.classList.add('active');
-
-    const station = stations[index];
-    // Обновляем текст названия станции (обёрнутый в scrolling-text)
-    stationLabel.querySelector('.scrolling-text').textContent = station.title || 'Unknown Station';
-    // Сброс информации о треке
-    currentTrackEl.querySelector('.scrolling-text').textContent = '';
-
-    audioPlayer.src = station.url;
-    li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-    // Сброс и запуск таймера воспроизведения
-    if (window.playTimerInterval) clearInterval(window.playTimerInterval);
-    let playTimer = 0;
-    const playTimerEl = document.getElementById('playTimer');
-    playTimerEl.textContent = formatTime(playTimer);
-
-    simulateBuffering(li, () => {
-      audioPlayer.play().catch(err => console.warn("Autoplay blocked:", err));
-      fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
-      updatePlayPauseButton(audioPlayer, playPauseBtn);
-      
-      // Запускаем опрос метаданных для получения информации о текущей композиции
-      startMetadataPolling(station.url);
-
-      // Обновление таймера каждую секунду
-      window.playTimerInterval = setInterval(() => {
-        playTimer++;
-        playTimerEl.textContent = formatTime(playTimer);
-      }, 1000);
-    });
-  };
-
   function showPlaylistLoader() {
     playlistLoader.classList.remove('hidden');
   }
@@ -153,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
     playlistLoader.classList.add('hidden');
   }
 
-  // Загрузка и отрисовка плейлиста
   function loadAndRenderPlaylist(url, callback) {
     showPlaylistLoader();
     loadPlaylist(url)
@@ -173,7 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // Восстановление последней выбранной станции
   const lastStationData = localStorage.getItem('lastStation');
   if (lastStationData) {
     try {
@@ -193,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndRenderPlaylist(playlistSelect.value);
   }
 
-  // Обработка изменения жанра
   playlistSelect.addEventListener('change', () => {
     fadeAudioOut(audioPlayer, 500, () => {
       loadAndRenderPlaylist(playlistSelect.value, () => {
@@ -204,9 +205,44 @@ document.addEventListener('DOMContentLoaded', () => {
           genre: playlistSelect.value,
           trackIndex: 0
         }));
+        searchInput.value = '';
+        if (favoritesFilterBtn.classList.contains('active')) {
+          favoritesFilterBtn.classList.remove('active');
+        }
       });
       updateChat(playlistSelect.value);
     });
+  });
+
+  searchInput.addEventListener('input', () => {
+    let baseStations = stations;
+    if (favoritesFilterBtn.classList.contains('active')) {
+      baseStations = stations.filter(station => isFavorite(station));
+    }
+    const query = searchInput.value.toLowerCase();
+    const filteredStations = baseStations.filter(station =>
+      station.title.toLowerCase().includes(query)
+    );
+    renderPlaylist(playlistElement, filteredStations);
+  });
+
+  favoritesFilterBtn.addEventListener('click', () => {
+    if (favoritesFilterBtn.classList.contains('active')) {
+      favoritesFilterBtn.classList.remove('active');
+      const query = searchInput.value.toLowerCase();
+      const filteredStations = query
+        ? stations.filter(station => station.title.toLowerCase().includes(query))
+        : stations;
+      renderPlaylist(playlistElement, filteredStations);
+    } else {
+      favoritesFilterBtn.classList.add('active');
+      const favStations = stations.filter(station => isFavorite(station));
+      const query = searchInput.value.toLowerCase();
+      const filteredStations = query
+        ? favStations.filter(station => station.title.toLowerCase().includes(query))
+        : favStations;
+      renderPlaylist(playlistElement, filteredStations);
+    }
   });
 
   playPauseBtn.addEventListener('click', () => {
@@ -245,7 +281,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   favBtn.addEventListener('click', () => {
-    alert('Функция избранного пока не реализована.');
+    if (stations.length > 0) {
+      const currentStation = stations[currentTrackIndex];
+      let favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+      if (!favs.includes(currentStation.url)) {
+        favs.push(currentStation.url);
+        localStorage.setItem('favorites', JSON.stringify(favs));
+      }
+      renderPlaylist(playlistElement, stations);
+    }
   });
 
   shuffleBtn.addEventListener('click', () => {
@@ -280,24 +324,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   initVolumeControl(audioPlayer, volumeSlider, volumeKnob, defaultVolume);
-
-  // Функция для обновления бегущей строки, если текст переполняет контейнер
-  function updateScrollingText() {
-    const textContainers = document.querySelectorAll('.station-label, .track-name');
-    textContainers.forEach(container => {
-      const scrollingText = container.querySelector('.scrolling-text');
-      if (scrollingText) {
-        // Сброс класса анимации
-        scrollingText.classList.remove('marquee');
-        // Если ширина содержимого больше ширины контейнера – включаем анимацию
-        if (scrollingText.scrollWidth > container.clientWidth) {
-          scrollingText.classList.add('marquee');
-        }
-      }
-    });
+  
+  function isFavorite(station) {
+    const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+    return favs.includes(station.url);
   }
-
-  // Запуск проверки при загрузке и при изменении размеров окна
-  updateScrollingText();
-  window.addEventListener('resize', updateScrollingText);
 });

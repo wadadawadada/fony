@@ -104,9 +104,9 @@
     </div>
   </div>
 
-  <!-- Правая часть: плейлист -->
+  <!-- Правая панель: плейлист -->
   <div class="right-panel">
-    <!-- Шапка (Genre + select) -->
+    <!-- Шапка: Genre + select + иконка фильтра избранного + поле поиска -->
     <div class="genre-box">
       <label for="playlistSelect">Genre:</label>
       <select id="playlistSelect" class="genre-select">
@@ -131,6 +131,9 @@
         <option value="genres/techno.m3u">Techno</option>
         <option value="genres/world.m3u">World</option>
       </select>
+      <!-- Иконка для фильтра избранного в жанре -->
+      <img src="/img/heart.svg" id="favoritesFilterBtn" class="favorites-filter-icon">
+      <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
     </div>
 
     <!-- Список станций -->

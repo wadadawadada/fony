@@ -8,7 +8,12 @@ html, body {
     font-family: 'Ruda', sans-serif;
     background-color: #f2f2f2; /* Светло-серый фон */
 }
-  
+
+svg {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
 /* Основная обёртка */
 .container {
     display: flex;
@@ -17,7 +22,7 @@ html, body {
     height: 100vh;
     overflow: hidden;
 }
-  
+
 /* Левая панель (плеер + чат) */
 .left-panel {
     display: flex;
@@ -27,7 +32,7 @@ html, body {
     box-sizing: border-box;
     background-color: #f2f2f2;
 }
-  
+
 /* Правая панель (список станций) */
 .right-panel {
     width: 35%;
@@ -45,7 +50,7 @@ html, body {
     overflow-y: auto;
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
-  
+
 /* ===== Верхняя полоса с логотипом ===== */
 .top-bar {
     display: flex;
@@ -59,7 +64,7 @@ html, body {
     letter-spacing: 12px;
     color: #9e9e9e;
 }
-  
+
 /* ===== Экран с названием станции, таймером и трека ===== */
 .screen-and-diods {
     display: flex;
@@ -94,7 +99,7 @@ html, body {
     color: #fff;
     margin: 0 10px;
 }
-  
+
 /* ===== Диоды ===== */
 .diods-row {
     display: flex;
@@ -107,91 +112,7 @@ html, body {
     width: 200px;
     height: auto;
 }
-  
-/* ===== ПРАВАЯ ПАНЕЛЬ: ЖАНР + ПЛЕЙЛИСТ ===== */
-.genre-box {
-    margin-bottom: 15px;
-    margin-left: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: #ffffff;
-    font-size: 1.2rem;
-}
-.genre-select {
-    padding: 8px 0px;
-    font-size: 1.2rem;
-    border-radius: 8px;
-    border: none;
-    outline: none;
-    cursor: pointer;
-}
-.playlist-area {
-    flex: 1;
-    border-radius: 12px;
-    padding: 5px;
-    overflow-y: auto;
-    position: relative;
-}
-  
-/* Список станций */
-#playlist {
-    list-style: none;
-    margin: 0;
-    padding: 15px;
-    overflow-x: hidden;
-}
-#playlist li {
-    background-color: #ffffff39;
-    color: #333;
-    padding: 10px;
-    margin-bottom: 5px;
-    border-radius: 3px;
-    position: relative;
-    cursor: pointer;
-    --buffer-percent: 0%;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: background-color 0.2s;
-    /* backdrop-filter: blur(5px); */
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
-}
-#playlist li .progress {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: var(--buffer-percent, 0%);
-    background-color: #171C2B;
-    border-radius: 3px;
-    z-index: 0;
-    transition: width 0.3s ease;
-    pointer-events: none;
-}
-#playlist li:hover {
-    background-color: #00F2B8;
-    color: #171C2B;
-    scale: 1.02;
-    transition: all 0.3s ease-in-out;
-}
-#playlist li.active {
-    /* outline: 2px solid #ff715b; */
-    color: #00F2B8;
-}
-#playlist li img.station-icon {
-    width: 40px;
-    height: 40px;
-    object-fit: cover;
-    position: relative;
-    z-index: 1;
-    border-radius: 3px;
-}
-#playlist li span {
-    position: relative;
-    z-index: 1;
-}
-  
+
 /* Прелоадер */
 #playlistLoader {
     position: absolute;
@@ -212,7 +133,7 @@ html, body {
 .hidden {
     display: none;
 }
-  
+
 /* ===== ЧАТ ===== */
 .chat-container {
     margin-top: 120px;
@@ -276,7 +197,91 @@ html, body {
 .chat-send-btn img:hover {
     transform: scale(0.97);
 }
-  
+
+/* ===== ПРАВАЯ ПАНЕЛЬ: ЖАНР + ПЛЕЙЛИСТ ===== */
+.genre-box {
+    margin-bottom: 15px;
+    margin-left: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #ffffff;
+    font-size: 1.2rem;
+}
+.genre-select {
+    padding: 8px 0;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+.playlist-area {
+    flex: 1;
+    border-radius: 12px;
+    padding: 5px;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Список станций */
+#playlist {
+    list-style: none;
+    margin: 0;
+    padding: 15px;
+    overflow-x: hidden;
+}
+#playlist li {
+    background-color: #ffffff39;
+    color: #333;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+    position: relative;
+    cursor: pointer;
+    --buffer-percent: 0%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.2s;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+/* Для активного элемента принудительно задаём фон */
+#playlist li.active {
+    background-color: #171C2B;
+    color: #00F2B8;
+}
+#playlist li .progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: var(--buffer-percent, 0%);
+    background-color: #171C2B;
+    border-radius: 3px;
+    z-index: 0;
+    transition: width 0.3s ease;
+    pointer-events: none;
+}
+#playlist li:hover {
+    background-color: #00F2B8;
+    color: #171C2B;
+    scale: 1.02;
+    transition: all 0.3s ease-in-out;
+}
+#playlist li img.station-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    position: relative;
+    z-index: 1;
+    border-radius: 3px;
+}
+#playlist li span {
+    position: relative;
+    z-index: 1;
+}
+
 /* ===== Адаптивность ===== */
 @media (max-width: 1024px) {
     .container {
@@ -333,43 +338,76 @@ html, body {
 
 /* ===== Мобильная версия ===== */
 @media (max-width: 768px) {
-  /* Увеличение размеров элементов управления */
-  .player-controls {
-    gap: 30px;
-  }
-  .center-circle {
-    width: 250px;
-    height: 250px;
-  }
-  #playPauseBtn {
-    width: 180px;
-    height: 180px;
-  }
-  #ffBtn, #rrBtn {
-    width: 80px;
-    height: 80px;
-  }
-  #randomBtn {
-    width: 150px;
-    height: 40px;
-  }
-  #shuffleBtn, #favBtn {
-    width: 50px;
-    height: 50px;
-  }
-
-  /* Скрытие окна чата */
-  .chat-container {
-    display: none;
-  }
-
-  /* Фиксированная высота пунктов плейлиста (7 строк) */
-  #playlist li {
-    height: 25px;
+  html, body, .container {
+    width: 100vw;
+    height: 100vh;
     overflow: hidden;
   }
-  .playlist-area {
-    max-height: calc(7 * 50px); /* 7 строк по 50px каждая */
-    overflow-y: auto;
+  
+  .station-label,
+  .track-name {
+    max-width: 10ch;
   }
+  
+  .center-circle {
+    position: relative;
+  }
+  .play-ellipse {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 170px;
+    height: 170px;
+  }
+  .play-btn {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .player-controls {
+    margin-bottom: 20px;
+  }
+}
+
+/* ===== Дополнительные стили ===== */
+
+/* Поле поиска (уменьшено в 1.5 раза) */
+.genre-search {
+  border-radius: 50px;
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  border: none;
+  outline: none;
+  margin-left: 10px;
+}
+.genre-search::placeholder {
+  color: grey;
+}
+
+/* Иконка сердечка для избранного внутри строки плейлиста (уменьшена на 30%) */
+.favorite-heart {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  width: 14px;
+  height: auto;
+  filter: none;
+}
+.favorite-heart.active {
+  filter: invert(1);
+}
+
+/* Иконка фильтра избранного в шапке (между select и поиском):
+   изначально белая (через invert(1)), при активном состоянии – цвет #07F2B8 */
+.favorites-filter-icon {
+  cursor: pointer;
+  width: 20px;
+  height: auto;
+  margin-left: 10px;
+  filter: invert(1);
+}
+.favorites-filter-icon.active {
+  filter: brightness(0) saturate(100%) invert(30%) sepia(100%) saturate(3000%) hue-rotate(160deg) brightness(100%) contrast(100%);
 }
