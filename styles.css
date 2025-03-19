@@ -105,7 +105,7 @@ svg {
 }
 /* New style for the timer */
 .play-timer {
-    font-size: 2.5rem;
+    font-size: 2rem;
     color: #fff;
     margin: 0 10px;
     font-family: 'Technology';
@@ -410,6 +410,14 @@ font-family: 'Ruda', sans-serif;
   .track-name {
     max-width: 10ch;
   }
+
+  .play-timer {
+    font-size: 1.5rem;
+    color: #fff;
+    margin: 0 10px;
+    font-family: 'Technology';
+    letter-spacing: 2px;
+}
   
   .center-circle {
     position: relative;
