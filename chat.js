@@ -171,6 +171,26 @@ export async function initChat(genre) {
   initChatUsername();
   // Первичная отрисовка сообщений
   renderChatMessages();
+
+  // Навешиваем обработчики на кнопку "Отправить" и Enter
+  const sendBtn = getChatSendBtn();
+  const chatInput = getChatInput();
+
+  if (sendBtn) {
+    sendBtn.addEventListener('click', sendMessage);
+  } else {
+    console.error("Кнопка отправки (chatSendBtn) не найдена в DOM!");
+  }
+
+  if (chatInput) {
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  } else {
+    console.error("Поле ввода (chatInput) не найдено в DOM!");
+  }
 }
 
 /**
