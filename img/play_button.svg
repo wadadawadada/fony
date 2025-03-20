@@ -1,11 +1,11 @@
-<svg width="121" height="121" viewBox="0 0 121 121" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="123" height="123" viewBox="0 0 123 123" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="play_button">
-<circle id="Ellipse 4" cx="60.3152" cy="60.7357" r="60" fill="#07F2B8" style="fill:#07F2B8;fill:color(display-p3 0.0275 0.9490 0.7216);fill-opacity:1;"/>
-<circle id="Ellipse 3" cx="60.3152" cy="60.7358" r="55.443" fill="url(#paint0_linear_2076_261)" style=""/>
-<path id="Polygon 15" d="M56.6535 83.7093L84.7665 64.8907C87.7247 62.9105 87.7247 58.5609 84.7665 56.5807L56.6535 37.7621C53.3313 35.5383 48.8721 37.9193 48.8721 41.9171L48.8721 79.5543C48.8721 83.5521 53.3313 85.9331 56.6535 83.7093Z" fill="#BCBCBC" stroke="#ABABAB" style="fill:#BCBCBC;fill:color(display-p3 0.7360 0.7360 0.7360);fill-opacity:1;stroke:#ABABAB;stroke:color(display-p3 0.6704 0.6704 0.6704);stroke-opacity:1;" stroke-width="2"/>
+<circle id="Ellipse 4" cx="61.3152" cy="61.7357" r="60.5" fill="#07F2B8" stroke="#ABABAB" style="fill:#07F2B8;fill:color(display-p3 0.0275 0.9490 0.7216);fill-opacity:1;stroke:#ABABAB;stroke:color(display-p3 0.6704 0.6704 0.6704);stroke-opacity:1;"/>
+<circle id="Ellipse 3" cx="61.3152" cy="61.7358" r="55.443" fill="url(#paint0_linear_2076_261)" style=""/>
+<path id="Polygon 15" d="M57.3753 84.2938L85.4883 65.4752C88.1507 63.693 88.1507 59.7784 85.4883 57.9962L57.3753 39.1776C54.3854 37.1761 50.3721 39.3191 50.3721 42.9171L50.3721 80.5543C50.3721 84.1523 54.3854 86.2953 57.3753 84.2938Z" fill="#07F2B8" stroke="#ABABAB" style="fill:#07F2B8;fill:color(display-p3 0.0275 0.9490 0.7216);fill-opacity:1;stroke:#ABABAB;stroke:color(display-p3 0.6704 0.6704 0.6704);stroke-opacity:1;"/>
 </g>
 <defs>
-<linearGradient id="paint0_linear_2076_261" x1="41.3278" y1="9.09019" x2="78.1633" y2="116.179" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint0_linear_2076_261" x1="42.3278" y1="10.0902" x2="79.1633" y2="117.179" gradientUnits="userSpaceOnUse">
 <stop stop-color="#FBF8F8" style="stop-color:#FBF8F8;stop-color:color(display-p3 0.9845 0.9735 0.9735);stop-opacity:1;"/>
 <stop offset="1" stop-color="#CECCCC" style="stop-color:#CECCCC;stop-color:color(display-p3 0.8091 0.8001 0.8001);stop-opacity:1;"/>
 </linearGradient>

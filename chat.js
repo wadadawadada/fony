@@ -4,7 +4,7 @@
 async function fetchConfig() {
   const response = await fetch('/.netlify/functions/get-config');
   if (!response.ok) {
-    throw new Error('Ошибка получения конфигурации');
+    throw new Error('Error fetching config');
   }
   return await response.json();
 }

@@ -161,7 +161,7 @@
 .player-btn {
   cursor: pointer;
   transition: all 0.3s ease-in-out;
-  filter: drop-shadow(0px 5px 2px #0000002c);
+  filter: drop-shadow(0px 6px 1px #0000002c);
 }
 
 .player-btn:hover {
