@@ -333,7 +333,7 @@ svg {
     height: 2.5rem;
 }
 .favorites-filter-icon.active {
-    filter: invert(55%) sepia(92%) saturate(393%) hue-rotate(140deg) brightness(98%) contrast(93%);
+    filter: invert(7%) sepia(20%) saturate(500%) hue-rotate(200deg) brightness(90%) contrast(100%);
 }
 
 /* Scrollbar Styling */
