@@ -1,14 +1,24 @@
 // chat.js
 
-const GIST_ID = '30ec86f3084db72d8189d63b0414e202'; // замените на реальный Gist ID
-const GITHUB_TOKEN = 'ghp_...'; // ваш GitHub-токен
-const CHAT_FILENAME = 'radiochat.json';
+// Функция для получения конфигурации из Netlify Functions
+async function fetchConfig() {
+  const response = await fetch('/netlify/functions/get-config');
+  if (!response.ok) {
+    throw new Error('Ошибка получения конфигурации');
+  }
+  return await response.json();
+}
+
+// Глобальные переменные для хранения конфигурационных данных
+let GIST_ID;
+let GITHUB_TOKEN;
+let CHAT_FILENAME;
 
 let currentGenre = '';
 let pollInterval = null;
 let username = localStorage.getItem('chatUsername') || '';
 
-// Функции-«геттеры» для элементов чата
+// Геттеры для элементов чата
 function getChatMessagesElement() {
   return document.getElementById('chatMessages');
 }
@@ -130,17 +140,33 @@ function startPolling() {
   }, 10000);
 }
 
-// Инициализация чата
-export function initChat(genre) {
+/**
+ * Инициализация чата.
+ * Функция сначала получает конфигурацию с помощью Netlify Functions,
+ * затем инициализирует элементы чата и запускает опрос обновлений.
+ *
+ * @param {string} genre - Жанр (например, значение из плейлиста), для которого открывается чат.
+ */
+export async function initChat(genre) {
+  try {
+    // Получаем конфигурационные значения из Netlify Functions
+    const config = await fetchConfig();
+    GIST_ID = config.GIST_ID;
+    GITHUB_TOKEN = config.GITHUB_TOKEN;
+    CHAT_FILENAME = config.CHAT_FILENAME;
+  } catch (error) {
+    console.error('Ошибка инициализации конфигурации:', error);
+    return;
+  }
+  
   currentGenre = genre;
   getChatHeader().textContent = `Chat in /${genre.replace('genres/','').replace('.m3u','')} genre`;
   initChatUsername();
   renderChatMessages();
   startPolling();
 
-  // Событие на кнопку «отправить»
+  // События для отправки сообщений
   getChatSendBtn().addEventListener('click', sendMessage);
-  // Отправка по Enter
   getChatInput().addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       sendMessage();
@@ -148,7 +174,10 @@ export function initChat(genre) {
   });
 }
 
-// Обновление чата при смене жанра
+/**
+ * Обновление чата при смене жанра.
+ * @param {string} genre - Новый жанр.
+ */
 export function updateChat(genre) {
   currentGenre = genre;
   getChatHeader().textContent = `Chat in /${genre.replace('genres/','').replace('.m3u','')} genre`;
