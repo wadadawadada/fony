@@ -1,17 +1,17 @@
 // playlist.js
 
-// Отрисовка списка станций в <ul id="playlist">
-// Если window.currentStationUrl совпадает с URL станции, добавляется класс active,
-// чтобы фон активного элемента сохранялся.
+// Отрисовка списка станций с оптимизированным доступом к DOM через DocumentFragment и делегированием событий.
+// Добавлены data-атрибуты для обработки кликов, а также включена ленивый импорт изображений (loading="lazy").
 export function renderPlaylist(playlistElement, stations) {
   playlistElement.innerHTML = '';
+  const fragment = document.createDocumentFragment();
 
   stations.forEach((station, index) => {
     const li = document.createElement('li');
     li.style.position = "relative";
     li.style.setProperty('--buffer-percent', '0%');
+    li.dataset.index = index; // Для делегирования события клика
 
-    // Если эта станция является текущей, добавляем класс active
     if (window.currentStationUrl && station.url === window.currentStationUrl) {
       li.classList.add('active');
     }
@@ -21,27 +21,28 @@ export function renderPlaylist(playlistElement, stations) {
     progressDiv.classList.add('progress');
     li.appendChild(progressDiv);
 
-    // Если есть обложка (logo)
+    // Если задана обложка (logo)
     if (station.cover) {
       const icon = document.createElement('img');
       icon.src = station.cover;
       icon.alt = "Station icon";
       icon.classList.add('station-icon');
+      icon.loading = 'lazy'; // Ленивый импорт изображения
       li.appendChild(icon);
     }
 
-    // Текст с названием станции + битрейт
+    // Текст с названием станции и битрейтом
     const span = document.createElement('span');
     span.textContent = station.title + (station.bitrate ? ` (${station.bitrate})` : '');
     li.appendChild(span);
 
-    // Если станция находится в избранном, добавляем иконку сердечка по правому краю
+    // Если станция находится в избранном, добавляем иконку сердечка
     if (isFavorite(station)) {
       const favHeart = document.createElement('img');
       favHeart.classList.add('favorite-heart', 'active');
       favHeart.src = "/img/heart.svg";
       favHeart.alt = "Favorite";
-      // При клике по иконке удаляем станцию из избранного и перерисовываем плейлист
+      favHeart.loading = 'lazy';
       favHeart.addEventListener('click', (event) => {
         event.stopPropagation();
         removeFavorite(station);
@@ -50,18 +51,13 @@ export function renderPlaylist(playlistElement, stations) {
       li.appendChild(favHeart);
     }
 
-    // При клике по элементу выбирается станция
-    li.addEventListener('click', () => {
-      if (typeof window.onStationSelect === 'function') {
-        window.onStationSelect(index);
-      }
-    });
-
-    playlistElement.appendChild(li);
+    fragment.appendChild(li);
   });
+
+  playlistElement.appendChild(fragment);
 }
 
-// Вспомогательные функции для работы с избранным через localStorage
+// Функции для работы с избранным через localStorage
 function getFavorites() {
   return JSON.parse(localStorage.getItem('favorites') || '[]');
 }
@@ -91,7 +87,7 @@ function removeFavorite(station) {
   }
 }
 
-// Загрузка .m3u (список станций)
+// Загрузка плейлиста (.m3u)
 export function loadPlaylist(url) {
   return fetch(url)
     .then(response => response.text())

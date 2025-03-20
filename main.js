@@ -1,3 +1,5 @@
+// main.js
+
 import { fadeAudioOut, fadeAudioIn } from './player.js';
 import { renderPlaylist, loadPlaylist } from './playlist.js';
 import {
@@ -66,6 +68,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return mins + ":" + (secs < 10 ? "0" + secs : secs);
   }
 
+  // Реализация функции debounce для оптимизации обработки ввода
+  function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  }
+
   // Функция выбора станции
   window.onStationSelect = function(index) {
     const allLi = document.querySelectorAll('#playlist li');
@@ -87,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
       currentTrackEl.textContent = '';
     }
   
-    // Обновляем localStorage сразу при выборе станции
+    // Сохраняем выбор станции в localStorage
     localStorage.setItem('lastStation', JSON.stringify({
       genre: playlistSelect.value,
       trackIndex: index
@@ -119,25 +130,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
   
-
-  let fakeBufferIntervalId = null;
-  function simulateBuffering(li, callback) {
-    if (fakeBufferIntervalId) {
-      clearInterval(fakeBufferIntervalId);
-      fakeBufferIntervalId = null;
+  // Делегирование кликов по элементам плейлиста
+  playlistElement.addEventListener('click', function(e) {
+    let li = e.target;
+    while (li && li.tagName !== 'LI') {
+      li = li.parentElement;
     }
-    let currentBuffer = 0;
-    li.style.setProperty('--buffer-percent', '0%');
+    if (li && li.dataset.index !== undefined) {
+      const index = parseInt(li.dataset.index, 10);
+      window.onStationSelect(index);
+    }
+  });
 
-    fakeBufferIntervalId = setInterval(() => {
-      currentBuffer += 5;
-      li.style.setProperty('--buffer-percent', currentBuffer + '%');
-      if (currentBuffer >= 100) {
-        clearInterval(fakeBufferIntervalId);
-        fakeBufferIntervalId = null;
+  // Функция имитации буферизации с использованием requestAnimationFrame
+  function simulateBuffering(li, callback) {
+    let startTime = null;
+    const duration = 1000; // 1 секунда
+    function animate(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min((elapsed / duration) * 100, 100);
+      li.style.setProperty('--buffer-percent', progress + '%');
+      if (progress < 100) {
+        requestAnimationFrame(animate);
+      } else {
         if (callback) callback();
       }
-    }, 10);
+    }
+    requestAnimationFrame(animate);
   }
 
   async function updateStreamMetadata(stationUrl) {
@@ -221,7 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  searchInput.addEventListener('input', () => {
+  // Обработчик поля поиска с debounce (300 мс)
+  searchInput.addEventListener('input', debounce(() => {
     let baseStations = stations;
     if (favoritesFilterBtn.classList.contains('active')) {
       baseStations = stations.filter(station => isFavorite(station));
@@ -231,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
       station.title.toLowerCase().includes(query)
     );
     renderPlaylist(playlistElement, filteredStations);
-  });
+  }, 300));
 
   favoritesFilterBtn.addEventListener('click', () => {
     if (favoritesFilterBtn.classList.contains('active')) {

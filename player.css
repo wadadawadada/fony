@@ -112,7 +112,7 @@
 }
 
 .diods-img {
-  width: 100%; /* same as screen width */
+  width: 80%; /* same as screen width */
   height: auto;
 }
 
@@ -184,8 +184,8 @@
 }
 
 #randomBtn {
-  width: 113px;
-  height: 32px;
+  width: 133px;
+  height: 42px;
 }
 
 #shuffleBtn,

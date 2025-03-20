@@ -1,36 +1,34 @@
 // player.js
 
-// Плавное затухание звука
-export function fadeAudioOut(audioPlayer, duration, callback) {
-  const steps = 20;
-  const intervalTime = duration / steps;
-  const initialVolume = audioPlayer.volume;
-  let currentStep = 0;
+// Функции плавного затухания и увеличения громкости, реализованные через requestAnimationFrame.
 
-  const fadeOutInterval = setInterval(() => {
-    currentStep++;
-    let newVolume = Math.max(initialVolume - (initialVolume / steps) * currentStep, 0);
-    audioPlayer.volume = newVolume;
-    if (newVolume <= 0) {
-      clearInterval(fadeOutInterval);
+export function fadeAudioOut(audioPlayer, duration, callback) {
+  const initialVolume = audioPlayer.volume;
+  const startTime = performance.now();
+
+  function fade() {
+    const elapsed = performance.now() - startTime;
+    const fraction = elapsed / duration;
+    audioPlayer.volume = Math.max(initialVolume * (1 - fraction), 0);
+    if (fraction < 1) {
+      requestAnimationFrame(fade);
+    } else {
       if (callback) callback();
     }
-  }, intervalTime);
+  }
+  requestAnimationFrame(fade);
 }
 
-// Плавное увеличение громкости
 export function fadeAudioIn(audioPlayer, defaultVolume, duration) {
-  const steps = 20;
-  const intervalTime = duration / steps;
-  let currentStep = 0;
-  audioPlayer.volume = 0;
+  const startTime = performance.now();
 
-  const fadeInInterval = setInterval(() => {
-    currentStep++;
-    let newVolume = Math.min((defaultVolume / steps) * currentStep, defaultVolume);
-    audioPlayer.volume = newVolume;
-    if (newVolume >= defaultVolume) {
-      clearInterval(fadeInInterval);
+  function fade() {
+    const elapsed = performance.now() - startTime;
+    const fraction = Math.min(elapsed / duration, 1);
+    audioPlayer.volume = fraction * defaultVolume;
+    if (fraction < 1) {
+      requestAnimationFrame(fade);
     }
-  }, intervalTime);
+  }
+  requestAnimationFrame(fade);
 }
