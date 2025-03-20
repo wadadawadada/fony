@@ -9,15 +9,17 @@ async function fetchConfig() {
   return await response.json();
 }
 
-
 // Глобальные переменные для хранения конфигурационных данных
 let GIST_ID;
 let GITHUB_TOKEN;
 let CHAT_FILENAME;
 
 let currentGenre = '';
-let pollInterval = null;
 let username = localStorage.getItem('chatUsername') || '';
+
+// Переменные для кэширования данных чата
+let lastChatETag = '';
+let cachedChatData = {};
 
 // Геттеры для элементов чата
 function getChatMessagesElement() {
@@ -59,11 +61,21 @@ function initChatUsername() {
   });
 }
 
-// Загрузка чата с Gist
+// Загрузка чата с Gist с кэшированием через ETag
 async function fetchChatData() {
   const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `token ${GITHUB_TOKEN}` }
+    headers: { 
+      Authorization: `token ${GITHUB_TOKEN}`,
+      'If-None-Match': lastChatETag
+    }
   });
+  
+  if (response.status === 304) {
+    // Данные не изменились – возвращаем закэшированное значение
+    return cachedChatData;
+  }
+  
+  lastChatETag = response.headers.get('ETag');
   const gist = await response.json();
   let data = {};
   if (gist && gist.files && gist.files[CHAT_FILENAME]) {
@@ -73,6 +85,7 @@ async function fetchChatData() {
       console.error('Ошибка парсинга radiochat.json', e);
     }
   }
+  cachedChatData = data;
   return data;
 }
 
@@ -95,7 +108,7 @@ async function updateChatData(updatedData) {
 }
 
 // Отрисовка сообщений в блоке #chatMessages
-async function renderChatMessages() {
+export async function renderChatMessages() {
   const messagesElem = getChatMessagesElement();
   messagesElem.innerHTML = '';
   const data = await fetchChatData();
@@ -110,8 +123,8 @@ async function renderChatMessages() {
   messagesElem.scrollTop = messagesElem.scrollHeight;
 }
 
-// Отправка нового сообщения
-async function sendMessage() {
+// Отправка нового сообщения с мгновенным обновлением UI
+export async function sendMessage() {
   const input = getChatInput();
   const text = input.value.trim();
   if (!text) return;
@@ -130,21 +143,14 @@ async function sendMessage() {
   });
   await updateChatData(data);
   input.value = '';
-  await renderChatMessages();
-}
-
-// Запуск опроса чата (обновление каждые 10 секунд)
-function startPolling() {
-  if (pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(() => {
-    renderChatMessages();
-  }, 10000);
+  // Обновляем сообщения сразу после отправки
+  renderChatMessages();
 }
 
 /**
  * Инициализация чата.
  * Функция сначала получает конфигурацию с помощью Netlify Functions,
- * затем инициализирует элементы чата и запускает опрос обновлений.
+ * затем инициализирует элементы чата.
  *
  * @param {string} genre - Жанр (например, значение из плейлиста), для которого открывается чат.
  */
@@ -163,16 +169,8 @@ export async function initChat(genre) {
   currentGenre = genre;
   getChatHeader().textContent = `Chat in /${genre.replace('genres/','').replace('.m3u','')} genre`;
   initChatUsername();
+  // Первичная отрисовка сообщений
   renderChatMessages();
-  startPolling();
-
-  // События для отправки сообщений
-  getChatSendBtn().addEventListener('click', sendMessage);
-  getChatInput().addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      sendMessage();
-    }
-  });
 }
 
 /**
@@ -182,5 +180,10 @@ export async function initChat(genre) {
 export function updateChat(genre) {
   currentGenre = genre;
   getChatHeader().textContent = `Chat in /${genre.replace('genres/','').replace('.m3u','')} genre`;
+  renderChatMessages();
+}
+
+// Для синхронизации чата из глобального цикла обновления
+export function syncChat() {
   renderChatMessages();
 }

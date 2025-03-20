@@ -7,7 +7,7 @@ import {
   updateShuffleButton,
   initVolumeControl
 } from './controls.js';
-import { initChat, updateChat } from './chat.js';
+import { initChat, updateChat, syncChat } from './chat.js';
 import { getStreamMetadata } from './parsing.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -34,8 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const defaultVolume = { value: 0.9 };
   audioPlayer.volume = defaultVolume.value;
   
-  let metadataInterval = null;
-
   const allGenres = [
     'genres/african.m3u',
     'genres/asian.m3u',
@@ -59,16 +57,17 @@ document.addEventListener('DOMContentLoaded', () => {
     'genres/world.m3u'
   ];
 
+  // Инициализация чата (без отдельного таймера – синхронизация происходит через глобальный updater)
   initChat(playlistSelect.value);
 
-  // Функция форматирования времени
+  // Функция форматирования времени в формате mm:ss
   function formatTime(seconds) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return mins + ":" + (secs < 10 ? "0" + secs : secs);
   }
 
-  // Реализация функции debounce для оптимизации обработки ввода
+  // Функция debounce для оптимизации обработки ввода
   function debounce(func, wait) {
     let timeout;
     return function(...args) {
@@ -84,11 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
       item.classList.remove('active');
       item.style.setProperty('--buffer-percent', '0%');
     });
-  
+
     currentTrackIndex = index;
     const li = allLi[index];
     li.classList.add('active');
-  
+
     const station = stations[index];
     window.currentStationUrl = station.url;
     if (stationLabel) {
@@ -97,39 +96,43 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentTrackEl) {
       currentTrackEl.textContent = '';
     }
-  
+
     // Сохраняем выбор станции в localStorage
     localStorage.setItem('lastStation', JSON.stringify({
       genre: playlistSelect.value,
       trackIndex: index
     }));
-  
+
     audioPlayer.src = station.url;
     li.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  
+
+    // Останавливаем предыдущий таймер воспроизведения, если он был запущен
     if (window.playTimerInterval) clearInterval(window.playTimerInterval);
-    let playTimer = 0;
+
+    // Сброс отображения таймера на 0
     const playTimerEl = document.getElementById('playTimer');
     if (playTimerEl) {
-      playTimerEl.textContent = formatTime(playTimer);
+      playTimerEl.textContent = formatTime(0);
     } else {
       console.error("Элемент playTimer не найден!");
     }
-  
+
+    // Имитация буферизации, после чего сразу запускается воспроизведение
     simulateBuffering(li, () => {
-      audioPlayer.play().catch(err => console.warn("Autoplay blocked:", err));
+      // Сбросим mute и установим громкость по умолчанию
+      audioPlayer.muted = false;
+      audioPlayer.volume = defaultVolume.value;
+      // Пытаемся сразу начать воспроизведение
+      audioPlayer.play().then(() => {
+        // Если воспроизведение началось, обработчик 'play' запустит таймер
+      }).catch(err => {
+        console.warn("Autoplay blocked:", err);
+      });
       fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
       updatePlayPauseButton(audioPlayer, playPauseBtn);
-      startMetadataPolling(station.url);
-      window.playTimerInterval = setInterval(() => {
-        playTimer++;
-        if (playTimerEl) {
-          playTimerEl.textContent = formatTime(playTimer);
-        }
-      }, 1000);
     });
   };
-  
+
   // Делегирование кликов по элементам плейлиста
   playlistElement.addEventListener('click', function(e) {
     let li = e.target;
@@ -160,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(animate);
   }
 
+  // Функция обновления метаданных потока
   async function updateStreamMetadata(stationUrl) {
     const streamTitle = await getStreamMetadata(stationUrl);
     if (currentTrackEl) {
@@ -167,14 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ? streamTitle
         : "No Track Data";
     }
-  }
-
-  function startMetadataPolling(url) {
-    if (metadataInterval) clearInterval(metadataInterval);
-    updateStreamMetadata(url);
-    metadataInterval = setInterval(() => {
-      updateStreamMetadata(url);
-    }, 30000);
   }
 
   function showPlaylistLoader() {
@@ -203,6 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
+  // Загрузка плейлиста и восстановление последней выбранной станции
   const lastStationData = localStorage.getItem('lastStation');
   if (lastStationData) {
     try {
@@ -344,17 +341,60 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Обработчики событий аудиоплеера для управления таймером
   audioPlayer.addEventListener('play', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
+    // При воспроизведении запускаем таймер
+    if (window.playTimerInterval) clearInterval(window.playTimerInterval);
+    let playTimer = 0;
+    const playTimerEl = document.getElementById('playTimer');
+    if (playTimerEl) {
+      playTimerEl.textContent = formatTime(playTimer);
+      window.playTimerInterval = setInterval(() => {
+        playTimer++;
+        playTimerEl.textContent = formatTime(playTimer);
+      }, 1000);
+    }
   });
+
   audioPlayer.addEventListener('pause', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
+    // Останавливаем таймер, когда воспроизведение на паузе
+    if (window.playTimerInterval) {
+      clearInterval(window.playTimerInterval);
+      window.playTimerInterval = null;
+    }
   });
 
   initVolumeControl(audioPlayer, volumeSlider, volumeKnob, defaultVolume);
-  
+
+  // Вспомогательная функция для определения избранных станций
   function isFavorite(station) {
     const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
     return favs.includes(station.url);
   }
+
+  // Глобальный updater для синхронизации чата и метаданных с помощью requestAnimationFrame
+  let lastChatUpdate = 0;
+  let lastMetadataUpdate = 0;
+  const chatUpdateInterval = 15000;      // 15 секунд для чата
+  const metadataUpdateInterval = 30000;  // 30 секунд для метаданных
+
+  function globalUpdater(timestamp) {
+    if (!lastChatUpdate) lastChatUpdate = timestamp;
+    if (!lastMetadataUpdate) lastMetadataUpdate = timestamp;
+    
+    if (timestamp - lastChatUpdate >= chatUpdateInterval) {
+      // Обновляем сообщения чата (синхронизация с Gist)
+      syncChat();
+      lastChatUpdate = timestamp;
+    }
+    if (timestamp - lastMetadataUpdate >= metadataUpdateInterval) {
+      // Обновляем метаданные потока
+      updateStreamMetadata(audioPlayer.src);
+      lastMetadataUpdate = timestamp;
+    }
+    requestAnimationFrame(globalUpdater);
+  }
+  requestAnimationFrame(globalUpdater);
 });
