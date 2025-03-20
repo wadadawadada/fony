@@ -291,12 +291,19 @@
 
   #randomBtn {
     position: absolute;
-    top: calc(35% + 90px); /* 110px – примерное расстояние под play-btn; корректируйте по необходимости */
+    top: calc(35% + 90px);
     left: calc(150% + 70px);
     transform: translateX(-50%);
     width: 170px;
     height: 80px;
-  }
+    z-index: 100; /* гарантирует, что кнопка сверху */
+}
+
+
+  #randomBtn:active {
+    transform: translateX(-50%) !important;
+}
+
 
   .volume-container {
     display: none;
@@ -306,13 +313,10 @@
   /* Prevent specific player buttons from shifting on hover or active in mobile view */
   #ffBtn:hover,
   #rrBtn:hover,
-  #randomBtn:hover,
   #shuffleBtn:hover,
   #favBtn:hover,
   #ffBtn:active,
   #rrBtn:active,
-  #randomBtn:active,
-  #randomBtn:hover,
   #shuffleBtn:active,
   #favBtn:active {
       transform: none !important;
