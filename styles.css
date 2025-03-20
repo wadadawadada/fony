@@ -410,6 +410,7 @@ font-family: 'Ruda', sans-serif;
   .track-name {
     max-width: 10ch;
   }
+  
 
   .play-timer {
     font-size: 1.5rem;
@@ -417,6 +418,7 @@ font-family: 'Ruda', sans-serif;
     margin: 0 10px;
     font-family: 'Technology';
     letter-spacing: 2px;
+    margin-left: 20px;
 }
   
   .center-circle {
@@ -442,7 +444,7 @@ font-family: 'Ruda', sans-serif;
     display: none;
   }
   .playlist-area {
-    height: 60%;
+    height: 50%;
   }
   
   .genre-search {

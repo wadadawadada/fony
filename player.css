@@ -130,7 +130,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 25px;
+  gap: 45px;
+}
+
+.left-stack {
+  margin-top: 0.4rem;
 }
 
 /* Center (big circle with play/pause) */
@@ -257,19 +261,47 @@
   /* Scale down .play-ellipse by 15% and center it relative to play-btn */
   .play-ellipse {
     left: 50%;
-    top: 50%;
+    top: 38%;
     transform: translate(-50%, -50%);
-    width: 170px;
-    height: 170px;
+    width: 150px;
+    height: 150px;
   }
   .play-btn {
     left: 50%;
-    top: 50%;
+    top: 38%;
     transform: translate(-50%, -50%);
   }
+
+  .left-stack {
+    position: relative;
+    left: 15px;
+    top: -20px;
+    gap: 25px;
+  }
+
+  .right-stack {
+    position: relative;
+    right: 15px;
+    top: -20px;
+    gap: 25px;
+  }
+
   /* Raise control elements to create space above the playlist */
   .player-controls {
     margin-bottom: 20px;
+  }
+
+  #randomBtn {
+    position: absolute;
+    top: calc(35% + 90px); /* 110px – примерное расстояние под play-btn; корректируйте по необходимости */
+    left: calc(150% + 70px);
+    transform: translateX(-50%);
+    width: 170px;
+    height: 80px;
+  }
+
+  .volume-container {
+    display: none;
   }
   
   /* --- New Mobile Overrides --- */
@@ -282,6 +314,7 @@
   #ffBtn:active,
   #rrBtn:active,
   #randomBtn:active,
+  #randomBtn:hover,
   #shuffleBtn:active,
   #favBtn:active {
       transform: none !important;
