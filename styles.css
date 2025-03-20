@@ -389,6 +389,12 @@ svg {
     height: 100vh;
     overflow: hidden;
   }
+
+  #themeToggle img {
+    width: 15px;
+    height: 15px;
+  }
+
   .station-label,
   .track-name {
     max-width: 10ch;
@@ -470,6 +476,15 @@ svg {
   .play-btn:active {
     transform: translate(-50%, -50%) scale(0.95);
   }
+
+  #playlist li {
+     box-shadow: unset;
+}
+
+.right-panel {
+    box-shadow: unset;
+}
+
 }
 
 /* Новый стиль для кнопки переключения темы */
