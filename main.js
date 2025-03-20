@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'genres/world.m3u'
   ];
 
+  // Инициализируем чат для выбранного жанра
   initChat(playlistSelect.value);
 
   // Функция форматирования времени
@@ -68,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return mins + ":" + (secs < 10 ? "0" + secs : secs);
   }
 
-  // Реализация функции debounce для оптимизации обработки ввода
+  // Функция debounce для оптимизации обработки ввода
   function debounce(func, wait) {
     let timeout;
     return function(...args) {
@@ -107,7 +108,11 @@ document.addEventListener('DOMContentLoaded', () => {
     audioPlayer.src = station.url;
     li.scrollIntoView({ behavior: 'smooth', block: 'start' });
   
-    if (window.playTimerInterval) clearInterval(window.playTimerInterval);
+    // Очищаем предыдущий play timer, если он установлен
+    if (window.playTimerInterval) {
+      clearInterval(window.playTimerInterval);
+      window.playTimerInterval = null;
+    }
     let playTimer = 0;
     const playTimerEl = document.getElementById('playTimer');
     if (playTimerEl) {
@@ -116,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("Элемент playTimer не найден!");
     }
   
+    // Имитация буферизации перед воспроизведением
     simulateBuffering(li, () => {
       audioPlayer.play().catch(err => console.warn("Autoplay blocked:", err));
       fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
@@ -237,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
           favoritesFilterBtn.classList.remove('active');
         }
       });
+      // Обновляем чат для нового жанра
       updateChat(playlistSelect.value);
     });
   });

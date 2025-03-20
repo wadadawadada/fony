@@ -9,7 +9,6 @@ async function fetchConfig() {
   return await response.json();
 }
 
-
 // Глобальные переменные для хранения конфигурационных данных
 let GIST_ID;
 let GITHUB_TOKEN;
@@ -100,7 +99,9 @@ async function renderChatMessages() {
   messagesElem.innerHTML = '';
   const data = await fetchChatData();
   const messages = data[currentGenre] || [];
-  messages.forEach(msg => {
+  // При большом количестве сообщений можно ограничить историю (например, последние 100)
+  const limitedMessages = messages.slice(-100);
+  limitedMessages.forEach(msg => {
     const msgDiv = document.createElement('div');
     msgDiv.classList.add('chat-message');
     msgDiv.innerHTML = `<strong>${msg.username}</strong> [${new Date(msg.timestamp).toLocaleTimeString()}]: ${msg.text}`;
@@ -133,9 +134,17 @@ async function sendMessage() {
   await renderChatMessages();
 }
 
+// Функция остановки опроса (для сброса setInterval)
+export function stopChatPolling() {
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
+  }
+}
+
 // Запуск опроса чата (обновление каждые 10 секунд)
 function startPolling() {
-  if (pollInterval) clearInterval(pollInterval);
+  stopChatPolling();
   pollInterval = setInterval(() => {
     renderChatMessages();
   }, 10000);
@@ -180,7 +189,9 @@ export async function initChat(genre) {
  * @param {string} genre - Новый жанр.
  */
 export function updateChat(genre) {
+  stopChatPolling(); // Останавливаем предыдущий интервал
   currentGenre = genre;
   getChatHeader().textContent = `Chat in /${genre.replace('genres/','').replace('.m3u','')} genre`;
   renderChatMessages();
+  startPolling();
 }

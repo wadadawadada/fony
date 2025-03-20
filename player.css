@@ -16,11 +16,12 @@
   align-items: center;
   gap: 10px;
   background-color: #171C2B;
-  border: 2px solid #686868;
+  border: 2px solid #00F2B8;
   border-radius: 50px;
   padding: 15px;
   width: 95%;
   margin-bottom: 10px;
+  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
 }
 
 /* Groups inside the screen */
@@ -161,13 +162,17 @@
 .player-btn {
   cursor: pointer;
   transition: all 0.3s ease-in-out;
-  filter: drop-shadow(0px 6px 1px #0000002c);
+  filter: 
+  drop-shadow(0px 10px 3px rgba(50, 50, 93, 0.25)) 
+  drop-shadow(0px 8px 6px rgba(0, 0, 0, 0.3));
 }
 
 .player-btn:hover {
   transition: all 0.3s ease-in-out;
   transform: scale(0.95);
-  filter: drop-shadow(0px 5px 4px #0000002c);
+  filter: 
+  drop-shadow(0px 8px 4px rgba(50, 50, 93, 0.20)) 
+  drop-shadow(0px 6px 7px rgba(0, 0, 0, 0.27));
 }
 
 /* Specific button sizes */
@@ -320,6 +325,14 @@
   #shuffleBtn:active,
   #favBtn:active {
       transform: none !important;
+  }
+
+  .player-btn {
+    filter: unset;
+  }
+  
+  .player-btn:hover {
+    filter: unset;
   }
   
   /* New rules for proper positioning of play button on active state */
