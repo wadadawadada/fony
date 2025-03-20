@@ -1,26 +1,8 @@
 <svg width="69" height="69" viewBox="0 0 69 69" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g filter="url(#filter0_ii_2010_108)">
-<circle cx="34.3906" cy="34.6689" r="33.9375" transform="rotate(180 34.3906 34.6689)" fill="url(#paint0_linear_2010_108)"/>
-</g>
-<path d="M45.8739 23.5179L31.5482 33.2272L31.5482 24.7831C31.5482 23.557 30.1772 22.83 29.1623 23.5179L14.2837 33.602C13.3892 34.2082 13.3892 35.5261 14.2837 36.1324L29.1623 46.2165C30.1772 46.9043 31.5482 46.1773 31.5482 44.9513L31.5482 36.5071L45.8739 46.2165C46.8888 46.9043 48.2598 46.1773 48.2598 44.9513L48.2598 24.7831C48.2598 23.557 46.8888 22.83 45.8739 23.5179Z" fill="#BCBCBC" stroke="#B7B7B7"/>
+<circle cx="34.3906" cy="34.669" r="33.9375" transform="rotate(180 34.3906 34.669)" fill="url(#paint0_linear_2076_256)"/>
+<path d="M31.5482 33.2273L31.5482 24.7831C31.5482 23.5571 30.1772 22.83 29.1623 23.5179L14.2837 33.602C13.3892 34.2083 13.3892 35.5261 14.2837 36.1324L29.1623 46.2165C30.1772 46.9043 31.5482 46.1773 31.5482 44.9513L31.5482 36.5071L45.8739 46.2165C46.8888 46.9043 48.2598 46.1773 48.2598 44.9513L48.2598 24.7831C48.2598 23.5571 46.8888 22.83 45.8739 23.5179L31.5482 33.2273Z" fill="#BCBCBC" stroke="#B7B7B7"/>
 <defs>
-<filter id="filter0_ii_2010_108" x="0.453125" y="0.731476" width="68.8749" height="69.2749" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-<feOffset dx="1" dy="2"/>
-<feGaussianBlur stdDeviation="0.7"/>
-<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
-<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"/>
-<feBlend mode="normal" in2="shape" result="effect1_innerShadow_2010_108"/>
-<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-<feOffset/>
-<feGaussianBlur stdDeviation="0.7"/>
-<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
-<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
-<feBlend mode="normal" in2="effect1_innerShadow_2010_108" result="effect2_innerShadow_2010_108"/>
-</filter>
-<linearGradient id="paint0_linear_2010_108" x1="22.7681" y1="3.05595" x2="45.3156" y2="68.6064" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint0_linear_2076_256" x1="22.7681" y1="3.05601" x2="45.3156" y2="68.6064" gradientUnits="userSpaceOnUse">
 <stop stop-color="#CECCCC"/>
 <stop offset="1" stop-color="#FBF8F8"/>
 </linearGradient>

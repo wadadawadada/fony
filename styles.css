@@ -238,7 +238,7 @@ font-family: 'Ruda', sans-serif;
 .genre-search {
     border-radius: 50px;
     padding: 3px;
-    border: 1px solid #ffffff;
+    border: 2px solid #ffffff;
     background-color: rgba(20, 255, 200, 0);
     margin-left: 1rem;
 }
@@ -336,6 +336,7 @@ font-family: 'Ruda', sans-serif;
   transition: filter 0.3s ease;
   margin-left: 1rem;
   cursor: pointer;
+  height: 2.5rem;
 }
 .favorites-filter-icon.active {
   /* Approximate filter to change the icon color to #07F2B8 */
