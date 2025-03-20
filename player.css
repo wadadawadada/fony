@@ -131,11 +131,9 @@
   flex-direction: column;
   align-items: center;
   gap: 45px;
+  height: 100%;
 }
 
-.left-stack {
-  margin-top: 0.4rem;
-}
 
 /* Center (big circle with play/pause) */
 .center-circle {
