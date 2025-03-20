@@ -40,6 +40,7 @@ svg {
     padding: 20px;
     box-sizing: border-box;
     background-color: #f2f2f2;
+    transition: background-color 0.5s ease; /* Плавное изменение фона */
 }
 
 /* Right panel (playlist) */
@@ -58,6 +59,7 @@ svg {
     padding: 20px;
     overflow-y: auto;
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+    transition: background 0.5s ease; /* Плавное изменение градиента */
 }
 
 /* ===== Top Bar with Logo ===== */
@@ -166,7 +168,7 @@ svg {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: 1px solid #00F2B8;;
+    border: 1px solid #00F2B8;
 }
 .chat-username-box input {
     border: 0px solid #ffffff;
@@ -177,8 +179,8 @@ svg {
     width: 100px;
 }
 .chat-username-box ::placeholder {
-color: #818181;
-font-family: 'Ruda', sans-serif;
+    color: #818181;
+    font-family: 'Ruda', sans-serif;
 }
 .chat-messages {
     flex: 1;
@@ -237,7 +239,6 @@ font-family: 'Ruda', sans-serif;
     outline: none;
     cursor: pointer;
 }
-
 .genre-search {
     border-radius: 50px;
     padding: 3px;
@@ -245,14 +246,11 @@ font-family: 'Ruda', sans-serif;
     background-color: rgba(20, 255, 200, 0);
     margin-left: 1rem;
 }
-
 .genre-search::placeholder {
     color: rgba(255, 255, 255, 0.7);
     padding-left: 3px;
     font-family: 'Ruda', sans-serif;
 }
-
-
 .playlist-area {
     flex: 1;
     border-radius: 12px;
@@ -283,7 +281,6 @@ font-family: 'Ruda', sans-serif;
     transition: background-color 0.2s;
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
-/* Active playlist item styling */
 #playlist li.active {
     background-color: #171C2B;
     color: #00F2B8;
@@ -319,25 +316,24 @@ font-family: 'Ruda', sans-serif;
     z-index: 1;
 }
 
-/* ===== Custom styling for heart icons ===== */
+/* Custom styling for heart icons */
 .favorite-heart {
-  filter: brightness(0) invert(1);
-  transform: scale(0.7);
-  transition: transform 0.3s ease;
+    filter: brightness(0) invert(1);
+    transform: scale(0.7);
+    transition: transform 0.3s ease;
 }
-
 .favorites-filter-icon {
-  filter: brightness(0) invert(1);
-  transition: filter 0.3s ease;
-  margin-left: 1rem;
-  cursor: pointer;
-  height: 2.5rem;
+    filter: brightness(0) invert(1);
+    transition: filter 0.3s ease;
+    margin-left: 1rem;
+    cursor: pointer;
+    height: 2.5rem;
 }
 .favorites-filter-icon.active {
-  filter: invert(55%) sepia(92%) saturate(393%) hue-rotate(140deg) brightness(98%) contrast(93%);
+    filter: invert(55%) sepia(92%) saturate(393%) hue-rotate(140deg) brightness(98%) contrast(93%);
 }
 
-/* ===== Scrollbar Styling ===== */
+/* Scrollbar Styling */
 /* Firefox */
 .chat-messages,
 .playlist-area,
@@ -346,33 +342,28 @@ font-family: 'Ruda', sans-serif;
   scrollbar-color: #00F2B8 #f2f2f265;
   border-radius: 22px;
 }
-
 .genre-select {
     background-color: #68686800;
     color: #fff;
     font-family: 'Ruda', sans-serif;
 }
-
 .genre-select option {
     background: #171c2b;
     color: #fff;
     font-family: 'Ruda', sans-serif;
     padding: 8px 12px;
 }
-
 /* Webkit (Chrome, Safari) */
 .chat-messages::-webkit-scrollbar,
 .playlist-area::-webkit-scrollbar,
 .genre-select::-webkit-scrollbar {
   width: 8px;
 }
-
 .chat-messages::-webkit-scrollbar-track,
 .playlist-area::-webkit-scrollbar-track,
 .genre-select::-webkit-scrollbar-track {
   background: #f2f2f200;
 }
-
 .chat-messages::-webkit-scrollbar-thumb,
 .playlist-area::-webkit-scrollbar-thumb,
 .genre-select::-webkit-scrollbar-thumb {
@@ -380,7 +371,7 @@ font-family: 'Ruda', sans-serif;
   border-radius: 10px;
 }
 
-/* ===== Mobile Version Adjustments ===== */
+/* Mobile Version Adjustments */
 @media (max-width: 1024px) {
     .container {
         flex-direction: column;
@@ -391,20 +382,17 @@ font-family: 'Ruda', sans-serif;
         padding: 10px;
     }
 }
-
-/* ===== Mobile Specific ===== */
+/* Mobile Specific */
 @media (max-width: 768px) {
   html, body, .container {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
   }
-  
   .station-label,
   .track-name {
     max-width: 10ch;
   }
-  
   .play-timer {
     font-size: 1.5rem;
     color: #fff;
@@ -412,8 +400,7 @@ font-family: 'Ruda', sans-serif;
     font-family: 'Technology';
     letter-spacing: 2px;
     margin-left: 20px;
-}
-  
+  }
   .center-circle {
     position: relative;
   }
@@ -440,14 +427,26 @@ font-family: 'Ruda', sans-serif;
     width: 170px;
     height: 80px;
     z-index: 100;
-}
+  }
+
+  .chat-container {
+    display: none;
+  }
+
+  .genre-search {
+    width: 60px;
+  }
+
+  .genre-search::placeholder {
+    width: 6ch;
+  }
+
   #randomBtn:active {
     transform: translateX(-50%) !important;
-}
+  }
   .volume-container {
     display: none;
   }
-  
   /* New Mobile Overrides */
   #ffBtn:hover,
   #rrBtn:hover,
@@ -459,15 +458,12 @@ font-family: 'Ruda', sans-serif;
   #favBtn:active {
       transform: none !important;
   }
-
   .player-btn {
     filter: unset;
   }
-  
   .player-btn:hover {
     filter: unset;
   }
-  
   .player-btn:hover {
     transform: translate(-50%, -50%) scale(0.95);
   }
@@ -476,9 +472,9 @@ font-family: 'Ruda', sans-serif;
   }
 }
 
-/* ===== Новый стиль для кнопки переключения темы ===== */
+/* Новый стиль для кнопки переключения темы */
 #themeToggle {
-  position: fixed;
+  position: absolute;
   top: 10px;
   right: 10px;
   background: none;
@@ -486,7 +482,6 @@ font-family: 'Ruda', sans-serif;
   cursor: pointer;
   z-index: 1000;
 }
-
 #themeToggle img {
   width: 25px;
   height: 25px;

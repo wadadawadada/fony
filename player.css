@@ -245,6 +245,7 @@
 
   .screen {
     width: 90%;
+    margin-bottom: 2rem;
   }
 
   .diods-row {
@@ -296,7 +297,7 @@
 
   #randomBtn {
     position: absolute;
-    top: calc(35% + 90px);
+    top: calc(40% + 90px);
     left: calc(150% + 70px);
     transform: translateX(-50%);
     width: 170px;

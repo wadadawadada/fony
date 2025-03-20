@@ -17,9 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Градиент для тёмной темы с использованием оттенков #07F2B8
         rightPanelBg: 'linear-gradient(135deg, hsl(165, 94%, 30%) 0%, hsl(165, 94%, 49%) 50%, hsl(165, 94%, 70%) 100%)',
         icon: '/img/sun.svg'
-      };
+    };
       
-  
     // Загружаем сохранённую тему из localStorage (по умолчанию — светлая)
     let currentTheme = localStorage.getItem('theme') || 'light';
   
@@ -45,5 +44,4 @@ document.addEventListener('DOMContentLoaded', () => {
       applyTheme(currentTheme);
       localStorage.setItem('theme', currentTheme);
     });
-  });
-  
+});
