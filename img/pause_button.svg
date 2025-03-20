@@ -1,0 +1,16 @@
+<svg width="122" height="123" viewBox="0 0 122 123" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="play_button">
+<circle id="Ellipse 4" cx="61" cy="61.7357" r="60.5" fill="#07F2B8" stroke="#ABABAB" style="fill:#07F2B8;fill:color(display-p3 0.0275 0.9490 0.7216);fill-opacity:1;stroke:#ABABAB;stroke:color(display-p3 0.6704 0.6704 0.6704);stroke-opacity:1;"/>
+<circle id="Ellipse 3" cx="61" cy="61.7358" r="55.443" fill="url(#paint0_linear_2094_350)" style=""/>
+<g id="pause">
+<rect id="Rectangle 46" x="43.1848" y="37.5" width="10" height="48" rx="5" fill="#07F2B8" stroke="#ABABAB" style="fill:#07F2B8;fill:color(display-p3 0.0275 0.9490 0.7216);fill-opacity:1;stroke:#ABABAB;stroke:color(display-p3 0.6704 0.6704 0.6704);stroke-opacity:1;"/>
+<rect id="Rectangle 47" x="69.1848" y="37.5" width="10" height="48" rx="5" fill="#07F2B8" stroke="#ABABAB" style="fill:#07F2B8;fill:color(display-p3 0.0275 0.9490 0.7216);fill-opacity:1;stroke:#ABABAB;stroke:color(display-p3 0.6704 0.6704 0.6704);stroke-opacity:1;"/>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_2094_350" x1="42.0127" y1="10.0902" x2="78.8481" y2="117.179" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FBF8F8" style="stop-color:#FBF8F8;stop-color:color(display-p3 0.9845 0.9735 0.9735);stop-opacity:1;"/>
+<stop offset="1" stop-color="#CECCCC" style="stop-color:#CECCCC;stop-color:color(display-p3 0.8091 0.8001 0.8001);stop-opacity:1;"/>
+</linearGradient>
+</defs>
+</svg>

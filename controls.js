@@ -2,22 +2,25 @@
 
 // Обновляем иконку Play/Pause
 export function updatePlayPauseButton(audioPlayer, playPauseBtn) {
-  // Если у вас одна и та же иконка на play/pause, можете оставить так.
-  // Если нужны разные, здесь можно менять src на pause_button.svg
+  const isDark = localStorage.getItem('theme') === 'dark';
+  const prefix = isDark ? '/img/dark/' : '/img/';
   if (audioPlayer.paused) {
-    playPauseBtn.src = '/img/play_button.svg';
+    playPauseBtn.src = prefix + 'play_button.svg';
   } else {
-    playPauseBtn.src = '/img/play_button.svg';
+    playPauseBtn.src = prefix + 'pause_button.svg';
   }
 }
 
-// Обновляем иконку Shuffle (актив/не актив)
+// Обновляем иконку Shuffle (активная/неактивная)
 export function updateShuffleButton(shuffleActive, shuffleBtn) {
-  // Аналогично, если нужна отдельная иконка для включённого shuffle, используйте её
+  const isDark = localStorage.getItem('theme') === 'dark';
+  const prefix = isDark ? '/img/dark/' : '/img/';
   if (shuffleActive) {
-    shuffleBtn.src = '/img/shuffle.svg';
+    shuffleBtn.src = prefix + 'shuffle_active.svg';
+    shuffleBtn.classList.add('active');
   } else {
-    shuffleBtn.src = '/img/shuffle.svg';
+    shuffleBtn.src = prefix + 'shuffle.svg';
+    shuffleBtn.classList.remove('active');
   }
 }
 
@@ -52,7 +55,6 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
   // Обработчики для touch-событий
   volumeKnob.addEventListener('touchstart', (e) => {
     isDragging = true;
-    // Предотвращаем стандартное поведение, чтобы не возникали дополнительные события
     e.preventDefault();
   });
   document.addEventListener('touchmove', (e) => {
@@ -65,7 +67,7 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
     isDragging = false;
   });
 
-  // При загрузке страницы устанавливаем положение ручки (исходя из defaultVolume)
+  // При загрузке страницы устанавливаем положение ручки
   window.addEventListener('load', () => {
     const rect = volumeSlider.getBoundingClientRect();
     volumeKnob.style.left = (defaultVolume.value * rect.width) + "px";
