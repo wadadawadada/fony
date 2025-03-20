@@ -2,12 +2,13 @@
 
 // Функция для получения конфигурации из Netlify Functions
 async function fetchConfig() {
-  const response = await fetch('/netlify/functions/get-config');
+  const response = await fetch('/.netlify/functions/get-config');
   if (!response.ok) {
     throw new Error('Ошибка получения конфигурации');
   }
   return await response.json();
 }
+
 
 // Глобальные переменные для хранения конфигурационных данных
 let GIST_ID;
