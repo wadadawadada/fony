@@ -220,7 +220,7 @@ svg {
 }
 .chat-send-btn img {
     transition: transform 0.2s ease-in-out;
-    height: 22px;
+    height: 26px;
 }
 .chat-send-btn img:hover {
     transform: scale(0.97);
