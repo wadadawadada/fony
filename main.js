@@ -57,7 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'genres/world.m3u'
   ];
 
-  // Инициализация чата (без отдельного таймера – синхронизация происходит через глобальный updater)
+  // Инициализируем чат с выбранным жанром.
+  // Если в localStorage сохранён жанр, он будет обновлён ниже.
   initChat(playlistSelect.value);
 
   // Функция форматирования времени в формате mm:ss
@@ -76,19 +77,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Функция выбора станции
-  window.onStationSelect = function(index) {
+  // Функция выбора станции с использованием оригинального индекса
+  window.onStationSelect = function(originalIndex) {
     const allLi = document.querySelectorAll('#playlist li');
     allLi.forEach(item => {
       item.classList.remove('active');
       item.style.setProperty('--buffer-percent', '0%');
     });
-
-    currentTrackIndex = index;
-    const li = allLi[index];
-    li.classList.add('active');
-
-    const station = stations[index];
+    // Находим li, у которого data-index совпадает с оригинальным индексом
+    const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === originalIndex);
+    if (li) {
+      li.classList.add('active');
+    }
+    
+    currentTrackIndex = originalIndex;
+    const station = stations[originalIndex];
     window.currentStationUrl = station.url;
     if (stationLabel) {
       stationLabel.textContent = station.title || 'Unknown Station';
@@ -97,19 +100,16 @@ document.addEventListener('DOMContentLoaded', () => {
       currentTrackEl.textContent = '';
     }
 
-    // Сохраняем выбор станции в localStorage
+    // Обновляем lastStation для сохранения выбора
     localStorage.setItem('lastStation', JSON.stringify({
       genre: playlistSelect.value,
-      trackIndex: index
+      trackIndex: originalIndex
     }));
 
     audioPlayer.src = station.url;
-    li.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    li && li.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    // Останавливаем предыдущий таймер воспроизведения, если он был запущен
     if (window.playTimerInterval) clearInterval(window.playTimerInterval);
-
-    // Сброс отображения таймера на 0
     const playTimerEl = document.getElementById('playTimer');
     if (playTimerEl) {
       playTimerEl.textContent = formatTime(0);
@@ -117,12 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("Элемент playTimer не найден!");
     }
 
-    // Имитация буферизации, после чего сразу запускается воспроизведение
     simulateBuffering(li, () => {
-      // Сбросим mute и установим громкость по умолчанию
       audioPlayer.muted = false;
       audioPlayer.volume = defaultVolume.value;
-      // Пытаемся сразу начать воспроизведение
       audioPlayer.play().then(() => {
         // Если воспроизведение началось, обработчик 'play' запустит таймер
       }).catch(err => {
@@ -140,8 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
       li = li.parentElement;
     }
     if (li && li.dataset.index !== undefined) {
-      const index = parseInt(li.dataset.index, 10);
-      window.onStationSelect(index);
+      const originalIndex = parseInt(li.dataset.index, 10);
+      window.onStationSelect(originalIndex);
     }
   });
 
@@ -153,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
       const progress = Math.min((elapsed / duration) * 100, 100);
-      li.style.setProperty('--buffer-percent', progress + '%');
+      li && li.style.setProperty('--buffer-percent', progress + '%');
       if (progress < 100) {
         requestAnimationFrame(animate);
       } else {
@@ -199,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // Загрузка плейлиста и восстановление последней выбранной станции
+  // Загрузка плейлиста и восстановление последней выбранной станции при загрузке страницы
   const lastStationData = localStorage.getItem('lastStation');
   if (lastStationData) {
     try {
@@ -210,6 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
           currentTrackIndex = 0;
         }
         window.onStationSelect(trackIndex);
+        // Обновляем чат в соответствии с выбранным жанром
+        updateChat(genre);
       });
     } catch (e) {
       console.error("Ошибка парсинга lastStation:", e);
@@ -219,23 +218,15 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndRenderPlaylist(playlistSelect.value);
   }
 
+  // Обработчик смены жанра: обновляем плейлист и чат, оставляя текущую станцию воспроизводимой
   playlistSelect.addEventListener('change', () => {
-    fadeAudioOut(audioPlayer, 500, () => {
-      loadAndRenderPlaylist(playlistSelect.value, () => {
-        if (stations.length > 0) {
-          window.onStationSelect(0);
-        }
-        localStorage.setItem('lastStation', JSON.stringify({
-          genre: playlistSelect.value,
-          trackIndex: currentTrackIndex
-        }));
-        searchInput.value = '';
-        if (favoritesFilterBtn.classList.contains('active')) {
-          favoritesFilterBtn.classList.remove('active');
-        }
-      });
-      updateChat(playlistSelect.value);
+    loadAndRenderPlaylist(playlistSelect.value, () => {
+      searchInput.value = '';
+      if (favoritesFilterBtn.classList.contains('active')) {
+        favoritesFilterBtn.classList.remove('active');
+      }
     });
+    updateChat(playlistSelect.value);
   });
 
   // Обработчик поля поиска с debounce (300 мс)
@@ -344,7 +335,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Обработчики событий аудиоплеера для управления таймером
   audioPlayer.addEventListener('play', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
-    // При воспроизведении запускаем таймер
     if (window.playTimerInterval) clearInterval(window.playTimerInterval);
     let playTimer = 0;
     const playTimerEl = document.getElementById('playTimer');
@@ -359,7 +349,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   audioPlayer.addEventListener('pause', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
-    // Останавливаем таймер, когда воспроизведение на паузе
     if (window.playTimerInterval) {
       clearInterval(window.playTimerInterval);
       window.playTimerInterval = null;
@@ -368,13 +357,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initVolumeControl(audioPlayer, volumeSlider, volumeKnob, defaultVolume);
 
-  // Вспомогательная функция для определения избранных станций
   function isFavorite(station) {
     const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
     return favs.includes(station.url);
   }
 
-  // Глобальный updater для синхронизации чата и метаданных с помощью requestAnimationFrame
+  // Глобальный updater для синхронизации чата и метаданных
   let lastChatUpdate = 0;
   let lastMetadataUpdate = 0;
   const chatUpdateInterval = 15000;      // 15 секунд для чата
@@ -385,12 +373,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!lastMetadataUpdate) lastMetadataUpdate = timestamp;
     
     if (timestamp - lastChatUpdate >= chatUpdateInterval) {
-      // Обновляем сообщения чата (синхронизация с Gist)
       syncChat();
       lastChatUpdate = timestamp;
     }
     if (timestamp - lastMetadataUpdate >= metadataUpdateInterval) {
-      // Обновляем метаданные потока
       updateStreamMetadata(audioPlayer.src);
       lastMetadataUpdate = timestamp;
     }

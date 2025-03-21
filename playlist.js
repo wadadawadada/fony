@@ -1,7 +1,7 @@
 // playlist.js
 
 // Отрисовка списка станций с оптимизированным доступом к DOM через DocumentFragment и делегированием событий.
-// Добавлены data-атрибуты для обработки кликов, а также включена ленивый импорт изображений (loading="lazy").
+// Добавлены data-атрибуты для обработки клика, а также включена ленивый импорт изображений (loading="lazy").
 export function renderPlaylist(playlistElement, stations) {
   playlistElement.innerHTML = '';
   const fragment = document.createDocumentFragment();
@@ -10,7 +10,8 @@ export function renderPlaylist(playlistElement, stations) {
     const li = document.createElement('li');
     li.style.position = "relative";
     li.style.setProperty('--buffer-percent', '0%');
-    li.dataset.index = index; // Для делегирования события клика
+    // Используем оригинальный индекс, сохранённый в объекте станции
+    li.dataset.index = station.originalIndex !== undefined ? station.originalIndex : index;
 
     if (window.currentStationUrl && station.url === window.currentStationUrl) {
       li.classList.add('active');
@@ -132,6 +133,9 @@ export function loadPlaylist(url) {
           cover
         });
       }
+
+      // Присваиваем каждому объекту станции его оригинальный индекс в полном списке
+      loadedStations.forEach((station, i) => station.originalIndex = i);
 
       return Promise.all(
         loadedStations.map(st => {
