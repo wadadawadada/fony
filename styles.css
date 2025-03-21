@@ -32,6 +32,71 @@ svg {
     backface-visibility: hidden;
 }
 
+
+/* Контейнер прелоадера: занимает весь экран */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #171C2B;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+  }
+  
+  /* При добавлении класса fade-out-background фон плавно исчезает */
+  #preloader.fade-out-background {
+    opacity: 0;
+  }
+  
+  /* Контейнер для текста */
+  #preloader-text {
+    display: flex;
+  }
+  
+  /* Стили для каждой буквы */
+  .preloader-letter {
+    font-size: 1.5rem;
+    font-weight: 100;
+    letter-spacing: 6px;
+    color: #00F2B8;
+    font-family: 'Fony';
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    transform: rotateX(-90deg);
+    animation: flipFadeIn 0.5s forwards;
+  }
+  
+  /* Ключевые кадры для эффекта flip + fade при появлении */
+  @keyframes flipFadeIn {
+    to {
+      opacity: 1;
+      transform: rotateX(0deg);
+    }
+  }
+  
+  /* При добавлении класса fade-out-text запускается анимация исчезновения букв */
+  #preloader-text.fade-out-text span {
+    animation: fadeOut 0.5s forwards;
+  }
+  
+  /* Ключевые кадры для анимации исчезновения */
+  @keyframes fadeOut {
+    to {
+      opacity: 0;
+    }
+  }
+  
+
+
+
+
+
 /* Main container */
 .container {
     display: flex;
@@ -84,6 +149,7 @@ svg {
     letter-spacing: 6px;
     color: #00F2B8;
     font-family: 'Fony';
+    margin-bottom: 0.5rem;
 }
 
 /* ===== Screen with Station Name, Timer and Track ===== */
