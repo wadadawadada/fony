@@ -1,5 +1,3 @@
-// main.js
-
 import { fadeAudioOut, fadeAudioIn } from './player.js';
 import { renderPlaylist, loadPlaylist } from './playlist.js';
 import {
@@ -11,11 +9,18 @@ import { initChat, updateChat, syncChat } from './chat.js';
 import { getStreamMetadata } from './parsing.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Элементы блока выбора жанра
+  const genreBox = document.querySelector('.genre-box');
+  const genreLabel = genreBox.querySelector('label');
+  let playlistSelect = document.getElementById('playlistSelect');
+  let searchInput = document.getElementById('searchInput');
+  // Переменная для динамически добавленного span с текстом "Favorites"
+  let favoritesSpan = null;
+
   const audioPlayer = document.getElementById('audioPlayer');
   const stationLabel = document.getElementById('stationLabel');
   const currentTrackEl = document.getElementById('currentTrack');
   const playlistElement = document.getElementById('playlist');
-  const playlistSelect = document.getElementById('playlistSelect');
   const playlistLoader = document.getElementById('playlistLoader');
   const rrBtn = document.getElementById('rrBtn');
   const ffBtn = document.getElementById('ffBtn');
@@ -23,9 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const shuffleBtn = document.getElementById('shuffleBtn');
   const randomBtn = document.getElementById('randomBtn');
   const playPauseBtn = document.getElementById('playPauseBtn');
-  const volumeSlider = document.querySelector('.volume-slider');
-  const volumeKnob = document.querySelector('.volume-knob');
-  const searchInput = document.getElementById('searchInput');
   const favoritesFilterBtn = document.getElementById('favoritesFilterBtn');
 
   // Глобальные массивы: полный список и текущий отображаемый плейлист
@@ -84,20 +86,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Функция выбора станции (по индексу в currentPlaylist) с эффектом буферизации
   window.onStationSelect = function(index) {
-    // Обновляем выделение в списке, используя currentPlaylist
     const allLi = document.querySelectorAll('#playlist li');
     allLi.forEach(item => {
       item.classList.remove('active');
       item.style.setProperty('--buffer-percent', '0%');
     });
-    // Находим li по data-index равному индексу в currentPlaylist
     const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === index);
     
     currentTrackIndex = index;
     const station = currentPlaylist[index];
     window.currentStationUrl = station.url;
     
-    // Обновляем localStorage для сохранения выбора (с текущим жанром)
     localStorage.setItem('lastStation', JSON.stringify({
       genre: playlistSelect.value,
       trackIndex: index
@@ -113,9 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("Элемент playTimer не найден!");
     }
     
-    // Запускаем имитацию буферизации (progress)
     simulateBuffering(li, () => {
-      // По окончании буферизации: выставляем active, обновляем station-label и запускаем воспроизведение
       li && li.classList.add('active');
       if (stationLabel) {
         stationLabel.textContent = station.title || 'Unknown Station';
@@ -131,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
       updatePlayPauseButton(audioPlayer, playPauseBtn);
     });
     
-    // Запускаем таймер проверки воспроизведения (10 секунд)
     if (playCheckTimer) clearTimeout(playCheckTimer);
     playCheckTimer = setTimeout(() => {
       if (audioPlayer.paused) {
@@ -155,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Функция имитации буферизации с использованием requestAnimationFrame
   function simulateBuffering(li, callback) {
     let startTime = null;
-    const duration = 1000; // 1 секунда
+    const duration = 1000;
     function animate(timestamp) {
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
@@ -193,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPlaylist(url)
       .then(loadedStations => {
         allStations = loadedStations;
-        currentPlaylist = loadedStations.slice(); // копия полного списка
+        currentPlaylist = loadedStations.slice();
         renderPlaylist(playlistElement, currentPlaylist);
       })
       .then(() => {
@@ -214,21 +210,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const failedStation = currentPlaylist[index];
     if (!failedStation) return;
     
-    // Сохраняем URL неработающей станции в localStorage (hiddenStations)
     let hiddenStations = JSON.parse(localStorage.getItem('hiddenStations') || '[]');
     if (!hiddenStations.includes(failedStation.url)) {
       hiddenStations.push(failedStation.url);
       localStorage.setItem('hiddenStations', JSON.stringify(hiddenStations));
     }
     
-    // Удаляем станцию из both allStations и currentPlaylist (фильтруем по URL)
     allStations = allStations.filter(st => st.url !== failedStation.url);
     currentPlaylist.splice(index, 1);
     
-    // Перерисовываем плейлист с обновлённым currentPlaylist
     renderPlaylist(playlistElement, currentPlaylist);
     
-    // Вычисляем следующий индекс: если удалённый индекс меньше длины нового списка – выбираем его, иначе 0
     const nextIndex = (index < currentPlaylist.length) ? index : 0;
     if (currentPlaylist.length > 0) {
       window.onStationSelect(nextIndex);
@@ -238,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // При воспроизведении станции сбрасываем таймер проверки
   audioPlayer.addEventListener('play', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
     if (playCheckTimer) {
@@ -265,10 +256,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  initVolumeControl(audioPlayer, volumeSlider, volumeKnob, defaultVolume);
+  initVolumeControl(audioPlayer, document.querySelector('.volume-slider'), document.querySelector('.volume-knob'), defaultVolume);
 
-  // При загрузке страницы: если есть сохранённый выбор, загружаем плейлист и выбираем сохранённую станцию,
-  // а также обновляем чат с текущим жанром
   const lastStationData = localStorage.getItem('lastStation');
   if (lastStationData) {
     try {
@@ -289,19 +278,16 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndRenderPlaylist(playlistSelect.value);
   }
 
-  // Обработчик смены жанра: обновляем плейлист и чат, не прерывая воспроизведение текущей станции
   playlistSelect.addEventListener('change', () => {
     loadAndRenderPlaylist(playlistSelect.value, () => {
       searchInput.value = '';
       if (favoritesFilterBtn.classList.contains('active')) {
         favoritesFilterBtn.classList.remove('active');
       }
-      // При смене жанра чат обновляем отдельно
     });
     updateChat(playlistSelect.value);
   });
 
-  // Обработчик поля поиска: фильтруем текущий полный список (allStations)
   searchInput.addEventListener('input', debounce(() => {
     const query = searchInput.value.toLowerCase();
     currentPlaylist = allStations.filter(station =>
@@ -310,16 +296,47 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPlaylist(playlistElement, currentPlaylist);
   }, 300));
 
-  // Обработчик кнопки фильтра избранного: фильтруем currentPlaylist из allStations
-  favoritesFilterBtn.addEventListener('click', () => {
+  // Обработчик кнопки фильтра избранного:
+  // При включении фильтра скрываем label, select и input, добавляем текст "Favorites"
+  // При отключении возвращаем исходное отображение
+  favoritesFilterBtn.addEventListener('click', async () => {
     if (favoritesFilterBtn.classList.contains('active')) {
       favoritesFilterBtn.classList.remove('active');
-      // Сброс: показываем полный список
+      // Убираем вставленный span с текстом "Favorites"
+      if (favoritesSpan) {
+        favoritesSpan.remove();
+        favoritesSpan = null;
+      }
+      // Показываем элементы выбора жанра
+      genreLabel.style.display = "";
+      playlistSelect.style.display = "";
+      searchInput.style.display = "";
       currentPlaylist = allStations.slice();
       renderPlaylist(playlistElement, currentPlaylist);
     } else {
       favoritesFilterBtn.classList.add('active');
-      currentPlaylist = allStations.filter(station => isFavorite(station));
+      // Скрываем элементы выбора жанра
+      genreLabel.style.display = "none";
+      playlistSelect.style.display = "none";
+      searchInput.style.display = "none";
+      // Добавляем span с текстом "Favorites", если его ещё нет
+      if (!favoritesSpan) {
+        favoritesSpan = document.createElement("span");
+        favoritesSpan.textContent = "Favorites";
+        // Вставляем перед кнопкой фильтра, чтобы она оставалась видимой
+        genreBox.insertBefore(favoritesSpan, favoritesFilterBtn);
+      }
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      let allFavStations = [];
+      await Promise.all(allGenres.map(async (genre) => {
+        const stations = await loadPlaylist(genre);
+        const favs = stations.filter(station => favorites.includes(station.url));
+        allFavStations = allFavStations.concat(favs);
+      }));
+      const uniqueFavStations = Array.from(
+        new Map(allFavStations.map(station => [station.url, station])).values()
+      );
+      currentPlaylist = uniqueFavStations;
       renderPlaylist(playlistElement, currentPlaylist);
     }
   });
@@ -367,7 +384,6 @@ document.addEventListener('DOMContentLoaded', () => {
         favs.push(currentStation.url);
         localStorage.setItem('favorites', JSON.stringify(favs));
       }
-      // После добавления в избранное обновляем отображаемый плейлист (currentPlaylist) из allStations
       currentPlaylist = allStations.slice();
       renderPlaylist(playlistElement, currentPlaylist);
     }
@@ -397,11 +413,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Глобальный updater для синхронизации чата и метаданных
   let lastChatUpdate = 0;
   let lastMetadataUpdate = 0;
-  const chatUpdateInterval = 15000;      // 15 секунд для чата
-  const metadataUpdateInterval = 30000;  // 30 секунд для метаданных
+  const chatUpdateInterval = 15000;
+  const metadataUpdateInterval = 30000;
 
   function globalUpdater(timestamp) {
     if (!lastChatUpdate) lastChatUpdate = timestamp;
