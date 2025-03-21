@@ -1,40 +1,30 @@
-/* ====== styles.css ====== */
-
-/* Reset base margins */
+/* styles.css */
 html, body {
     margin: 0;
     padding: 0;
     height: 100%;
     font-family: 'Ruda', sans-serif;
     background-color: #f2f2f2;
-}
-
-@font-face {
+  }
+  @font-face {
     font-family: 'Technology';
-    src: url('/fonts/Technology-Regular.woff2') format('woff2'),
-        url('/fonts/Technology-Regular.woff') format('woff');
+    src: url('/fonts/Technology-Regular.woff2') format('woff2'), url('/fonts/Technology-Regular.woff') format('woff');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
-}
-
-@font-face {
+  }
+  @font-face {
     font-family: 'Fony';
-    src: url('/fonts/Fony.woff2') format('woff2'),
-        url('/fonts/Fony.woff') format('woff');
+    src: url('/fonts/Fony.woff2') format('woff2'), url('/fonts/Fony.woff') format('woff');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
-}
-
-svg {
+  }
+  svg {
     transform: translateZ(0);
     backface-visibility: hidden;
-}
-
-
-/* Контейнер прелоадера: занимает весь экран */
-#preloader {
+  }
+  #preloader {
     position: fixed;
     top: 0;
     left: 0;
@@ -48,18 +38,12 @@ svg {
     opacity: 1;
     transition: opacity 0.5s ease;
   }
-  
-  /* При добавлении класса fade-out-background фон плавно исчезает */
   #preloader.fade-out-background {
     opacity: 0;
   }
-  
-  /* Контейнер для текста */
   #preloader-text {
     display: flex;
   }
-  
-  /* Стили для каждой буквы */
   .preloader-letter {
     font-size: 1.5rem;
     font-weight: 100;
@@ -71,95 +55,71 @@ svg {
     transform: rotateX(-90deg);
     animation: flipFadeIn 0.5s forwards;
   }
-  
-  /* Ключевые кадры для эффекта flip + fade при появлении */
   @keyframes flipFadeIn {
     to {
       opacity: 1;
       transform: rotateX(0deg);
     }
   }
-  
-  /* При добавлении класса fade-out-text запускается анимация исчезновения букв */
   #preloader-text.fade-out-text span {
     animation: fadeOut 0.5s forwards;
   }
-  
-  /* Ключевые кадры для анимации исчезновения */
   @keyframes fadeOut {
     to {
       opacity: 0;
     }
   }
-  
-
-
-
-
-
-/* Main container */
-.container {
+  .container {
     display: flex;
     flex-direction: row;
     width: 100%;
     height: 100vh;
     overflow: hidden;
-}
-
-/* Left panel (player + chat) */
-.left-panel {
+  }
+  .left-panel {
     display: flex;
     flex-direction: column;
     width: 65%;
     padding: 20px;
     box-sizing: border-box;
     background-color: #f2f2f2;
-    transition: background-color 0.5s ease; /* Плавное изменение фона */
-}
-
-/* Right panel (playlist) */
-.right-panel {
+    transition: background-color 0.5s ease;
+  }
+  .right-panel {
     width: 35%;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    background: linear-gradient(135deg, 
-        #5587e4 0%, 
-        #d68255 20%, 
-        #ec7b2a 40%, 
-        #4b85ea 60%, 
-        #C36C8B 80%, 
-        #55cbd8 100%);
+    background: linear-gradient(135deg, #5587e4 0%, #d68255 20%, #ec7b2a 40%, #4b85ea 60%, #C36C8B 80%, #55cbd8 100%);
     padding: 20px;
     overflow-y: auto;
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-    transition: background 0.5s ease; /* Плавное изменение градиента */
-}
-
-/* ===== Top Bar with Logo ===== */
-.top-bar {
+    transition: background 0.5s ease;
+  }
+  .top-bar {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 10px;
-}
-.logo {
+  }
+  .logo {
     font-size: 1.5rem;
     font-weight: 100;
     letter-spacing: 6px;
-    color: #00F2B8;
+    color: #171C2B;
     font-family: 'Fony';
     margin-bottom: 0.5rem;
-}
-
-/* ===== Screen with Station Name, Timer and Track ===== */
-.screen-and-diods {
+  }
+  body.dark .logo {
+    color: #00F2B8;
+  }
+  .screen-and-diods {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-bottom: 20px;
-}
-.screen {
+  }
+  .screen {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -168,42 +128,37 @@ svg {
     border: 2px solid #686868;
     border-radius: 50px;
     padding: 15px;
-    width: 95%; 
+    width: 95%;
     margin-bottom: 10px;
-}
-.station-label {
+  }
+  .station-label {
     font-size: 1.3rem;
     font-weight: bold;
     color: #00F2B8;
-}
-.track-name {
+  }
+  .track-name {
     font-size: 1rem;
     color: #fff;
-}
-/* New style for the timer */
-.play-timer {
+  }
+  .play-timer {
     font-size: 2rem;
     color: #fff;
     margin: 0 10px;
     font-family: 'Technology';
     letter-spacing: 2px;
-}
-
-/* ===== Diodes ===== */
-.diods-row {
+  }
+  .diods-row {
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
     margin-top: 1.5rem;
     width: 85%;
-}
-.diods-img {
+  }
+  .diods-img {
     width: 200px;
     height: auto;
-}
-
-/* Preloader */
-#playlistLoader {
+  }
+  #playlistLoader {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -214,17 +169,15 @@ svg {
     border-right: 20px solid transparent;
     animation: spin 1s linear infinite;
     z-index: 999;
-}
-@keyframes spin {
+  }
+  @keyframes spin {
     0% { transform: translate(-50%, -50%) rotate(0deg); }
     100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
-.hidden {
+  }
+  .hidden {
     display: none;
-}
-
-/* ===== Chat ===== */
-.chat-container {
+  }
+  .chat-container {
     margin-top: 50px;
     background-color: #171C2B;
     border-radius: 7px;
@@ -234,8 +187,8 @@ svg {
     height: 250px;
     overflow: hidden;
     box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
-}
-.chat-header {
+  }
+  .chat-header {
     background-color: #00F2B8;
     color: #171C2B;
     padding: 8px 15px;
@@ -245,8 +198,8 @@ svg {
     justify-content: space-between;
     align-items: center;
     border: 1px solid #00F2B8;
-}
-.chat-username-box input {
+  }
+  .chat-username-box input {
     border: 0px solid #ffffff;
     color: #07F2B8;
     padding: 5px 12px;
@@ -255,26 +208,26 @@ svg {
     background-color: #171C2B;
     width: 100px;
     font-family: 'Ruda', sans-serif;
-}
-.chat-username-box ::placeholder {
+  }
+  .chat-username-box ::placeholder {
     color: #818181;
     font-family: 'Ruda', sans-serif;
-}
-.chat-messages {
+  }
+  .chat-messages {
     flex: 1;
     padding: 10px;
     overflow-y: auto;
     color: #00F2B8;
     font-size: 1.2rem;
-}
-.chat-input-box {
+  }
+  .chat-input-box {
     background-color: #171C2B;
     display: flex;
     align-items: center;
     padding: 8px;
     height: 36px;
-}
-.chat-input-box input[type="text"] {
+  }
+  .chat-input-box input[type="text"] {
     flex: 1;
     background-color: #054d3c00;
     border: 2px solid #07F2B8;
@@ -284,8 +237,8 @@ svg {
     padding-left: 5px;
     font-size: 0.8rem;
     font-family: 'Ruda', sans-serif;
-}
-.chat-send-btn {
+  }
+  .chat-send-btn {
     border: none;
     background: none;
     cursor: pointer;
@@ -293,17 +246,15 @@ svg {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-.chat-send-btn img {
+  }
+  .chat-send-btn img {
     transition: transform 0.2s ease-in-out;
     height: 26px;
-}
-.chat-send-btn img:hover {
+  }
+  .chat-send-btn img:hover {
     transform: scale(0.97);
-}
-
-/* ===== Right Panel: Genre + Playlist ===== */
-.genre-box {
+  }
+  .genre-box {
     margin-bottom: 15px;
     margin-left: 1rem;
     display: flex;
@@ -311,43 +262,40 @@ svg {
     gap: 5px;
     color: #ffffff;
     font-size: 1.2rem;
-}
-.genre-select {
+  }
+  .genre-select {
     padding: 8px 0;
     font-size: 1.2rem;
     border-radius: 8px;
     border: none;
     outline: none;
     cursor: pointer;
-}
-.genre-search {
+  }
+  .genre-search {
     border-radius: 50px;
     padding: 3px;
     border: 2px solid #ffffff;
     background-color: rgba(20, 255, 200, 0);
     margin-left: 1rem;
-}
-.genre-search::placeholder {
+  }
+  .genre-search::placeholder {
     color: rgba(255, 255, 255, 0.7);
-    padding-left: 3px;
     font-family: 'Ruda', sans-serif;
-}
-.playlist-area {
+  }
+  .playlist-area {
     flex: 1;
     border-radius: 12px;
     padding: 5px;
     overflow-y: auto;
     position: relative;
-}
-
-/* Playlist station list */
-#playlist {
+  }
+  #playlist {
     list-style: none;
     margin: 0;
     padding: 15px;
     overflow-x: hidden;
-}
-#playlist li {
+  }
+  #playlist li {
     background-color: #ffffff39;
     color: #333;
     padding: 10px;
@@ -361,12 +309,12 @@ svg {
     gap: 10px;
     transition: background-color 0.2s;
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
-}
-#playlist li.active {
+  }
+  #playlist li.active {
     background-color: #171C2B;
     color: #00F2B8;
-}
-#playlist li .progress {
+  }
+  #playlist li .progress {
     position: absolute;
     top: 0;
     left: 0;
@@ -377,209 +325,180 @@ svg {
     z-index: 0;
     transition: width 0.3s ease;
     pointer-events: none;
-}
-#playlist li:hover {
+  }
+  #playlist li:hover {
     background-color: #00F2B8;
     color: #ffffff;
     scale: 1.02;
     transition: all 0.3s ease-in-out;
-}
-#playlist li img.station-icon {
+  }
+  #playlist li img.station-icon {
     width: 40px;
     height: 40px;
     object-fit: cover;
     position: relative;
     z-index: 1;
     border-radius: 3px;
-}
-#playlist li span {
+  }
+  #playlist li span {
     position: relative;
     z-index: 1;
-}
-
-/* Custom styling for heart icons */
-.favorite-heart {
+  }
+  .favorite-heart {
     filter: brightness(0) invert(1);
     transform: scale(0.7);
     transition: transform 0.3s ease;
-}
-.favorites-filter-icon {
+  }
+  .favorites-filter-icon {
     filter: brightness(0) invert(1);
     transition: filter 0.3s ease;
     margin-left: 1rem;
     cursor: pointer;
     height: 2.5rem;
-}
-.favorites-filter-icon.active {
+  }
+  .favorites-filter-icon.active {
     filter: invert(7%) sepia(20%) saturate(500%) hue-rotate(200deg) brightness(90%) contrast(100%);
-}
-
-/* Scrollbar Styling */
-/* Firefox */
-.chat-messages,
-.playlist-area,
-.genre-select {
-  scrollbar-width: thin;
-  scrollbar-color: #00F2B8 #f2f2f265;
-  border-radius: 22px;
-}
-.genre-select {
+  }
+  .chat-messages,
+  .playlist-area,
+  .genre-select {
+    scrollbar-width: thin;
+    scrollbar-color: #00F2B8 #f2f2f265;
+    border-radius: 22px;
+  }
+  .genre-select {
     background-color: #68686800;
     color: #fff;
     font-family: 'Ruda', sans-serif;
-}
-.genre-select option {
+  }
+  .genre-select option {
     background: #171c2b;
     color: #fff;
     font-family: 'Ruda', sans-serif;
     padding: 8px 12px;
-}
-/* Webkit (Chrome, Safari) */
-.chat-messages::-webkit-scrollbar,
-.playlist-area::-webkit-scrollbar,
-.genre-select::-webkit-scrollbar {
-  width: 8px;
-}
-.chat-messages::-webkit-scrollbar-track,
-.playlist-area::-webkit-scrollbar-track,
-.genre-select::-webkit-scrollbar-track {
-  background: #f2f2f200;
-}
-.chat-messages::-webkit-scrollbar-thumb,
-.playlist-area::-webkit-scrollbar-thumb,
-.genre-select::-webkit-scrollbar-thumb {
-  background-color: #00F2B8;
-  border-radius: 10px;
-}
-
-/* Mobile Version Adjustments */
-@media (max-width: 1024px) {
+  }
+  .chat-messages::-webkit-scrollbar,
+  .playlist-area::-webkit-scrollbar,
+  .genre-select::-webkit-scrollbar {
+    width: 8px;
+  }
+  .chat-messages::-webkit-scrollbar-track,
+  .playlist-area::-webkit-scrollbar-track,
+  .genre-select::-webkit-scrollbar-track {
+    background: #f2f2f200;
+  }
+  .chat-messages::-webkit-scrollbar-thumb,
+  .playlist-area::-webkit-scrollbar-thumb,
+  .genre-select::-webkit-scrollbar-thumb {
+    background-color: #00F2B8;
+    border-radius: 10px;
+  }
+  @media (max-width: 1024px) {
     .container {
-        flex-direction: column;
-        height: auto;
+      flex-direction: column;
+      height: auto;
     }
     .left-panel, .right-panel {
-        width: 100%;
-        padding: 10px;
+      width: 100%;
+      padding: 10px;
     }
-}
-/* Mobile Specific */
-@media (max-width: 768px) {
-  html, body, .container {
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
   }
-
-  #themeToggle img {
-    width: 15px;
-    height: 15px;
-  }
-
-  .station-label,
-  .track-name {
-    max-width: 10ch;
-  }
-  .play-timer {
-    font-size: 1.5rem;
-    color: #fff;
-    margin: 0 10px;
-    font-family: 'Technology';
-    letter-spacing: 2px;
-    margin-left: 20px;
-  }
-  .center-circle {
-    position: relative;
-  }
-  .play-ellipse {
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 170px;
-    height: 170px;
-  }
-  .play-btn {
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-  }
-  .player-controls {
-    margin-bottom: 20px;
-  }
-  #randomBtn {
-    position: absolute;
-    top: calc(35% + 90px);
-    left: calc(150% + 70px);
-    transform: translateX(-50%);
-    width: 170px;
-    height: 80px;
-    z-index: 100;
-  }
-
-  .chat-container {
-    display: none;
-  }
-
-  .genre-search {
-    width: 60px;
-  }
-
-  .genre-search::placeholder {
-    width: 6ch;
-  }
-
-  #randomBtn:active {
-    transform: translateX(-50%) !important;
-  }
-  .volume-container {
-    display: none;
-  }
-  /* New Mobile Overrides */
-  #ffBtn:hover,
-  #rrBtn:hover,
-  #shuffleBtn:hover,
-  #favBtn:hover,
-  #ffBtn:active,
-  #rrBtn:active,
-  #shuffleBtn:active,
-  #favBtn:active {
+  @media (max-width: 768px) {
+    html, body, .container {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #themeToggle img {
+      width: 15px;
+      height: 15px;
+    }
+    .station-label,
+    .track-name {
+      width: 60%;
+    }
+    .play-timer {
+      font-size: 1.5rem;
+      color: #fff;
+      margin: 0 10px;
+      font-family: 'Technology';
+      letter-spacing: 2px;
+      margin-left: 20px;
+    }
+    .center-circle {
+      position: relative;
+    }
+    .play-ellipse {
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 170px;
+      height: 170px;
+    }
+    .play-btn {
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .player-controls {
+      margin-bottom: 20px;
+    }
+    .chat-container {
+      display: none;
+    }
+    .genre-search {
+      width: 60px;
+    }
+    .genre-search::placeholder {
+      width: 6ch;
+    }
+    #randomBtn:active {
+      transform: translateX(-50%) !important;
+    }
+    .volume-container {
+      display: none;
+    }
+    #ffBtn:hover,
+    #rrBtn:hover,
+    #shuffleBtn:hover,
+    #favBtn:hover,
+    #ffBtn:active,
+    #rrBtn:active,
+    #shuffleBtn:active,
+    #favBtn:active {
       transform: none !important;
+    }
+    .player-btn {
+      filter: unset;
+    }
+    .player-btn:hover {
+      filter: unset;
+    }
+    .player-btn:hover {
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+    .play-btn:active {
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+    #playlist li {
+      box-shadow: unset;
+    }
+    .right-panel {
+      box-shadow: unset;
+    }
   }
-  .player-btn {
-    filter: unset;
+  #themeToggle {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 1000;
   }
-  .player-btn:hover {
-    filter: unset;
+  #themeToggle img {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
   }
-  .player-btn:hover {
-    transform: translate(-50%, -50%) scale(0.95);
-  }
-  .play-btn:active {
-    transform: translate(-50%, -50%) scale(0.95);
-  }
-
-  #playlist li {
-     box-shadow: unset;
-}
-
-.right-panel {
-    box-shadow: unset;
-}
-
-}
-
-/* Новый стиль для кнопки переключения темы */
-#themeToggle {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  z-index: 1000;
-}
-#themeToggle img {
-  width: 20px;
-  height: 20px;
-  transition: transform 0.3s ease;
-}
+  

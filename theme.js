@@ -86,14 +86,15 @@ document.addEventListener('DOMContentLoaded', () => {
         leftPanel.style.backgroundColor = darkTheme.leftPanelBg;
         rightPanel.style.background = darkTheme.rightPanelBg;
         themeToggleBtn.querySelector('img').src = darkTheme.icon;
+        document.body.classList.add('dark'); // добавляем класс для тёмной темы
       } else {
         leftPanel.style.backgroundColor = defaultTheme.leftPanelBg;
         rightPanel.style.background = defaultTheme.rightPanelBg;
         themeToggleBtn.querySelector('img').src = defaultTheme.icon;
+        document.body.classList.remove('dark'); // убираем класс тёмной темы
       }
-      // Обновляем иконки
       applyThemeIcons(theme);
-    }
+    } 
   
     // Загружаем сохранённую тему из localStorage (по умолчанию — светлая)
     let currentTheme = localStorage.getItem('theme') || 'light';

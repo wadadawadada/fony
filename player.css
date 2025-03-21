@@ -1,16 +1,12 @@
 /* player.css */
-
-/* Wrapper for screen and diodes */
 .screen-and-diods {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-bottom: 20px;
 }
-
-/* Screen (station name, timer, and track) */
 .screen {
-  position: relative; /* For positioning play-timer */
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -23,109 +19,78 @@
   margin-bottom: 10px;
   box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
 }
-
-/* Groups inside the screen */
 .left-group,
 .center-group,
 .right-group {
   display: flex;
   align-items: center;
 }
-
-/* Left group: stream-icon and station-label */
 .left-group {
   flex: 1;
   gap: 5px;
-  overflow: hidden; /* In case the content is too long */
+  overflow: hidden;
 }
-
-/* Center group: play-timer */
 .center-group {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   justify-content: center;
 }
-
-/* Right group: track-icon and track-name */
 .right-group {
   flex: 1;
   justify-content: flex-end;
   gap: 5px;
   overflow: hidden;
 }
-
-/* Icons on the screen */
 .stream-icon,
 .track-icon {
   width: 24px;
   height: 24px;
 }
-
 .track-icon {
   height: 14px;
 }
-
-/* Text styling for station-label and track-name */
-/* Wrap text in .scrolling-text */
 .station-label,
 .track-name {
   position: relative;
   overflow: hidden;
   white-space: nowrap;
 }
-
-/* Styling for scrolling text element */
 .station-label .scrolling-text,
 .track-name .scrolling-text {
   display: inline-block;
-  /* Default animation not applied */
 }
-
-/* Animation will be enabled if .marquee is added */
 .station-label .scrolling-text.marquee,
 .track-name .scrolling-text.marquee {
   animation: marquee 10s linear infinite;
 }
-
-/* Keyframes for marquee animation */
 @keyframes marquee {
-  0%   { transform: translateX(0%); }
+  0% { transform: translateX(0%); }
   100% { transform: translateX(-100%); }
 }
-
-/* Standard text sizes */
 .station-label {
   font-size: 1.2rem;
   font-weight: bold;
   color: #00F2B8;
 }
-
 .track-name {
   font-size: 1rem;
   color: #fff;
 }
-
-/* Diodes */
 .diods-row {
   display: flex;
   justify-content: center;
 }
-
 .diods-img {
-  width: 80%; /* same as screen width */
+  width: 80%;
   height: auto;
 }
-
-/* Player controls block */
 .player-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 50px; /* Space between button groups */
+  gap: 50px;
 }
-
-/* Left stack (shuffle, rr, random) and right stack (fav, ff, volume) */
 .left-stack,
 .right-stack {
   display: flex;
@@ -134,15 +99,11 @@
   gap: 45px;
   height: 100%;
 }
-
-
-/* Center (big circle with play/pause) */
 .center-circle {
   position: relative;
   width: 200px;
   height: 200px;
 }
-
 .play-ellipse {
   position: absolute;
   top: 0;
@@ -150,76 +111,61 @@
   width: 200px;
   height: 200px;
 }
-
 .play-btn {
   position: absolute;
   top: 40px;
   left: 40px;
   cursor: pointer;
 }
-
-/* Common styling for buttons (SVG) */
 .player-btn {
   cursor: pointer;
   transition: all 0.3s ease-in-out;
-  filter: 
-  drop-shadow(0px 10px 3px rgba(50, 50, 93, 0.25)) 
-  drop-shadow(0px 8px 6px rgba(0, 0, 0, 0.3));
+  filter:
+    drop-shadow(0px 10px 3px rgba(50, 50, 93, 0.25))
+    drop-shadow(0px 8px 6px rgba(0, 0, 0, 0.3));
 }
-
 .player-btn:hover {
   transition: all 0.3s ease-in-out;
   transform: scale(0.95);
-  filter: 
-  drop-shadow(0px 8px 4px rgba(50, 50, 93, 0.20)) 
-  drop-shadow(0px 6px 7px rgba(0, 0, 0, 0.27));
+  filter:
+    drop-shadow(0px 8px 4px rgba(50, 50, 93, 0.20))
+    drop-shadow(0px 6px 7px rgba(0, 0, 0, 0.27));
 }
-
-/* Specific button sizes */
 #playPauseBtn {
   width: 120px;
   height: 120px;
 }
-
 #ffBtn, #rrBtn {
   width: 65px;
   height: 65px;
 }
-
 #randomBtn {
   width: 133px;
   height: 42px;
 }
-
 #shuffleBtn,
 #favBtn {
   width: 38px;
   height: 38px;
 }
-
-/* Volume control */
 .volume-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: -1.5rem;
 }
-
 .volume-scale {
   margin-bottom: 5px;
 }
-
 .volume-slider {
   position: relative;
   cursor: pointer;
-  z-index: 10; /* Ensures volume element always receives events */
+  z-index: 10;
 }
-
 .volume-line {
   display: block;
   height: auto;
 }
-
 .volume-knob {
   position: absolute;
   top: 100%;
@@ -229,40 +175,29 @@
   width: 55px;
   height: 55px;
 }
-
-/* ===== Mobile Adjustments ===== */
 @media (max-width: 768px) {
-  /* Global sizes: everything fits within the screen */
   html, body, .container {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
   }
-
   .screen-and-diods {
     margin-bottom: 20px;
   }
-
   .screen {
     width: 90%;
     margin-bottom: 2rem;
   }
-
   .diods-row {
     display: none;
   }
-  
-  /* Limit station-label and track-name to about 10 characters */
   .station-label,
   .track-name {
     max-width: 10ch;
   }
-  
-  /* Center the play/pause container */
   .center-circle {
     position: relative;
   }
-  /* Scale down .play-ellipse by 15% and center it relative to play-btn */
   .play-ellipse {
     left: 50%;
     top: 38%;
@@ -276,47 +211,60 @@
     transform: translate(-50%, -50%);
   }
 
-  .left-stack {
-    position: relative;
-    left: 15px;
-    top: -20px;
-    gap: 25px;
-  }
 
-  .right-stack {
-    position: relative;
-    right: 15px;
-    top: -20px;
-    gap: 25px;
-  }
-
-  /* Raise control elements to create space above the playlist */
   .player-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Было gap: 50px; сделаем поменьше, скажем 20px: */
+    gap: 0px;
+  }
+  
+  /* И здесь тоже можно уменьшить gap, если хотите, чтобы кнопки внутри 
+     колонок располагались плотнее друг к другу */
+  .left-stack,
+  .right-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Было gap: 45px; например, сделаем 20px: */
+    gap: 20px;
+  }
+
+
+  /* Убираем прежние смещения left-stack/right-stack */
+  /* .left-stack {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+  }
+  .right-stack {
+    position: static !important;
+    right: auto !important;
+    top: auto !important;
+  } */
+  /* Делаем .player-controls позиционированным родителем,
+     чтобы #randomBtn можно было абсолютно центрировать */
+  .player-controls {
+    position: relative;
     margin-bottom: 20px;
   }
-
+  /* Выносим #randomBtn в мобильном режиме по центру внизу (или меняйте bottom на нужное значение) */
   #randomBtn {
     position: absolute;
-    top: calc(40% + 90px);
-    left: calc(150% + 70px);
+    left: 50%;
+    top: 150px;
     transform: translateX(-50%);
     width: 170px;
     height: 80px;
-    z-index: 100; /* гарантирует, что кнопка сверху */
-}
-
-
+    z-index: 999;
+  }
   #randomBtn:active {
     transform: translateX(-50%) !important;
-}
-
-
+  }
   .volume-container {
     display: none;
   }
-  
-  /* --- New Mobile Overrides --- */
-  /* Prevent specific player buttons from shifting on hover or active in mobile view */
   #ffBtn:hover,
   #rrBtn:hover,
   #shuffleBtn:hover,
@@ -325,18 +273,14 @@
   #rrBtn:active,
   #shuffleBtn:active,
   #favBtn:active {
-      transform: none !important;
+    transform: none !important;
   }
-
   .player-btn {
     filter: unset;
   }
-  
   .player-btn:hover {
     filter: unset;
   }
-  
-  /* New rules for proper positioning of play button on active state */
   .player-btn:hover {
     transform: translate(-50%, -50%) scale(0.95);
   }
