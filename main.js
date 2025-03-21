@@ -28,7 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('searchInput');
   const favoritesFilterBtn = document.getElementById('favoritesFilterBtn');
 
-  let stations = [];
+  // Глобальные массивы: полный список и текущий отображаемый плейлист
+  let allStations = [];
+  let currentPlaylist = [];
+  // Текущий выбранный индекс в currentPlaylist
   let currentTrackIndex = 0;
   let shuffleActive = false;
   const defaultVolume = { value: 0.9 };
@@ -58,8 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   // Инициализируем чат с выбранным жанром.
-  // Если в localStorage сохранён жанр, он будет обновлён ниже.
   initChat(playlistSelect.value);
+
+  // Таймер проверки воспроизведения выбранной станции.
+  let playCheckTimer = null;
 
   // Функция форматирования времени в формате mm:ss
   function formatTime(seconds) {
@@ -77,38 +82,29 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Функция выбора станции с использованием оригинального индекса
-  window.onStationSelect = function(originalIndex) {
+  // Функция выбора станции (по индексу в currentPlaylist) с эффектом буферизации
+  window.onStationSelect = function(index) {
+    // Обновляем выделение в списке, используя currentPlaylist
     const allLi = document.querySelectorAll('#playlist li');
     allLi.forEach(item => {
       item.classList.remove('active');
       item.style.setProperty('--buffer-percent', '0%');
     });
-    // Находим li, у которого data-index совпадает с оригинальным индексом
-    const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === originalIndex);
-    if (li) {
-      li.classList.add('active');
-    }
+    // Находим li по data-index равному индексу в currentPlaylist
+    const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === index);
     
-    currentTrackIndex = originalIndex;
-    const station = stations[originalIndex];
+    currentTrackIndex = index;
+    const station = currentPlaylist[index];
     window.currentStationUrl = station.url;
-    if (stationLabel) {
-      stationLabel.textContent = station.title || 'Unknown Station';
-    }
-    if (currentTrackEl) {
-      currentTrackEl.textContent = '';
-    }
-
-    // Обновляем lastStation для сохранения выбора
+    
+    // Обновляем localStorage для сохранения выбора (с текущим жанром)
     localStorage.setItem('lastStation', JSON.stringify({
       genre: playlistSelect.value,
-      trackIndex: originalIndex
+      trackIndex: index
     }));
-
     audioPlayer.src = station.url;
     li && li.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
+    
     if (window.playTimerInterval) clearInterval(window.playTimerInterval);
     const playTimerEl = document.getElementById('playTimer');
     if (playTimerEl) {
@@ -116,29 +112,43 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       console.error("Элемент playTimer не найден!");
     }
-
+    
+    // Запускаем имитацию буферизации (progress)
     simulateBuffering(li, () => {
+      // По окончании буферизации: выставляем active, обновляем station-label и запускаем воспроизведение
+      li && li.classList.add('active');
+      if (stationLabel) {
+        stationLabel.textContent = station.title || 'Unknown Station';
+      }
       audioPlayer.muted = false;
       audioPlayer.volume = defaultVolume.value;
       audioPlayer.play().then(() => {
-        // Если воспроизведение началось, обработчик 'play' запустит таймер
+        // Если воспроизведение началось, событие 'play' сбросит проверочный таймер
       }).catch(err => {
         console.warn("Autoplay blocked:", err);
       });
       fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
       updatePlayPauseButton(audioPlayer, playPauseBtn);
     });
+    
+    // Запускаем таймер проверки воспроизведения (10 секунд)
+    if (playCheckTimer) clearTimeout(playCheckTimer);
+    playCheckTimer = setTimeout(() => {
+      if (audioPlayer.paused) {
+        markStationAsHidden(index);
+      }
+    }, 10000);
   };
 
-  // Делегирование кликов по элементам плейлиста
+  // Обработчик кликов по элементам плейлиста
   playlistElement.addEventListener('click', function(e) {
     let li = e.target;
     while (li && li.tagName !== 'LI') {
       li = li.parentElement;
     }
     if (li && li.dataset.index !== undefined) {
-      const originalIndex = parseInt(li.dataset.index, 10);
-      window.onStationSelect(originalIndex);
+      const index = parseInt(li.dataset.index, 10);
+      window.onStationSelect(index);
     }
   });
 
@@ -177,12 +187,14 @@ document.addEventListener('DOMContentLoaded', () => {
     playlistLoader.classList.add('hidden');
   }
 
+  // Загрузка плейлиста: обновляем both allStations и currentPlaylist
   function loadAndRenderPlaylist(url, callback) {
     showPlaylistLoader();
     loadPlaylist(url)
       .then(loadedStations => {
-        stations = loadedStations;
-        renderPlaylist(playlistElement, stations);
+        allStations = loadedStations;
+        currentPlaylist = loadedStations.slice(); // копия полного списка
+        renderPlaylist(playlistElement, currentPlaylist);
       })
       .then(() => {
         hidePlaylistLoader();
@@ -196,18 +208,77 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // Загрузка плейлиста и восстановление последней выбранной станции при загрузке страницы
+  // Функция, которая помечает станцию как неработающую, удаляет её из both allStations и currentPlaylist,
+  // перерисовывает плейлист и запускает следующую станцию с эффектом буферизации
+  function markStationAsHidden(index) {
+    const failedStation = currentPlaylist[index];
+    if (!failedStation) return;
+    
+    // Сохраняем URL неработающей станции в localStorage (hiddenStations)
+    let hiddenStations = JSON.parse(localStorage.getItem('hiddenStations') || '[]');
+    if (!hiddenStations.includes(failedStation.url)) {
+      hiddenStations.push(failedStation.url);
+      localStorage.setItem('hiddenStations', JSON.stringify(hiddenStations));
+    }
+    
+    // Удаляем станцию из both allStations и currentPlaylist (фильтруем по URL)
+    allStations = allStations.filter(st => st.url !== failedStation.url);
+    currentPlaylist.splice(index, 1);
+    
+    // Перерисовываем плейлист с обновлённым currentPlaylist
+    renderPlaylist(playlistElement, currentPlaylist);
+    
+    // Вычисляем следующий индекс: если удалённый индекс меньше длины нового списка – выбираем его, иначе 0
+    const nextIndex = (index < currentPlaylist.length) ? index : 0;
+    if (currentPlaylist.length > 0) {
+      window.onStationSelect(nextIndex);
+    } else {
+      console.warn("Нет доступных станций в плейлисте");
+      stationLabel.textContent = "Нет доступных станций";
+    }
+  }
+
+  // При воспроизведении станции сбрасываем таймер проверки
+  audioPlayer.addEventListener('play', () => {
+    updatePlayPauseButton(audioPlayer, playPauseBtn);
+    if (playCheckTimer) {
+      clearTimeout(playCheckTimer);
+      playCheckTimer = null;
+    }
+    if (window.playTimerInterval) clearInterval(window.playTimerInterval);
+    let playTimer = 0;
+    const playTimerEl = document.getElementById('playTimer');
+    if (playTimerEl) {
+      playTimerEl.textContent = formatTime(playTimer);
+      window.playTimerInterval = setInterval(() => {
+        playTimer++;
+        playTimerEl.textContent = formatTime(playTimer);
+      }, 1000);
+    }
+  });
+
+  audioPlayer.addEventListener('pause', () => {
+    updatePlayPauseButton(audioPlayer, playPauseBtn);
+    if (window.playTimerInterval) {
+      clearInterval(window.playTimerInterval);
+      window.playTimerInterval = null;
+    }
+  });
+
+  initVolumeControl(audioPlayer, volumeSlider, volumeKnob, defaultVolume);
+
+  // При загрузке страницы: если есть сохранённый выбор, загружаем плейлист и выбираем сохранённую станцию,
+  // а также обновляем чат с текущим жанром
   const lastStationData = localStorage.getItem('lastStation');
   if (lastStationData) {
     try {
       const { genre, trackIndex } = JSON.parse(lastStationData);
       playlistSelect.value = genre;
       loadAndRenderPlaylist(genre, () => {
-        if (trackIndex >= stations.length) {
+        if (trackIndex >= currentPlaylist.length) {
           currentTrackIndex = 0;
         }
         window.onStationSelect(trackIndex);
-        // Обновляем чат в соответствии с выбранным жанром
         updateChat(genre);
       });
     } catch (e) {
@@ -218,46 +289,38 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndRenderPlaylist(playlistSelect.value);
   }
 
-  // Обработчик смены жанра: обновляем плейлист и чат, оставляя текущую станцию воспроизводимой
+  // Обработчик смены жанра: обновляем плейлист и чат, не прерывая воспроизведение текущей станции
   playlistSelect.addEventListener('change', () => {
     loadAndRenderPlaylist(playlistSelect.value, () => {
       searchInput.value = '';
       if (favoritesFilterBtn.classList.contains('active')) {
         favoritesFilterBtn.classList.remove('active');
       }
+      // При смене жанра чат обновляем отдельно
     });
     updateChat(playlistSelect.value);
   });
 
-  // Обработчик поля поиска с debounce (300 мс)
+  // Обработчик поля поиска: фильтруем текущий полный список (allStations)
   searchInput.addEventListener('input', debounce(() => {
-    let baseStations = stations;
-    if (favoritesFilterBtn.classList.contains('active')) {
-      baseStations = stations.filter(station => isFavorite(station));
-    }
     const query = searchInput.value.toLowerCase();
-    const filteredStations = baseStations.filter(station =>
+    currentPlaylist = allStations.filter(station =>
       station.title.toLowerCase().includes(query)
     );
-    renderPlaylist(playlistElement, filteredStations);
+    renderPlaylist(playlistElement, currentPlaylist);
   }, 300));
 
+  // Обработчик кнопки фильтра избранного: фильтруем currentPlaylist из allStations
   favoritesFilterBtn.addEventListener('click', () => {
     if (favoritesFilterBtn.classList.contains('active')) {
       favoritesFilterBtn.classList.remove('active');
-      const query = searchInput.value.toLowerCase();
-      const filteredStations = query
-        ? stations.filter(station => station.title.toLowerCase().includes(query))
-        : stations;
-      renderPlaylist(playlistElement, filteredStations);
+      // Сброс: показываем полный список
+      currentPlaylist = allStations.slice();
+      renderPlaylist(playlistElement, currentPlaylist);
     } else {
       favoritesFilterBtn.classList.add('active');
-      const favStations = stations.filter(station => isFavorite(station));
-      const query = searchInput.value.toLowerCase();
-      const filteredStations = query
-        ? favStations.filter(station => station.title.toLowerCase().includes(query))
-        : favStations;
-      renderPlaylist(playlistElement, filteredStations);
+      currentPlaylist = allStations.filter(station => isFavorite(station));
+      renderPlaylist(playlistElement, currentPlaylist);
     }
   });
 
@@ -282,13 +345,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (shuffleActive) {
       let randomIndex;
       do {
-        randomIndex = Math.floor(Math.random() * stations.length);
-      } while (randomIndex === currentTrackIndex && stations.length > 1);
+        randomIndex = Math.floor(Math.random() * currentPlaylist.length);
+      } while (randomIndex === currentTrackIndex && currentPlaylist.length > 1);
       fadeAudioOut(audioPlayer, 500, () => {
         window.onStationSelect(randomIndex);
       });
     } else {
-      if (currentTrackIndex < stations.length - 1) {
+      if (currentTrackIndex < currentPlaylist.length - 1) {
         fadeAudioOut(audioPlayer, 500, () => {
           window.onStationSelect(currentTrackIndex + 1);
         });
@@ -297,14 +360,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   favBtn.addEventListener('click', () => {
-    if (stations.length > 0) {
-      const currentStation = stations[currentTrackIndex];
+    if (currentPlaylist.length > 0) {
+      const currentStation = currentPlaylist[currentTrackIndex];
       let favs = JSON.parse(localStorage.getItem('favorites') || '[]');
       if (!favs.includes(currentStation.url)) {
         favs.push(currentStation.url);
         localStorage.setItem('favorites', JSON.stringify(favs));
       }
-      renderPlaylist(playlistElement, stations);
+      // После добавления в избранное обновляем отображаемый плейлист (currentPlaylist) из allStations
+      currentPlaylist = allStations.slice();
+      renderPlaylist(playlistElement, currentPlaylist);
     }
   });
 
@@ -318,8 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const randomGenreIndex = Math.floor(Math.random() * allGenres.length);
       const randomGenre = allGenres[randomGenreIndex];
       loadAndRenderPlaylist(randomGenre, () => {
-        if (stations.length > 0) {
-          const randomStationIndex = Math.floor(Math.random() * stations.length);
+        if (currentPlaylist.length > 0) {
+          const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length);
           window.onStationSelect(randomStationIndex);
           localStorage.setItem('lastStation', JSON.stringify({
             genre: randomGenre,
@@ -331,36 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   });
-
-  // Обработчики событий аудиоплеера для управления таймером
-  audioPlayer.addEventListener('play', () => {
-    updatePlayPauseButton(audioPlayer, playPauseBtn);
-    if (window.playTimerInterval) clearInterval(window.playTimerInterval);
-    let playTimer = 0;
-    const playTimerEl = document.getElementById('playTimer');
-    if (playTimerEl) {
-      playTimerEl.textContent = formatTime(playTimer);
-      window.playTimerInterval = setInterval(() => {
-        playTimer++;
-        playTimerEl.textContent = formatTime(playTimer);
-      }, 1000);
-    }
-  });
-
-  audioPlayer.addEventListener('pause', () => {
-    updatePlayPauseButton(audioPlayer, playPauseBtn);
-    if (window.playTimerInterval) {
-      clearInterval(window.playTimerInterval);
-      window.playTimerInterval = null;
-    }
-  });
-
-  initVolumeControl(audioPlayer, volumeSlider, volumeKnob, defaultVolume);
-
-  function isFavorite(station) {
-    const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-    return favs.includes(station.url);
-  }
 
   // Глобальный updater для синхронизации чата и метаданных
   let lastChatUpdate = 0;
@@ -383,4 +418,9 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(globalUpdater);
   }
   requestAnimationFrame(globalUpdater);
+
+  function isFavorite(station) {
+    const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+    return favs.includes(station.url);
+  }
 });

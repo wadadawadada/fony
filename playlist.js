@@ -1,7 +1,7 @@
 // playlist.js
 
 // Отрисовка списка станций с оптимизированным доступом к DOM через DocumentFragment и делегированием событий.
-// Добавлены data-атрибуты для обработки клика, а также включена ленивый импорт изображений (loading="lazy").
+// Ленивый импорт изображений (loading="lazy").
 export function renderPlaylist(playlistElement, stations) {
   playlistElement.innerHTML = '';
   const fragment = document.createDocumentFragment();
@@ -10,8 +10,8 @@ export function renderPlaylist(playlistElement, stations) {
     const li = document.createElement('li');
     li.style.position = "relative";
     li.style.setProperty('--buffer-percent', '0%');
-    // Используем оригинальный индекс, сохранённый в объекте станции
-    li.dataset.index = station.originalIndex !== undefined ? station.originalIndex : index;
+    // Используем текущий индекс из итерации, чтобы индексы совпадали с глобальным массивом
+    li.dataset.index = index;
 
     if (window.currentStationUrl && station.url === window.currentStationUrl) {
       li.classList.add('active');
@@ -28,7 +28,7 @@ export function renderPlaylist(playlistElement, stations) {
       icon.src = station.cover;
       icon.alt = "Station icon";
       icon.classList.add('station-icon');
-      icon.loading = 'lazy'; // Ленивый импорт изображения
+      icon.loading = 'lazy';
       li.appendChild(icon);
     }
 
@@ -134,9 +134,11 @@ export function loadPlaylist(url) {
         });
       }
 
-      // Присваиваем каждому объекту станции его оригинальный индекс в полном списке
-      loadedStations.forEach((station, i) => station.originalIndex = i);
+      // Фильтруем скрытые станции (те, URL которых сохранены в hiddenStations)
+      const hiddenStations = JSON.parse(localStorage.getItem('hiddenStations') || '[]');
+      loadedStations = loadedStations.filter(station => !hiddenStations.includes(station.url));
 
+      // Переиндексировать можно не сохранять оригинальный индекс, так как теперь data-index = индекс из итерации
       return Promise.all(
         loadedStations.map(st => {
           return new Promise(resolve => {
