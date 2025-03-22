@@ -371,6 +371,7 @@ html, body {
     background-color: #68686800;
     color: #fff;
     font-family: 'Ruda', sans-serif;
+    text-decoration: underline;
   }
   .genre-select option {
     background: #171c2b;

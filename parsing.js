@@ -1,8 +1,5 @@
-// Импорт jsmediatags из CDN как namespace
+// Импорт jsmediatags из CDN
 import * as jsmediatags from 'https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.js';
-
-// parsing.js
-// Модуль для безсерверного парсинга метаданных радиопотоков с использованием нескольких методов.
 
 // Метод 1: Извлечение метаданных через Icy-MetaData
 export async function fetchIcyMetadata(url) {
@@ -23,7 +20,6 @@ export async function fetchIcyMetadata(url) {
     const reader = response.body.getReader();
     let received = new Uint8Array(0);
 
-    // Функция для накопления n байт
     async function readBytes(n) {
       while (received.length < n) {
         const { done, value } = await reader.read();
@@ -38,16 +34,13 @@ export async function fetchIcyMetadata(url) {
       return result;
     }
 
-    // Пропускаем аудио-данные до metaInt байт
     await readBytes(metaInt);
-    // Читаем 1 байт, задающий длину блока метаданных
     const lengthByteArray = await readBytes(1);
     if (lengthByteArray.length === 0) return null;
     const metadataLength = lengthByteArray[0] * 16;
     if (metadataLength === 0) return null;
     const metadataBytes = await readBytes(metadataLength);
     const metadataString = new TextDecoder("utf-8").decode(metadataBytes);
-    // Обычно формат: StreamTitle='Artist - Track';
     const regex = /StreamTitle='([^']*)';/;
     const match = regex.exec(metadataString);
     if (match && match[1].trim().length > 0) {
@@ -65,7 +58,6 @@ export async function fetchID3Metadata(url) {
   return new Promise((resolve, reject) => {
     jsmediatags.read(url, {
       onSuccess: function(tag) {
-        // Извлекаем, например, название трека из тега
         const title = tag.tags.title || null;
         resolve(title);
       },
@@ -84,7 +76,6 @@ export async function fetchHTMLMetadata(url) {
     const htmlText = await response.text();
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlText, "text/html");
-    // Пример: поиск элемента с id="currentTrack"
     const metaElem = doc.getElementById("currentTrack");
     if (metaElem && metaElem.textContent.trim().length > 0) {
       return metaElem.textContent.trim();
@@ -96,14 +87,13 @@ export async function fetchHTMLMetadata(url) {
   }
 }
 
-// Метод 4: Парсинг RSS/Atom-фида
+// Метод 4: Парсинг RSS/Atom-фида (пример)
 export async function fetchRSSMetadata(url) {
   try {
     const response = await fetch(url);
     const rssText = await response.text();
     const parser = new DOMParser();
     const doc = parser.parseFromString(rssText, "application/xml");
-    // Пример: получение заголовка из первого элемента <item>
     const item = doc.querySelector("item");
     if (item) {
       const titleElem = item.querySelector("title");
@@ -123,7 +113,6 @@ export async function fetchManifestMetadata(url) {
   try {
     const response = await fetch(url);
     const manifestText = await response.text();
-    // Пример: поиск строки вида "#STREAMTITLE: название трека"
     const regex = /#STREAMTITLE:(.+)/i;
     const match = regex.exec(manifestText);
     if (match && match[1].trim().length > 0) {
@@ -136,15 +125,12 @@ export async function fetchManifestMetadata(url) {
   }
 }
 
-// Метод 6: Экспериментальный анализ аудио через Web Audio API
+// Метод 6: Анализ аудио через Web Audio API (экспериментально)
 export async function fetchAudioAnalysisMetadata(url) {
-  // Этот метод требует реализации алгоритма анализа аудиосигнала.
-  // В рамках данного примера возвращаем null.
   return null;
 }
 
-// Основная функция, которая последовательно пытается получить метаданные.
-// Если ни один из методов не дал результата, возвращается "No Metadata".
+// Основная функция получения метаданных
 export async function getStreamMetadata(url) {
   const methods = [
     fetchIcyMetadata,
@@ -155,7 +141,6 @@ export async function getStreamMetadata(url) {
     fetchAudioAnalysisMetadata
   ];
 
-  // Запускаем все методы параллельно, трансформируя пустые результаты в отказ
   const metadataPromises = methods.map(method =>
     method(url).then(result => {
       if (result && result.trim().length > 0) {
@@ -166,10 +151,35 @@ export async function getStreamMetadata(url) {
   );
 
   try {
-    // Возвращает первый успешно выполненный результат
     return await Promise.any(metadataPromises);
   } catch (error) {
     return "No Metadata";
   }
 }
 
+// Функция для получения данных RSS для бегущей строки (новости Global News)
+// Используем API rss2json.com для получения данных в формате JSON (поддерживается CORS)
+// При каждом вызове случайным образом выбираются новости из ленты
+export async function getTickerRSS() {
+  try {
+    const feedUrl = 'https://globalnews.ca/feed/';
+    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const data = await response.json();
+    const items = data.items;
+    if (!items || items.length === 0) {
+      return "No News";
+    }
+    // Перемешиваем массив новостей случайным образом
+    const shuffled = items.slice().sort(() => Math.random() - 0.5);
+    // Выбираем первые три новости
+    const selected = shuffled.slice(0, 3);
+    return selected.map(item => item.title).join(" | ");
+  } catch (error) {
+    console.error("Ошибка получения RSS для тикера:", error);
+    return "RSS недоступен";
+  }
+}

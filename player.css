@@ -43,7 +43,7 @@
   justify-content: flex-end;
   gap: 5px;
   overflow: hidden;
-  display: none; /* <-- добавлено */
+  /* display: none; <-- добавлено */
 }
 .stream-icon,
 .track-icon {
@@ -51,7 +51,7 @@
   height: 24px;
 }
 .track-icon {
-  height: 14px;
+  height: 16px;
 }
 .station-label,
 .track-name {
