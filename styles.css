@@ -297,7 +297,7 @@ html, body {
   }
   #playlist li {
     background-color: #ffffff39;
-    color: #333;
+    color: #171C2B;
     padding: 10px;
     margin-bottom: 5px;
     border-radius: 3px;
@@ -320,7 +320,8 @@ html, body {
     left: 0;
     height: 100%;
     width: var(--buffer-percent, 0%);
-    background-color: #171C2B;
+    background-color: #171c2b8b;
+    color: #00F2B8;
     border-radius: 3px;
     z-index: 0;
     transition: width 0.3s ease;

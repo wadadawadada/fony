@@ -1,6 +1,4 @@
 #EXTM3U
-#EXTINF:-1,011FM 90s Alternative
-https://listen.011fm.com/stream17
 #EXTINF:-1,011FM Alternative
 https://listen.011fm.com/stream15
 #EXTINF:-1,077 Radio
@@ -15,22 +13,12 @@ https://100indie.stream.laut.fm/100indie
 https://mars.streamerr.co/8030/stream
 #EXTINF:-1,102.7 EQX
 http://crystalout.surfernetwork.com:8001/WEQX_MP3
-#EXTINF:-1,105.9 Rock
-http://69.162.75.218:8318/stream
-#EXTINF:-1,106.1 Theunder Ground
-https://ice64.securenetsystems.net/KQLXFM
-#EXTINF:-1,106.5 Lakes FM
-https://ice7.securenetsystems.net/KFMC
 #EXTINF:-1,106.5 The Lite
 http://69.162.75.218:8062/stream
 #EXTINF:-1,1077 The Lake
 http://ice41.securenetsystems.net/WWDW
 #EXTINF:-1,113FM Alt Nation
 https://113fm-atunwadigital.streamguys1.com/1001
-#EXTINF:-1,24horasmusica
-https://streaming01.radiosenlinea.com.ar/9048/stream
-#EXTINF:-1,87.8 UCFM
-https://listen.radioking.com/radio/570932/stream/631505
 #EXTINF:-1,90.3 WKWC Panther Radio
 https://wkwc.streamguys1.com/live-aac
 #EXTINF:-1,90.5 The Edge
@@ -87,7 +75,7 @@ https://20min.dmd2streaming.com/20minuten_radio_128.mp3
 http://streamer.psyradio.org:8040/listen.mp3
 #EXTINF:-1,ExtraRadio
 http://cast1.asurahosting.com:8656/
-#EXTINF:-1,C Rock Radio 
+#EXTINF:-1,C Rock Radio
 https://stric6.streamakaci.com/crock.mp3
 #EXTINF:-1,Fans
 https://sp.onliveperu.com/8148/stream
@@ -101,7 +89,7 @@ https://stream.rcs.revma.com/yxv344rra2zuv
 http://live3.livemus.com.br:27684/stream.nsv
 #EXTINF:-1,Rádio Web Música Tá na Pista
 https://player.srvstm.com/proxy/9042
-#EXTINF:-1,Path through the Forest 
+#EXTINF:-1,Path through the Forest
 https://paththroughtheforest.stream.laut.fm/path_through_the_forest
 #EXTINF:-1,MAGIC.FM
 https://magicfm.stream.laut.fm/magicfm
@@ -115,7 +103,7 @@ https://mira.streamerr.co/radio/8050/radio.mp3
 http://uk2-pn.mixstream.net:8048/listen.mp3
 #EXTINF:-1,103.9 The Planet
 https://pwaimg.listenlive.co/KKVTHD3_1540981_config_favicon_1552327510.png
-#EXTINF:-1,Mac 94.7 FM 
+#EXTINF:-1,Mac 94.7 FM
 https://s5.radio.co/sb3c8084dd/listen
 #EXTINF:-1,95 Wave.fm
 https://radio.securenetsystems.net/v5/WVVEFM
@@ -127,11 +115,11 @@ http://ksno.streamon.fm/
 https://streamdb7web.securenetsystems.net/v5/Q101
 #EXTINF:-1,96.5 The Fox
 https://965thewalleye.com/listen-live/
-#EXTINF:-1,Classic Rock 
+#EXTINF:-1,Classic Rock
 https://radio.securenetsystems.net/v5/KMGM
 #EXTINF:-1,92.9 The X
 https://streamdb6web.securenetsystems.net/cirrusencore/WECL
-#EXTINF:-1,XTSR 
+#EXTINF:-1,XTSR
 https://streamdb7web.securenetsystems.net/ce/WTTU&
 #EXTINF:-1,The Buzz
 https://kbhu.bhsu.edu/
@@ -139,9 +127,9 @@ https://kbhu.bhsu.edu/
 http://stream.vocalo.org/vocalo128-tunein
 #EXTINF:-1,94X Pure Rock
 https://current.stream.publicradio.org/current.aac
-#EXTINF:-1,KGRG1 
+#EXTINF:-1,KGRG1
 http://www.ophanim.net:7080/stream.nsv
-#EXTINF:-1,The Point 
+#EXTINF:-1,The Point
 http://peridot.streamguys.com:7260/live?type=.mp3
 #EXTINF:-1,Go 96.3
 https://listen.air1.com/
@@ -341,7 +329,7 @@ https://studionl.stream.laut.fm/studionl?t302=2023-04-25_19-32-33&uuid=d201ab9c-
 https://morksrohlingen.stream.laut.fm/morksrohlingen?t302=2023-04-25_20-06-24&uuid=3299a938-808c-4adb-8e2d-57e2075bda6c
 #EXTINF:-1,expaFM
 https://expafm.stream.laut.fm/expafm?t302=2023-04-25_20-15-51&uuid=8131d3e7-7388-47f1-bcf5-6c8df1e529ff
-#EXTINF:-1,Polyprisma 
+#EXTINF:-1,Polyprisma
 https://polyprisma.stream.laut.fm/polyprisma?t302=2023-04-25_20-06-50&uuid=dca957b8-5079-4635-86f2-b5b0b18dd666
 #EXTINF:-1,Pit Mosh
 https://pit-mosh.stream.laut.fm/pit-mosh?t302=2023-04-25_20-06-49&uuid=97528f4d-d35e-44e9-8f46-7937908d1de6
@@ -377,7 +365,7 @@ https://arc.stream.laut.fm/arc?t302=2023-09-19_12-13-52&uuid=1d2926ea-fd3a-4d67-
 https://antennerheinruhr.stream.laut.fm/antennerheinruhr?t302=2023-04-25_19-47-48&uuid=170fd1ae-4f64-46e4-8b94-1943c5acf399
 #EXTINF:-1,88.7 WPCD FM
 https://ice9.securenetsystems.net/KTKE
-#EXTINF:-1,BurnYourEars  
+#EXTINF:-1,BurnYourEars
 https://burnyourears.stream.laut.fm/burnyourears?t302=2023-04-25_20-03-42&uuid=1ebba1c5-59f4-43c7-816e-f0ab1f6a74c2
 #EXTINF:-1,Rockin&#039; The Suburbs Radio
 https://streaming.radio.co/sca22d43b1/listen
@@ -569,7 +557,7 @@ https://wgrd.com/listen-live/
 https://ice9.securenetsystems.net/KCVI
 #EXTINF:-1,Wavebreaker
 https://wavebreaker.stream.laut.fm/wavebreaker?t302=2023-04-25_19-33-38&uuid=82104904-c75b-40d3-bfc3-46d8189c4e49
-#EXTINF:-1,PMR 
+#EXTINF:-1,PMR
 https://playermusicradio.stream.laut.fm/playermusicradio?t302=2023-04-25_20-10-37&uuid=daed58f5-9737-4576-aa72-017dee0cfe2f
 #EXTINF:-1,The Blastozoic Era
 https://blastozoicera-stream.theblast.fm/128
@@ -763,7 +751,7 @@ https://jm8n.net:8018/stream
 http://136.183.9.38:3307
 #EXTINF:-1,CDNX - The Camden Xperience; 60's Psychedelia to 20's Dance
 http://5.35.214.196:8000/stream/3/
-#EXTINF:-1,1.FM - Alternative Rock X Hits 
+#EXTINF:-1,1.FM - Alternative Rock X Hits
 http://185.33.21.112:80/x_128
 #EXTINF:-1,Eyekon Radio Alternative
 https://hq.eyekonradio.com/radio/8010/radio.mp3
@@ -783,7 +771,7 @@ https://streaming.radio.co/sd2bf7caf1/listen
 http://rosetta.shoutca.st:8329/stream.mp3
 #EXTINF:-1,Snake Dance Radio
 https://snakedance.stream.laut.fm/snakedance
-#EXTINF:-1,Atlantic Radio Ireland 
+#EXTINF:-1,Atlantic Radio Ireland
 http://streamplus18.leonex.de:11076/
 #EXTINF:-1,Opm
 https://ad-oom-cmg.streamguys1.com/jac1029/jac1029-sgplayer-aac
@@ -841,7 +829,7 @@ https://stream.rtfm.fm/aac256
 https://streamdb9web.securenetsystems.net/cirrusencore/KWXD
 #EXTINF:-1,Rádio Club da Massa
 https://stream1.svrdedicado.org/8032/stream
-#EXTINF:-1,D-ROCKz Radio 
+#EXTINF:-1,D-ROCKz Radio
 http://server4.streamserver24.com:21772/stream/1/
 #EXTINF:-1,kzradio
 https://kzradio.mediacast.co.il/kzradio_live/kzradio/icecast.audio
@@ -949,7 +937,7 @@ https://radiodopesoundzfm.stream.laut.fm/radiodopesoundzfm
 https://darkrose-radio.stream.laut.fm/darkrose-radio
 #EXTINF:-1,Hei FM radio
 https://heifm.stream.laut.fm/heifm
-#EXTINF:-1,Freakquency Radio 
+#EXTINF:-1,Freakquency Radio
 https://freakquency.stream.laut.fm/freakquency
 #EXTINF:-1,Flip Flop Radio
 https://flip-flop-radio.stream.laut.fm/flip-flop-radio
@@ -1041,7 +1029,7 @@ https://audio-edge-ey5nr.ams.s.radiomast.io/9446a7ef-e0a9-43b2-b34c-6e8a6bea9d58
 https://sc17.spacialnet.com/stream/3494/
 #EXTINF:-1,Radio OO radio
 https://s5.radio.co/s6140c7241/listen
-#EXTINF:-1,Universo7p Radio 
+#EXTINF:-1,Universo7p Radio
 https://universo7pradio.stream.laut.fm/universo7pradio
 #EXTINF:-1,The Sound Lab radio
 https://s4.radio.co/s0fc46103b/listen
@@ -1749,7 +1737,7 @@ http://uk5.internet-radio.com:8055/stream?n=bbfe417a9b0734106cc2
 http://netroots-main-1.stream.creek.fm:8000/stream?n=ba8e67ace17525980a5b
 #EXTINF:-1,n5MD Radio
 https://somafm.com/n5md64.pls?n=f6964f0c704b597301e6
-#EXTINF:-1,Mystery Train Radio 
+#EXTINF:-1,Mystery Train Radio
 https://streamer.radio.co/sf662f27c0/low?n=619afad0611bcf672870
 #EXTINF:-1,MWT Rock Station
 https://stream.volnorez.com/live-app/908994?br=192?n=a433115f9bfe9f654e46
@@ -1865,7 +1853,7 @@ http://localcurrent.stream.publicradio.org/localcurrent.mp3?n=028f8a90fe10f083d0
 http://ice6.securenetsystems.net/KCLC?n=f3fa9f0719d251bb2e9c
 #EXTINF:-1,KBUU-LP 97.5 Malibu, CA
 http://s7.viastreaming.net:9140/?_=0.4072272014147833?n=32a347a5825c60d0a3ca
-#EXTINF:-1,KBGE 
+#EXTINF:-1,KBGE
 http://ice41.securenetsystems.net/KBGE#MP3#AAA?n=7a427ffaa8151de2a23b
 #EXTINF:-1,Jefferson Public Radio
 http://jpr.streamguys.org/jpr-rhythm?n=023f93177a72eecda183
@@ -1999,11 +1987,11 @@ https://newcap.leanstream.co/CILVFM?n=3d1e2193bc10cf559e74
 http://ice55.securenetsystems.net/DASH21?n=6367fa4a1df8c96b3a9d
 #EXTINF:-1,CHRY Vibe 105.5 York University Toronto, ON
 http://ice7.securenetsystems.net/CHRY?n=0d58538dffdd0f36eb3b
-#EXTINF:-1,CHNV-FM 103.5 The Bridge Nelson, BC 
+#EXTINF:-1,CHNV-FM 103.5 The Bridge Nelson, BC
 https://vistaradio.streamb.live/SB00086?n=44a5dc93a28726d1249e
 #EXTINF:-1,CHDI Sonic 102.9 Edmonton, AB
 http://rogers-hls.leanstream.co:8000/rogers/edm1029.stream/48k/playlist.m3u8?n=5749ac1d7d197143ddac
-#EXTINF:-1,Channel X Digital 
+#EXTINF:-1,Channel X Digital
 https://digitalstreams.mediaworks.nz/chx_net_high/playlist.m3u8??n=5c0a1e5db7b9b1c825f1
 #EXTINF:-1,Channel X
 https://digitalstreams4.mediaworks.nz/chx-AKL-high/playlist.m3u8??n=3075138da2bd969f4200
@@ -2411,21 +2399,21 @@ https://16643.live.streamtheworld.com:443/XTRAFMAAC.aac?dist=onlineradiobox
 https://ice42.securenetsystems.net/KWFR
 #EXTINF:-1,The Bear
 https://ice9.securenetsystems.net/KBRE
-#EXTINF:-1,1.FM - High Voltage 
+#EXTINF:-1,1.FM - High Voltage
 https://strm112.1.fm/highvoltage_mobile_aac
-#EXTINF:-1,BigR - 90s Alternative Rock 
+#EXTINF:-1,BigR - 90s Alternative Rock
 https://bigrradio.cdnstream1.com/5187_48
-#EXTINF:-1,Radio Paradise 
+#EXTINF:-1,Radio Paradise
 https://stream.radioparadise.com/aac-320
-#EXTINF:-1,Indie Pop Rocks! 
+#EXTINF:-1,Indie Pop Rocks!
 https://ice1.somafm.com/indiepop-128-mp3
-#EXTINF:-1,Radio Active 88.6FM 
+#EXTINF:-1,Radio Active 88.6FM
 https://radio123-gecko.radioca.st/stream/1/
-#EXTINF:-1,MR1 Kossuth Rádió 
+#EXTINF:-1,MR1 Kossuth Rádió
 https://icast.connectmedia.hu/4736/mr1.mp3
-#EXTINF:-1,BigR - Alternative Rock 
+#EXTINF:-1,BigR - Alternative Rock
 https://bigrradio.cdnstream1.com/5189_48
-#EXTINF:-1,NPO 3FM Alternative 
+#EXTINF:-1,NPO 3FM Alternative
 https://icecast.omroep.nl/3fm-alternative-aac
 #EXTINF:-1,Radius 106,6
 https://live.helsinki.at:8088/live128.mp3
@@ -4187,7 +4175,7 @@ https://stream.revma.ihrhls.com/zc2281
 https://stream.revma.ihrhls.com/zc2033
 #EXTINF:-1,103.1 The Raven
 https://ice23.securenetsystems.net/KRVX
-#EXTINF:-1,SUSPIROS DE POETAS 
+#EXTINF:-1,SUSPIROS DE POETAS
 https://s22.ssl-stream.com/listen/suspiros_de_poetas_/radio.mp3
 #EXTINF:-1,Radio Gordo
 https://radiogordo.out.airtime.pro/radiogordo_a
@@ -4633,7 +4621,7 @@ http://128.175.76.123:8000/stream/2/_
 https://streamdb7web.securenetsystems.net/v5/WQAQ
 #EXTINF:-1,WHSN - Bangor's Rock Alternative 89.3 FM
 https://ice7.securenetsystems.net/WHSN?type=.mp3
-#EXTINF:-1,Whatever68 Radio 
+#EXTINF:-1,Whatever68 Radio
 http://149.56.185.82:8010//stream/1/
 #EXTINF:-1,WGAO 88.3 - Power 88
 http://64.34.163.103/dean/dean_mobile.m3u
@@ -4643,7 +4631,7 @@ http://ruby.streamguys.com:5500/live
 http://stream.radio-unicc.de:8000/unicc_hq.mp3.m3u
 #EXTINF:-1,Triple M Central West 105.1
 http://legacy.scahw.com.au/2oag_128
-#EXTINF:-1,The Face Radio 
+#EXTINF:-1,The Face Radio
 https://thefaceradio.out.airtime.pro/thefaceradio_a
 #EXTINF:-1,South by Soma
 https://ice5.somafm.com/specials-128-mp3
@@ -4669,7 +4657,7 @@ http://ecoutez.fajet.net:16600/stream/1/
 https://donalgreene.com/radact8000
 #EXTINF:-1,Primavera Sound Radio
 https://streamer.radio.co/s23e62020a/listen
-#EXTINF:-1,Powerradio4u 
+#EXTINF:-1,Powerradio4u
 http://stream.powerradio4u.de:8000/p4u.mp3
 #EXTINF:-1,OUI FM Alternatif
 https://ouifm2.ice.infomaniak.ch/ouifm2.mp3
@@ -4713,7 +4701,7 @@ http://79.120.77.11:8000/misc
 http://79.111.119.111:8000/altcountry
 #EXTINF:-1,Radio Campus Lyon - Brume 90.7
 https://listen.radioking.com/radio/489875/stream/546695
-#EXTINF:-1,BOLLOCKS Rock & Metal Radio 
+#EXTINF:-1,BOLLOCKS Rock & Metal Radio
 http://s44.myradiostream.com:6588/
 #EXTINF:-1,2UNE TUNE! 106.9 FM
 http://129.180.126.81:8010/stream
@@ -4763,7 +4751,7 @@ http://wfuv-onair.streamguys.org:80/onair-hi
 https://mediaserviceslive.akamaized.net/hls/live/2038308/triplejnsw/masterhq.m3u8
 #EXTINF:-1,DR P6 Beat
 https://drliveradio1.akamaized.net/hls/live/2097651/p6beat/playlist-320000.m3u8
-#EXTINF:-1,Czwórka - Polskie Radio Program 4 
+#EXTINF:-1,Czwórka - Polskie Radio Program 4
 https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8
 #EXTINF:-1,OUI FM
 https://ouifm.ice.infomaniak.ch/ouifm-high.mp3
@@ -4781,7 +4769,7 @@ http://listen6.myradio24.com:9000/2411
 https://live-bauerie.sharp-stream.com/98?
 #EXTINF:-1,PLAY Radio
 https://stream.rcs.revma.com/stk8hrvb938uv
-#EXTINF:-1,BAGeL Radio 
+#EXTINF:-1,BAGeL Radio
 https://ais-sa3.cdnstream1.com/2606_128.aac
 #EXTINF:-1,NEW WAVE RADIO
 https://digitalaudiobroadcasting.net:8006
@@ -4797,7 +4785,7 @@ https://peridot.streamguys1.com:5490/live
 https://s2.radio.co/sc161fe4c9/listen
 #EXTINF:-1,181.fm - 90's Alternative
 https://listen.181fm.com/181-90salt_128k.mp3?
-#EXTINF:-1,Gem Radio New Wave 
+#EXTINF:-1,Gem Radio New Wave
 https://gemradionw.radioca.st/stream/1/
 #EXTINF:-1,WXPN
 http://wxpnsc96.streamguys.com/listen.pls
@@ -5083,7 +5071,7 @@ https://fuego.stream.laut.fm/fuego
 https://dreisig.stream.laut.fm/dreisig?
 #EXTINF:-1,Radio Kol Yizrael
 https://radio.streamgates.net/stream/yezreel
-#EXTINF:-1,Konsole 
+#EXTINF:-1,Konsole
 https://konsole.stream.laut.fm/konsole
 #EXTINF:-1,Argebrat
 https://argebrat.stream.laut.fm/argebrat?
@@ -5097,7 +5085,7 @@ https://sonic.dattassd.com/8136/stream
 https://gbusofficial.stream.laut.fm/gbusofficial
 #EXTINF:-1,Smash Online Radio
 https://streaming.relevantmediaservices.com:2020/stream/smashonlineradio/stream
-#EXTINF:-1,Breitengrad38 
+#EXTINF:-1,Breitengrad38
 https://breitengrad38.stream.laut.fm/breitengrad38
 #EXTINF:-1,99.9 WWCT
 https://streamdb6web.securenetsystems.net/cirrusencore/WWCT
@@ -6677,7 +6665,7 @@ https://stm10.xcast.com.br:12046/stream
 http://cast2.asurahosting.com:8018/stream
 #EXTINF:-1,KSVG Savage Radio
 https://ksvg.streamguys1.com/live
-#EXTINF:-1,Cauquenesnet Radio Internacional 
+#EXTINF:-1,Cauquenesnet Radio Internacional
 http://c15.radioboss.fm:8476/stream
 #EXTINF:-1,Shibburn Radio
 https://shibburnradio.net/radio/8000/radio.mp3
@@ -6813,7 +6801,7 @@ https://listen.radionomy.com/allalternatives-q101com.m3u
 https://www.polushon.com/arch/playlist.pls
 #EXTINF:-1,Radio Piaui Tropical
 https://servidor25-1.brlogic.com:8602/live
-#EXTINF:-1,Phaune radio 
+#EXTINF:-1,Phaune radio
 https://stream.phauneradio.com/phaune_128
 #EXTINF:-1,NPO 3FM KX Radio
 https://icecast.omroep.nl/3fm-serioustalent-mp3
@@ -6835,7 +6823,7 @@ https://ice1.securenetsystems.net/DEMOSTN?type=.mp3
 https://kcrw.streamguys1.com/kcrw_192k_mp3_e24
 #EXTINF:-1,KCHU 770 AM
 https://ice8.securenetsystems.net/KCHU
-#EXTINF:-1,KBVU - The Edge 97.5 FM 
+#EXTINF:-1,KBVU - The Edge 97.5 FM
 https://ais-sa1.streamon.fm/7018_48k.aac
 #EXTINF:-1,KBGA - Missoula 89.9 FM
 https://edge.mixlr.com/channel/veouw
@@ -6845,7 +6833,7 @@ https://streaming.radio.co/seac6e5991/listen
 https://listen.radionomy.com/indieimaginationradio.m3u
 #EXTINF:-1,Hit West Festivals
 https://hitwest-festival.ice.infomaniak.ch/hitwest-festival-128.mp3
-#EXTINF:-1,HighClouds 
+#EXTINF:-1,HighClouds
 https://listen.radionomy.com/highclouds.m3u
 #EXTINF:-1,Genius Hip-Hop
 https://listen.radionomy.com/geniushiphop.m3u
@@ -6859,7 +6847,7 @@ https://ice55.securenetsystems.net/DASH51
 https://ice55.securenetsystems.net/DASH12
 #EXTINF:-1,CPR - indie 102.3
 https://stream1.cprnetwork.org/cpr3_lo
-#EXTINF:-1,CILV Live 88.5 
+#EXTINF:-1,CILV Live 88.5
 https://newcap.leanstream.co/CILVFM
 #EXTINF:-1,Boogaloo Radio
 https://streams.radio.co/sb88c742f0/listen
@@ -6871,11 +6859,11 @@ https://arrayradio.com/listen/arrayradio128k.pls
 https://radioanime.radioca.st/stream/1/
 #EXTINF:-1,Alternative Radio
 https://listen.radioking.com/radio/182263/stream/224140
-#EXTINF:-1,Alternative Nation Radio 
+#EXTINF:-1,Alternative Nation Radio
 https://listen.radionomy.com/alternativenationradio.m3u
 #EXTINF:-1,AceRadio-The Alternative Channel
 https://bigrradio.cdnstream1.com/5116_128
-#EXTINF:-1,674FM 
+#EXTINF:-1,674FM
 https://674.fm/stream.m3u
 #EXTINF:-1,2YYY - Young 92.3 FM
 https://streaming.2yyyradio.com/radio/8000/radio.mp3
