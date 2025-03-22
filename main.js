@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentParsingUrl = null;
   let appInitialized = false;
   
+  // Глобально сохраняем текущий жанр для формирования share-ссылки
+  window.currentGenre = null;
+  
   function checkMarquee(container) {
     if (!container) return;
     const scrollingText = container.querySelector('.scrolling-text');
@@ -103,11 +106,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // Функция выбора станции.
-  // Сначала обновляем window.currentStationUrl, затем перерисовываем плейлист – кнопка share будет сразу отображена.
+  // Сначала обновляем window.currentStationUrl, затем перерисовываем плейлист – кнопка share сразу отображается.
   window.onStationSelect = function(index) {
     const station = currentPlaylist[index];
     window.currentStationUrl = station.url;
     
+    // Перерисовываем плейлист с активной станцией
     renderPlaylist(playlistElement, currentPlaylist);
     
     const allLi = document.querySelectorAll('#playlist li');
@@ -120,10 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     currentParsingUrl = station.url;
     
+    // Сохраняем выбранную станцию и жанр в localStorage (для загрузки в будущем)
     localStorage.setItem('lastStation', JSON.stringify({
       genre: playlistSelect.value,
       trackIndex: index
     }));
+    
+    // Устанавливаем текущий жанр глобально
+    window.currentGenre = playlistSelect.value;
     
     const rightGroup = document.querySelector('.right-group');
     if (rightGroup) {
@@ -332,14 +340,29 @@ document.addEventListener('DOMContentLoaded', () => {
     defaultVolume
   );
   
-  // Обработка hash-фрагмента из URL
+  // Обработка hash-фрагмента из URL.
+  // Ожидается формат: #genre/хеш_станции, например: #techno/25a55019
   function processUrlHash() {
     const hash = window.location.hash;
     if (hash) {
-      const hashFromUrl = hash.substring(1);
-      const matchedIndex = currentPlaylist.findIndex(station => generateStationHash(station.url) === hashFromUrl);
-      if (matchedIndex !== -1) {
-        window.onStationSelect(matchedIndex);
+      const fragment = hash.substring(1); // убираем "#"
+      const parts = fragment.split('/');
+      if (parts.length === 2) {
+        const genreFromHash = decodeURIComponent(parts[0]);
+        const stationHash = parts[1];
+        // Устанавливаем нужный жанр в селекте и глобально
+        playlistSelect.value = genreFromHash;
+        window.currentGenre = genreFromHash;
+        // Загружаем плейлист для этого жанра, затем ищем станцию с подходящим хешем
+        loadAndRenderPlaylist(genreFromHash, () => {
+          const matchedIndex = currentPlaylist.findIndex(station => generateStationHash(station.url) === stationHash);
+          if (matchedIndex !== -1) {
+            window.onStationSelect(matchedIndex);
+          } else {
+            // Если не нашли – выбираем первую станцию
+            window.onStationSelect(0);
+          }
+        });
         return true;
       }
     }
@@ -350,31 +373,35 @@ document.addEventListener('DOMContentLoaded', () => {
   if (lastStationData) {
     try {
       const { genre, trackIndex } = JSON.parse(lastStationData);
-      playlistSelect.value = genre;
-      initChat(genre);
-      loadAndRenderPlaylist(genre, () => {
-        if (!processUrlHash()) {
+      // Если в URL присутствует hash, processUrlHash возьмёт приоритет
+      if (!processUrlHash()) {
+        playlistSelect.value = genre;
+        window.currentGenre = genre;
+        initChat(genre);
+        loadAndRenderPlaylist(genre, () => {
           const safeIndex = (trackIndex < currentPlaylist.length) ? trackIndex : 0;
           window.onStationSelect(safeIndex);
-        }
-        updateChat(genre);
-      });
+          updateChat(genre);
+        });
+      } else {
+        initChat(playlistSelect.value);
+        updateChat(playlistSelect.value);
+      }
     } catch (e) {
       console.error("Ошибка парсинга lastStation:", e);
       initChat(playlistSelect.value);
       loadAndRenderPlaylist(playlistSelect.value, () => {
-        if (!processUrlHash()) {
-          window.onStationSelect(0);
-        }
+        window.onStationSelect(0);
       });
     }
   } else {
-    initChat(playlistSelect.value);
-    loadAndRenderPlaylist(playlistSelect.value, () => {
-      if (!processUrlHash()) {
+    // Если нет сохранённых данных, проверяем hash или загружаем плейлист по умолчанию
+    if (!processUrlHash()) {
+      initChat(playlistSelect.value);
+      loadAndRenderPlaylist(playlistSelect.value, () => {
         window.onStationSelect(0);
-      }
-    });
+      });
+    }
   }
   
   playlistSelect.addEventListener('change', () => {

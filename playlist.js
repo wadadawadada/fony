@@ -46,7 +46,6 @@ export function renderPlaylist(playlistElement, stations) {
     if (window.currentStationUrl && station.url === window.currentStationUrl) {
       li.classList.add('active');
 
-      // Создаем кнопку share (иконка)
       const shareIcon = document.createElement('img');
       shareIcon.src = '/img/share_icon.svg';
       shareIcon.alt = 'Share station';
@@ -55,19 +54,20 @@ export function renderPlaylist(playlistElement, stations) {
       shareIcon.style.cursor = 'pointer';
       shareIcon.style.marginLeft = '10px';
 
-      // Создаем span для надписи "copied!", который изначально скрыт
       const copiedSpan = document.createElement('span');
       copiedSpan.textContent = 'copied!';
       copiedSpan.style.color = '#fff';
       copiedSpan.style.marginLeft = '5px';
       copiedSpan.style.display = 'none';
 
-      // При клике формируем ссылку с hash-фрагментом:
-      // window.location.origin + window.location.pathname + "#" + generateStationHash(station.url)
+      // Формируем ссылку с hash-фрагментом, включающим жанр и хеш станции.
+      // Предполагаем, что в main.js установлен глобальный window.currentGenre.
       shareIcon.addEventListener('click', (event) => {
         event.stopPropagation();
         const hash = generateStationHash(station.url);
-        const shareLink = window.location.origin + window.location.pathname + '#' + hash;
+        // Если currentGenre не задан, используем значение из localStorage.lastStation или пустую строку.
+        const genre = window.currentGenre || (localStorage.getItem('lastStation') && JSON.parse(localStorage.getItem('lastStation')).genre) || "";
+        const shareLink = window.location.origin + window.location.pathname + '#' + encodeURIComponent(genre) + '/' + hash;
         navigator.clipboard.writeText(shareLink)
           .then(() => {
             copiedSpan.style.display = 'inline';
@@ -132,7 +132,6 @@ function removeFavorite(station) {
 }
 
 // Загрузка плейлиста (.m3u)
-// Логика загрузки не изменялась – оставляем существующий код
 export function loadPlaylist(url) {
   return fetch(url)
     .then(response => response.text())
