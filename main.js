@@ -2,28 +2,28 @@
 
 import { fadeAudioOut, fadeAudioIn } from './player.js';
 import { renderPlaylist, loadPlaylist } from './playlist.js';
-import {
-  updatePlayPauseButton,
-  updateShuffleButton,
-  initVolumeControl
-} from './controls.js';
+import { initVolumeControl, updatePlayPauseButton } from './controls.js';
 import { initChat, updateChat, syncChat } from './chat.js';
 import { getStreamMetadata } from './parsing.js';
 
+// Функция генерации хеш-суммы (аналогична в playlist.js)
+function generateStationHash(url) {
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) {
+    hash = ((hash << 5) - hash) + url.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(16);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-
-  // Глобальная переменная для отслеживания текущего URL для парсинга
   let currentParsingUrl = null;
-
-  // ФЛАГ – добавили для предотвращения удаления станции до первой фактической инициализации плеера
-  let appInitialized = false; // <-- Добавлено
-
-  // Функция для активации бегущей строки (marquee)
+  let appInitialized = false;
+  
   function checkMarquee(container) {
     if (!container) return;
     const scrollingText = container.querySelector('.scrolling-text');
     if (!scrollingText) return;
-    // Сбрасываем класс, чтобы анимация не шла постоянно при обновлениях
     scrollingText.classList.remove('marquee');
     const containerWidth = container.clientWidth;
     const textWidth = scrollingText.scrollWidth;
@@ -31,28 +31,23 @@ document.addEventListener('DOMContentLoaded', () => {
       scrollingText.classList.add('marquee');
     }
   }
-
-  // Элементы для управления жанрами и поиска
+  
+  // Элементы управления и DOM
   const genreBox = document.querySelector('.genre-box');
   const genreLabel = genreBox.querySelector('label');
   const playlistSelect = document.getElementById('playlistSelect');
   const searchInput = document.getElementById('searchInput');
-
-  // Контейнер плейлиста
+  
   const playlistContainer = document.getElementById('playlistContent');
   const playlistElement = document.getElementById('playlist');
   
-  // Для иконки "Favorites" (динамически добавляемой)
   let favoritesSpan = null;
-
-  // Основные элементы плеера
+  
   const audioPlayer = document.getElementById('audioPlayer');
   const stationLabel = document.getElementById('stationLabel');
-  // Элемент для отображения трека (находится внутри .right-group)
   const currentTrackEl = document.getElementById('currentTrack');
   const playlistLoader = document.getElementById('playlistLoader');
-
-  // Кнопки управления
+  
   const rrBtn = document.getElementById('rrBtn');
   const ffBtn = document.getElementById('ffBtn');
   const favBtn = document.getElementById('favBtn');
@@ -60,16 +55,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const randomBtn = document.getElementById('randomBtn');
   const playPauseBtn = document.getElementById('playPauseBtn');
   const favoritesFilterBtn = document.getElementById('favoritesFilterBtn');
-
-  // Глобальные переменные для списка станций
+  
   let allStations = [];
   let currentPlaylist = [];
   let currentTrackIndex = 0;
   let shuffleActive = false;
   const defaultVolume = { value: 0.9 };
   audioPlayer.volume = defaultVolume.value;
-
-  // Список жанров
+  
   const allGenres = [
     'genres/african.m3u',
     'genres/asian.m3u',
@@ -92,17 +85,15 @@ document.addEventListener('DOMContentLoaded', () => {
     'genres/techno.m3u',
     'genres/world.m3u'
   ];
-
+  
   let playCheckTimer = null;
-
-  // Функция форматирования времени (mm:ss)
+  
   function formatTime(seconds) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return mins + ":" + (secs < 10 ? "0" + secs : secs);
   }
-
-  // Debounce для поиска
+  
   function debounce(func, wait) {
     let timeout;
     return function(...args) {
@@ -110,29 +101,30 @@ document.addEventListener('DOMContentLoaded', () => {
       timeout = setTimeout(() => func.apply(this, args), wait);
     };
   }
-
-  // Функция выбора станции
+  
+  // Функция выбора станции.
+  // Сначала обновляем window.currentStationUrl, затем перерисовываем плейлист – кнопка share будет сразу отображена.
   window.onStationSelect = function(index) {
+    const station = currentPlaylist[index];
+    window.currentStationUrl = station.url;
+    
+    renderPlaylist(playlistElement, currentPlaylist);
+    
     const allLi = document.querySelectorAll('#playlist li');
     allLi.forEach(item => {
       item.classList.remove('active');
       item.style.setProperty('--buffer-percent', '0%');
     });
     const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === index);
-    
     currentTrackIndex = index;
-    const station = currentPlaylist[index];
-    window.currentStationUrl = station.url;
     
-    // Обновляем текущий URL для парсинга
     currentParsingUrl = station.url;
     
     localStorage.setItem('lastStation', JSON.stringify({
       genre: playlistSelect.value,
       trackIndex: index
     }));
-
-    // При переключении станции сразу очищаем данные трека и показываем "Loading..."
+    
     const rightGroup = document.querySelector('.right-group');
     if (rightGroup) {
       rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
@@ -141,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                               </span>`;
       checkMarquee(rightGroup);
     }
-
+    
     audioPlayer.src = station.url;
     if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
@@ -150,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (playTimerEl) {
       playTimerEl.textContent = formatTime(0);
     }
-
+    
     simulateBuffering(li, () => {
       if (li) li.classList.add('active');
       if (stationLabel) {
@@ -160,12 +152,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         checkMarquee(stationLabel);
       }
-
+      
       audioPlayer.muted = false;
       audioPlayer.volume = defaultVolume.value;
       audioPlayer.play().then(() => {
-        // Воспроизведение началось – считаем приложение инициализированным
-        appInitialized = true; // <-- Добавлено
+        appInitialized = true;
       }).catch(err => {
         console.warn("Autoplay blocked:", err);
       });
@@ -173,23 +164,18 @@ document.addEventListener('DOMContentLoaded', () => {
       updatePlayPauseButton(audioPlayer, playPauseBtn);
     });
     
-    // Блок, отвечающий за "через 10 секунд, если paуsed – скрыть станцию"
     if (playCheckTimer) clearTimeout(playCheckTimer);
-
-    // Запускаем таймер только если приложение уже успело "инициализироваться"
-    if (appInitialized) {  // <-- Добавлено условие
+    if (appInitialized) {  
       playCheckTimer = setTimeout(() => {
         if (audioPlayer.paused) {
           markStationAsHidden(index);
         }
       }, 10000);
     }
-
-    // Запускаем обновление метаданных для выбранной станции
+    
     updateStreamMetadata(station.url);
   };
-
-  // Делегирование кликов по плейлисту
+  
   playlistElement.addEventListener('click', function(e) {
     let li = e.target;
     while (li && li.tagName !== 'LI') {
@@ -200,8 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.onStationSelect(index);
     }
   });
-
-  // Имитация буферизации (анимация)
+  
   function simulateBuffering(li, callback) {
     let startTime = null;
     const duration = 1000;
@@ -220,78 +205,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     requestAnimationFrame(animate);
   }
-
-  // Функция обновления метаданных текущего трека с таймаутом
+  
   async function updateStreamMetadata(stationUrl) {
-    // Если URL, для которого запущен вызов, не совпадает с текущим, прекращаем обновление
     if (stationUrl !== currentParsingUrl) return;
-    
     const rightGroup = document.querySelector('.right-group');
     if (!rightGroup) return;
     rightGroup.style.display = 'flex';
-
-    // Создаем промис-таймаут на 5 секунд
     const timeoutPromise = new Promise(resolve => setTimeout(() => resolve("TIMEOUT"), 5000));
     const metadataPromise = getStreamMetadata(stationUrl);
     const result = await Promise.race([metadataPromise, timeoutPromise]);
-
-    // Если переключили станцию во время ожидания, прекращаем обновление
     if (stationUrl !== currentParsingUrl) return;
-
-    if (
-      result !== "TIMEOUT" &&
-      result &&
-      result.trim() &&
-      result !== "No Metadata" &&
-      result !== "No Track Data"
-    ) {
-      // Получили валидную метадату – отображаем её
+  
+    if (result !== "TIMEOUT" && result && result.trim() && result !== "No Metadata" && result !== "No Track Data") {
       rightGroup.innerHTML = `
         <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
         <span id="currentTrack" class="track-name">
           <span class="scrolling-text">${result}</span>
         </span>`;
-      // Откладываем запуск marquee на 10 секунд
-      setTimeout(() => {
-        checkMarquee(rightGroup);
-      }, 10000);
+      setTimeout(() => { checkMarquee(rightGroup); }, 10000);
     } else {
-      // Либо метадата не получена, либо произошел таймаут – загружаем RSS-тикер (новости)
       import('./parsing.js').then(module => {
         module.getTickerRSS().then(tickerText => {
           if (stationUrl !== currentParsingUrl) return;
           rightGroup.innerHTML = `
-            <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+            <img src="/img/news_icon.svg" alt="News Icon" class="track-icon">
             <span id="currentTrack" class="track-name">
               <span class="scrolling-text">${tickerText}</span>
             </span>`;
-          // Тоже запускаем бегущую строку только через 10 секунд
-          setTimeout(() => {
-            checkMarquee(rightGroup);
-          }, 3000);
+          setTimeout(() => { checkMarquee(rightGroup); }, 3000);
         }).catch(err => {
           rightGroup.innerHTML = `
-            <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+            <img src="/img/news_icon.svg" alt="News Icon" class="track-icon">
             <span id="currentTrack" class="track-name">
               <span class="scrolling-text marquee">RSS недоступен</span>
             </span>`;
-          // И тут ждем 10 секунд
-          setTimeout(() => {
-            checkMarquee(rightGroup);
-          }, 10000);
+          setTimeout(() => { checkMarquee(rightGroup); }, 10000);
         });
       });
     }
   }
-
+  
   function showPlaylistLoader() {
     playlistLoader.classList.remove('hidden');
   }
   function hidePlaylistLoader() {
     playlistLoader.classList.add('hidden');
   }
-
-  // Загрузка и отображение плейлиста
+  
   function loadAndRenderPlaylist(url, callback, scrollToTop = false) {
     showPlaylistLoader();
     loadPlaylist(url)
@@ -316,8 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         hidePlaylistLoader();
       });
   }
-
-  // Функция скрытия нерабочей станции и перехода к следующей
+  
   function markStationAsHidden(index) {
     const failedStation = currentPlaylist[index];
     if (!failedStation) return;
@@ -339,8 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
-
-  // События аудио плеера
+  
   audioPlayer.addEventListener('play', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
     if (playCheckTimer) {
@@ -358,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 1000);
     }
   });
-
+  
   audioPlayer.addEventListener('pause', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
     if (window.playTimerInterval) {
@@ -366,16 +324,28 @@ document.addEventListener('DOMContentLoaded', () => {
       window.playTimerInterval = null;
     }
   });
-
-  // Инициализация регулятора громкости
+  
   initVolumeControl(
     audioPlayer,
     document.querySelector('.volume-slider'),
     document.querySelector('.volume-knob'),
     defaultVolume
   );
-
-  // Загрузка последнего выбранного жанра/станции
+  
+  // Обработка hash-фрагмента из URL
+  function processUrlHash() {
+    const hash = window.location.hash;
+    if (hash) {
+      const hashFromUrl = hash.substring(1);
+      const matchedIndex = currentPlaylist.findIndex(station => generateStationHash(station.url) === hashFromUrl);
+      if (matchedIndex !== -1) {
+        window.onStationSelect(matchedIndex);
+        return true;
+      }
+    }
+    return false;
+  }
+  
   const lastStationData = localStorage.getItem('lastStation');
   if (lastStationData) {
     try {
@@ -383,21 +353,30 @@ document.addEventListener('DOMContentLoaded', () => {
       playlistSelect.value = genre;
       initChat(genre);
       loadAndRenderPlaylist(genre, () => {
-        const safeIndex = (trackIndex < currentPlaylist.length) ? trackIndex : 0;
-        window.onStationSelect(safeIndex);
+        if (!processUrlHash()) {
+          const safeIndex = (trackIndex < currentPlaylist.length) ? trackIndex : 0;
+          window.onStationSelect(safeIndex);
+        }
         updateChat(genre);
       });
     } catch (e) {
       console.error("Ошибка парсинга lastStation:", e);
       initChat(playlistSelect.value);
-      loadAndRenderPlaylist(playlistSelect.value);
+      loadAndRenderPlaylist(playlistSelect.value, () => {
+        if (!processUrlHash()) {
+          window.onStationSelect(0);
+        }
+      });
     }
   } else {
     initChat(playlistSelect.value);
-    loadAndRenderPlaylist(playlistSelect.value);
+    loadAndRenderPlaylist(playlistSelect.value, () => {
+      if (!processUrlHash()) {
+        window.onStationSelect(0);
+      }
+    });
   }
-
-  // Смена жанра через select
+  
   playlistSelect.addEventListener('change', () => {
     loadAndRenderPlaylist(playlistSelect.value, () => {
       searchInput.value = '';
@@ -407,8 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true);
     updateChat(playlistSelect.value);
   });
-
-  // Поиск по плейлисту
+  
   searchInput.addEventListener('input', debounce(() => {
     const query = searchInput.value.toLowerCase();
     currentPlaylist = allStations.filter(station =>
@@ -416,8 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     renderPlaylist(playlistElement, currentPlaylist);
   }, 300));
-
-  // Фильтр избранного
+  
   favoritesFilterBtn.addEventListener('click', async () => {
     if (favoritesFilterBtn.classList.contains('active')) {
       favoritesFilterBtn.classList.remove('active');
@@ -454,8 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderPlaylist(playlistElement, currentPlaylist);
     }
   });
-
-  // Кнопка Play/Pause
+  
   playPauseBtn.addEventListener('click', () => {
     if (audioPlayer.paused) {
       audioPlayer.play().catch(err => console.warn("Autoplay blocked:", err));
@@ -464,8 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updatePlayPauseButton(audioPlayer, playPauseBtn);
   });
-
-  // Кнопка предыдущей станции
+  
   rrBtn.addEventListener('click', () => {
     if (currentTrackIndex > 0) {
       fadeAudioOut(audioPlayer, 500, () => {
@@ -473,8 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   });
-
-  // Кнопка следующей станции
+  
   ffBtn.addEventListener('click', () => {
     if (shuffleActive) {
       let randomIndex;
@@ -492,8 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
-
-  // Добавление станции в избранное
+  
   favBtn.addEventListener('click', () => {
     if (currentPlaylist.length > 0) {
       const currentStation = currentPlaylist[currentTrackIndex];
@@ -506,14 +479,12 @@ document.addEventListener('DOMContentLoaded', () => {
       renderPlaylist(playlistElement, currentPlaylist);
     }
   });
-
-  // Кнопка Shuffle
+  
   shuffleBtn.addEventListener('click', () => {
     shuffleActive = !shuffleActive;
     updateShuffleButton(shuffleActive, shuffleBtn);
   });
-
-  // Случайный жанр / станция
+  
   randomBtn.addEventListener('click', () => {
     fadeAudioOut(audioPlayer, 500, () => {
       const randomGenreIndex = Math.floor(Math.random() * allGenres.length);
@@ -532,13 +503,12 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   });
-
-  // Периодическое обновление чата и метаданных
+  
   let lastChatUpdate = 0;
   let lastMetadataUpdate = 0;
   const chatUpdateInterval = 15000;
   const metadataUpdateInterval = 10000;
-
+  
   function globalUpdater(timestamp) {
     if (!lastChatUpdate) lastChatUpdate = timestamp;
     if (!lastMetadataUpdate) lastMetadataUpdate = timestamp;
@@ -553,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(globalUpdater);
   }
   requestAnimationFrame(globalUpdater);
-
+  
   function isFavorite(station) {
     const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
     return favs.includes(station.url);

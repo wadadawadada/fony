@@ -1,7 +1,17 @@
 // playlist.js
 
+// Функция генерации хеш-суммы на основе URL станции.
+// Используется для формирования уникального идентификатора станции.
+function generateStationHash(url) {
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) {
+    hash = ((hash << 5) - hash) + url.charCodeAt(i);
+    hash |= 0; // Приведение к 32-битному целому
+  }
+  return Math.abs(hash).toString(16);
+}
+
 // Отрисовка списка станций с оптимизированным доступом к DOM через DocumentFragment и делегированием событий.
-// Ленивый импорт изображений (loading="lazy").
 export function renderPlaylist(playlistElement, stations) {
   playlistElement.innerHTML = '';
   const fragment = document.createDocumentFragment();
@@ -10,12 +20,7 @@ export function renderPlaylist(playlistElement, stations) {
     const li = document.createElement('li');
     li.style.position = "relative";
     li.style.setProperty('--buffer-percent', '0%');
-    // Используем текущий индекс из итерации, чтобы индексы совпадали с глобальным массивом
     li.dataset.index = index;
-
-    if (window.currentStationUrl && station.url === window.currentStationUrl) {
-      li.classList.add('active');
-    }
 
     // Полоса прогресса (визуал буферизации)
     const progressDiv = document.createElement('div');
@@ -37,7 +42,45 @@ export function renderPlaylist(playlistElement, stations) {
     span.textContent = station.title + (station.bitrate ? ` (${station.bitrate})` : '');
     li.appendChild(span);
 
-    // Если станция находится в избранном, добавляем иконку сердечка
+    // Если станция активная – добавляем справа кнопку share с надписью "copied!"
+    if (window.currentStationUrl && station.url === window.currentStationUrl) {
+      li.classList.add('active');
+
+      // Создаем кнопку share (иконка)
+      const shareIcon = document.createElement('img');
+      shareIcon.src = '/img/share_icon.svg';
+      shareIcon.alt = 'Share station';
+      shareIcon.style.width = '14px';
+      shareIcon.style.height = '14px';
+      shareIcon.style.cursor = 'pointer';
+      shareIcon.style.marginLeft = '10px';
+
+      // Создаем span для надписи "copied!", который изначально скрыт
+      const copiedSpan = document.createElement('span');
+      copiedSpan.textContent = 'copied!';
+      copiedSpan.style.color = '#fff';
+      copiedSpan.style.marginLeft = '5px';
+      copiedSpan.style.display = 'none';
+
+      // При клике формируем ссылку с hash-фрагментом:
+      // window.location.origin + window.location.pathname + "#" + generateStationHash(station.url)
+      shareIcon.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const hash = generateStationHash(station.url);
+        const shareLink = window.location.origin + window.location.pathname + '#' + hash;
+        navigator.clipboard.writeText(shareLink)
+          .then(() => {
+            copiedSpan.style.display = 'inline';
+            setTimeout(() => { copiedSpan.style.display = 'none'; }, 2000);
+          })
+          .catch(err => console.error('Ошибка копирования', err));
+      });
+
+      li.appendChild(shareIcon);
+      li.appendChild(copiedSpan);
+    }
+
+    // Если станция находится в избранном – добавляем иконку сердца
     if (isFavorite(station)) {
       const favHeart = document.createElement('img');
       favHeart.classList.add('favorite-heart', 'active');
@@ -89,6 +132,7 @@ function removeFavorite(station) {
 }
 
 // Загрузка плейлиста (.m3u)
+// Логика загрузки не изменялась – оставляем существующий код
 export function loadPlaylist(url) {
   return fetch(url)
     .then(response => response.text())
@@ -138,7 +182,6 @@ export function loadPlaylist(url) {
       const hiddenStations = JSON.parse(localStorage.getItem('hiddenStations') || '[]');
       loadedStations = loadedStations.filter(station => !hiddenStations.includes(station.url));
 
-      // Переиндексировать можно не сохранять оригинальный индекс, так как теперь data-index = индекс из итерации
       return Promise.all(
         loadedStations.map(st => {
           return new Promise(resolve => {
