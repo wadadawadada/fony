@@ -1,0 +1,41 @@
+body {
+    font-family: sans-serif;
+    padding: 20px;
+}
+
+#drop-area {
+    border: 2px dashed #999;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    cursor: pointer;
+}
+
+#playlist {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    margin-bottom: 10px;
+}
+
+li span {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+li button {
+    margin-left: 10px;
+}
+
+/* Подсветка проигранных станций */
+li.played {
+    background-color: #d3ffd3;
+}
+
+/* Стили для отображения текущей станции */
+#current-station {
+    margin-bottom: 20px;
+    font-weight: bold;
+}

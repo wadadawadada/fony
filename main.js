@@ -9,19 +9,44 @@ import { initChat, updateChat, syncChat } from './chat.js';
 import { getStreamMetadata } from './parsing.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Элементы блока выбора жанра
+
+  // --------------------------------------------------
+  //  ФУНКЦИЯ ДЛЯ ВКЛЮЧЕНИЯ БЕГУЩЕЙ СТРОКИ
+  // --------------------------------------------------
+  function checkMarquee(container) {
+    if (!container) return;
+    const scrollingText = container.querySelector('.scrolling-text');
+    if (!scrollingText) return;
+    // Сбрасываем класс, чтобы заново проверить ширину
+    scrollingText.classList.remove('marquee');
+    const containerWidth = container.clientWidth;
+    const textWidth = scrollingText.scrollWidth;
+    if (textWidth > containerWidth) {
+      scrollingText.classList.add('marquee');
+    }
+  }
+
+  // Элементы для управления жанрами и поиском
   const genreBox = document.querySelector('.genre-box');
   const genreLabel = genreBox.querySelector('label');
-  let playlistSelect = document.getElementById('playlistSelect');
-  let searchInput = document.getElementById('searchInput');
-  // Переменная для динамически добавленного span с текстом "Favorites"
+  const playlistSelect = document.getElementById('playlistSelect');
+  const searchInput = document.getElementById('searchInput');
+
+  // Контейнер, в котором находится список плейлиста (реальный скролл)
+  const playlistContainer = document.getElementById('playlistContent');
+  // Сам список станций
+  const playlistElement = document.getElementById('playlist');
+  
+  // Для иконки "Favorites" (динамически добавляемой)
   let favoritesSpan = null;
 
+  // Основные элементы плеера
   const audioPlayer = document.getElementById('audioPlayer');
   const stationLabel = document.getElementById('stationLabel');
   const currentTrackEl = document.getElementById('currentTrack');
-  const playlistElement = document.getElementById('playlist');
   const playlistLoader = document.getElementById('playlistLoader');
+
+  // Кнопки управления
   const rrBtn = document.getElementById('rrBtn');
   const ffBtn = document.getElementById('ffBtn');
   const favBtn = document.getElementById('favBtn');
@@ -30,15 +55,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const playPauseBtn = document.getElementById('playPauseBtn');
   const favoritesFilterBtn = document.getElementById('favoritesFilterBtn');
 
-  // Глобальные массивы: полный список и текущий отображаемый плейлист
+  // Глобальные списки станций
   let allStations = [];
   let currentPlaylist = [];
-  // Текущий выбранный индекс в currentPlaylist
+
+  // Индекс текущей станции
   let currentTrackIndex = 0;
+
+  // Состояние shuffle
   let shuffleActive = false;
+
+  // Громкость по умолчанию
   const defaultVolume = { value: 0.9 };
   audioPlayer.volume = defaultVolume.value;
-  
+
+  // Список жанров (для favoritesFilterBtn и randomBtn)
   const allGenres = [
     'genres/african.m3u',
     'genres/asian.m3u',
@@ -62,20 +93,17 @@ document.addEventListener('DOMContentLoaded', () => {
     'genres/world.m3u'
   ];
 
-  // Инициализируем чат с выбранным жанром.
-  initChat(playlistSelect.value);
-
-  // Таймер проверки воспроизведения выбранной станции.
+  // Таймер проверки «рабочести» станции
   let playCheckTimer = null;
 
-  // Функция форматирования времени в формате mm:ss
+  // Форматирование секунд -> mm:ss
   function formatTime(seconds) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return mins + ":" + (secs < 10 ? "0" + secs : secs);
   }
 
-  // Функция debounce для оптимизации обработки ввода
+  // Debounce для поиска
   function debounce(func, wait) {
     let timeout;
     return function(...args) {
@@ -84,8 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Функция выбора станции (по индексу в currentPlaylist) с эффектом буферизации
+  // --------------------------------------------------
+  //  ВЫБОР СТАНЦИИ
+  // --------------------------------------------------
   window.onStationSelect = function(index) {
+    // Снимаем выделение со всех li и сбрасываем анимацию буферизации
     const allLi = document.querySelectorAll('#playlist li');
     allLi.forEach(item => {
       item.classList.remove('active');
@@ -97,12 +128,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const station = currentPlaylist[index];
     window.currentStationUrl = station.url;
     
+    // Сохраняем в localStorage текущий выбор
     localStorage.setItem('lastStation', JSON.stringify({
       genre: playlistSelect.value,
       trackIndex: index
     }));
+
+    // --------------------------------------------------
+    //  Скрываем .right-group (до получения метаданных)
+    // --------------------------------------------------
+    const rightGroup = document.querySelector('.right-group');
+    if (rightGroup) {
+      rightGroup.style.display = 'none';
+    }
+
     audioPlayer.src = station.url;
-    li && li.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
     if (window.playTimerInterval) clearInterval(window.playTimerInterval);
     const playTimerEl = document.getElementById('playTimer');
@@ -112,15 +153,24 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("Элемент playTimer не найден!");
     }
     
+    // Имитация «буферизации» с анимацией
     simulateBuffering(li, () => {
-      li && li.classList.add('active');
+      if (li) li.classList.add('active');
+      
+      // Устанавливаем название станции + marquee
       if (stationLabel) {
-        stationLabel.textContent = station.title || 'Unknown Station';
+        // Меняем содержимое .scrolling-text
+        const stText = stationLabel.querySelector('.scrolling-text');
+        if (stText) {
+          stText.textContent = station.title || 'Unknown Station';
+        }
+        checkMarquee(stationLabel);
       }
+
       audioPlayer.muted = false;
       audioPlayer.volume = defaultVolume.value;
       audioPlayer.play().then(() => {
-        // Если воспроизведение началось, событие 'play' сбросит проверочный таймер
+        // Воспроизведение началось
       }).catch(err => {
         console.warn("Autoplay blocked:", err);
       });
@@ -136,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 10000);
   };
 
-  // Обработчик кликов по элементам плейлиста
+  // Делегирование кликов по элементу плейлиста
   playlistElement.addEventListener('click', function(e) {
     let li = e.target;
     while (li && li.tagName !== 'LI') {
@@ -148,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Функция имитации буферизации с использованием requestAnimationFrame
+  // Имитация буферизации (анимация)
   function simulateBuffering(li, callback) {
     let startTime = null;
     const duration = 1000;
@@ -156,7 +206,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
       const progress = Math.min((elapsed / duration) * 100, 100);
-      li && li.style.setProperty('--buffer-percent', progress + '%');
+      if (li) {
+        li.style.setProperty('--buffer-percent', progress + '%');
+      }
       if (progress < 100) {
         requestAnimationFrame(animate);
       } else {
@@ -166,13 +218,35 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(animate);
   }
 
-  // Функция обновления метаданных потока
+  // --------------------------------------------------
+  //  ОБНОВЛЕНИЕ МЕТАДАННЫХ (текущий трек)
+  // --------------------------------------------------
   async function updateStreamMetadata(stationUrl) {
     const streamTitle = await getStreamMetadata(stationUrl);
+
+    // Ищем блок .right-group
+    const rightGroup = document.querySelector('.right-group');
+    if (!rightGroup) return; // на всякий случай
+
+    // Если метаданные невалидны / пустые:
+    if (!streamTitle || !streamTitle.trim() || streamTitle === 'No Metadata' || streamTitle === 'No Track Data') {
+      rightGroup.style.display = 'none';
+      if (currentTrackEl) {
+        const ctText = currentTrackEl.querySelector('.scrolling-text');
+        if (ctText) ctText.textContent = "No Track Data";
+        checkMarquee(currentTrackEl);
+      }
+      return;
+    }
+
+    // Если метаданные валидны – показываем .right-group
+    rightGroup.style.display = 'flex';
+
+    // Устанавливаем название трека + проверка на marquee
     if (currentTrackEl) {
-      currentTrackEl.textContent = streamTitle && streamTitle.trim().length > 0
-        ? streamTitle
-        : "No Track Data";
+      const ctText = currentTrackEl.querySelector('.scrolling-text');
+      if (ctText) ctText.textContent = streamTitle;
+      checkMarquee(currentTrackEl);
     }
   }
 
@@ -183,14 +257,26 @@ document.addEventListener('DOMContentLoaded', () => {
     playlistLoader.classList.add('hidden');
   }
 
-  // Загрузка плейлиста: обновляем both allStations и currentPlaylist
-  function loadAndRenderPlaylist(url, callback) {
+  /**
+   * Загрузка плейлиста и его отображение.
+   * @param {string} url - путь к m3u-файлу.
+   * @param {function} callback - вызывается после рендера.
+   * @param {boolean} scrollToTop - если true, прокручивает контейнер плейлиста к началу.
+   */
+  function loadAndRenderPlaylist(url, callback, scrollToTop = false) {
     showPlaylistLoader();
     loadPlaylist(url)
       .then(loadedStations => {
         allStations = loadedStations;
         currentPlaylist = loadedStations.slice();
         renderPlaylist(playlistElement, currentPlaylist);
+
+        if (scrollToTop) {
+          // Отложенный вызов, чтобы дождаться рендера DOM
+          setTimeout(() => {
+            playlistContainer.scrollTo({ top: 0, behavior: 'smooth' });
+          }, 50);
+        }
       })
       .then(() => {
         hidePlaylistLoader();
@@ -204,8 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // Функция, которая помечает станцию как неработающую, удаляет её из both allStations и currentPlaylist,
-  // перерисовывает плейлист и запускает следующую станцию с эффектом буферизации
+  // Функция скрытия нерабочей станции и переход к следующей
   function markStationAsHidden(index) {
     const failedStation = currentPlaylist[index];
     if (!failedStation) return;
@@ -230,6 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // События аудио плеера
   audioPlayer.addEventListener('play', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
     if (playCheckTimer) {
@@ -237,6 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
       playCheckTimer = null;
     }
     if (window.playTimerInterval) clearInterval(window.playTimerInterval);
+
     let playTimer = 0;
     const playTimerEl = document.getElementById('playTimer');
     if (playTimerEl) {
@@ -256,38 +343,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  initVolumeControl(audioPlayer, document.querySelector('.volume-slider'), document.querySelector('.volume-knob'), defaultVolume);
+  // Инициализация регулятора громкости
+  initVolumeControl(
+    audioPlayer,
+    document.querySelector('.volume-slider'),
+    document.querySelector('.volume-knob'),
+    defaultVolume
+  );
 
+  // Чтение из localStorage последнего жанра/станции
   const lastStationData = localStorage.getItem('lastStation');
   if (lastStationData) {
     try {
       const { genre, trackIndex } = JSON.parse(lastStationData);
+      // Устанавливаем значение в <select>, чтобы отобразился нужный жанр
       playlistSelect.value = genre;
+      // Инициализируем чат для выбранного жанра
+      initChat(genre);
+      // Загружаем плейлист выбранного жанра (без прокрутки, оставляем дефолтное поведение)
       loadAndRenderPlaylist(genre, () => {
-        if (trackIndex >= currentPlaylist.length) {
-          currentTrackIndex = 0;
-        }
-        window.onStationSelect(trackIndex);
+        const safeIndex = (trackIndex < currentPlaylist.length) ? trackIndex : 0;
+        window.onStationSelect(safeIndex);
         updateChat(genre);
       });
     } catch (e) {
       console.error("Ошибка парсинга lastStation:", e);
+      initChat(playlistSelect.value);
       loadAndRenderPlaylist(playlistSelect.value);
     }
   } else {
+    initChat(playlistSelect.value);
     loadAndRenderPlaylist(playlistSelect.value);
   }
 
+  // При смене жанра вручную через селект — прокручиваем список к началу
   playlistSelect.addEventListener('change', () => {
     loadAndRenderPlaylist(playlistSelect.value, () => {
       searchInput.value = '';
       if (favoritesFilterBtn.classList.contains('active')) {
         favoritesFilterBtn.classList.remove('active');
       }
-    });
+    }, true);
     updateChat(playlistSelect.value);
   });
 
+  // Поиск в текущем плейлисте
   searchInput.addEventListener('input', debounce(() => {
     const query = searchInput.value.toLowerCase();
     currentPlaylist = allStations.filter(station =>
@@ -296,18 +396,14 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPlaylist(playlistElement, currentPlaylist);
   }, 300));
 
-  // Обработчик кнопки фильтра избранного:
-  // При включении фильтра скрываем label, select и input, добавляем текст "Favorites"
-  // При отключении возвращаем исходное отображение
+  // Фильтр избранного
   favoritesFilterBtn.addEventListener('click', async () => {
     if (favoritesFilterBtn.classList.contains('active')) {
       favoritesFilterBtn.classList.remove('active');
-      // Убираем вставленный span с текстом "Favorites"
       if (favoritesSpan) {
         favoritesSpan.remove();
         favoritesSpan = null;
       }
-      // Показываем элементы выбора жанра
       genreLabel.style.display = "";
       playlistSelect.style.display = "";
       searchInput.style.display = "";
@@ -315,15 +411,12 @@ document.addEventListener('DOMContentLoaded', () => {
       renderPlaylist(playlistElement, currentPlaylist);
     } else {
       favoritesFilterBtn.classList.add('active');
-      // Скрываем элементы выбора жанра
       genreLabel.style.display = "none";
       playlistSelect.style.display = "none";
       searchInput.style.display = "none";
-      // Добавляем span с текстом "Favorites", если его ещё нет
       if (!favoritesSpan) {
         favoritesSpan = document.createElement("span");
         favoritesSpan.textContent = "Favorites";
-        // Вставляем перед кнопкой фильтра, чтобы она оставалась видимой
         genreBox.insertBefore(favoritesSpan, favoritesFilterBtn);
       }
       const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
@@ -341,6 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Кнопка Play/Pause
   playPauseBtn.addEventListener('click', () => {
     if (audioPlayer.paused) {
       audioPlayer.play().catch(err => console.warn("Autoplay blocked:", err));
@@ -350,6 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
   });
 
+  // Кнопка предыдущей станции
   rrBtn.addEventListener('click', () => {
     if (currentTrackIndex > 0) {
       fadeAudioOut(audioPlayer, 500, () => {
@@ -358,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Кнопка следующей станции
   ffBtn.addEventListener('click', () => {
     if (shuffleActive) {
       let randomIndex;
@@ -376,6 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Кнопка «добавить в избранное»
   favBtn.addEventListener('click', () => {
     if (currentPlaylist.length > 0) {
       const currentStation = currentPlaylist[currentTrackIndex];
@@ -389,11 +486,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Кнопка Shuffle
   shuffleBtn.addEventListener('click', () => {
     shuffleActive = !shuffleActive;
     updateShuffleButton(shuffleActive, shuffleBtn);
   });
 
+  // Случайный жанр / случайная станция
   randomBtn.addEventListener('click', () => {
     fadeAudioOut(audioPlayer, 500, () => {
       const randomGenreIndex = Math.floor(Math.random() * allGenres.length);
@@ -413,6 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Периодическое обновление чата и метаданных трека
   let lastChatUpdate = 0;
   let lastMetadataUpdate = 0;
   const chatUpdateInterval = 15000;
@@ -421,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function globalUpdater(timestamp) {
     if (!lastChatUpdate) lastChatUpdate = timestamp;
     if (!lastMetadataUpdate) lastMetadataUpdate = timestamp;
-    
+
     if (timestamp - lastChatUpdate >= chatUpdateInterval) {
       syncChat();
       lastChatUpdate = timestamp;

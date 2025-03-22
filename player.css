@@ -36,11 +36,14 @@
   transform: translateX(-50%);
   justify-content: center;
 }
+/* 1) Изменение: изначально скрываем right-group */
 .right-group {
+  margin-left: 10%;
   flex: 1;
   justify-content: flex-end;
   gap: 5px;
   overflow: hidden;
+  display: none; /* <-- добавлено */
 }
 .stream-icon,
 .track-icon {
@@ -60,6 +63,7 @@
 .track-name .scrolling-text {
   display: inline-block;
 }
+/* класс .marquee включает анимацию */
 .station-label .scrolling-text.marquee,
 .track-name .scrolling-text.marquee {
   animation: marquee 10s linear infinite;
@@ -210,46 +214,23 @@
     top: 38%;
     transform: translate(-50%, -50%);
   }
-
-
   .player-controls {
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Было gap: 50px; сделаем поменьше, скажем 20px: */
     gap: 0px;
   }
-  
-  /* И здесь тоже можно уменьшить gap, если хотите, чтобы кнопки внутри 
-     колонок располагались плотнее друг к другу */
   .left-stack,
   .right-stack {
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Было gap: 45px; например, сделаем 20px: */
     gap: 20px;
   }
-
-
-  /* Убираем прежние смещения left-stack/right-stack */
-  /* .left-stack {
-    position: static !important;
-    left: auto !important;
-    top: auto !important;
-  }
-  .right-stack {
-    position: static !important;
-    right: auto !important;
-    top: auto !important;
-  } */
-  /* Делаем .player-controls позиционированным родителем,
-     чтобы #randomBtn можно было абсолютно центрировать */
   .player-controls {
     position: relative;
     margin-bottom: 20px;
   }
-  /* Выносим #randomBtn в мобильном режиме по центру внизу (или меняйте bottom на нужное значение) */
   #randomBtn {
     position: absolute;
     left: 50%;

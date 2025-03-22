@@ -149,10 +149,7 @@ export async function sendMessage() {
 
 /**
  * Инициализация чата.
- * Функция сначала получает конфигурацию с помощью Netlify Functions,
- * затем инициализирует элементы чата.
- *
- * @param {string} genre - Жанр (например, значение из плейлиста), для которого открывается чат.
+ * @param {string} genre - Жанр (например, из плейлиста), для которого открывается чат.
  */
 export async function initChat(genre) {
   try {
