@@ -1,3 +1,5 @@
+// main.js
+
 import { fadeAudioOut, fadeAudioIn } from './player.js';
 import { renderPlaylist, loadPlaylist } from './playlist.js';
 import {
@@ -13,11 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Глобальная переменная для отслеживания текущего URL для парсинга
   let currentParsingUrl = null;
 
+  // ФЛАГ – добавили для предотвращения удаления станции до первой фактической инициализации плеера
+  let appInitialized = false; // <-- Добавлено
+
   // Функция для активации бегущей строки (marquee)
   function checkMarquee(container) {
     if (!container) return;
     const scrollingText = container.querySelector('.scrolling-text');
     if (!scrollingText) return;
+    // Сбрасываем класс, чтобы анимация не шла постоянно при обновлениях
     scrollingText.classList.remove('marquee');
     const containerWidth = container.clientWidth;
     const textWidth = scrollingText.scrollWidth;
@@ -136,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
       checkMarquee(rightGroup);
     }
 
-    // Не скрываем .right-group – оно всегда отображается
     audioPlayer.src = station.url;
     if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
@@ -144,10 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const playTimerEl = document.getElementById('playTimer');
     if (playTimerEl) {
       playTimerEl.textContent = formatTime(0);
-    } else {
-      console.error("Элемент playTimer не найден!");
     }
-    
+
     simulateBuffering(li, () => {
       if (li) li.classList.add('active');
       if (stationLabel) {
@@ -161,7 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
       audioPlayer.muted = false;
       audioPlayer.volume = defaultVolume.value;
       audioPlayer.play().then(() => {
-        // Воспроизведение началось
+        // Воспроизведение началось – считаем приложение инициализированным
+        appInitialized = true; // <-- Добавлено
       }).catch(err => {
         console.warn("Autoplay blocked:", err);
       });
@@ -169,12 +173,17 @@ document.addEventListener('DOMContentLoaded', () => {
       updatePlayPauseButton(audioPlayer, playPauseBtn);
     });
     
+    // Блок, отвечающий за "через 10 секунд, если paуsed – скрыть станцию"
     if (playCheckTimer) clearTimeout(playCheckTimer);
-    playCheckTimer = setTimeout(() => {
-      if (audioPlayer.paused) {
-        markStationAsHidden(index);
-      }
-    }, 10000);
+
+    // Запускаем таймер только если приложение уже успело "инициализироваться"
+    if (appInitialized) {  // <-- Добавлено условие
+      playCheckTimer = setTimeout(() => {
+        if (audioPlayer.paused) {
+          markStationAsHidden(index);
+        }
+      }, 10000);
+    }
 
     // Запускаем обновление метаданных для выбранной станции
     updateStreamMetadata(station.url);
@@ -229,29 +238,47 @@ document.addEventListener('DOMContentLoaded', () => {
     // Если переключили станцию во время ожидания, прекращаем обновление
     if (stationUrl !== currentParsingUrl) return;
 
-    if (result !== "TIMEOUT" && result && result.trim() && result !== "No Metadata" && result !== "No Track Data") {
+    if (
+      result !== "TIMEOUT" &&
+      result &&
+      result.trim() &&
+      result !== "No Metadata" &&
+      result !== "No Track Data"
+    ) {
       // Получили валидную метадату – отображаем её
-      rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
-                              <span id="currentTrack" class="track-name">
-                                <span class="scrolling-text">${result}</span>
-                              </span>`;
-      checkMarquee(rightGroup);
+      rightGroup.innerHTML = `
+        <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+        <span id="currentTrack" class="track-name">
+          <span class="scrolling-text">${result}</span>
+        </span>`;
+      // Откладываем запуск marquee на 10 секунд
+      setTimeout(() => {
+        checkMarquee(rightGroup);
+      }, 10000);
     } else {
       // Либо метадата не получена, либо произошел таймаут – загружаем RSS-тикер (новости)
       import('./parsing.js').then(module => {
         module.getTickerRSS().then(tickerText => {
           if (stationUrl !== currentParsingUrl) return;
-          rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
-                                  <span id="currentTrack" class="track-name">
-                                    <span class="scrolling-text marquee">${tickerText}</span>
-                                  </span>`;
-          checkMarquee(rightGroup);
+          rightGroup.innerHTML = `
+            <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+            <span id="currentTrack" class="track-name">
+              <span class="scrolling-text">${tickerText}</span>
+            </span>`;
+          // Тоже запускаем бегущую строку только через 10 секунд
+          setTimeout(() => {
+            checkMarquee(rightGroup);
+          }, 3000);
         }).catch(err => {
-          rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
-                                  <span id="currentTrack" class="track-name">
-                                    <span class="scrolling-text marquee">RSS недоступен</span>
-                                  </span>`;
-          checkMarquee(rightGroup);
+          rightGroup.innerHTML = `
+            <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+            <span id="currentTrack" class="track-name">
+              <span class="scrolling-text marquee">RSS недоступен</span>
+            </span>`;
+          // И тут ждем 10 секунд
+          setTimeout(() => {
+            checkMarquee(rightGroup);
+          }, 10000);
         });
       });
     }
@@ -307,7 +334,9 @@ document.addEventListener('DOMContentLoaded', () => {
       window.onStationSelect(nextIndex);
     } else {
       console.warn("Нет доступных станций в плейлисте");
-      stationLabel.textContent = "Нет доступных станций";
+      if (stationLabel) {
+        stationLabel.textContent = "Нет доступных станций";
+      }
     }
   }
 

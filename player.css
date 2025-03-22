@@ -64,13 +64,17 @@
   display: inline-block;
 }
 /* класс .marquee включает анимацию */
-.station-label .scrolling-text.marquee,
-.track-name .scrolling-text.marquee {
-  animation: marquee 10s linear infinite;
+.station-label .scrolling-text.marquee {
+  animation: marquee 20s linear infinite;
 }
+
+.track-name .scrolling-text.marquee {
+    animation: marquee 20s linear 1 forwards; /* без infinite */
+}
+
 @keyframes marquee {
   0% { transform: translateX(0%); }
-  100% { transform: translateX(-100%); }
+  100% { transform: translateX(-200%); }
 }
 .station-label {
   font-size: 1.2rem;

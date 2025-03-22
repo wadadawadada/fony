@@ -1,4 +1,5 @@
-// Импорт jsmediatags из CDN
+// parsing.js
+
 import * as jsmediatags from 'https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.js';
 
 // Метод 1: Извлечение метаданных через Icy-MetaData
@@ -158,11 +159,9 @@ export async function getStreamMetadata(url) {
 }
 
 // Функция для получения данных RSS для бегущей строки (новости Global News)
-// Используем API rss2json.com для получения данных в формате JSON (поддерживается CORS)
-// При каждом вызове случайным образом выбираются новости из ленты
 export async function getTickerRSS() {
   try {
-    const feedUrl = 'https://globalnews.ca/feed/';
+    const feedUrl = 'https://www.coindesk.com/arc/outboundfeeds/rss';
     const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
     const response = await fetch(apiUrl);
     if (!response.ok) {
@@ -177,9 +176,18 @@ export async function getTickerRSS() {
     const shuffled = items.slice().sort(() => Math.random() - 0.5);
     // Выбираем первые три новости
     const selected = shuffled.slice(0, 3);
-    return selected.map(item => item.title).join(" | ");
+
+    // Формируем HTML-ссылки с открытием в новом окне
+    const itemsHtml = selected.map(item => {
+      return `<a href="${item.link}" target="_blank" style="text-decoration:none; color:inherit;">
+                ${item.title}
+              </a>`;
+    });
+
+    // Возвращаем три ссылки, разделённые " | "
+    return itemsHtml.join(" | ");
   } catch (error) {
-    console.error("Ошибка получения RSS для тикера:", error);
-    return "RSS недоступен";
+    console.error("RSS Ticker ERROR:", error);
+    return "RSS unavailable";
   }
 }
