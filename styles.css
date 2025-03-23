@@ -414,15 +414,30 @@ html, body {
   }
   @media (max-width: 768px) {
     
-    html { height: -webkit-fill-available; }
-    
-    html, body, .container {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      /* 100svh – «Small Viewport Height», учитывает адресную строку, чтобы верх не уезжал */
+      height: 100svh;
+      box-sizing: border-box;
+      overflow: hidden; /* Запрещаем глобальную прокрутку */
     }
-
-    body, .container { padding-top: env(safe-area-inset-top); }
+  
+    /* Поддержка безопасной зоны (iOS) – сдвигаем контент на высоту выреза/адресной строки */
+    body {
+      padding-top: env(safe-area-inset-top);
+    }
+  
+    /* 2. Контейнер во весь экран, без прокрутки */
+    .container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      /* Фон и т. д. можете оставить/скопировать из вашей .container */
+    }
 
     #themeToggle img {
       width: 15px;
@@ -482,6 +497,7 @@ html, body {
     #shuffleBtn:active,
     #favBtn:active {
       transform: none !important;
+      filter: none !important;
     }
     .player-btn {
       filter: unset;
