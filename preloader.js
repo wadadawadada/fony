@@ -47,7 +47,7 @@ document.addEventListener('appLoaded', () => {
     if (textContainer) {
       textContainer.classList.add('fade-out-text');
       // После завершения анимации текста (0.5 сек) удаляем прелоадер
-      setTimeout(removePreloader, 1000);
+      setTimeout(removePreloader, 500);
     } else {
       removePreloader();
     }
