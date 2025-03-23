@@ -1,5 +1,3 @@
-// preloader.js
-
 document.addEventListener('DOMContentLoaded', () => {
   // Создаем контейнер прелоадера, который покроет весь экран
   const preloader = document.createElement('div');
@@ -32,33 +30,31 @@ function removePreloader() {
       preloader.remove();
       const container = document.querySelector('.container');
       if (container) {
-        container.style.visibility = 'visible';
+        container.style.opacity = '1';
       }
     });
   } else {
-    // Если прелоадера уже нет, просто показываем содержимое
     const container = document.querySelector('.container');
-    if (container) container.style.visibility = 'visible';
+    if (container) container.style.opacity = '1';
   }
 }
 
-// После полной загрузки приложения запускаем процесс скрытия прелоадера
-window.addEventListener('load', () => {
-  // Ждем 1 секунду
+// При получении кастомного события "appLoaded" запускаем анимацию исчезновения прелоадера
+document.addEventListener('appLoaded', () => {
+  // Задержка перед началом анимации (если нужна)
   setTimeout(() => {
     const textContainer = document.getElementById('preloader-text');
     if (textContainer) {
-      // Запускаем анимацию исчезновения текста (fade-out)
       textContainer.classList.add('fade-out-text');
       // После завершения анимации текста (0.5 сек) удаляем прелоадер
-      setTimeout(removePreloader, 500);
+      setTimeout(removePreloader, 1000);
     } else {
       removePreloader();
     }
-  }, 1000);
+  }, 1500);
 });
 
-// Fallback: через 10 секунд принудительно удаляем прелоадер, если по какой-то причине window.load не сработал
+// Fallback: через 10 секунд принудительно удаляем прелоадер, если по какой-то причине событие не сработало
 setTimeout(() => {
   removePreloader();
 }, 10000);

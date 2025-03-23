@@ -4,7 +4,7 @@ html, body {
     padding: 0;
     height: 100%;
     font-family: 'Ruda', sans-serif;
-    background-color: #f2f2f2;
+    background-color: #171C2B;
   }
   @font-face {
     font-family: 'Technology';
@@ -44,6 +44,13 @@ html, body {
   #preloader-text {
     display: flex;
   }
+
+  .container {
+    transition: opacity 1.5s ease;
+    /* Задайте нужный фон, например: */
+    background-color: #171C2B;
+  }
+
   .preloader-letter {
     font-size: 1.5rem;
     font-weight: 100;

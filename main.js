@@ -1,5 +1,3 @@
-// main.js
-
 import { fadeAudioOut, fadeAudioIn } from './player.js';
 import { renderPlaylist, loadPlaylist } from './playlist.js';
 import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from './controls.js';
@@ -558,4 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
     return favs.includes(station.url);
   }
+  
+  // После завершения всей инициализации интерфейса диспатчим событие "appLoaded"
+  document.dispatchEvent(new Event('appLoaded'));
 });
