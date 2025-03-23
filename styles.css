@@ -413,10 +413,12 @@ html, body {
     }
   }
   @media (max-width: 768px) {
+    
     html { height: -webkit-fill-available; }
+    
     html, body, .container {
       width: 100vw;
-      height: unset;
+      height: 100vh;
       overflow: hidden;
     }
 

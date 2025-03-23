@@ -184,17 +184,12 @@
   height: 55px;
 }
 @media (max-width: 768px) {
-  html, body, .container {
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-  }
   .screen-and-diods {
     margin-bottom: 20px;
   }
   .screen {
     width: 90%;
-    margin-bottom: 2rem;
+    /* margin-bottom: 1rem; */
   }
   .diods-row {
     display: none;
