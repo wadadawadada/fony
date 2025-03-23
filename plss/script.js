@@ -145,6 +145,7 @@ function restoreCurrentStation() {
 }
 
 // Сохранение изменений в файл M3U с помещением в папку /pls
+// Сохранение изменений в файл M3U с использованием исходного имени файла
 saveBtn.onclick = () => {
   let content = '#EXTM3U\n';
   stations.forEach(s => {
@@ -153,11 +154,12 @@ saveBtn.onclick = () => {
 
   const blob = new Blob([content], { type: 'audio/x-mpegurl' });
   const a = document.createElement('a');
-  // Добавляем префикс "pls/" к имени файла
   a.href = URL.createObjectURL(blob);
-  a.download = `pls/${originalFileName}`;
+  // Используем оригинальное имя файла без префикса "pls/"
+  a.download = originalFileName;
   a.click();
 };
+
 
 // При загрузке страницы обновляем отображение текущей станции
 window.addEventListener('load', () => {

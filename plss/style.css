@@ -1,6 +1,27 @@
 body {
     font-family: sans-serif;
     padding: 20px;
+    margin: 0;
+}
+
+/* Фиксированный блок вверху */
+#header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+}
+
+/* Блок контента с отступом сверху, равным высоте фиксированного блока */
+#content {
+    margin-top: 70px; /* Отрегулируйте значение в зависимости от фактической высоты #header */
 }
 
 #drop-area {
@@ -14,6 +35,8 @@ body {
 #playlist {
     list-style: none;
     padding: 0;
+    max-height: 400px; /* Максимальная высота плейлиста, при переполнении появится скроллинг */
+    overflow-y: auto;
 }
 
 li {
