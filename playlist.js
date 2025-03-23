@@ -11,16 +11,34 @@ function generateStationHash(url) {
   return Math.abs(hash).toString(16);
 }
 
-// Отрисовка списка станций с оптимизированным доступом к DOM через DocumentFragment и делегированием событий.
-export function renderPlaylist(playlistElement, stations) {
+/**
+ * Функция для "ленивой" отрисовки списка станций.
+ * Теперь поддерживает аргументы startIndex и endIndex, чтобы рендерить часть массива,
+ * не затрагивая остальной код, который может вызывать renderPlaylist со старыми параметрами.
+ *
+ * @param {HTMLElement} playlistElement - DOM-элемент списка (ul).
+ * @param {Array} stations - Полный массив станций.
+ * @param {Number} [startIndex=0] - Начальный индекс для отрисовки (включительно).
+ * @param {Number|null} [endIndex=null] - Конечный индекс (не включая endIndex).
+ *                                       null означает "до конца массива".
+ */
+export function renderPlaylist(playlistElement, stations, startIndex = 0, endIndex = null) {
+  if (endIndex === null) {
+    endIndex = stations.length;
+  }
+
   playlistElement.innerHTML = '';
   const fragment = document.createDocumentFragment();
 
-  stations.forEach((station, index) => {
+  // Безопасно обрезаем endIndex, если он больше реального массива
+  const maxEnd = Math.min(endIndex, stations.length);
+
+  for (let i = startIndex; i < maxEnd; i++) {
+    const station = stations[i];
     const li = document.createElement('li');
     li.style.position = "relative";
     li.style.setProperty('--buffer-percent', '0%');
-    li.dataset.index = index;
+    li.dataset.index = i; // индекс в общем массиве
 
     // Полоса прогресса (визуал буферизации)
     const progressDiv = document.createElement('div');
@@ -60,13 +78,12 @@ export function renderPlaylist(playlistElement, stations) {
       copiedSpan.style.marginLeft = '5px';
       copiedSpan.style.display = 'none';
 
-      // Формируем ссылку с hash-фрагментом, включающим жанр и хеш станции.
-      // Предполагаем, что в main.js установлен глобальный window.currentGenre.
       shareIcon.addEventListener('click', (event) => {
         event.stopPropagation();
         const hash = generateStationHash(station.url);
-        // Если currentGenre не задан, используем значение из localStorage.lastStation или пустую строку.
-        const genre = window.currentGenre || (localStorage.getItem('lastStation') && JSON.parse(localStorage.getItem('lastStation')).genre) || "";
+        // Если текущий жанр не задан, берём из localStorage
+        const genre = window.currentGenre ||
+          (localStorage.getItem('lastStation') && JSON.parse(localStorage.getItem('lastStation')).genre) || "";
         const shareLink = window.location.origin + window.location.pathname + '#' + encodeURIComponent(genre) + '/' + hash;
         navigator.clipboard.writeText(shareLink)
           .then(() => {
@@ -90,13 +107,13 @@ export function renderPlaylist(playlistElement, stations) {
       favHeart.addEventListener('click', (event) => {
         event.stopPropagation();
         removeFavorite(station);
-        renderPlaylist(playlistElement, stations);
+        renderPlaylist(playlistElement, stations, startIndex, endIndex);
       });
       li.appendChild(favHeart);
     }
 
     fragment.appendChild(li);
-  });
+  }
 
   playlistElement.appendChild(fragment);
 }
@@ -181,6 +198,7 @@ export function loadPlaylist(url) {
       const hiddenStations = JSON.parse(localStorage.getItem('hiddenStations') || '[]');
       loadedStations = loadedStations.filter(station => !hiddenStations.includes(station.url));
 
+      // Предзагрузка картинок, чтобы не подвешивать весь UI
       return Promise.all(
         loadedStations.map(st => {
           return new Promise(resolve => {
