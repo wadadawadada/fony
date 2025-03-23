@@ -416,7 +416,7 @@ html, body {
     html { height: -webkit-fill-available; }
     html, body, .container {
       width: 100vw;
-      height: 100vh;
+      height: unset;
       overflow: hidden;
     }
 
