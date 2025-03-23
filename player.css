@@ -199,10 +199,19 @@
   .diods-row {
     display: none;
   }
-  .station-label,
-  .track-name {
-    max-width: 10ch;
+
+  .left-group {
+    max-width: unset;
+    min-width: 100%;
   }
+  .station-label {
+    width: 100%;
+  }
+
+  .track-icon, .track-name, .center-group, .right-group {
+    display: none;
+  }
+
   .center-circle {
     position: relative;
   }
