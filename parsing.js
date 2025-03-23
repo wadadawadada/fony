@@ -161,7 +161,7 @@ export async function getStreamMetadata(url) {
 // Функция для получения данных RSS для бегущей строки (новости Global News)
 export async function getTickerRSS() {
   try {
-    const feedUrl = 'https://www.coindesk.com/arc/outboundfeeds/rss';
+    const feedUrl = 'http://feeds.bbci.co.uk/news/world/rss.xml';
     const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
     const response = await fetch(apiUrl);
     if (!response.ok) {

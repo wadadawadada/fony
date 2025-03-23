@@ -288,7 +288,9 @@ html, body {
   .genre-search::placeholder {
     color: rgba(255, 255, 255, 0.7);
     font-family: 'Ruda', sans-serif;
+    padding-left: 0.5rem;
   }
+
   .playlist-area {
     flex: 1;
     border-radius: 12px;
@@ -352,6 +354,7 @@ html, body {
     position: relative;
     z-index: 1;
   }
+
   .favorite-heart {
     filter: brightness(0) invert(1);
     transform: scale(0.7);
@@ -463,9 +466,6 @@ html, body {
       /* ваш остальной код под оформление списка */
     }
 
-
-
-
     #themeToggle img {
       width: 15px;
       height: 15px;
@@ -503,11 +503,14 @@ html, body {
     .chat-container {
       display: none;
     }
+
     .genre-search {
       width: 60px;
+      width: 6ch
     }
     .genre-search::placeholder {
       width: 6ch;
+      padding-left: unset;
     }
     #randomBtn:active {
       transform: translateX(-50%) !important;
