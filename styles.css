@@ -418,6 +418,9 @@ html, body {
       height: 100vh;
       overflow: hidden;
     }
+
+    body { padding-top: env(safe-area-inset-top); }
+
     #themeToggle img {
       width: 15px;
       height: 15px;
