@@ -1,3 +1,5 @@
+// preloader.js
+
 document.addEventListener('DOMContentLoaded', () => {
   // Создаем контейнер прелоадера, который покроет весь экран
   const preloader = document.createElement('div');
@@ -21,7 +23,26 @@ document.addEventListener('DOMContentLoaded', () => {
   preloader.appendChild(textContainer);
 });
 
-// После полной загрузки приложения
+// Функция для удаления прелоадера и показа основного содержимого
+function removePreloader() {
+  const preloader = document.getElementById('preloader');
+  if (preloader) {
+    preloader.classList.add('fade-out-background');
+    preloader.addEventListener('transitionend', () => {
+      preloader.remove();
+      const container = document.querySelector('.container');
+      if (container) {
+        container.style.visibility = 'visible';
+      }
+    });
+  } else {
+    // Если прелоадера уже нет, просто показываем содержимое
+    const container = document.querySelector('.container');
+    if (container) container.style.visibility = 'visible';
+  }
+}
+
+// После полной загрузки приложения запускаем процесс скрытия прелоадера
 window.addEventListener('load', () => {
   // Ждем 1 секунду
   setTimeout(() => {
@@ -29,22 +50,15 @@ window.addEventListener('load', () => {
     if (textContainer) {
       // Запускаем анимацию исчезновения текста (fade-out)
       textContainer.classList.add('fade-out-text');
-
-      // После завершения анимации текста (0.5 сек), запускаем исчезновение фона
-      setTimeout(() => {
-        const preloader = document.getElementById('preloader');
-        if (preloader) {
-          preloader.classList.add('fade-out-background');
-          // После завершения перехода удаляем элемент из DOM и показываем основное содержимое
-          preloader.addEventListener('transitionend', () => {
-            preloader.remove();
-            const container = document.querySelector('.container');
-            if (container) {
-              container.style.visibility = 'visible';
-            }
-          });
-        }
-      }, 500);
+      // После завершения анимации текста (0.5 сек) удаляем прелоадер
+      setTimeout(removePreloader, 500);
+    } else {
+      removePreloader();
     }
   }, 1000);
 });
+
+// Fallback: через 10 секунд принудительно удаляем прелоадер, если по какой-то причине window.load не сработал
+setTimeout(() => {
+  removePreloader();
+}, 10000);
