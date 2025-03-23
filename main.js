@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
   audioPlayer.volume = defaultVolume.value
   const allGenres = [
     'genres/african.m3u',
+    'genres/alternative.m3u',
     'genres/asian.m3u',
     'genres/blues.m3u',
     'genres/chillout.m3u',
@@ -65,11 +66,14 @@ document.addEventListener('DOMContentLoaded', () => {
     'genres/electronic.m3u',
     'genres/funk.m3u',
     'genres/goa.m3u',
+    'genres/hardcore.m3u',
+    'genres/hip_hop.m3u',
     'genres/house.m3u',
     'genres/industrial.m3u',
     'genres/jazz.m3u',
     'genres/jungle.m3u',
     'genres/lounge.m3u',
+    'genres/punk.m3u',
     'genres/rap.m3u',
     'genres/reggae.m3u',
     'genres/rnb.m3u',
