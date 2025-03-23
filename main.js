@@ -2,7 +2,7 @@
 
 import { fadeAudioOut, fadeAudioIn } from './player.js';
 import { renderPlaylist, loadPlaylist } from './playlist.js';
-import { initVolumeControl, updatePlayPauseButton } from './controls.js';
+import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from './controls.js';
 import { initChat, updateChat, syncChat } from './chat.js';
 import { getStreamMetadata } from './parsing.js';
 
@@ -142,7 +142,10 @@ document.addEventListener('DOMContentLoaded', () => {
       checkMarquee(rightGroup);
     }
     
+    // Устанавливаем источник и явно вызываем load(), чтобы начать загрузку потока
     audioPlayer.src = station.url;
+    audioPlayer.load();
+    
     if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
     if (window.playTimerInterval) clearInterval(window.playTimerInterval);
@@ -166,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
       audioPlayer.play().then(() => {
         appInitialized = true;
       }).catch(err => {
-        console.warn("Autoplay blocked:", err);
+        console.warn("Playback error:", err);
       });
       fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
       updatePlayPauseButton(audioPlayer, playPauseBtn);
@@ -461,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   playPauseBtn.addEventListener('click', () => {
     if (audioPlayer.paused) {
-      audioPlayer.play().catch(err => console.warn("Autoplay blocked:", err));
+      audioPlayer.play().catch(err => console.warn("Playback error:", err));
     } else {
       audioPlayer.pause();
     }
