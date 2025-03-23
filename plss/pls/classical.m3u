@@ -1,288 +1,64 @@
 #EXTM3U
-#EXTINF:-1,011FM Golden Oldies
-https://listen.011fm.com/stream14
-#EXTINF:-1,1 Club 4 Radio
-https://strm112.1.fm/club_mobile_mp3
-#EXTINF:-1,1 MINI 2
-http://centauri.shoutca.st:9064/
 #EXTINF:-1,100 Greatest Classical Music
 https://az1.mediacp.eu/listen/100greatestclassicalmusic/radio.mp3
 #EXTINF:-1,1000 Hits Classical
 http://ais-sa2.cdnstream1.com/2208_128.mp3
-#EXTINF:-1,100070ER Radio
-http://100070er.stream.laut.fm/100070er?t302=2018-08-06_12-36-38&ampuuid=7a768548-2a1e-4948-be25-5bbd36cbd2e8
-#EXTINF:-1,101-1 Flashback FM
-https://das-edge11-live365-dal03.cdnstream.com/a25064
-#EXTINF:-1,101.5 The Wave
-https://www.streamcontrol.net:8444/s/11070
-#EXTINF:-1,102 FM Anthology
-https://ecmanager4.pro-fhi.net:1685/stream
-#EXTINF:-1,102.5 The Q
-https://ice66.securenetsystems.net/WESP
-#EXTINF:-1,102.9 The Whale
-https://crystalout.surfernetwork.com:8001/WDRC-FM_MP3
-#EXTINF:-1,104FM Only Rock
-https://sr1.publicssl.net/srv/8004/live
-#EXTINF:-1,105 Classics Radio
-https://icy.unitedradio.it/105Classics.mp3
-#EXTINF:-1,113 FM Flashback Radio
-https://113fm-atunwadigital.streamguys1.com/1012
-#EXTINF:-1,113 FM Retro Radio
-https://113fm-atunwadigital.streamguys1.com/1056
-#EXTINF:-1,2B FM Classix
-https://streamingv2.shoutcast.com/JamendoLounge
-#EXTINF:-1,4Mbs Fm
-http://s9.viastreaming.net:9620/
-#EXTINF:-1,4U Classic Rock
-https://str4uice.streamakaci.com/4uclassicrock.mp3
-#EXTINF:-1,864 4GR AM
-http://legacy.scahw.com.au/4gr_32
 #EXTINF:-1,889 FMKultur
 https://889fmkultur.stream.laut.fm/889fmkultur
-#EXTINF:-1,91.1 WEDM
-https://crystalout.surfernetwork.com:8001/WEDM-FM_MP3
-#EXTINF:-1,94.1FM 3WBC
-http://stream.tcom.net.au:8000/3wbc
-#EXTINF:-1,94.9 KILE FM
-https://das-edge15-live365-dal02.cdnstream.com/a78929
-#EXTINF:-1,94.9 The Rock
-http://ice24.securenetsystems.net/KPKY
-#EXTINF:-1,940 Oldies
-https://streaming.servicioswebmx.com/8284/stream
-#EXTINF:-1,95 The Met
-http://ice66.securenetsystems.net/WMTT
-#EXTINF:-1,96.3 Capital FM
-http://newcap.leanstream.co/CKRAFM-MP3
-#EXTINF:-1,97.7 FM
-http://167.114.153.222:8028/?type=http&ampnocache=17
-#EXTINF:-1,983 Max FM
-http://mbsradio.leanstream.co/CHERFM-MP3
-#EXTINF:-1,99.5 WCRB – Bach Channel
-https://wgbh-live.streamguys1.com/Bach-8108
-#EXTINF:-1,TheDotRadio
-http://88.198.10.229:8018/stream
 #EXTINF:-1,Open Classics
 https://openclassics.stream.laut.fm/openclassics
-#EXTINF:-1,Viajeros
-https://lsaplus.swisstxt.ch/audio/drs2_96.stream/playlist.m3u8?DVR
 #EXTINF:-1,Hitsujikai
 https://streaming.radio.co/se4a8e6a93/listen
-#EXTINF:-1,Radio Classic
-https://stream.bauermedia.fi/classic/classic_128.mp3
-#EXTINF:-1,Radio Campania Classic
-https://live.radiocampania.eu/radio/8030/radio.mp3?ver=147130
-#EXTINF:-1,Italy Classical
-https://giosa.radioca.st/
-#EXTINF:-1,Stefline
-https://radioairplay.fr:1515/stream
 #EXTINF:-1,Fine Music
 https://edge.iono.fm/xice/fmr_live_medium.aac
 #EXTINF:-1,Raíces FM
 https://radio5.domint.net:8120/stream
 #EXTINF:-1,RADIOROSAK
 https://noasrv.caster.fm:10001/live
-#EXTINF:-1,Clásica FM
-https://stream2.eistreaming.com:10992/stream.nsv
-#EXTINF:-1,Ö1
-https://orf-live.ors-shoutcast.at/oe1-q1a
-#EXTINF:-1,A Classical Masterpieces
-https://listen.openstream.co/6528/audio
-#EXTINF:-1,Radio Palenque
-http://streamingcwsradio10.com:9348/
-#EXTINF:-1,PolskaStacja Klasycznie
-http://play.gvstream.net/radio-educa/default.stream/playlist.m3u8
-#EXTINF:-1,Rádio Clube do Comércio de Pentecoste
-https://player.srvstm.com/proxy/23880
-#EXTINF:-1,Rádio da Saudade
-https://player.srvstm.com/proxy/8158
 #EXTINF:-1,Radio Caprice - Symphony
 http://79.111.14.76:8000/symphony?type=.mp3
-#EXTINF:-1,Радио Музком
-https://geshou.s02.radio-tochka.com:5005/stream
-#EXTINF:-1,The Christian Mix
-http://199.180.72.2:10572/stream
-#EXTINF:-1,The Awesome AM
-https://radio.securenetsystems.net/v5/WABGAM
-#EXTINF:-1,KCHK
-https://streamdb6web.securenetsystems.net/v5/KCHK
-#EXTINF:-1,Hippie
-https://streamdb7web.securenetsystems.net/v5/KWUZFM
-#EXTINF:-1,V 102
-http://vprclassical.streamguys.net/vprclassical128.mp3
-#EXTINF:-1,Classic Hits 105.3
-https://radio.securenetsystems.net/cirrusencore/KQOR
-#EXTINF:-1,Cape Classical 107.5 FM
-http://wfcc.tunegenie.com/onair/
-#EXTINF:-1,KOZY
-https://streamdb3web.securenetsystems.net/v5/KOZYAM
-#EXTINF:-1,HOT 97.5 FM
-https://streamdb3web.securenetsystems.net/cirrusencore/KECH
-#EXTINF:-1,KDJS Gold Country
-https://streamdb6web.securenetsystems.net/v5/KDJSAM
-#EXTINF:-1,95.9 FM The DRUM
-https://radio.securenetsystems.net/ce/W294AH
-#EXTINF:-1,Star 101.5 FM
-https://streamdb3web.securenetsystems.net/cirrusencore/KFMD
-#EXTINF:-1,Coast 101.3
-https://streamdb5web.securenetsystems.net/v5/WHLG
-#EXTINF:-1,Oldies 95.3 FM
-https://streamdb9web.securenetsystems.net/v5/KXMO
-#EXTINF:-1,I Country Memories
-https://streamdb3web.securenetsystems.net/cirrusencore/ICM
-#EXTINF:-1,WWIC
-https://radio.securenetsystems.net/v5/WWIC
-#EXTINF:-1,Yellowstone Public Radio 
-https://streamdb9web.securenetsystems.net/cirrusencore/WDGY
-#EXTINF:-1,103.9 The Possum
-https://streamdb5web.securenetsystems.net/cirrusencore/WQKSHD4
 #EXTINF:-1,West Texas Public Radio 91.3 FM
 https://marfapr-ice.streamguys1.com/kxwt
-#EXTINF:-1,WSIU Public
-https://peridot.streamguys1.com:5235/wsiu-hd1
 #EXTINF:-1,KING-FM 98.1
 https://classicalking.streamguys1.com/king-fm-aac-128k
-#EXTINF:-1,The Bull 104.5  FM
-http://crystalout.surfernetwork.com:8001/KLBL-FM_MP3
-#EXTINF:-1,WSKG
-https://wskg.streamguys1.com/wskg
-#EXTINF:-1,247 the van
-http://usa7.fastcast4u.com:5880/
-#EXTINF:-1,Sky 7 Classic Hits and Awesome Variety
-https://streamdb6web.securenetsystems.net/cirruscontent/SKY7V&
-#EXTINF:-1,WPR NPR News & Classical - WERN 88.7 FM
-https://wpr-ice.streamguys1.com/wpr-music-mp3-96
-#EXTINF:-1,Rewind 100.7
-https://ais-sa1.streamon.fm/7164_48k.aac
-#EXTINF:-1,Classic - Radio Antenna Due
-https://radio.radioantennadue.it/classic
-#EXTINF:-1,011.FM - Classic Hits
-https://listen.011fm.com/2664_192.mp3
 #EXTINF:-1,011.FM - Holiday Classical
 https://listen.011fm.com/2674_192.mp3
-#EXTINF:-1,011.FM - Classic Country
-https://listen.011fm.com/2662_192.mp3
-#EXTINF:-1,Best Reggae Classics Radio
-https://azuracast.jammimvibez.com/listen/classics/stream
-#EXTINF:-1,Musical Decadence Radio
-https://stream.musicaldecadence.ru/live
-#EXTINF:-1,ARROW CLASSIC ROCK
-https://stream.player.arrow.nl/arrowcr
-#EXTINF:-1,Radio C Luxembourg - Alternative Music and Classic Hits
-https://edge02.streamonkey.net/radioc-live
-#EXTINF:-1,Absolut Oldie Classics
-https://edge59.live-sm.absolutradio.de/absolut-oldieclassics/stream/mp3
 #EXTINF:-1,/classical-hi
 https://wgbh-live.streamguys1.com/classical-hi
-#EXTINF:-1,Reggae Classic Hits
-https://azuracast.jammimvibez.com:8030/stream
 #EXTINF:-1,classical
 https://strm112.1.fm/classical_mobile_aac
-#EXTINF:-1,Classic Christian Radio
-https://streams.cbnradio.com/Classic-Christian-128K
-#EXTINF:-1,OXYGEN CLASSIC ROCK
-https://oxygenmusic.hu:8443/oxygenclassicrock
-#EXTINF:-1,Poesia Classic
-https://jfm1.hostingradio.ru:14536/pcstream.mp3
 #EXTINF:-1,181.FM Christmas Classics
 https://listen.181fm.com/181-xtraditional_128k.mp3
-#EXTINF:-1,49
-https://stream.open.fm/49
-#EXTINF:-1,TL hardcore
-https://stream.technolovers.fm/hardcore
-#EXTINF:-1,Classical NH
-https://nhpr.streamguys1.com/classical
 #EXTINF:-1,Favorites - Classical Minnesota Public Radio
 https://favorites.stream.publicradio.org/favorites.mp3
 #EXTINF:-1,/classical-aac
 https://wgbh-live.streamguys1.com/classical-aac
-#EXTINF:-1,SOUL Radio Classics
-https://listen.soulradio.it/it
-#EXTINF:-1,92.5 The Bull
-https://stream.revma.ihrhls.com/zc6168
-#EXTINF:-1,LXClassics
-https://mcp-1.streampanel.nl:8020/lxclassics_mp3
-#EXTINF:-1,RADIO CLASSICA BRESCIANA
-https://ice15.fluidstream.net/classicabresciana.aac
-#EXTINF:-1,loveclassics
-https://strm112.1.fm/loveclassics_mobile_mp3
 #EXTINF:-1,VPR Classical from Vermont Public Radio
 https://classical-stream.iowapublicradio.org/Classical.mp3
-#EXTINF:-1,Kichenradio.eu SQ
-https://stream.kitchenradio.eu:8000/SQ
-#EXTINF:-1,Classical KWMU-3
-https://kwmu1-ice.streamguys1.com/kwmu3.m3u
 #EXTINF:-1,Christmas FM Classics
 https://christmasfm.cdnstream1.com/2550_128.mp3
 #EXTINF:-1,Christmas FM Classical
 https://christmasfm.cdnstream1.com/2549_128.mp3
-#EXTINF:-1,Blackbox Classic US
-https://blackbox-classic-us.ice.infomaniak.ch/blackbox-classic-us.mp3
-#EXTINF:-1,Radio Unicite
-https://listen.radioking.com/radio/521287/stream/579484
 #EXTINF:-1,OXYGEN CLASSICS
 https://oxygenmusic.hu:8443/Classic_128
 #EXTINF:-1,Radio - Classical Minnesota Public Radio
 https://ycradio.stream.publicradio.org/ycradio.aac
-#EXTINF:-1,Pidi Radio - Classics
-https://azuracast.pidiradio.nl/listen/pidi-radio-queer-classics/radio.aac
-#EXTINF:-1,Reggae Classic Hits Radio
-https://azuracast.jammimvibez.com/listen/reggae/live.flac
-#EXTINF:-1,BIG 100
-https://stream.revma.ihrhls.com/zc2505
-#EXTINF:-1,DeeGay Classic - Italy Italia
-https://stream.deegay.fm/deegay2.mp3
-#EXTINF:-1,RMF CLASSIC ROCK
-https://rs201-krk.rmfstream.pl/rmf_classic_rock
-#EXTINF:-1,Classic Christian Rock Radio
-https://s20.reliastream.com/stream/8004
-#EXTINF:-1,LP Classic Rock
-https://radio.lprock.live/stream
-#EXTINF:-1,VitaalFM - Classic Rock
-https://vitaalfm.radiohost24.nl/listen/vitaalfm/vitaalfm.aac
-#EXTINF:-1,F. HITS Classics
-https://listen.fhits.fr/listen/f._hits_classics/fhits_classics_96.aac
 #EXTINF:-1,ClassicNL Soundtracks
 https://stream.classic.nl/classicnl-soundtracks.mp3
 #EXTINF:-1,/SwissClassic Room2
 https://stream.srg-ssr.ch/m/rsc_de/mp3_128
-#EXTINF:-1,World Music Radio Classic!
-https://server-67.stream-server.nl:8792/stream
 #EXTINF:-1,CLASSICNL
 https://stream.classic.nl/classicnl.mp3
-#EXTINF:-1,rapclassics
-https://radiorecord.hostingradio.ru/rapclassics96.aacp
 #EXTINF:-1,Real Classic
 https://netradio.live24.gr/realclassic
 #EXTINF:-1,ED92Radio | Magic
 https://listen.radioking.com/radio/497074/stream/554176
-#EXTINF:-1,NET CLASSIC 90.3
-https://alpha.radioplayer.com.ar:9232/netclassic903
-#EXTINF:-1,HappyHits - De beste Top 40 hits uit de jaren 70, 80 en 90. De perfecte mix van Middle of the Road muziek, Dance classics, Rock classics en Nederpop.
-https://mediacp.audiostreamen.nl:8150/stream
-#EXTINF:-1,Dance Classics
-https://stream4.themediasite.co.uk/stream/danceclassics
-#EXTINF:-1,Classic Rock California
-https://c23.radioboss.fm/stream/148
-#EXTINF:-1,Classic Oldies Mix
-https://azuracast.jammimvibez.com/listen/oldies/stream
-#EXTINF:-1,Classic Hits 89
-https://www.tuneintoradio1.com/listen/classic_hits_89/192k.mp3
 #EXTINF:-1,KWTU HD1 Stream Classical
 https://utulsa.streamguys1.com/KWTUHD1-AAC
 #EXTINF:-1,Rock meets Classic
 https://klassikr.streamabc.net/klassikr-rockclassic-mp3-192-9679992
-#EXTINF:-1,Classic House and Disco Music
-https://classichousemusic.ca/listen/classic_house_music/radio.mp3
 #EXTINF:-1,Classical FM Radio
 https://c23.radioboss.fm:8170/stream
-#EXTINF:-1,Classic Jazz FM
-https://c25.radioboss.fm:8176/stream
-#EXTINF:-1,Ibiza Global Classics
-https://control.streaming-pro.com:8000/ibizaglobalclassics.mp3
-#EXTINF:-1,Musitalie radio
-https://listen.radioking.com/radio/541139/stream/600020
-#EXTINF:-1,Doble A radio
-http://master.shoutcast.com:8000/doblearadio-com
 #EXTINF:-1,Radio Del Sur radio
 https://mediastreamm.com/8078/stream
 #EXTINF:-1,Sounds Of Brass radio
@@ -547,7 +323,7 @@ https://streamdb9web.securenetsystems.net/cirrusencore/WUEZ
 http://sr10.inmystream.info:8049/stream
 #EXTINF:-1,3WBC radio
 https://streamdb3web.securenetsystems.net/cirrusencore/LSIR
-#EXTINF:-1,Classik Christ Radio 
+#EXTINF:-1,Classik Christ Radio
 https://classikchristradio.stream.laut.fm/classik_christ_radio
 #EXTINF:-1,Rádio Comunyx radio
 https://s10.w3bserver.com/listen/radio_comunyx/radio.mp3
@@ -853,7 +629,7 @@ https://stream.tbmp.nl:8000/haarlemshufflehigh.mp3?n=b53301ef15f5ebd55c5a
 http://streaming.elitecomunicacion.es:8086/?n=4dd96b6cbd291feee72b
 #EXTINF:-1,Radio Dunedin
 https://digitalstreams3.mediaworks.nz/radio-DUN-high/playlist.m3u8?listeningSessionID=65bb725f0839d341_2030585_0dgEALM4__0000000hKN6&downloadSessionID=0?n=d3d6701d0d4df88ef044
-#EXTINF:-1,COCOJO RADIO 
+#EXTINF:-1,COCOJO RADIO
 http://live.serverstreaming.net:8070/joradio?n=1177b6a9c34c3ddaa0c5
 #EXTINF:-1,Bonche 89.9 FM
 http://a1.asurahosting.com:9470/stream?n=4af6440b4c0b01c576fa
@@ -955,7 +731,7 @@ https://27153.live.streamtheworld.com/CC8_S01AAC_96.aac?n=559ee652ddcad8dd5843
 https://stream.classic.nl/classicnl-soundtracks.mp3?n=99729886bfc9636547aa
 #EXTINF:-1,classic nl mind radio
 https://stream.classic.nl/classicnl-mindradio.mp3?n=54f201d1ecc3234f7a89
-#EXTINF:-1,الشرق 
+#EXTINF:-1,الشرق
 https://bcovlive-a.akamaihd.net/0b75ef0a49e24704a4ca023d3a82c2df/ap-south-1/6203311941001/playlist.m3u8?n=21c02eb42efc80b1e8f7
 #EXTINF:-1,إذاعة محمد أيوب
 https://qurango.net/radio/mohammed_ayyub?n=5aca26b4f8fe00060923
@@ -1617,7 +1393,7 @@ http://onair7.xdevel.com:7618/?n=66310cf0caccb8ae7eac
 https://ragss.ca:8010/stream?n=0567f4bef8b8334116dc
 #EXTINF:-1,RADIO RELAX Italia
 https://radiorelax.streamingmedia.it/play?n=5e2870716be92d6b68f0
-#EXTINF:-1,Radio Put Sreće 
+#EXTINF:-1,Radio Put Sreće
 https://stream.master-dizajn.com/8004/stream?n=52c90ddd1c6434708821
 #EXTINF:-1,Radio Pro-Dvizheniye
 https://c4.radioboss.fm:18218/stream?n=5f997e39b0a8bac42529
@@ -1715,7 +1491,7 @@ https://servidor39.brlogic.com:8624/live?n=8a7a8f9f7d2b1d2c23df
 http://ascolta.radiogibson.net/radiogibson?n=8dd2fbd5e844542057f4
 #EXTINF:-1,Radio Gibraltar Plus
 http://s2.myradiostream.com:32910/?n=191ba46b975d8aec2a80
-#EXTINF:-1,Rádio Geografia Rock 
+#EXTINF:-1,Rádio Geografia Rock
 https://servidor20.brlogic.com:7354/live?n=21e4e841b9d6928eae12
 #EXTINF:-1,Radio Garage
 http://onair7.xdevel.com:7094/?n=0b03859d4dff6e575470
@@ -1741,7 +1517,7 @@ http://radio2.stream24.net:9120/live.mp3?n=83274103259af5bd90fb
 http://s3.slotex.pl:7408/?n=6f82a4bc4074140c0035
 #EXTINF:-1,Radio Dream
 http://ec5.yesstreaming.net:3590/stream?n=5de68be87c20b51259ce
-#EXTINF:-1,Radio dla Dorosłych 
+#EXTINF:-1,Radio dla Dorosłych
 http://s3.slotex.pl:7586/?n=75ac1ffaec6e91571593
 #EXTINF:-1,Radio Disco Melodia FM
 https://sonic.mediatelekom.net/8020/stream?n=9e7bd6c2dad8a1fe801f
@@ -1751,7 +1527,7 @@ http://dreamsiteradiocp3.com:8422/?n=b5ac4d5e170c2894540f
 https://live-bauerdk.sharp-stream.com/radio100_dk_mp3?n=7b48fad1e815342e92e7
 #EXTINF:-1,Radio Colombina
 https://cast.radioservicios.cl:8314/radio?n=aef0df4b3491a11e46ee
-#EXTINF:-1,Radio Classique AAC 
+#EXTINF:-1,Radio Classique AAC
 http://radioclassique.ice.infomaniak.ch/radioclassique-high.aac?n=5e1697ad603c1960b70a
 #EXTINF:-1,Radio Classica - Strauss
 https://drive.uber.radio/uber/crstrauss/icecast.audio?n=d62f92a3ba2fa3919ab5
@@ -1851,7 +1627,7 @@ https://rcavliveaudio.akamaized.net/hls/live/2006979/M-7QMTL0_MTL/master.m3u8?n=
 https://rcavliveaudio.akamaized.net/hls/live/2006987/M-7QRIM0_RIM/master.m3u8?n=cbf70fdeb84988c424bd
 #EXTINF:-1,Radio Canada Ici Musique  - Québec City, QC
 https://rcavliveaudio.akamaized.net/hls/live/2006650/M-7QQUE0_QUE/master.m3u8?n=4526072ba4d7a2b5a7e4
-#EXTINF:-1,Radio Campania Classic 
+#EXTINF:-1,Radio Campania Classic
 https://live.radiocampania.eu/radio/8040/radio.mp3?n=1271e00c2833c635fbe1
 #EXTINF:-1,Radio Cafe Zimmermann
 https://server35460.streamplus.de/stream.mp3?n=2cb5b907b5d83284b4a9
@@ -1893,7 +1669,7 @@ https://radioadagio.com/wp-content/uploads/2021/12/12-13-21-The-Mystery.mp3?_=1?
 https://stm29.srvstm.com:6834/stream?n=ecf538e589fd1151265f
 #EXTINF:-1,Radio 90s Hits
 http://ec1.yesstreaming.net:1050/stream?n=45949b3400029f6e75f0
-#EXTINF:-1,Radio 90 Hit 
+#EXTINF:-1,Radio 90 Hit
 https://live.90hit.ro:8000/listen.mp3?n=de4a524700724ecb6fc7
 #EXTINF:-1,Radio 53 Novgorod
 http://84.242.241.66:8000/?n=2ed72ff97e6b8fb4f7e2
@@ -2077,7 +1853,7 @@ https://cms.stream.publicradio.org/cms.mp3?n=7a9ac89810dc3cbcad73
 https://motherearth.streamserver24.com/listen/motherearth_klassik/motherearth.klassik?n=b0224b59602ca800f29a
 #EXTINF:-1,Morena FM /Rio
 https://centova5.transmissaodigital.com:20005/stream?n=70ac1dfa553f0c91bf5a
-#EXTINF:-1,Montserrat Caballe - Classical Radio 
+#EXTINF:-1,Montserrat Caballe - Classical Radio
 https://drive.uber.radio/uber/crmonserratcaballe/icecast.audio?n=64ec34e2b20a7e7f40a0
 #EXTINF:-1,Monsters of Rock
 http://ice55.securenetsystems.net/DASH14?n=3288010ad8b02ccc24c7
@@ -2115,9 +1891,9 @@ http://avw.mdr.de/streams/284350-0_mp3_high.m3u?n=f5b078d7653808cc7d40
 https://s5.mexside.net:8000/stream?n=325cbfcbdeb54b9ef011
 #EXTINF:-1,Mariskal Rock
 https://media.profesionalhosting.com:8047/stream?n=1d76bc2e4f567b1864bb
-#EXTINF:-1,Marin Alsop - Classical Radio 
+#EXTINF:-1,Marin Alsop - Classical Radio
 https://drive.uber.radio/uber/crmarinalsop/icecast.audio?n=5e5cd1dc5d7604d4630f
-#EXTINF:-1,Maria Callas - Classical Radio 
+#EXTINF:-1,Maria Callas - Classical Radio
 https://drive.uber.radio/uber/crmariacallas/icecast.audio?n=13d04e7e374129d5d529
 #EXTINF:-1,Magic Radio UK
 https://stream-mz.planetradio.co.uk/magicnational.mp3?direct=true&aw_0_1st.playerid=BMUK_TuneIn&aw_0_1st.skey=7374499933?n=9a67e60cd32929081138
@@ -2135,7 +1911,7 @@ https://stream-icy.bauermedia.pt/m80.mp3?n=58ff1ace14ab312ba62f
 https://streamvideo.luxnet.ua/lux/smil:lux.stream.smil/playlist.m3u8?n=1d734ce96c4ce3b9f482
 #EXTINF:-1,Lutheran Public Radio - Collinsville, IL
 http://lpr.streamguys1.com/lpr-aac?n=8d4377dcc7d5ec8dbbcf
-#EXTINF:-1,Lorin Maazel - Classical Radio 
+#EXTINF:-1,Lorin Maazel - Classical Radio
 https://drive.uber.radio/uber/crlorinmaazel/icecast.audio?n=7510f846e09c5ff11352
 #EXTINF:-1,LKW Freunde
 http://stream.laut.fm/lkwfreunde.m3u?n=cd95192cd9dae0054c8d
@@ -2273,7 +2049,7 @@ https://ais-sa1.streamon.fm/7012_24k.aac?n=98dc014f79f7b18a02e8
 https://stream.kixfm.co.nz:8178/stream?n=8dd29ef5bb61a9f9d9f7
 #EXTINF:-1,Kiss FM 92,5
 http://cloud2.cdnseguro.com:23538/?n=ebc9a9916c51329c8710
-#EXTINF:-1,Kiri Te Kanawa - Classical Radio 
+#EXTINF:-1,Kiri Te Kanawa - Classical Radio
 https://drive.uber.radio/uber/crkiritekanawa/icecast.audio?n=ac97a9787ed8439c92de
 #EXTINF:-1,KINZ
 https://ice23.securenetsystems.net/KINZ?n=981929fc6aa4d284a91f
@@ -2341,9 +2117,9 @@ https://drive.uber.radio/uber/crjulianbream/icecast.audio?n=ff9e5ec3ca64577b4362
 https://drive.uber.radio/uber/crjsbach/icecast.audio?n=0e31d216508d7515783f
 #EXTINF:-1,JOY GOSPEL RADIO
 https://servidor17.brlogic.com:7012/live?n=0cb560eb29bf5597d292
-#EXTINF:-1,José Carreras - Classical Radio 
+#EXTINF:-1,José Carreras - Classical Radio
 https://drive.uber.radio/uber/crjosevarreras/icecast.audio?n=5e67344c412e578048e4
-#EXTINF:-1,Joan Sutherland - Classical Radio 
+#EXTINF:-1,Joan Sutherland - Classical Radio
 https://drive.uber.radio/uber/crjoansutherland/icecast.audio?n=ccd0d965d597bc306b12
 #EXTINF:-1,Jazzradio.fr Jazz & Classique
 https://jazz-wr17.ice.infomaniak.ch/jazz-wr17-128.mp3?n=218843f58f45b5e9086b
@@ -2357,7 +2133,7 @@ http://jazz-wr01.ice.infomaniak.ch/jazz-wr01-128.mp3?n=d8ba224ae26c4cd3810d
 http://server01.ouvir.radio.br:8006/stream?n=71b8e441abb0b055b48e
 #EXTINF:-1,Jazz Lounge
 http://eu8.fastcast4u.com:5068/?n=57f61916ed7146777e36
-#EXTINF:-1,Jacqueline Du Pre - Classical Radio 
+#EXTINF:-1,Jacqueline Du Pre - Classical Radio
 https://drive.uber.radio/uber/crjacquelinedurpre/icecast.audio?n=1539ed3bef913c2acd49
 #EXTINF:-1,J-Pop Sakura 懐かしい asia DREAM radio
 https://cast1.torontocast.com:2170/.mp3?n=a36deb92466ea7439f67
@@ -2421,7 +2197,7 @@ http://s3.myradiostream.com:4404/?n=b1915d9598d5b5708030
 https://wz4liw.scahw.com.au/live/4rok_128.stream/playlist.m3u8??n=19f0368fccd785eb21e7
 #EXTINF:-1,High Plains Public Radio - 91.1 KANZ
 http://playerservices.streamtheworld.com/m3u/KANZFM_HPPR.m3u?n=d31b7180666c3e6271f0
-#EXTINF:-1,Herbert Von Karajan - Classical Radio 
+#EXTINF:-1,Herbert Von Karajan - Classical Radio
 https://drive.uber.radio/uber/crherbertvonkarajan/icecast.audio?n=72340a1d60f79a37dff0
 #EXTINF:-1,Helmiradio
 https://ms-live-helmiradio.nm-elemental.nelonenmedia.fi/master.m3u8?n=7c16b138e2136e71f76b
@@ -2465,7 +2241,7 @@ https://pureplay.cdnstream1.com/6032_128.mp3?n=99b3ea258822ec98c26d
 https://pureplay.cdnstream1.com/6010_64.aac/playlist.m3u8?n=66276b4a8d5ac9b2d48f
 #EXTINF:-1,Golden Days Radio
 http://1.ice1.firststreaming.com/gndr_fm.aac?n=28d13a9c9e020ce74c2b
-#EXTINF:-1,Gold Instrumental 
+#EXTINF:-1,Gold Instrumental
 https://centova.svdns.com.br:19373/stream/2/?n=dc000e86222ea50d0586
 #EXTINF:-1,Gold AM nz
 https://ais-nzme.streamguys1.com/nz_016/playlist.m3u8?n=18f69b39f6ebf03fc5c4
@@ -2711,7 +2487,7 @@ http://s14.myradiostream.com:19580/listen.pls?sid=1?n=4e0c517ce0faaca98531
 https://stream.radio.co/s978e5f6bd/listen?n=ed8eeb2995c6a5c875b0
 #EXTINF:-1,Cyberspazio Radio
 http://radio.cyberspazio.tv:2199/tunein/cyberspazio.pls?n=d15621fed156548eef6b
-#EXTINF:-1,CVC La Voz Urbano 
+#EXTINF:-1,CVC La Voz Urbano
 https://chat-assets.frontapp.com/v1/149be82f568687535638c72a66facc34.ogg?n=cd173c31f8cc4b2a57d1
 #EXTINF:-1,Cruisin Radio,Classic Rock,Oldies,60s,70s,80s etc.
 http://s11.myradiostream.com:7622/?n=bfde283f72cdd1ce5b37
@@ -2771,7 +2547,7 @@ http://64.37.50.226:8024/stream.nsv?n=5f71332b804ae23a2b3d
 http://ngcdn004.cnr.cn/live/dszs/index.m3u8?n=9a3751b9cdfd1722694d
 #EXTINF:-1,CNR-3 音乐之声
 http://ngcdn003.cnr.cn/live/yyzs/index.m3u8?n=bd90ea57eb7bd8fe9dc7
-#EXTINF:-1,Cleveland Orchestra - Classical Radio 
+#EXTINF:-1,Cleveland Orchestra - Classical Radio
 https://drive.uber.radio/uber/crclevelandorchestra/icecast.audio?n=36e38a8adf4736b61937
 #EXTINF:-1,Clazz - radio classique et jazz
 https://ice.creacast.com/clazz_hq_web.mp3?n=7a7e7519cea0a864a592
@@ -2779,7 +2555,7 @@ https://ice.creacast.com/clazz_hq_web.mp3?n=7a7e7519cea0a864a592
 https://ice23.securenetsystems.net/WCNP?n=55fd0a3ba6020120ce03
 #EXTINF:-1,Classical Radio-  Sir Adrian Boult
 https://drive.uber.radio/uber/cradrianboult/icecast.audio?n=696a76bec8c215fbd55f
-#EXTINF:-1,Classical Radio - Yehudi Menuin 
+#EXTINF:-1,Classical Radio - Yehudi Menuin
 https://drive.uber.radio/uber/cryehudimenuin/icecast.audio?n=c1dc0ace091da17e6b2c
 #EXTINF:-1,Classical Radio - Wagner
 https://drive.uber.radio/uber/crwagner/icecast.audio?n=657a6f59d6259a6c9e1c
@@ -2815,7 +2591,7 @@ https://drive.uber.radio/uber/crmozart/icecast.audio?n=bf1fb99a479e986577db
 https://drive.uber.radio/uber/crmalcolmsargent/icecast.audio?n=703c59756595c4f8865d
 #EXTINF:-1,Classical Radio - Luciano Pavarotti
 https://drive.uber.radio/uber/crlucianopavarotti/icecast.audio?n=8534d67ae842d9ddc088
-#EXTINF:-1,Classical Radio - London Symphony Orchestra 
+#EXTINF:-1,Classical Radio - London Symphony Orchestra
 https://drive.uber.radio/uber/crlso/icecast.audio?n=9d6ee61545de4ac3db85
 #EXTINF:-1,Classical Radio - Liszt
 https://drive.uber.radio/uber/crliszt/icecast.audio?n=fc6ade0444800a9df112
@@ -2847,7 +2623,7 @@ https://drive.uber.radio/uber/crandressegovia/icecast.audio?n=7e96eb7a03cf437626
 https://drive.uber.radio/uber/crandressegovia/icecast.audio?n=28e0400ba362c421004e
 #EXTINF:-1,Classical Radio - Andrea Bocelli
 https://drive.uber.radio/uber/crandreabocelli/icecast.audio?n=37a4fdecc8aad87aad4a
-#EXTINF:-1,Classical Radio - André Rieu 
+#EXTINF:-1,Classical Radio - André Rieu
 https://drive.uber.radio/uber/crandrerieu/icecast.audio?n=8347f93c098a230fb131
 #EXTINF:-1,Classical Radio  - Stravinsky
 https://drive.uber.radio/uber/crstravinsky/icecast.audio?n=5cfb85f0e11b337661ee
@@ -2859,7 +2635,7 @@ https://drive.uber.radio/uber/crsibelius/icecast.audio?n=1808e97440c1a5975c58
 https://drive.uber.radio/uber/crlanglang/icecast.audio?n=89050f22b51374965652
 #EXTINF:-1,Classical Radio  - Katherine Jenkins
 https://drive.uber.radio/uber/crkatherinejenkins/icecast.audio?n=9d1a6e4ad17cd27c2c92
-#EXTINF:-1,Classical Radio  -  Chicago Symphony Orchestra 
+#EXTINF:-1,Classical Radio  -  Chicago Symphony Orchestra
 https://drive.uber.radio/uber/crchicagosymphonyorchestra/icecast.audio?n=190e854beef3d025f634
 #EXTINF:-1,Classical King FM - Evergreen Channel
 https://classicalking.streamguys1.com/evergreen-aac-128k?n=4099818e9d3b16884788
@@ -2895,15 +2671,15 @@ http://newcap.leanstream.co/CKWYFM?n=5307b3cdcf9354d64070
 http://newcap.leanstream.co/CKRVFM-MP3?n=b602babb3c922aa57a7e
 #EXTINF:-1,CKRA 96.3 Capital 96.3 Edmonton, AB
 http://newcap.leanstream.co/CKRAFM?n=37843e0fb5111f937823
-#EXTINF:-1,CKQV-FM 103.3 Q104 Vermillion Bay, ON  
+#EXTINF:-1,CKQV-FM 103.3 Q104 Vermillion Bay, ON
 https://ais-sa1.streamon.fm/7808_96k.aac/playlist.m3u8?n=507024aab936a959847a
-#EXTINF:-1,CKQR 99.3 FM The Goat Castlegar, BC 
+#EXTINF:-1,CKQR 99.3 FM The Goat Castlegar, BC
 https://vistaradio.streamb.live/SB00085?n=ec328958527d80f4cd3e
 #EXTINF:-1,CKLO Free 98.1 London, ON
 http://live.leanstream.co/CKLOFM?n=d8df2f192a7df68eccf0
 #EXTINF:-1,CKLO Classic Rock 98.1 FM London, ON
 http://live.leanstream.co/CKLOFM?n=9e33a96950e36d72dcca
-#EXTINF:-1,CKLK-FM 88.5 The Lake  Grimsby, ON 
+#EXTINF:-1,CKLK-FM 88.5 The Lake  Grimsby, ON
 https://playerservices.streamtheworld.com/pls/CKLKFMAAC.pls?n=55183aba4729643b726b
 #EXTINF:-1,CKKO 96.3 K 96.3 Kelowna, BC
 http://newcap.leanstream.co/CKKOFM?n=e171217a13680b9f5d61
@@ -2919,7 +2695,7 @@ https://newcap.leanstream.co/CKEZFM?n=74f0b6e6d73745302fd5
 http://newcap.leanstream.co/CKDQAM?n=4982a086d8ade12f2df4
 #EXTINF:-1,CKCL-FM 107.1 Classical 107 Winnipeg, MB
 https://fsn-ais-relay3.leanstream.co/goldenwest/CKCLFM.stream/playlist.m3u8?n=0a61f09fd44d41f8ec5b
-#EXTINF:-1,CKBW-FM 98.1 Bridgewater, 94.5 Liverpool, 93.1 Shelburne, NS 
+#EXTINF:-1,CKBW-FM 98.1 Bridgewater, 94.5 Liverpool, 93.1 Shelburne, NS
 https://ais-sa1.streamon.fm/7239_128k.aac?n=bf827fb0ce3b4671084b
 #EXTINF:-1,CKBA Boom 94.1 Athabasca, AB
 http://newcap.leanstream.co/CKBAFM-MP3?n=848a521cd4c811fc3fa0
@@ -2935,7 +2711,7 @@ http://newcap.leanstream.co/CJXKFM?n=0ff198b9475e760bfb9f
 https://goldenwest.leanstream.co/CJUVFM-MP3?n=9fe107edbbac9aec52ce
 #EXTINF:-1,CJUV-FM 94.1 Sunny 94
 https://goldenwest.leanstream.co/CJUVFM-MP3?n=60107d85c8fb18a3be3b
-#EXTINF:-1,CJUK-FM 99.9 The Bay Thunder Bay, ON 
+#EXTINF:-1,CJUK-FM 99.9 The Bay Thunder Bay, ON
 https://ais-sa1.streamon.fm/7237_128k.aac/playlist.m3u8?n=5362c7083379d0c393f2
 #EXTINF:-1,CJTN 107.1 Rock 107 Trenton, ON
 http://live.leanstream.co/CJTNFM-MP3?n=f05ecb872b0f1bcb332a
@@ -2951,9 +2727,9 @@ https://goldenwest.leanstream.co/CJRBAM?n=fb9362fcebfd5afdca2c
 https://rogers-hls.leanstream.co/rogers/tim921.stream/playlist.m3u8?n=944bba199be8034ef166
 #EXTINF:-1,CJOT Boom 99.7 Ottawa, ON
 http://live.leanstream.co/CJOTFM-MP3?n=3bbdc11f2ba9edd6f119
-#EXTINF:-1,CJOC 94.1  Classic Hits Lethbridge, AB 
+#EXTINF:-1,CJOC 94.1  Classic Hits Lethbridge, AB
 https://vistaradio.streamb.live/SB00093?n=15ccb696e7cd38c3911d
-#EXTINF:-1,CJNY-FM 106.3 The Journey Vancouver, BC 
+#EXTINF:-1,CJNY-FM 106.3 The Journey Vancouver, BC
 https://torres-media.streamb.live/SB00168?n=3090f6e75fdfa9f2d272
 #EXTINF:-1,CJMO-FM 103.1 Q103 - Moncton, NB
 http://newcap.leanstream.co/CJMOFM?n=336bce6a399f8777835c
@@ -2963,7 +2739,7 @@ https://ais-sa1.streamon.fm/7228_128k.aac/playlist.m3u8?n=4bc78a7937b18784b56a
 http://rosetta.shoutca.st:8883/?n=efb9365a69cbbd6e1b10
 #EXTINF:-1,CJCY 102.1 Medicine Hat, AB
 https://rogers-hls.leanstream.co/rogers/med1021.stream/playlist.m3u8?n=5070c9ad3f08d1388c00
-#EXTINF:-1,CJCS-FM 107.1 Classic Hits Stratford, ON 
+#EXTINF:-1,CJCS-FM 107.1 Classic Hits Stratford, ON
 https://vistaradio.streamb.live/SB00107?n=374d187f596c8a95fdec
 #EXTINF:-1,CJCD-FM 100.1 True North FM Yellowknife, NT
 https://vistaradio.streamb.live/SB00088?n=2426be9218cb771e3fc3
@@ -2983,7 +2759,7 @@ http://radio.rpointernet.com.br:5788/?n=7f22a8e590a662307328
 http://live.leanstream.co/CIQBFM-MP3?n=f75f9870c36bd5aea414
 #EXTINF:-1,Cinescore
 http://ice55.securenetsystems.net/DASH29?n=844afb98b4bc89526cb0
-#EXTINF:-1,CIMG-FM The Eagle 94.1 Swift Current, SK  
+#EXTINF:-1,CIMG-FM The Eagle 94.1 Swift Current, SK
 https://lax-live2-ais-relay1.leanstream.co/goldenwest/CIMGFM.stream/playlist.m3u8?n=8a901d0b1fd4d98f778b
 #EXTINF:-1,CILT-FM Mix 96.7 Steinbach,MB
 https://goldenwest.leanstream.co/CILTFM?n=cbc69796e6486fdfbdd3
@@ -3003,9 +2779,9 @@ http://live.leanstream.co/CIBUFM?n=1b6c4cfd6944e3b1ce29
 http://ice55.securenetsystems.net/DASH21?n=a36b06c4996e50fb8e9f
 #EXTINF:-1,CHTN 100.3 Ocean 100 Charlottetown, PE
 http://newcap.leanstream.co/CHTNFM?n=0cdceb133a5073564a55
-#EXTINF:-1,CHTD 98.1 Charlotte FM  St. Stephen, NB 
+#EXTINF:-1,CHTD 98.1 Charlotte FM  St. Stephen, NB
 https://ais-sa1.streamon.fm/7236_128k.aac?n=2f5302a13bc141771df3
-#EXTINF:-1,CHST-FM Jack 102.3 London, ON 
+#EXTINF:-1,CHST-FM Jack 102.3 London, ON
 https://rogers-hls.leanstream.co/rogers/lon1023.stream/playlist.m3u8?n=80cd8497154f6762f5e4
 #EXTINF:-1,CHSL-FM Boom 92.7 Slave Lake , AB
 http://newcap.leanstream.co/CHSLFM?n=d037ce41d8fd640fdff2
@@ -3019,7 +2795,7 @@ https://christmasfm.cdnstream1.com/2549_64.aac?n=4328fba9e1a586724ffc
 http://listen.christianhardrock.net/stream/9/?n=182a0ed03a28952f63fa
 #EXTINF:-1,CHOO-FM Boom 99.5 Drumheller, AB
 https://newcap.leanstream.co/CHOOFM?n=4bc7e2819c5d74a0569e
-#EXTINF:-1,chocolate-radio.com 
+#EXTINF:-1,chocolate-radio.com
 https://stream.radio.co/sa7336b687/listen?n=12654a0d8804f38fa0fb
 #EXTINF:-1,CHOC-FM 88.7  Saint-Raymond de Portneuf, QC
 https://stream2.statsradio.com:8110/stream?n=1b7c5086c2f796fd9594
@@ -3039,7 +2815,7 @@ http://newcap.leanstream.co/CHNIFM?n=067a99791bb52bc4579f
 http://mbsradio.leanstream.co/CHLQFM-MP3?n=f3cc422d5a12936adcee
 #EXTINF:-1,CHLG 104.3 LG104 Vancouver, BC
 http://newcap.leanstream.co/CHLGFM?n=449b8507a47f98d8f6a8
-#EXTINF:-1,CHKS-FM Cool 106.3 Sarnia, ON 
+#EXTINF:-1,CHKS-FM Cool 106.3 Sarnia, ON
 http://live.leanstream.co/CHKSFM?n=051e604df9bb5daa5966
 #EXTINF:-1,CHILLOUT PIANO by Epic Piano
 https://stream.epic-piano.com/chillout-piano?ref=radiobrowser?n=45c3a6387bc0247b310c
@@ -3053,7 +2829,7 @@ http://mbsradio.leanstream.co/CHERFM-MP3?n=be2a04be8d1a5924db5d
 https://vistaradio.streamb.live/SB00109?n=c9c343aaff58925b0211
 #EXTINF:-1,CHBM Boom 97.3 Toronto, ON
 http://newcap.leanstream.co/CHBMFM?n=609215a39c2dae890750
-#EXTINF:-1,Channel X Digital 
+#EXTINF:-1,Channel X Digital
 https://digitalstreams.mediaworks.nz/chx_net_high/playlist.m3u8??n=2391762fb7254d839159
 #EXTINF:-1,Channel X
 https://digitalstreams4.mediaworks.nz/chx-AKL-high/playlist.m3u8??n=88d4a637e08c697a3e8e
@@ -3063,11 +2839,11 @@ https://webradio.tda.dz/Chaine1_64K.mp3?n=28364ffa9ac40e0b9905
 https://webradio.tda.dz/Chaine3_64K.mp3?n=32aa1feff0f618c6660f
 #EXTINF:-1,CHAB 800 Moose Jaw, SK
 https://goldenwest.leanstream.co/CHABAM?n=5578c0e8f94593d34931
-#EXTINF:-1,CFYM 1210 Kindersley, SK 
+#EXTINF:-1,CFYM 1210 Kindersley, SK
 https://bhs-live3-ais-relay1.leanstream.co/goldenwest/CFYMAM.stream/playlist.m3u8?n=e0141219f9efab4cbc04
 #EXTINF:-1,CFXW Boom 96.7 Whitecourt, AB
 http://newcap.leanstream.co/CFXWFM?n=a55475e859841f4cae5e
-#EXTINF:-1,CFXN 106.3 Jet FM North Bay, ON 
+#EXTINF:-1,CFXN 106.3 Jet FM North Bay, ON
 https://vistaradio.streamb.live/SB00100?n=1b4f91cee2dd08cf42a2
 #EXTINF:-1,CFXL 103.1 XL103 Calgary, AB
 http://newcap.leanstream.co/CFXLFM-MP3?n=3cc1a7ddee49e5a82dcf
@@ -3081,7 +2857,7 @@ https://ais-sa1.streamon.fm/7235_128k.aac/playlist.m3u8?n=e4ebf596626298f47e5d
 http://nnb.leanstream.co/CFNRFM?n=500cd991ac0d1cfbff39
 #EXTINF:-1,CFNI 1240 Coast AM  Port Hardy, BC
 https://vistaradio.streamb.live/SB00083?n=03025723442afc86ede8
-#EXTINF:-1,CFMK-FM 96.3 Big FM Kingston, ON AAC Stream 
+#EXTINF:-1,CFMK-FM 96.3 Big FM Kingston, ON AAC Stream
 http://live.leanstream.co/CFMKFM?n=c3cd75babd2e554800cf
 #EXTINF:-1,CFMK Big 96.3 Kingston, ON
 http://live.leanstream.co/CFMKFM-MP3?n=bfd420740cfb580d66b3
@@ -3173,7 +2949,7 @@ https://ss1.audiorama.com.mx:6594/?n=bc8fc1dedd437de7352b
 https://ss1.audiorama.com.mx:6594/?n=0ec77604130d74d94c16
 #EXTINF:-1,Buenisiima Mexicali - 850 AM - XEZF-AM - Grupo Audiorama Comunicaciones -  Mexicali, BC
 https://ss1.audiorama.com.mx:6594/stream?n=94c5d16dcfcfad40bc1e
-#EXTINF:-1,Bryn Terfel - Classical Radio 
+#EXTINF:-1,Bryn Terfel - Classical Radio
 https://drive.uber.radio/uber/crbrynterfel/icecast.audio?n=cd4ede81ea984634f38a
 #EXTINF:-1,Bruce Classic Rock
 http://streamingv2.shoutcast.com/bruce-classic-rock?n=b33b49b546ec02987c46
@@ -3229,13 +3005,13 @@ http://bigrradio.cdnstream1.com/5158_128?listenerid=43889c39c8ecf4f87725056b0d73
 http://bigrradio.cdnstream1.com/5155_128?listenerid=43889c39c8ecf4f87725056b0d737597&cb=177794.mp3?n=f9995c16facf6bd1cab8
 #EXTINF:-1,
 https://drive.uber.radio/uber/crberlinphilharmonic/icecast.audio?n=9ad2aae8fff13f172639
-#EXTINF:-1,Belami radio 
+#EXTINF:-1,Belami radio
 http://92.60.230.200:5040/listen.pls?n=7b0a524fbaa89893b12e
 #EXTINF:-1,Beetoven One - Laut.fm
 http://beethoven-one.stream.laut.fm/beethoven-one?t302=2022-10-18_11-26-57&ampuuid=465dca9c-b717-4437-9285-95f629e3d5d3?n=6cabcbf4748b66609086
 #EXTINF:-1,BeethovenFM
 http://unlimited3-cl.dps.live/beethovenfm/gotardis/audio/now/livestream1.m3u8?n=24c708ead3c5220b6e6e
-#EXTINF:-1,Beethoven - Santiago FM 
+#EXTINF:-1,Beethoven - Santiago FM
 https://unlimited4-us.dps.live/beethovenfm/aac/icecast.audio?n=e2aa7f637d281ce080aa
 #EXTINF:-1,BEAUTIFULinstrumentals
 http://198.245.60.88:8080/?n=ee0f2219ff50ac7de6ca
@@ -3285,7 +3061,7 @@ https://sslyayin.netyayin.net:10909/?n=156286728e42b1e9e702
 https://securestreams6.autopo.st:2173/?n=09620e403e8085965d48
 #EXTINF:-1,AsiaFM
 https://live.ximalaya.com/radio-first-page-app/live/999/64.m3u8?transcode=ts?n=a1d0239e7dc1b4d6e2b1
-#EXTINF:-1,Arturo Toscanini - Classical Radio 
+#EXTINF:-1,Arturo Toscanini - Classical Radio
 https://drive.uber.radio/uber/crarturotoscanini/icecast.audio?n=bfd43f9d9878779cd819
 #EXTINF:-1,ArtSound FM - Canberra - 92.7 FM MP3
 http://stream.artsound.fm/mp3?n=59196a26a4d65657dd33
@@ -3305,11 +3081,11 @@ https://dattavolt.com/8202/stream?n=c61683da9ba55524e084
 https://streaming-live.rtp.pt/liveradio/antena2opera80a/playlist.m3u8?n=ea75d501bf34b2cbf6eb
 #EXTINF:-1,Antena 2 AAC
 http://streaming-live-app.rtp.pt/liveradio/antena280a/playlist.m3u8?n=40262f7f844b0442c318
-#EXTINF:-1,Andrea Bocelli - Classical Radio 
+#EXTINF:-1,Andrea Bocelli - Classical Radio
 https://drive.uber.radio/uber/crandreabocelli/icecast.audio?n=5fcac292494657e8cfc6
 #EXTINF:-1,Ancient Faith Radio
 https://ancientfaith.streamguys1.com/music?n=31c4b1340c625b048cfb
-#EXTINF:-1,Amigos de Cristo Web Rádio 
+#EXTINF:-1,Amigos de Cristo Web Rádio
 http://sv14.hdradios.net:6860/?type=http&nocache=38?n=1e615d78ea862e91bbfb
 #EXTINF:-1,American Music Radio
 http://usa5.fastcast4u.com:2012/live?n=244cb0fa23de4ad4ecfd
@@ -3915,7 +3691,7 @@ https://s3.radio.co/sa12cb0e79/listen
 https://psrlive3.listenon.in/irlite?station=ilayarajalite
 #EXTINF:-1,KJ Yesudas Radio
 https://psrlive2.listenon.in/kjy
-#EXTINF:-1,AIR Puducherri Primari 
+#EXTINF:-1,AIR Puducherri Primari
 https://air.pc.cdn.bitgravity.com/air/live/pbaudio097/playlist.m3u8
 #EXTINF:-1,Southradios - SPB Radio
 https://psrlive3.listenon.in/spb
@@ -4087,7 +3863,7 @@ https://ais-sa1.streamon.fm/7000_48k.aac/playlist.m3u8
 http://s5.myradiostream.com:39348/stream.nsv
 #EXTINF:-1,CJCY
 https://rogers-hls.leanstream.co/rogers/med1021.stream/icy
-#EXTINF:-1,Blown Classic Rock Radio 
+#EXTINF:-1,Blown Classic Rock Radio
 https://ais-sa2.cdnstream1.com/1370_128
 #EXTINF:-1,Boom 94.1
 https://newcap.leanstream.co/CKBAFM-MP3
@@ -4623,7 +4399,7 @@ https://wirralwave.out.airtime.pro/wirralwave_b
 https://reclaimedradio.radioca.st/stream
 #EXTINF:-1,Revolution Radio Online
 https://visual.shoutca.st/stream/revolutionone/stream
-#EXTINF:-1,Greater Manchester Rock Radio 
+#EXTINF:-1,Greater Manchester Rock Radio
 https://stream.radio.co/s0438efe5d/listen
 #EXTINF:-1,Hospital Radio Lynn
 https://streaming.broadcastradio.com:9292/hrlynn
@@ -4743,7 +4519,7 @@ https://kathy.torontocast.com:1825/stream
 http://jazz-wr01.ice.infomaniak.ch/jazz-wr01-128.mp3
 #EXTINF:-1,Bretagne
 https://oceanequimperle.ice.infomaniak.ch/oceanequimperle-128.mp3
-#EXTINF:-1,Radio Freestyle 
+#EXTINF:-1,Radio Freestyle
 http://163.172.77.142:8552/stream/
 #EXTINF:-1,Impezá Radio
 https://radio35.virtualtronics.com:20065/stream
@@ -4831,7 +4607,7 @@ http://vogtlandradio.mp3.green.ch/vogtland_48k_mp3
 http://mp3.ffh.de/harmonyfm/hqlivestream.mp3
 #EXTINF:-1,harmony.fm - 94.1 FM
 http://mp3.harmonyfm.de/harmonyfm/hqlivestream.mp3
-#EXTINF:-1,Radio Khatereh Persian 
+#EXTINF:-1,Radio Khatereh Persian
 http://servidor22.brlogic.com:7160/live
 #EXTINF:-1,BR-Klassik - 98.0 FM
 https://d111.rndfnk.com/ard/br/brklassik/live/mp3/256/stream.mp3?aggregator=web&sid=26mZevH6Z9241coFzgUZTiVkrwS&token=qAoPcEp3CGmgpBF6ZXVRFc43BEyCFLJEHG8EHUuw6lA&tvf=q4Uw0vEO3xZkMTExLnJuZGZuay5jb20
