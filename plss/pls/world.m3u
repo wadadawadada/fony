@@ -1,163 +1,49 @@
 #EXTM3U
-#EXTINF:-1,1 Belgian On Demand Radio
-http://bodr.ddns.net:9052/
 #EXTINF:-1,100.5 FM Restauracion
 http://cdn-radio.elim.org.sv:8007/mp3_128?type=.mp3
-#EXTINF:-1,88OR
-https://streamingp.shoutcast.com/JamendoLounge
-#EXTINF:-1,90 FM Ictimai Radio
-https://stream.itv.az/rtmp:/radio/chunks.m3u8
-#EXTINF:-1,Adrenalina Radio
-https://sonicpanel.streaming10.net/8022/stream/1/
 #EXTINF:-1,Africa U Radio
 https://african1paris.ice.infomaniak.ch/african1paris-128.mp3
 #EXTINF:-1,Ahenfie Radio
 http://s43.myradiostream.com:20122/
-#EXTINF:-1,Ahenfo Radio Denmark
-http://s35.myradiostream.com:4702
-#EXTINF:-1,Akwantufuo Radio
-http://s42.myradiostream.com:26936/
-#EXTINF:-1,AMI Naxi Radio Kikinda
-http://185.119.88.88:8005/mountpoint
-#EXTINF:-1,Anyway Radio
-http://s2.e-resellers.gr:9978/
-#EXTINF:-1,B 4 GG
-https://b4gg.stream.laut.fm/b4gg?ref=web-app&ampt302=2019-05-28_12-18-53&ampuuid=652a3c02-605d-48f7-8d85-04e2bac2e6b8
-#EXTINF:-1,Big FM
-https://stream.bigfm.de/?deutschlandfm
-#EXTINF:-1,Big Reggae Mix
-http://ais-sa2.cdnstream1.com/2294_128.mp3?listenerId=esAdblock0434238&ampaw_0_1st.playerid=esPlayer&ampaw_0_1st.skey=1608630020
-#EXTINF:-1,BlueNite
-https://bluenite.stream.laut.fm/bluenite
-#EXTINF:-1,Calm Radio Fado
-http://streams.calmradio.com:15528/stream
 #EXTINF:-1,Calm Radio Tibet
 http://streams.calmradio.com:6528/stream
-#EXTINF:-1,CGM UKScene Radio
-http://www.lmp.d2g.com:8003
 #EXTINF:-1,City 105.1 FM
 http://edge.mixlr.com/channel/hqpry
-#EXTINF:-1,Contact Advance
-http://streamingp.shoutcast.com/JamendoLounge
-#EXTINF:-1,CRMK Radio
-https://stream.radio.co/sdfcc41b7a/listen
-#EXTINF:-1,DC Radio HD
-https://ais-sa1.streamon.fm/7043_48k.aac
-#EXTINF:-1,World Music Radio Classic!
-https://server-67.stream-server.nl:8792/stream
-#EXTINF:-1,Radio Iran 670
-https://ice41.securenetsystems.net/KIRN
 #EXTINF:-1,Radio Blackman 103.1
 http://s3.onweb.gr:8516/.mp3
-#EXTINF:-1,hmong21
-http://103.22.182.105:7004/
 #EXTINF:-1,Radio Palafolls 107.7
 http://streaming.enantena.com:8000/radiopalafolls128.mp3
-#EXTINF:-1,EuropaRussia
-http://europarussia.ru:8000/live
 #EXTINF:-1,CIRV 88.9 FM
 https://ice9.securenetsystems.net/CIRVFM
-#EXTINF:-1,RDP África
-https://radioip.rtp.pt/liveradio/rdpafrica80a/playlist.m3u8
 #EXTINF:-1,Hit Radio
 https://hitradio-maroc.ice.infomaniak.ch/hitradio-maroc-128.mp3
-#EXTINF:-1,Q96.1
-http://war.str3am.com:8480/listen.pls
-#EXTINF:-1,m radio
-http://bumbum-stream.netlogic.rs:8000/
-#EXTINF:-1,Babel 97.1
-https://radios.iwstreaming.uy/8030/stream
-#EXTINF:-1,Radio Kragbron 93.1
-http://shaincast.caster.fm:22994/listen.mp3?authn760aac688581254dc740cd4e82879fb4
 #EXTINF:-1,CHRN Radio Humsafar
 https://ice2.securenetsystems.net:80/HUMSAFAR
-#EXTINF:-1,Radio 10
-https://d1.stweb.tv/radio10/live/playlist.m3u8
-#EXTINF:-1,All FM
-https://uksoutha.streaming.broadcast.radio/allfm
 #EXTINF:-1,Radio Plus Fever
 https://streamer.radio.co/s3fe39a4a4/listen
-#EXTINF:-1,Radio Samobor
-http://185.150.235.162/
-#EXTINF:-1,Radio Mensajero 100.9
-https://radio.host.com.py:7146/
-#EXTINF:-1,Radio Ciudadana 660
-https://s5.mexside.net:2000/tunein/radiocuidadana/stream/pls
-#EXTINF:-1,Angling Darma FM – Tulungagung
-http://s4.vinhostmedia.com:8000/adfm
-#EXTINF:-1,Radio Jeevay 97.0
-http://s7.reliastream.com:8218/
-#EXTINF:-1,Radio Planete FM
-https://tampa.audio-stream.com:2199/tunein/planetef.pls
-#EXTINF:-1,Passion for the Planet
-http://108.163.221.109/stream
-#EXTINF:-1,Nile FM
-https://audio.nrpstream.com/listen/nile_fm/radio.mp3
 #EXTINF:-1,Radio PAKAO FM
 http://192.95.39.65:5144/stream.nsv
 #EXTINF:-1,Radio Helsinki
 http://77.86.233.1:8006/
-#EXTINF:-1,Đài PTTH Thái Bình live
-http://118.70.118.191:1935/tbtvlive/radio/playlist.m3u8
-#EXTINF:-1,Radio Rogla
-http://193.105.67.24:8010
 #EXTINF:-1,Radio Free Africa 1377 AM
 https://s3.radio.co/s8df0149e0/listen
 #EXTINF:-1,Radio Randsfjord
 http://stream.radiorandsfjord.no/randsfjord128.mp3
-#EXTINF:-1,Bir Radio
-http://188.40.62.20:8090/
-#EXTINF:-1,Energy Radio 2 Aramco
-http://ice31.securenetsystems.net/STUDIO2?type=.mp3
-#EXTINF:-1,The Hits Wellington
-http://ais-nzme.streamguys1.com/nz_007_aac
 #EXTINF:-1,Gaia FM
 http://s2.stationplaylist.com:9000/gaiafm.aac
-#EXTINF:-1,The Hits Auckland
-http://ais-nzme.streamguys1.com/nz_005_aac
-#EXTINF:-1,902 FM Det nye Radio Ballerup
-http://stream.wlmm.dk/902fmmp3
-#EXTINF:-1,Radio Koege
-https://stream.probroadcast.dk/radiokoege
-#EXTINF:-1,88.2 Sanyu FM
-https://s44.myradiostream.com:8138/
-#EXTINF:-1,Radio Haninge Direkt
-http://213.115.49.175:1157/
 #EXTINF:-1,P4 Vasternorrland - 102.8 FM
 http://http-live.sr.se/p4vasternorrland-mp3-192
-#EXTINF:-1,P5 STHLM
-https://sverigesradio.se/topsy/direkt/tunein/2842-hi.mp3
 #EXTINF:-1,P4 Kronboerg - P4 Kronoberg 101.0 FM
 http://http-live.sr.se/p4kronoberg-mp3-64
 #EXTINF:-1,Radio Mreznica
 http://stream3.dns69it.com:8000/stream
-#EXTINF:-1,Radio Quirinus
-https://stream.core-prod.us-west-2.tunenet.io/listen.stream?streamId=89006629&rti=dEZzGgYzfxg4dhE2AxFRSGgyQE5Rdid8WFcFHQASHBMUTxMkflYCFVQZJSkFE0pkDBIYDQcSWT4UHAgaGBwLEAQWWB1pGgBB%7e%7e%7e&render=json&qs=
-#EXTINF:-1,ICV radio Virovitica
-http://165.22.31.76:9300/
-#EXTINF:-1,Galgalatz - 91.8 FM
-https://glzicylv01.bynetcdn.com/glglz_mp3
-#EXTINF:-1,GALGALATZ - 91.8 FM
-https://glzwizzlv.bynetcdn.com/glglz_mp3
-#EXTINF:-1,Radio Kosava.fm
-http://163.172.116.41:8544/
-#EXTINF:-1,Radio 103
-https://stream.core-prod.us-west-2.tunenet.io/listen.stream?streamId=909713&rti=dEZzGgYzfxg4dhE2AxFRSGgyQE5Rdid8WFcFHQASHBMUTxMkflYCFVQZJSkFE0pkDBIYDQcSWT4UHAgaGBwLEAQWWB1pHwRF%7e%7e%7e&render=json&qs=
 #EXTINF:-1,Radio 34
 http://stream.radio34.rs:8889/stream
-#EXTINF:-1,Radio Buca
-http://live.bucaradio.com:8080/
-#EXTINF:-1,power up radio
-http://stream.powerup.ch/powerupradio-192.mp3
-#EXTINF:-1,Radio Vostok
-http://radiovostok.ice.infomaniak.ch/radiovostok.aac
-#EXTINF:-1,Radio Munot FM
-https://stream.core-prod.us-west-2.tunenet.io/listen.stream?streamId=96091698&rti=dEZzGgYzfxg4dhE2AxFRSGgyQE5Rdid8WFcFHQASHBMUTxMkflYCFVQZJSkFE0pkDBIYDQcSWT4UHAgaGBwLEAQWWB1pHwdB%7e%7e%7e&render=json&qs=
 #EXTINF:-1,Radio Chablais
 https://radiochablais.ice.infomaniak.ch/radiochablais-high.mp3
 #EXTINF:-1,RadioSat FM - Bolivia
 https://mira.streamerr.co/radio/8010/radiosatbolivia.mp3
-#EXTINF:-1,Sam Digital Radio 
+#EXTINF:-1,Sam Digital Radio
 http://154.12.241.217:8002/stream?type=http&nocache=388
 #EXTINF:-1,Fréquence Plus Andenne
 http://frequenceplusandenne.ice.infomaniak.ch/frequenceplusandenne-192.mp3
@@ -199,7 +85,7 @@ https://vm.motionfm.com/motionone_free
 http://scg.streamingmurah.com:8074/stream
 #EXTINF:-1,Radio Sejahtera FM
 https://ssg.streamingmurah.com:8094/stream
-#EXTINF:-1,Sykologos 
+#EXTINF:-1,Sykologos
 https://sc2.streamwithq.com:2000/stream/sykologos
 #EXTINF:-1,Radio Torino
 http://stream12.top-ix.org/radiotorino?1404909624785.mp3

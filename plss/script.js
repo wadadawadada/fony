@@ -13,6 +13,7 @@ const dropArea = document.getElementById('drop-area');
 const playlistEl = document.getElementById('playlist');
 const player = document.getElementById('player');
 const saveBtn = document.getElementById('save');
+const saveUnfinishedBtn = document.getElementById('saveUnfinished');
 const currentStationEl = document.getElementById('current-station');
 
 // Обработчики для drag & drop загрузки M3U-файла
@@ -144,7 +145,6 @@ function restoreCurrentStation() {
   }
 }
 
-// Сохранение изменений в файл M3U с помещением в папку /pls
 // Сохранение изменений в файл M3U с использованием исходного имени файла
 saveBtn.onclick = () => {
   let content = '#EXTM3U\n';
@@ -155,11 +155,25 @@ saveBtn.onclick = () => {
   const blob = new Blob([content], { type: 'audio/x-mpegurl' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  // Используем оригинальное имя файла без префикса "pls/"
   a.download = originalFileName;
   a.click();
 };
 
+// Сохранение изменений в файл M3U, содержащий только станции, которые отмечены как проигранные (выделены зелёным)
+saveUnfinishedBtn.onclick = () => {
+  let content = '#EXTM3U\n';
+  stations.forEach(s => {
+    if (playedStations.includes(s.url)) {
+      content += `#EXTINF:-1,${s.title}\n${s.url}\n`;
+    }
+  });
+
+  const blob = new Blob([content], { type: 'audio/x-mpegurl' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `unfinished_${originalFileName}`;
+  a.click();
+};
 
 // При загрузке страницы обновляем отображение текущей станции
 window.addEventListener('load', () => {

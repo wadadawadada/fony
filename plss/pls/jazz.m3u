@@ -13,32 +13,14 @@ https://cast1.torontocast.com:4640/stream
 https://mpc1.mediacp.eu:8356/stream
 #EXTINF:-1,101 Smooth Jazz
 http://101smoothjazz.cdnstream1.com/b22139_128mp3
-#EXTINF:-1,101 SMOOTH JAZZ
-https://jking.cdnstream1.com/b22139_128mp3
-#EXTINF:-1,101.5 The Cat
-https://5f9f690034fb0.streamlock.net:444/kvsf/kvsf.stream_aac/playlist.m3u8
-#EXTINF:-1,103.3 Asheville FM
-https://listen.ashevillefm.org/stream
-#EXTINF:-1,106.9 FM
-https://radio.cdnmedia.tv/listen/jorge_tadeo_lozano/utadeo
-#EXTINF:-1,1067 The Bridge
-https://s5.radio.co/s89fe1dd00/listen
 #EXTINF:-1,181 FM Fusion Jazz
 http://icyrelay.181.fm/181-fusionjazz_128k.mp3?type=.mp3
 #EXTINF:-1,202.FM – Big Band
 http://relay.181.fm:8004/
 #EXTINF:-1,24/7 Jazz Radio
 https://ec3.yesstreaming.net:3455/stream
-#EXTINF:-1,3RPC Community Radio
-http://shaincast.caster.fm:42423/listen.mp3?authn03545574f4f3ebb94debe3379c1306c4
 #EXTINF:-1,4CRM
 http://198.74.51.37:9970/audio.mp3
-#EXTINF:-1,70vibe FM
-https://443-1.autopo.st/103/
-#EXTINF:-1,88OR
-https://streamingp.shoutcast.com/JamendoLounge
-#EXTINF:-1,89.5 Sweet Love FM
-https://mars.streamerr.co/8178/stream
 #EXTINF:-1,89.9 Jazz & More FM
 https://peridot.streamguys1.com:7835/WUCF
 #EXTINF:-1,90.9 Jazzy
@@ -47,8 +29,6 @@ https://radio.musorok.org/listen/jazzygroove/jazzygroove.mp3
 https://streaming.radio.co/s36bd2a451/listen
 #EXTINF:-1,95.5 Smooth Jazz
 http://144.217.158.59:5176/stream.nsv
-#EXTINF:-1,96.9 The Oasis
-http://janus.cdnstream.com:5014/
 #EXTINF:-1,97.7 FM
 http://167.114.153.222:8028/?type=http&ampnocache=17
 #EXTINF:-1,Abaco Libros Radio
@@ -57,46 +37,14 @@ https://radio30.virtualtronics.com/proxy/abaco?mp=/stream
 https://radio30.virtualtronics.com/proxy/abaco?mp=/stream/1/
 #EXTINF:-1,Abc Jazz Latina
 https://listen.radioking.com/radio/306541/stream/353380
-#EXTINF:-1,Absolute Pitch
-https://absolutepitch74.stream.laut.fm/absolute_pitch74
-#EXTINF:-1,Abu Dhabi Classic FM
-https://n15.rcs.revma.com/r6hktd84u7zuv
 #EXTINF:-1,Радио Музком
 https://geshou.s02.radio-tochka.com:5005/stream
 #EXTINF:-1,radio poko pokito
 http://178.33.135.244:3724/stream/
-#EXTINF:-1,Jazz Radio Ireland
-https://carina.streamerr.co:8116/stream
-#EXTINF:-1,Viajeros
-https://lsaplus.swisstxt.ch/audio/drs2_96.stream/playlist.m3u8?DVR
-#EXTINF:-1,QuillaSalsa
-http://radio25.virtualtronics.com:8254/
-#EXTINF:-1,Radio Mbredets
-http://i.klikhost.com:8144/
-#EXTINF:-1,Radio EST FM 
-http://radio.ready2play.fr:1640/stream
-#EXTINF:-1,Fine Music
-https://edge.iono.fm/xice/fmr_live_medium.aac
-#EXTINF:-1,MPM
-https://fps2.listen2myradio.com:2199/listen.php?ip=109.169.23.17&port=9063&type=s1
-#EXTINF:-1,Edtalk
-https://noasrv.caster.fm:10001/live
-#EXTINF:-1,Candil
-http://s6.viastreaming.net:7100/
 #EXTINF:-1,Radio Q Jogja
 https://c4.auracast.net:8060/radio.mp3
-#EXTINF:-1,Classy NetRadio
-https://streaming.classynetradio.com/radio/8000/classyHD
 #EXTINF:-1,Gdynia
 http://51.255.8.139:8064/stream.nsv
-#EXTINF:-1,Onemix
-http://13.stmip.in:27118/stream
-#EXTINF:-1,Cultura 930
-http://cast61.sitehosting.com.br:8472/stream.nsv
-#EXTINF:-1,Rádio Web Música Tá na Pista
-https://player.srvstm.com/proxy/9042
-#EXTINF:-1,Show Time
-https://showtime.stream.laut.fm/showtime
 #EXTINF:-1,Classicempire
 https://jazzcrusader.stream.laut.fm/jazzcrusader?
 #EXTINF:-1,Acid Jazz
@@ -105,40 +53,12 @@ http://rs18.stream24.net:80/radio-fairground.mp3
 http://radiozaplin.com:8000/stream/1/
 #EXTINF:-1,Delite
 http://stream.deliteonline.com:48000/live320
-#EXTINF:-1,Joy
-http://tachyon.shoutca.st:8197/stream
-#EXTINF:-1,Lake District
-https://streamer.radio.co/sf97bc756a/listen
-#EXTINF:-1,WVSU FM 91.1
-https://radio.securenetsystems.net/cwa/index.cfm
-#EXTINF:-1,KHAM
-https://www.khamradio.com/
-#EXTINF:-1,Jack And Jill
-http://jajr104.primcast.com:9086/stream.mp3
-#EXTINF:-1,Jones College
-https://radio.securenetsystems.net/v5/WKTZ
-#EXTINF:-1,WINR Smoothjazz
-https://streamdb4web.securenetsystems.net/cirrusencore/WINRB
-#EXTINF:-1,WRBC
-http://c3.radioboss.fm:8090/autodj
-#EXTINF:-1,Caldonia's Crossroad
-http://nap.casthost.net:8360/
 #EXTINF:-1,The Jazz Groove - East
 http://audio-edge-3mayu.fra.h.radiomast.io/8a384ff3-6fd1-4e5d-b47d-0cbefeffe8d7
-#EXTINF:-1,ByteFM | HH-UKW
-http://bytefm--di--nacs-ice-01--02--cdn.cast.addradio.de/bytefm/hamburg/mp3/mid?_art=dj0yJmlwPTk1LjEwNS45LjEyNCZpZD1pY3NjeGwtbjJhZTNhdHBiJnQ9MTY4MjUzMTE0MiZzPTc4NjZmMjljIzVhZWJkMGIzYjI4OGFiZjdlZWMwMTVjMzE3NTU1OTE3
 #EXTINF:-1,WDR 3 (adaptive bitrate)
 http://51.255.8.139:9760/;
-#EXTINF:-1,Xmas Crooze
-http://s2.e-resellers.gr:8004/stream?type=http&nocache=23860
-#EXTINF:-1,Desi
-http://ice55.securenetsystems.net/DASH93
-#EXTINF:-1,Wota
-https://wota.stream.laut.fm/wota?t302=2023-04-25_20-07-45&uuid=94fc6ae6-b49e-4ff9-b029-9ed508cdeeb2
 #EXTINF:-1,Easy Network Jazz &amp; Soul
 http://sc2.streamwithq.com:8048/stream?type=http&nocache=17
-#EXTINF:-1,Ghana Radio
-https://ghana.ghanalisten.com:2200/stream.mp3
 #EXTINF:-1,Sunshine Radio Gh
 https://sunshineradiogh.ghanalisten.com:2800/;stream.nsv
 #EXTINF:-1,Jazz Radio Groov&#039;Up
@@ -161,8 +81,6 @@ https://live.radiospinner.com/smooth-vocal-jazz-96
 https://live.radiospinner.com/night-jazz-96
 #EXTINF:-1,Epic Lounge - New York Lounge
 https://stream.epic-lounge.com/new-york-lounge
-#EXTINF:-1,BR-Klassik mp3 192 kbit
-https://d111.rndfnk.com/ard/br/brklassik/live/mp3/256/stream.mp3?cid=01FBPVP3KY4W2XZ9KV8N032855&sid=2R94xWH7Yqp5CYV6foTThC1cNih&token=qL4TGffBspEJbLL7uI0BYMFeFjoyD2A_X51yfgH3R6A&tvf=OUOgOipCaBdkMTExLnJuZGZuay5jb20
 #EXTINF:-1,MAGICBLUE Radio 1
 http://magicblue.stream.laut.fm/magicblue?t302=2023-04-25_19-40-55&uuid=57db3cee-5ef5-44e4-bfd1-ee511f4a92b3
 #EXTINF:-1,FLUX FM XJAZZ
@@ -177,8 +95,6 @@ https://jazzloft.stream.laut.fm/jazzloft?t302=2023-05-09_12-16-32&uuid=7e689a6b-
 http://usa9-vn.mixstream.net:8084/;
 #EXTINF:-1,A Taste of Jazz
 http://listen.57fm.com/toj
-#EXTINF:-1,Antena 2 Jazzin (Portugal)
-https://streaming-live.rtp.pt/liveradio/antena2jazzin80a/playlist.m3u8
 #EXTINF:-1,Jazz FM CJRT
 https://jazzfm91.streamb.live/SB00009?args=web_02&player_type=popup&uid=503beb0b-556c-4002-9ed8-cb847eb6402c&user_hash=9dctTbLqKqhACbI8GuosOLT2EbVMS0Oi&gdpr=true&aw_0_req.gdpr=true&listenerid=3f1526922470a8b11f0ebcf5ed4a4b03&awparams=companionAds%3Atrue
 #EXTINF:-1,Bruto Radio
@@ -483,7 +399,7 @@ https://s2.free-shoutcast.com/stream/18002
 https://panachee.stream.laut.fm/panachee?t302=2023-04-25_20-06-48&uuid=d945f100-c801-4d02-9203-4d7f8e650606
 #EXTINF:-1,Crooner Radio InPrivate
 http://148.228.50.32:8000/;
-#EXTINF:-1,PHX 91.5 FM Jazz 
+#EXTINF:-1,PHX 91.5 FM Jazz
 http://stream.kjzz.org/kjzzhd2_mp3_128
 #EXTINF:-1,KHigh
 http://144.217.158.59:5032/stream/;?d=
@@ -699,7 +615,7 @@ http://209.58.147.84:7728/stream
 http://213.227.143.7:8007/stream
 #EXTINF:-1,CALMRADIO.COM - Jazz Piano
 http://209.58.147.84:30728/stream
-#EXTINF:-1,1.FM - Sax4Love 
+#EXTINF:-1,1.FM - Sax4Love
 http://185.33.21.112:80/sax4ever_128
 #EXTINF:-1,Jazz Club Bandstand - 1930s 1940s Big Band and Swing
 https://jenny.torontocast.com:8004/stream
@@ -747,7 +663,7 @@ https://klassikr.streamabc.net/klr-smooth-mp3-192-1096057
 https://allzic03.ice.infomaniak.ch/allzic03.aac
 #EXTINF:-1,Connemara Jazz Radio
 https://3dworlddjstreams.xyz/stream/8072
-#EXTINF:-1,JazzySoul Radio 
+#EXTINF:-1,JazzySoul Radio
 https://s6.reliastream.com/tunein/jazzysou.pls
 #EXTINF:-1,City Jazz
 https://stream.radiotechnikum.at/CITYJAZZ
@@ -1331,7 +1247,7 @@ http://rd-trtradyo3.medya.trt.com.tr/master.m3u8?n=89546b3082f60ed192d4
 http://eu.publicssl.net:7020/?n=4efd7c2e5c5cb37f19dc
 #EXTINF:-1,SDemon Radio
 http://65.109.81.84:7651/stream?n=8fe5c538942f8c8cccbe
-#EXTINF:-1,95.5 Jazz 
+#EXTINF:-1,95.5 Jazz
 https://streaming.radio.co/s36bd2a451/listen?n=0e12ecec8a3acda4eafd
 #EXTINF:-1,KKJZ KJAZZ HD2 - Bebop Channel
 https://1.ice1.sslstream.com/kkjz_hd.aac?n=8a47850db919f266e769
@@ -1431,7 +1347,7 @@ http://backbonenetworks.streamguys.com/fiskradio?n=907cf7871e9fc19d34c9
 https://wdrhf.akamaized.net/hls/live/2027994/wdr3/master.m3u8?n=7402648d12e1d69ca96d
 #EXTINF:-1,WDCB 90.9 Jazz & Blues Chicago, IL
 http://wdcb-ice.streamguys.org/wdcb128?n=bbc1dc5b99a455ca7d0a
-#EXTINF:-1,WBGO Jazz88 - mp3-link 
+#EXTINF:-1,WBGO Jazz88 - mp3-link
 http://wbgo.streamguys.net/wbgo128?n=823b6c55a695102b2720
 #EXTINF:-1,WBGO Jazz88 - AAC-link
 http://wbgo.streamguys.net/wbgo?n=a469d63ac44df57ff608
@@ -1737,7 +1653,7 @@ https://stream.epic-lounge.com/french-cafe-lounge?ref=radiobrowser?n=53e8aeaa9c9
 https://stream.epic-lounge.com/coffee-bar-lounge?ref=radiobrowser?n=fa0e5b32c653a373dcd0
 #EXTINF:-1,EME Radio fm
 https://streaming.enacast.com/emeradiofmHD.mp3?n=51d26aea26d325bbc1c6
-#EXTINF:-1,Elise radio 
+#EXTINF:-1,Elise radio
 https://elise.wanastream.com:25000/stream.nsv?n=5216476ab7973aeebca1
 #EXTINF:-1,EBS | Jazz
 https://azura.ebsmedia.ro/listen/jazz/jazz128.mp3?n=93900b626d7acf2c86cd
@@ -1763,7 +1679,7 @@ https://stm1.tropicalmoonmedia.com:7006/stream?n=9082ff5ec97b6d444379
 https://ice.creacast.com/clazz_hq_web.mp3?n=a0d6c61524f8bd6152f3
 #EXTINF:-1,CIWV-FM Wave 98.3 Vancouver, BC
 https://stream2.statsradio.com:8152/stream?n=fdb6c760045fe7e58b4a
-#EXTINF:-1,chocolate-radio.com 
+#EXTINF:-1,chocolate-radio.com
 https://stream.radio.co/sa7336b687/listen?n=db7689f8094c2dd024f7
 #EXTINF:-1,CHILLOUT PIANO by Epic Piano
 https://stream.epic-piano.com/chillout-piano?ref=radiobrowser?n=9ba6a264f441c3607689
@@ -1827,7 +1743,7 @@ https://allzic40.ice.infomaniak.ch/allzic40.aac?n=e9354e66cefac78f8a88
 https://az1.mediacp.eu/listen/airport-lounge-radio/radio.mp3?n=54b6c7bf7f66322696fc
 #EXTINF:-1,ABC Jazz HLS
 https://mediaserviceslive.akamaized.net/hls/live/2038319/abcjazz/index.m3u8?n=dc16ae5d2ecf71c99dbc
-#EXTINF:-1,Abaco Libros y Café Radio 
+#EXTINF:-1,Abaco Libros y Café Radio
 http://radio30.virtualtronics.com:8638/?n=2778ac678c30f6f74f5b
 #EXTINF:-1,4FourPlay Radio
 http://s4.radio.co/s6d6bf355e/listen.m3u?n=d08ac9bbfec9d433487a
@@ -1835,7 +1751,7 @@ http://s4.radio.co/s6d6bf355e/listen.m3u?n=d08ac9bbfec9d433487a
 https://stream2.hippynet.co.uk/stream/8216?n=267f85a31eb64c1db1fe
 #EXTINF:-1,2WCR 99.5FM - Warrumbungle Community Radio
 https://23153.live.streamtheworld.com/2WCR.mp3?n=6190dba6ce277adad923
-#EXTINF:-1,13Radio 
+#EXTINF:-1,13Radio
 https://c34.radioboss.fm:18099/stream?n=4f61bd796f0986d451bd
 #EXTINF:-1,101 SMOOTH JAZZ MELLOW MIX
 http://www.101smoothjazz.com/101-mellowmix.m3u?n=0f3c1af660038ae18d5a
@@ -1935,11 +1851,11 @@ http://radio.confettidigital.com:7679/NoMoreKnobs
 https://pointblankradio.co.uk/stream
 #EXTINF:-1,Smash Online Radio
 https://streaming.relevantmediaservices.com:2020/stream/smashonlineradio/stream
-#EXTINF:-1,Worthing Sunshine Radio 
+#EXTINF:-1,Worthing Sunshine Radio
 http://usa19.fastcast4u.com:1120/
 #EXTINF:-1,Smooth Grooving FM
 http://64.95.243.43:8020/stream.ogg
-#EXTINF:-1,Love Soul Radio London 
+#EXTINF:-1,Love Soul Radio London
 http://198.100.145.185:8772/stream?
 #EXTINF:-1,Radio Caprice - Modal Jazz
 http://213.141.131.10:8002/modaljazz
@@ -2085,7 +2001,7 @@ https://ice9.securenetsystems.net/KJZYHD2
 http://wvia.streamguys1.com/WVIAHD3
 #EXTINF:-1,Texas Tech Public Radio - KTTZ-FM
 https://17843.live.streamtheworld.com:443/KTTZHD1.mp3?dist=onlineradiobox
-#EXTINF:-1,All Funk Radio 
+#EXTINF:-1,All Funk Radio
 https://14923.live.streamtheworld.com:443/KCHOFM_24.mp3?dist=onlineradiobox
 #EXTINF:-1,IRN Jams
 https://live.indieradionetwork.net/irnjams1
@@ -2093,13 +2009,13 @@ https://live.indieradionetwork.net/irnjams1
 https://rad.prokro.com/radio/8000/radio.mp3?1551996091?disc=thenonstopradio.com
 #EXTINF:-1,WXTS Jazz 88.3 FM
 http://ec4.yesstreaming.net:1790/
-#EXTINF:-1,France Musique 
+#EXTINF:-1,France Musique
 https://icecast.radiofrance.fr/francemusique-lofi.mp3
-#EXTINF:-1,1.FM - Adore Jazz 
+#EXTINF:-1,1.FM - Adore Jazz
 https://strm112.1.fm/ajazz_mobile_aac
-#EXTINF:-1,101.ru: Smooth Jazz 
+#EXTINF:-1,101.ru: Smooth Jazz
 https://pub0101.101.ru/stream/trust/mp3/128/31
-#EXTINF:-1,Crooner Radio 
+#EXTINF:-1,Crooner Radio
 https://croonerradio.ice.infomaniak.ch/croonerradio-hifi.mp3
 #EXTINF:-1,Relax FM Lietuva
 https://stream01.sigile.net/5mbs-64-aac
@@ -2109,7 +2025,7 @@ https://icy.unitedradio.it/Daniele.mp3?
 https://ais-sa1.streamon.fm/7680_48k.aac
 #EXTINF:-1,DASH Cool
 https://boisestate.streamguys1.com/Jazz-aac-256k-icy
-#EXTINF:-1,Voce Nustrale 
+#EXTINF:-1,Voce Nustrale
 https://allzic03.ice.infomaniak.ch/allzic03.mp3
 #EXTINF:-1,CALM RADIO - Just Jazz
 https://streams.calmradio.com:30828/stream/1/
@@ -2492,7 +2408,7 @@ http://s4.myradiostream.com:13380/
 #EXTINF:-1,Be Good Radio - 80s Jazz
 http://ais04.empirestreaming.net:9500/
 #EXTINF:-1,Alpha Radio
-https://radio30.virtualtronics.com/proxy/abaco?mp=/stream 
+https://radio30.virtualtronics.com/proxy/abaco?mp=/stream
 #EXTINF:-1,Açores 9 Rádio
 https://ssl.voxhd.com.br:7300/stream
 #EXTINF:-1,AceRadio.Net - The Smooth Jazz Channel
@@ -3419,7 +3335,7 @@ http://durundmoll.stream.laut.fm/durundmoll?ref=vtuner
 http://dufm.stream.laut.fm/dufm?ref=vtuner
 #EXTINF:-1,Domino laut.fm
 http://domino.stream.laut.fm/domino?ref=vtuner
-#EXTINF:-1,DKL Dreyeckland Crooner  
+#EXTINF:-1,DKL Dreyeckland Crooner
 http://stream.rcs.revma.com/20396bhcfwzuv
 #EXTINF:-1,djr laut.fm
 http://djr.stream.laut.fm/djr?ref=vtuner
@@ -3639,7 +3555,7 @@ http://stream01.sigile.net/5mbs-128-mp3
 http://s6.reliastream.com:8092/stream
 #EXTINF:-1,서울 CBS FM
 http://aac.cbs.co.kr/cbs981/_definst_/cbs981.stream/playlist.m3u8
-#EXTINF:-1,GFM 
+#EXTINF:-1,GFM
 http://radios.justweb.pt:8016/stream
 #EXTINF:-1,Radio FM Concert
 http://cp9.serverse.com:7090/stream/
@@ -3963,7 +3879,7 @@ https://emp.bbci.co.uk/emp/media/blank.mp3
 http://luradio-server.lakeheadu.ca:8000/stereo128
 #EXTINF:-1,FOCUS RADIO
 https://stream9.mexiserver.com/8214/stream
-#EXTINF:-1,SUITE JAZZ RADIO 
+#EXTINF:-1,SUITE JAZZ RADIO
 https://jenny.torontocast.com:2000/stream/suitejazzradio/stream
 #EXTINF:-1,Radio Happy Global
 https://radioglobal1.radioca.st/stream
@@ -4017,15 +3933,15 @@ http://91.121.121.25:8026/stream/1/
 http://peridot.streamguys1.com:5350/iheartjazz
 #EXTINF:-1,WFCS - 107.7 FM The Edge
 https://listen1.mixlr.com/c22c99b775765a2cfd16ac8438a09f8d
-#EXTINF:-1,WBOM Streaming Radio 
+#EXTINF:-1,WBOM Streaming Radio
 https://quincy.torontocast.com:1225/stream
 #EXTINF:-1,WAEG - Smooth Jazz 92.3
 http://rwb1.out.airtime.pro:8000/rwb1_a
-#EXTINF:-1,Radio Villa Centrale 
+#EXTINF:-1,Radio Villa Centrale
 http://nr11.newradio.it:9274/stream/1/
 #EXTINF:-1,TRQL Radio
 http://s3-eu-west-1.amazonaws.com/quitus-pat/quitus/pat/mp3-36562334b520e2b03be5e5344257f482
-#EXTINF:-1,Rádio Triângulo 
+#EXTINF:-1,Rádio Triângulo
 http://02.stmip.net:7802/livestream.mp3
 #EXTINF:-1,Triage FM
 http://radio.pro-fhi.net:9052/stream/1/
@@ -4061,17 +3977,17 @@ https://listen.radioking.com/radio/151276/stream/191701
 http://usa10.fastcast4u.com:6560/stream/1/
 #EXTINF:-1,PJmastermixx Radio
 http://91.121.165.88:8238/stream/1/
-#EXTINF:-1,Ondaradio.net 
+#EXTINF:-1,Ondaradio.net
 http://radio.latuatv.eu:1180/stream
 #EXTINF:-1,Na Gwiazdkę Jazz & Classic
 https://stream.open.fm/88
 #EXTINF:-1,LRT Elite FM 101.5
 https://radios.solumedia.com/6314/stream/1/
-#EXTINF:-1,Radio Kansas 
+#EXTINF:-1,Radio Kansas
 https://audio-edge-qse4n.yyz.g.radiomast.io/5567306a-66f6-4d8f-a399-520e2936e3a0
 #EXTINF:-1,JMediaFMRadio
 https://jmediafm.com:8000/stream/1/
-#EXTINF:-1,Gdynia Radio 
+#EXTINF:-1,Gdynia Radio
 http://51.255.8.139:8064/stream/1/
 #EXTINF:-1,Fly RadioTv
 http://play.flyradiotv.net:9051/stream/
@@ -4115,7 +4031,7 @@ http://sirius.shoutca.st:8241/
 https://srv7031.dns-lcinternet.com/8036/stream
 #EXTINF:-1,The Source:Smooth Jazz Radio - KJAC.DB
 http://s4.nexuscast.com:8020/stream/1/
-#EXTINF:-1,Streetstune Radio 
+#EXTINF:-1,Streetstune Radio
 https://live.ecast.co.il/stream/streetstune
 #EXTINF:-1,Radio Caprice - Guitar Jazz
 http://79.120.77.11:8000/guitarjazz
@@ -4169,7 +4085,7 @@ http://stm1.srvif.com:7530/stream/1/
 http://79.120.39.202:8000/ethnojazz
 #EXTINF:-1,Pop Jazz Radio
 https://s35.derstream.net/popjazzradio.mp3
-#EXTINF:-1,ejecutivosRADIO 
+#EXTINF:-1,ejecutivosRADIO
 https://radio35.virtualtronics.com:20015/stream/1/
 #EXTINF:-1,Myhitmusic - Mr. GROOVE
 https://radio.myhitmusic.de/Mr-Groove-aac.mp3
@@ -4179,13 +4095,13 @@ http://us3.internet-radio.com:8342/stream/1/
 http://streams.crooze.fm:8010/stream/1/
 #EXTINF:-1,Global Swing Broadcast Sweden
 http://listen.gsb.fm:8888/autodj
-#EXTINF:-1,The Loft 
+#EXTINF:-1,The Loft
 http://usa17.fastcast4u.com:5123/stream/1/
 #EXTINF:-1,dinner CROOZE
 http://streams.crooze.fm:8014/stream/1/
 #EXTINF:-1,KBEM-FM - Jazz 88 FM
 http://kbem-ice.streamguys1.com/live_mp3
-#EXTINF:-1,JazzRad.io 
+#EXTINF:-1,JazzRad.io
 http://62.149.196.16:8040/stream/1/
 #EXTINF:-1,JazzBeatsRadio
 https://ice3.securenetsystems.net/JAZZBEAT
@@ -4211,7 +4127,7 @@ http://wjab.streamguys.net/listen.pls
 https://musica.stream.laut.fm/musica
 #EXTINF:-1,Crooner Radio Lounge
 https://croonerradio_lounge.ice.infomaniak.ch/croonerradio-lounge-midfi.mp3
-#EXTINF:-1,Crooner Radio In Private 
+#EXTINF:-1,Crooner Radio In Private
 https://croonerradio_inprivate.ice.infomaniak.ch/croonerradio-inprivate-midfi.mp3
 #EXTINF:-1,CHERIE ZEN
 https://christmasfm.cdnstream1.com/2547_128.mp3?
@@ -4219,7 +4135,7 @@ https://christmasfm.cdnstream1.com/2547_128.mp3?
 http://192.99.41.102:5016/stream
 #EXTINF:-1,KNSQ - JPR Rhythm & News
 http://jpr.streamguys.org/jpr-rhythm
-#EXTINF:-1,KHNY - Honey 103 
+#EXTINF:-1,KHNY - Honey 103
 http://honey.macchiatomedia.org:8080/stream/1/
 #EXTINF:-1,CAFÉ | Soulside Radio
 http://streams.crooze.fm:8000/stream64
@@ -5279,7 +5195,7 @@ https://strmreg.1.fm/slowjamz_mobile_mp3
 https://listen.radioking.com/radio/523747/stream/582004
 #EXTINF:-1,PBS
 https://23203.live.streamtheworld.com/3PBS_FMAAC128.aac
-#EXTINF:-1,54-funk-soul-dance 
+#EXTINF:-1,54-funk-soul-dance
 https://54-funk-soul-dance.stream.laut.fm/54-funk-soul-dance
 #EXTINF:-1,FIP - Jazz
 https://icecast.radiofrance.fr/fipjazz-midfi.mp3
@@ -6191,7 +6107,7 @@ https://drive.uber.radio/uber/jjrfatswaller/icecast.audio
 https://drive.uber.radio/uber/jjrellafitzgerald/icecast.audio
 #EXTINF:-1,Just Jazz - Duke Ellington
 https://drive.uber.radio/uber/jjrdukeellington/icecast.audio
-#EXTINF:-1,Just Jazz - Dizzy Gillespie 
+#EXTINF:-1,Just Jazz - Dizzy Gillespie
 https://drive.uber.radio/uber/jjrdizzygillespie/icecast.audio
 #EXTINF:-1,Just Jazz - Diana Krall
 https://drive.uber.radio/uber/jjrdianakrall/icecast.audio
@@ -6297,7 +6213,7 @@ https://listen.radionomy.com/salsa-y-rumba-online-3.m3u
 https://rs6-krk2.rmfstream.pl/SJAZZ
 #EXTINF:-1,Old Friends Radio
 https://ice64.securenetsystems.net/OFRN
-#EXTINF:-1,Capital Jazz Lounge 
+#EXTINF:-1,Capital Jazz Lounge
 https://stream.radio.co/se9fddf547/listen
 #EXTINF:-1,101.ru: Jazz
 https://pub0302.101.ru:8443/stream/pro/aac/128/85
@@ -6309,7 +6225,7 @@ https://music-station.live/radio/8000/stream/1/
 https://s2.radio.co/s22ae5a8a6/listen
 #EXTINF:-1,Capital Jazz Radio
 https://stream.radio.co/s7c1ea5960/listen
-#EXTINF:-1,OneLuvFM 
+#EXTINF:-1,OneLuvFM
 https://streamer.radio.co:80/s34d8d1549/listen
 #EXTINF:-1,CLASSY NetRadio Indonesia
 https://streaming.classynetradio.com:8000/classyHD
@@ -6329,13 +6245,13 @@ https://stream.open.fm/60
 https://radioyachtcapri.newradio.it/1
 #EXTINF:-1,1AllMusicRadio
 https://listen.radionomy.com/1allmusicradio.m3u
-#EXTINF:-1,WXTS-FM - 88.3 FM 
+#EXTINF:-1,WXTS-FM - 88.3 FM
 https://ice23.securenetsystems.net/WXTS
 #EXTINF:-1,WRJR Real Jamz Radio
 https://s3.radio.co/s851f21496/low
 #EXTINF:-1,WNCU - 90.7 FM
 https://wncu.streamguys1.com/live
-#EXTINF:-1,WMKV 89.3 FM 
+#EXTINF:-1,WMKV 89.3 FM
 https://ice7.securenetsystems.net/WMKVM?
 #EXTINF:-1,WMFN - La Poderosa 640 AM
 https://ice1.securenetsystems.net/DEMOSTN?
@@ -6355,7 +6271,7 @@ https://jazz-wr14.ice.infomaniak.ch/jazz-wr14-128.mp3
 https://jzr-events-01.ice.infomaniak.ch/jzr-events-01.aac
 #EXTINF:-1,Jazz Lovers Radio
 https://listen.radionomy.com/jazzlovers.m3u
-#EXTINF:-1,insidelatino 
+#EXTINF:-1,insidelatino
 https://listen.openstream.co/2865/audio
 #EXTINF:-1,Eighth Note
 https://listen.radionomy.com/eighth-note.m3u
@@ -6429,7 +6345,7 @@ https://jazz-wr01.ice.infomaniak.ch/jazz-wr01-128.mp3
 https://icecast.radiofrance.fr/fip-hifi.aac
 #EXTINF:-1,Jazz Radio - Piano Jazz
 https://jzr-piano.ice.infomaniak.ch/jzr-piano.mp3
-#EXTINF:-1,Soul Good Radio 
+#EXTINF:-1,Soul Good Radio
 https://c3.radioboss.fm:18090/stream
 #EXTINF:-1,Jazz Radio - Gospel
 https://jazz-wr07.ice.infomaniak.ch/jazz-wr07-128.mp3
@@ -6449,7 +6365,7 @@ https://listen.radionomy.com/infinite.m3u
 https://jazz-wr04.ice.infomaniak.ch/jazz-wr04-128.mp3
 #EXTINF:-1,Electro Swing Revolution Radio
 https://streamer.radio.co/s2c3cc784b/listen
-#EXTINF:-1,STUDIO 
+#EXTINF:-1,STUDIO
 https://listen.radionomy.com/studioradio.m3u
 #EXTINF:-1,UP RADIO
 https://listen.radioking.com/radio/208624/stream/251509
@@ -6461,7 +6377,7 @@ https://ice5.securenetsystems.net/KMUN
 https://ice55.securenetsystems.net/DASH5
 #EXTINF:-1,DASH Concerto
 https://ice55.securenetsystems.net/DASH33
-#EXTINF:-1,A2NET RADIO 
+#EXTINF:-1,A2NET RADIO
 https://listen.radionomy.com/a2netradio.m3u
 #EXTINF:-1,Classical Minnesota Public Radio
 https://cms.stream.publicradio.org/cms.mp3
@@ -6481,7 +6397,7 @@ https://listen.radionomy.com/888RADIO.m3u
 https://listen.radioking.com/radio/100408/stream/139171
 #EXTINF:-1,BRA - BLUE BOSSA NOVA RADIO
 https://usa10.fastcast4u.com/bluebossanova
-#EXTINF:-1,WNOZ New Orleans Smooth Jazz 
+#EXTINF:-1,WNOZ New Orleans Smooth Jazz
 https://ice3.securenetsystems.net/WNOZ
 #EXTINF:-1,Legends Radio
 https://ice2.securenetsystems.net/WLML
