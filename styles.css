@@ -79,7 +79,7 @@ html, body {
 
   .manifesto-button {
     position: fixed;
-    top: 20%;
+    top: 50%;
     left: -20px;
     rotate: 90deg;
     z-index: 1000;
@@ -496,6 +496,13 @@ html, body {
     /* Поддержка безопасной зоны (iOS) – сдвигаем контент на высоту выреза/адресной строки */
     body {
       padding-top: env(safe-area-inset-top);
+    }
+
+    .manifesto-button {
+      position: fixed;
+      top: 15px;
+      left: 10px;
+      rotate: unset;
     }
   
     /* 2. Контейнер во весь экран, без прокрутки */
