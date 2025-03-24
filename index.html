@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-94X80FV4W3"></script>
@@ -9,13 +9,48 @@
     gtag('js', new Date());
     gtag('config', 'G-94X80FV4W3');
   </script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-  <title>FONY</title>
+
+  <title>FONY – Web3 Internet Radio | NFT Music Streaming Player</title>
+  <meta name="description" content="FONY is a next-gen Web3 music player combining internet radio streaming with NFT-based audio content. Listen, chat, and explore the future of audio.">
+  <meta name="keywords" content="Web3 music player, NFT music, internet radio, streaming platform, crypto audio, blockchain music, digital collectibles, FONY">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="FONY – Web3 Music Player & NFT Internet Radio">
+  <meta property="og:description" content="Stream music from around the world, discover NFT audio collectibles, and chat with fans — all in one futuristic player.">
+  <meta property="og:image" content="https://fony.space/preview.png">
+  <meta property="og:url" content="https://fony.space">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="FONY – Web3 Music Streaming & NFT Audio Player">
+  <meta name="twitter:description" content="Experience the evolution of streaming with FONY. Powered by Web3, built for audio lovers.">
+  <meta name="twitter:image" content="https://fony.space/preview.png">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "FONY",
+    "url": "https://fony.space",
+    "description": "Web3-based internet radio and NFT music player for streaming audio across genres.",
+    "inLanguage": "en",
+    "publisher": {
+      "@type": "Organization",
+      "name": "FONY"
+    }
+  }
+  </script>
+
   <link rel="apple-touch-icon" sizes="180x180" href="/ico/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/ico/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/ico/favicon-16x16.png">
   <link rel="manifest" href="/ico/site.webmanifest">
+
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="player.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -130,10 +165,44 @@
       </div>
     </div>
   </div>
+
+  <!-- Manifesto Button -->
+<button id="manifestoBtn" class="manifesto-button">Manifesto</button>
+
+<!-- Modal -->
+<div id="manifestoModal" class="manifesto-modal">
+  <div class="manifesto-content">
+    <button class="manifesto-close">&times;</button>
+    <h1>Web3 Music Player & Internet Radio Platform</h1>
+    <p><strong>FONY</strong> is a cutting-edge <strong>Web3 music player</strong> that revolutionizes the way you stream and experience audio. By integrating <strong>internet radio</strong> with <strong>blockchain technology</strong>, FONY delivers a seamless and decentralized music experience.</p>
+    <p>Discover music from a wide range of genres, interact with live chat communities, and explore collectible <strong>NFT audio tracks</strong>. Whether you're a casual listener or an NFT enthusiast, FONY is your gateway to the future of digital sound.</p>
+    <p>With built-in support for <strong>NFTs</strong>, a robust <strong>streaming platform</strong>, and sleek Web3 integration, FONY stands out as the next generation of online music players.</p>
+  </div>
+</div>
+
+
   <button id="themeToggle">
     <img src="/img/moon.svg" alt="Toggle Theme">
   </button>
   <script type="module" src="main.js"></script>
   <script type="module" src="theme.js"></script>
+
+  <script>
+    document.getElementById('manifestoBtn').addEventListener('click', () => {
+      document.getElementById('manifestoModal').style.display = 'block';
+    });
+  
+    document.querySelector('.manifesto-close').addEventListener('click', () => {
+      document.getElementById('manifestoModal').style.display = 'none';
+    });
+  
+    window.addEventListener('click', (e) => {
+      if (e.target.id === 'manifestoModal') {
+        document.getElementById('manifestoModal').style.display = 'none';
+      }
+    });
+  </script>
+  
+
 </body>
 </html>
