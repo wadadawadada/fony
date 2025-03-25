@@ -84,7 +84,7 @@ html, body {
     rotate: 90deg;
     z-index: 1000;
     background-color: transparent;
-    color: #00F2B8;
+    color: #07F2B8;
     font-size: 0.7rem;
     font-family: 'Ruda', sans-serif;
     border: none;
@@ -101,9 +101,10 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(23, 28, 43, 0.9);
+    background-color: rgba(23, 28, 43, 0.2);
     backdrop-filter: blur(5px);
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.5s ease;
+  
   }
   
   .manifesto-content {
@@ -111,7 +112,7 @@ html, body {
     margin: 5% auto;
     padding: 30px;
     border: 2px solid #00F2B8;
-    border-radius: 7px;
+    border-radius: 3px;
     color: white;
     max-width: 960px;
     position: relative;

@@ -139,6 +139,30 @@
     drop-shadow(0px 8px 4px rgba(50, 50, 93, 0.20))
     drop-shadow(0px 6px 7px rgba(0, 0, 0, 0.27));
 }
+
+@keyframes bounce {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.95);
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  80% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.player-btn:active {
+  animation: bounce 0.8s ease-in-out;
+}
+
+
 #playPauseBtn {
   width: 120px;
   height: 120px;
@@ -156,6 +180,7 @@
   width: 38px;
   height: 38px;
 }
+
 .volume-container {
   display: flex;
   flex-direction: column;
@@ -182,7 +207,16 @@
   cursor: pointer;
   width: 55px;
   height: 55px;
+  transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
 }
+
+.volume-knob:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  filter:
+    drop-shadow(0px 8px 4px rgba(50, 50, 93, 0.20))
+    drop-shadow(0px 6px 7px rgba(0, 0, 0, 0.27));
+}
+
 @media (max-width: 768px) {
   .screen-and-diods {
     margin-bottom: 20px;
