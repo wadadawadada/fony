@@ -79,17 +79,19 @@ html, body {
 
   .manifesto-button {
     position: fixed;
-    top: 50%;
-    left: -20px;
-    rotate: 90deg;
-    z-index: 1000;
+    top: 5px;
+    right: 30px;
+    /* rotate: 90deg; */
+    /* z-index: 0; */
     background-color: transparent;
-    color: #07F2B8;
-    font-size: 0.7rem;
-    font-family: 'Ruda', sans-serif;
     border: none;
     cursor: pointer;
     text-decoration: underline;
+  }
+
+  .manifesto-button img {
+width: 17px;
+height: 17px;
   }
   
   .manifesto-modal {
@@ -501,8 +503,9 @@ html, body {
 
     .manifesto-button {
       position: fixed;
-      top: 15px;
-      left: 10px;
+      top: 5px;
+      left: 5px;
+      right: unset;
       rotate: unset;
     }
   
