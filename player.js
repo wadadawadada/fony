@@ -123,7 +123,7 @@ function addTooltip(buttonId, tooltipText, position) {
 document.addEventListener("DOMContentLoaded", () => {
   if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
     addTooltip("randomBtn", "Random Station", "top");
-    addTooltip("shuffleBtn", "Shuffle Playlist", "left");
-    addTooltip("favBtn", "Add to Favorites", "right");
+    addTooltip("shuffleBtn", "Shuffle", "left");
+    addTooltip("favBtn", "+ Favorites", "right");
   }
 });
