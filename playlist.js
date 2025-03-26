@@ -84,11 +84,15 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         // Если текущий жанр не задан, берём из localStorage
         const genre = window.currentGenre ||
           (localStorage.getItem('lastStation') && JSON.parse(localStorage.getItem('lastStation')).genre) || "";
-        const shareLink = window.location.origin + window.location.pathname + '#' + encodeURIComponent(genre) + '/' + hash;
-        navigator.clipboard.writeText(shareLink)
-          .then(() => {
-            copiedSpan.style.display = 'inline';
-            setTimeout(() => { copiedSpan.style.display = 'none'; }, 2000);
+        const longLink = window.location.origin + window.location.pathname + '#' + encodeURIComponent(genre) + '/' + hash;
+        // Используем API TinyURL для сокращения ссылки
+        fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(longLink))
+          .then(response => response.text())
+          .then(shortUrl => {
+            return navigator.clipboard.writeText(shortUrl).then(() => {
+              copiedSpan.style.display = 'inline';
+              setTimeout(() => { copiedSpan.style.display = 'none'; }, 2000);
+            });
           })
           .catch(err => console.error('Ошибка копирования', err));
       });

@@ -69,12 +69,12 @@
 }
 
 .track-name .scrolling-text.marquee {
-    animation: marquee 20s linear 1 forwards; /* без infinite */
+  animation: marquee 20s linear infinite;
 }
 
 @keyframes marquee {
   0% { transform: translateX(0%); }
-  100% { transform: translateX(-200%); }
+  100% { transform: translateX(-300%); }
 }
 .station-label {
   font-size: 1.2rem;
