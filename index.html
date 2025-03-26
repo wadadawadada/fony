@@ -127,7 +127,7 @@
     </div>
     <div class="right-panel">
       <div class="genre-box">
-        <label for="playlistSelect" id="genreLabel">Genre:</label>
+        <label for="playlistSelect">Genre:</label>
         <select id="playlistSelect" class="genre-select">
           <option value="genres/african.m3u">African</option>
           <option value="genres/alternative.m3u">Alternative</option>
@@ -153,15 +153,10 @@
           <option value="genres/rnb.m3u">RnB</option>
           <option value="genres/techno.m3u">Techno</option>
           <option value="genres/world.m3u">World</option>
+
         </select>
         <img src="/img/fav_list.svg" id="favoritesFilterBtn" class="favorites-filter-icon">
-        <!-- Иконка кошелька -->
-        <img src="/img/wallet.svg" id="walletBtn" class="wallet-icon">
         <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
-
-        <!-- Новая часть: выбор контракта, скрытый по умолчанию -->
-        <label for="contractSelect" id="contractLabel" style="display: none;">Contract:</label>
-        <select id="contractSelect" class="genre-select" style="display: none;"></select>
       </div>
       <div class="playlist-area" id="playlistContent">
         <div id="playlistLoader" class="hidden"></div>
@@ -184,6 +179,8 @@
     </div>
   </div>
   
+
+
   <button id="themeToggle">
     <img src="/img/moon.svg" alt="Toggle Theme">
   </button>

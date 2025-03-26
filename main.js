@@ -2,7 +2,7 @@ import { fadeAudioOut, fadeAudioIn } from './player.js'
 import { renderPlaylist, loadPlaylist } from './playlist.js'
 import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from './controls.js'
 import { initChat, updateChat, syncChat } from './chat.js'
-import { BLOCKARK_CONTRACTS, connectAndLoadWalletNFTs } from './wallet.js'
+import { getStreamMetadata } from './parsing.js'
 
 function generateStationHash(url) {
   let hash = 0
@@ -31,33 +31,29 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const genreBox = document.querySelector('.genre-box')
-  const genreLabel = document.getElementById('genreLabel')
+  const genreLabel = genreBox.querySelector('label')
   const playlistSelect = document.getElementById('playlistSelect')
   const searchInput = document.getElementById('searchInput')
   const playlistContainer = document.getElementById('playlistContent')
   const playlistElement = document.getElementById('playlist')
-  const playlistLoader = document.getElementById('playlistLoader')
-  const walletBtn = document.getElementById('walletBtn')
-  const contractLabel = document.getElementById('contractLabel')
-  const contractSelect = document.getElementById('contractSelect')
-
+  let favoritesSpan = null
   const audioPlayer = document.getElementById('audioPlayer')
   const stationLabel = document.getElementById('stationLabel')
+  const currentTrackEl = document.getElementById('currentTrack')
+  const playlistLoader = document.getElementById('playlistLoader')
+  const rrBtn = document.getElementById('rrBtn')
+  const ffBtn = document.getElementById('ffBtn')
   const favBtn = document.getElementById('favBtn')
   const shuffleBtn = document.getElementById('shuffleBtn')
   const randomBtn = document.getElementById('randomBtn')
   const playPauseBtn = document.getElementById('playPauseBtn')
-  const rrBtn = document.getElementById('rrBtn')
-  const ffBtn = document.getElementById('ffBtn')
+  const favoritesFilterBtn = document.getElementById('favoritesFilterBtn')
   let allStations = []
   let currentPlaylist = []
   let currentTrackIndex = 0
   let shuffleActive = false
   const defaultVolume = { value: 0.9 }
   audioPlayer.volume = defaultVolume.value
-
-  const favoritesFilterBtn = document.getElementById('favoritesFilterBtn')
-
   const allGenres = [
     'genres/african.m3u',
     'genres/alternative.m3u',
@@ -84,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
     'genres/techno.m3u',
     'genres/world.m3u'
   ]
-
   let playCheckTimer = null
   const CHUNK_SIZE = 30
   let visibleStations = 0
@@ -132,31 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  // Вспомогательная функция для загрузки NFT-треков по индексу контракта
-  async function loadContractByIndex(selectedIndex) {
-    const contractConfig = BLOCKARK_CONTRACTS[parseInt(selectedIndex, 10)];
-    if (!contractConfig) return;
-    showPlaylistLoader();
-    try {
-      const nftTracks = await connectAndLoadWalletNFTs(contractConfig);
-      if (nftTracks.length > 0) {
-        currentPlaylist = nftTracks;
-        resetVisibleStations();
-        audioPlayer.pause();
-        // Начинаем воспроизведение первого
-        window.onStationSelect(0);
-      } else {
-        alert("Не найдено NFT треков для выбранного контракта.");
-        currentPlaylist = [];
-        resetVisibleStations();
-      }
-    } catch (err) {
-      console.error("Ошибка при подключении или загрузке NFT:", err);
-    } finally {
-      hidePlaylistLoader();
-    }
-  }
-
   window.onStationSelect = function(index) {
     ensureVisible(index)
     const station = currentPlaylist[index]
@@ -170,15 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === index)
     currentTrackIndex = index
     currentParsingUrl = station.url
-    // Если мы в режиме радио, сохраняем жанр + индекс:
-    if (currentMode === "radio") {
-      localStorage.setItem('lastStation', JSON.stringify({
-        genre: playlistSelect.value,
-        trackIndex: index
-      }))
-      window.currentGenre = playlistSelect.value
-    }
-
+    localStorage.setItem('lastStation', JSON.stringify({
+      genre: playlistSelect.value,
+      trackIndex: index
+    }))
+    window.currentGenre = playlistSelect.value
     const rightGroup = document.querySelector('.right-group')
     if (rightGroup) {
       rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
@@ -195,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (playTimerEl) {
       playTimerEl.textContent = formatTime(0)
     }
-
     function simulateBuffering(li, callback) {
       let startTime = null
       const duration = 1000
@@ -214,7 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       requestAnimationFrame(animate)
     }
-
     simulateBuffering(li, () => {
       if (li) li.classList.add('active')
       if (stationLabel) {
@@ -234,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
       fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
       updatePlayPauseButton(audioPlayer, playPauseBtn)
     })
-
     if (playCheckTimer) clearTimeout(playCheckTimer)
     if (appInitialized) {
       playCheckTimer = setTimeout(() => {
@@ -407,7 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return false
   }
 
-  // --- ИНИЦИАЛИЗАЦИЯ (РЕЖИМ RADIO ПО УМОЛЧАНИЮ) ---
   const lastStationData = localStorage.getItem('lastStation')
   if (lastStationData) {
     try {
@@ -462,9 +424,9 @@ document.addEventListener('DOMContentLoaded', () => {
   favoritesFilterBtn.addEventListener('click', async () => {
     if (favoritesFilterBtn.classList.contains('active')) {
       favoritesFilterBtn.classList.remove('active')
-      const span = genreBox.querySelector('span#favoritesSpan')
-      if (span) {
-        span.remove()
+      if (favoritesSpan) {
+        favoritesSpan.remove()
+        favoritesSpan = null
       }
       genreLabel.style.display = ""
       playlistSelect.style.display = ""
@@ -476,11 +438,11 @@ document.addEventListener('DOMContentLoaded', () => {
       genreLabel.style.display = "none"
       playlistSelect.style.display = "none"
       searchInput.style.display = "none"
-      let favoritesSpan = document.createElement("span")
-      favoritesSpan.id = "favoritesSpan"
-      favoritesSpan.textContent = "Favorites"
-      genreBox.insertBefore(favoritesSpan, favoritesFilterBtn)
-
+      if (!favoritesSpan) {
+        favoritesSpan = document.createElement("span")
+        favoritesSpan.textContent = "Favorites"
+        genreBox.insertBefore(favoritesSpan, favoritesFilterBtn)
+      }
       const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
       let allFavStations = []
       await Promise.all(allGenres.map(async (genre) => {
@@ -495,75 +457,6 @@ document.addEventListener('DOMContentLoaded', () => {
       resetVisibleStations()
     }
   })
-
-  // -------------------------------
-  // ЛОГИКА ПЕРЕКЛЮЧЕНИЯ НА РЕЖИМ WALLET
-  // -------------------------------
-  let currentMode = "radio"; // либо "radio", либо "wallet"
-
-  // Заполняем contractSelect пунктами из BLOCKARK_CONTRACTS
-  function populateContractSelect() {
-    contractSelect.innerHTML = "";
-    BLOCKARK_CONTRACTS.forEach((c, index) => {
-      const option = document.createElement("option");
-      option.value = String(index);
-      option.textContent = c.name;
-      contractSelect.appendChild(option);
-    });
-  }
-  populateContractSelect();
-
-  // При смене контракта в селекте — грузим его NFT
-  contractSelect.addEventListener("change", () => {
-    loadContractByIndex(contractSelect.value);
-  });
-
-  walletBtn.addEventListener('click', async () => {
-    if (currentMode === "radio") {
-      // Переходим в режим кошелька
-      currentMode = "wallet";
-      walletBtn.classList.add('active');
-
-      // Скрываем элементы жанра
-      genreLabel.style.display = "none";
-      playlistSelect.style.display = "none";
-      searchInput.style.display = "none";
-      favoritesFilterBtn.style.display = "none";
-
-      // Показываем элементы контракта
-      contractLabel.style.display = "inline-block";
-      contractSelect.style.display = "inline-block";
-
-      // Очищаем текущий «радио» плейлист
-      currentPlaylist = [];
-      resetVisibleStations();
-      audioPlayer.pause();
-
-      // Ставим в контракт-селекте "0" (первый в списке) и сразу грузим NFT
-      contractSelect.value = "0";
-      await loadContractByIndex(0);
-
-    } else {
-      // Возвращаемся к режиму radio
-      currentMode = "radio";
-      walletBtn.classList.remove('active');
-
-      // Скрываем дропдаун контрактов
-      contractLabel.style.display = "none";
-      contractSelect.style.display = "none";
-
-      // Показываем выбор жанра
-      genreLabel.style.display = "";
-      playlistSelect.style.display = "";
-      searchInput.style.display = "";
-      favoritesFilterBtn.style.display = "";
-
-      // Грузим плейлист и начинаем проигрывание, например, с 0-й станции
-      loadAndRenderPlaylist(playlistSelect.value, () => {
-        window.onStationSelect(0);
-      });
-    }
-  });
 
   playPauseBtn.addEventListener('click', () => {
     if (audioPlayer.paused) {
@@ -608,11 +501,8 @@ document.addEventListener('DOMContentLoaded', () => {
         favs.push(currentStation.url)
         localStorage.setItem('favorites', JSON.stringify(favs))
       }
-      // Для radio-режима: восстановим текущий жанровый плейлист
-      if (currentMode === "radio") {
-        currentPlaylist = allStations.slice()
-        resetVisibleStations()
-      }
+      currentPlaylist = allStations.slice()
+      resetVisibleStations()
     }
   })
 
