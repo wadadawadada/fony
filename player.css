@@ -18,7 +18,37 @@
   width: 95%;
   margin-bottom: 10px;
   box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
+  overflow: hidden;
 }
+
+
+.screen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+  transform: skewX(25deg);
+  pointer-events: none;
+}
+
+.screen:hover::after {
+  animation: shine 3s forwards;
+}
+
+@keyframes shine {
+  from {
+    left: 100%;
+  }
+  to {
+    left: -100%;
+  }
+}
+
+
+
 .left-group,
 .center-group,
 .right-group {

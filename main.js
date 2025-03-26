@@ -312,6 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+  window.markStationAsHidden = markStationAsHidden
 
   audioPlayer.addEventListener('play', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn)
@@ -395,12 +396,25 @@ document.addEventListener('DOMContentLoaded', () => {
       })
     }
   } else {
-    if (!processUrlHash()) {
-      initChat(playlistSelect.value)
-      loadAndRenderPlaylist(playlistSelect.value, () => {
-        window.onStationSelect(0)
-      })
-    }
+    // Если сохранённого состояния нет (первый запуск), выбираем случайный жанр и случайную станцию
+    const randomGenreIndex = Math.floor(Math.random() * allGenres.length)
+    const randomGenre = allGenres[randomGenreIndex]
+    playlistSelect.value = randomGenre
+    window.currentGenre = randomGenre
+    initChat(randomGenre)
+    loadAndRenderPlaylist(randomGenre, () => {
+      if (currentPlaylist.length > 0) {
+        const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length)
+        window.onStationSelect(randomStationIndex)
+        localStorage.setItem('lastStation', JSON.stringify({
+          genre: randomGenre,
+          trackIndex: randomStationIndex
+        }))
+        updateChat(randomGenre)
+      } else {
+        console.warn("Нет доступных станций в выбранном жанре")
+      }
+    })
   }
 
   playlistSelect.addEventListener('change', () => {
