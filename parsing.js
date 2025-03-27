@@ -1,6 +1,6 @@
 // parsing.js
 
-// Функция для преобразования URL в HTTPS, если он начинается с http://
+// Функция для преобразования URL в HTTPS, если он начинается с "http://"
 function secureUrl(url) {
   if (url.startsWith("http://")) {
     return url.replace("http://", "https://");
@@ -10,7 +10,7 @@ function secureUrl(url) {
 
 // Метод 1: Извлечение метаданных через Icy-MetaData
 export async function fetchIcyMetadata(url) {
-  // Преобразуем URL в безопасный (HTTPS)
+  // Преобразуем URL в HTTPS, если требуется
   url = secureUrl(url);
   try {
     const controller = new AbortController();
@@ -22,7 +22,7 @@ export async function fetchIcyMetadata(url) {
     clearTimeout(timeoutId);
     const metaIntHeader = response.headers.get("icy-metaint");
     if (!metaIntHeader) {
-      console.warn("Icy-metaint header not available");
+      console.warn("Icy-metaint header no avaliable");
       return null;
     }
     const metaInt = parseInt(metaIntHeader);
@@ -62,27 +62,7 @@ export async function fetchIcyMetadata(url) {
   }
 }
 
-// Метод 2: Распознавание трека через Netlify‑функцию (прокси к Radio Browser API)
-export async function fetchTrackFromNetlify(query) {
-  try {
-    const response = await fetch(`/.netlify/functions/radioTrack?query=${encodeURIComponent(query)}`);
-    if (!response.ok) {
-      console.error("Ошибка запроса к Netlify функции:", response.statusText);
-      return null;
-    }
-    const results = await response.json();
-    if (results && results.length > 0) {
-      // Возвращаем название найденной станции (или трека)
-      return results[0].name;
-    }
-    return null;
-  } catch (error) {
-    console.error("Ошибка в fetchTrackFromNetlify:", error);
-    return null;
-  }
-}
-
-// Метод 3: Парсинг RSS/Atom-фида
+// Метод 4: Парсинг RSS/Atom-фида
 export async function fetchRSSMetadata(url) {
   // Преобразуем URL в HTTPS
   url = secureUrl(url);
@@ -100,26 +80,19 @@ export async function fetchRSSMetadata(url) {
     }
     return null;
   } catch (error) {
-    console.error("Ошибка RSS парсинга:", error);
+    console.error("error RSS parsing:", error);
     return null;
   }
 }
 
-// Основная функция получения метаданных:
-// Сначала через ICY, затем через Netlify‑функцию (Radio Browser API), и только затем через RSS.
-// Параметр stationTitle (например, "Asem Radio") передается, если доступен.
-export async function getStreamMetadata(url, stationTitle = "") {
+// Основная функция получения метаданных: сначала через ICY, затем через RSS
+export async function getStreamMetadata(url) {
   const icyMetadata = await fetchIcyMetadata(url);
   if (icyMetadata && icyMetadata.trim().length > 0) {
     return icyMetadata;
   }
-  const query = stationTitle.trim().length > 0 ? stationTitle : url;
-  const netlifyData = await fetchTrackFromNetlify(query);
-  if (netlifyData && netlifyData.trim().length > 0) {
-    return netlifyData;
-  }
   const rssData = await fetchRSSMetadata(url);
-  return (rssData && rssData.trim().length > 0) ? rssData : "No Metadata";
+  return rssData || "No Metadata";
 }
 
 // Функция для получения данных RSS для бегущей строки (новости Global News)
@@ -136,8 +109,11 @@ export async function getTickerRSS() {
     if (!items || items.length === 0) {
       return "No News";
     }
+    // Перемешиваем массив новостей случайным образом
     const shuffled = items.slice().sort(() => Math.random() - 0.5);
+    // Выбираем первые три новости
     const selected = shuffled.slice(0, 3);
+    // Формируем HTML-ссылки с открытием в новом окне
     const itemsHtml = selected.map(item => {
       return `<a href="${item.link}" target="_blank" style="text-decoration:none; color:inherit;">
                 ${item.title}
