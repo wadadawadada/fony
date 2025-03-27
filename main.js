@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ffBtn.click();
     });
   }
-  
+    
   const genreBox = document.querySelector('.genre-box')
   const genreLabel = genreBox.querySelector('label')
   const playlistSelect = document.getElementById('playlistSelect')
