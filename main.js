@@ -30,6 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      rrBtn.click();
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      ffBtn.click();
+    });
+  }
+  
   const genreBox = document.querySelector('.genre-box')
   const genreLabel = genreBox.querySelector('label')
   const playlistSelect = document.getElementById('playlistSelect')
