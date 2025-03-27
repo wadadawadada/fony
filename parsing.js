@@ -12,7 +12,7 @@ export async function fetchIcyMetadata(url) {
     clearTimeout(timeoutId);
     const metaIntHeader = response.headers.get("icy-metaint");
     if (!metaIntHeader) {
-      console.warn("Icy-metaint header not available");
+      console.warn("Icy-metaint header no avaliable");
       return null;
     }
     const metaInt = parseInt(metaIntHeader);
@@ -52,30 +52,7 @@ export async function fetchIcyMetadata(url) {
   }
 }
 
-// Метод 2: Распознавание трека через API Radio Browser
-// Если ICY не вернул информацию, используем название станции из плейлиста (например, "Asem Radio")
-// Обратите внимание: правильный endpoint — json/stations/search
-export async function fetchTrackFromRadioBrowser(query) {
-  try {
-    const apiUrl = `https://fi1.api.radio-browser.info/json/stations/search?name=${encodeURIComponent(query)}`;
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      console.error("Ошибка обращения к API Radio Browser");
-      return null;
-    }
-    const results = await response.json();
-    if (results && results.length > 0) {
-      // Возвращаем название найденной станции
-      return results[0].name;
-    }
-    return null;
-  } catch (error) {
-    console.error("Ошибка в fetchTrackFromRadioBrowser:", error);
-    return null;
-  }
-}
-
-// Метод 3: Парсинг RSS/Atom-фида
+// Метод 4: Парсинг RSS/Atom-фида
 export async function fetchRSSMetadata(url) {
   try {
     const response = await fetch(url);
@@ -91,27 +68,19 @@ export async function fetchRSSMetadata(url) {
     }
     return null;
   } catch (error) {
-    console.error("Ошибка RSS парсинга:", error);
+    console.error("error RSS parsing:", error);
     return null;
   }
 }
 
-// Основная функция получения метаданных:
-// Сначала через ICY, затем через API Radio Browser (используя название станции, например, "Asem Radio"),
-// и только затем через RSS.
-export async function getStreamMetadata(url, stationTitle = "") {
+// Основная функция получения метаданных: сначала через ICY, затем через RSS
+export async function getStreamMetadata(url) {
   const icyMetadata = await fetchIcyMetadata(url);
   if (icyMetadata && icyMetadata.trim().length > 0) {
     return icyMetadata;
   }
-  // Если название станции из плейлиста доступно, используем его для запроса к Radio Browser
-  const query = stationTitle.trim().length > 0 ? stationTitle : url;
-  const radioBrowserData = await fetchTrackFromRadioBrowser(query);
-  if (radioBrowserData && radioBrowserData.trim().length > 0) {
-    return radioBrowserData;
-  }
   const rssData = await fetchRSSMetadata(url);
-  return (rssData && rssData.trim().length > 0) ? rssData : "No Metadata";
+  return rssData || "No Metadata";
 }
 
 // Функция для получения данных RSS для бегущей строки (новости Global News)
