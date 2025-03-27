@@ -281,11 +281,27 @@
     width: 150px;
     height: 150px;
   }
+
   .play-btn {
     left: 50%;
     top: 38%;
     transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    display: block;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
   }
+  .play-btn:active {
+    transform: translate(-50%, -50%) !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
   .player-controls {
     display: flex;
     align-items: center;
@@ -318,6 +334,7 @@
   .volume-container {
     display: none;
   }
+  
   #ffBtn:hover,
   #rrBtn:hover,
   #shuffleBtn:hover,
@@ -341,3 +358,4 @@
     transform: translate(-50%, -50%) scale(0.95);
   }
 }
+
