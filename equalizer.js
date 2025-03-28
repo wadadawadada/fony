@@ -15,10 +15,10 @@ export function initEqualizer() {
     for (let i = 0; i < numBars; i++) {
       const bar = document.createElement('div');
       bar.classList.add('equalizer-bar');
-      // Начальная высота – 10px
+      // Начальная высота – 10px, ширина – 4px, базовый градиент
       bar.style.height = '10px';
       bar.style.width = '4px';
-      bar.style.backgroundColor = '#00F2B8';
+      bar.style.background = 'linear-gradient(to bottom, #00F2B8, rgba(0, 96, 74, 0))';
       bar.style.transition = 'height 0.1s linear';
       eqContainer.appendChild(bar);
       bars.push(bar);
@@ -59,24 +59,35 @@ export function initEqualizer() {
     const analyser = window.equalizerAnalyser;
     const frequencyData = new Uint8Array(analyser.frequencyBinCount);
   
-    // Функция анимации: обновляет высоту баров симметрично с нелинейным масштабированием
+    // Для симметрии используем половину баров (15 пар)
+    const halfBars = numBars / 2; // 15
+    // Разбиваем спектр на 15 сегментов
+    const bandSize = frequencyData.length / halfBars;
+  
+    // Функция анимации: для каждой пары рассчитываем максимум амплитуды по сегменту спектра
     function animate() {
       requestAnimationFrame(animate);
       analyser.getByteFrequencyData(frequencyData);
       
-      const halfBars = numBars / 2;
-      // Проходим по 15 парам баров (лево и право)
       for (let i = 0; i < halfBars; i++) {
-        const index = Math.floor(i * frequencyData.length / halfBars);
-        const value = frequencyData[index] / 255; // нормализуем значение (0..1)
-        // Применяем экспоненциальное масштабирование для более выразительной реакции на пики
-        const scaledValue = Math.pow(value, 1.0); // можно изменять экспоненту для более сильного эффекта
-        const newHeight = 10 + scaledValue * 48; // базовая высота 10px, максимум ~80px
-        // Обновляем левую и правую стороны симметрично
+        const start = Math.floor(i * bandSize);
+        const end = Math.floor((i + 1) * bandSize);
+        let max = 0;
+        for (let j = start; j < end; j++) {
+          if (frequencyData[j] > max) {
+            max = frequencyData[j];
+          }
+        }
+        const value = max / 255; // нормализуем значение (0..1)
+        // Применяем экспоненциальное масштабирование – показатель 1.8 для усиления пиков
+        const scaledValue = Math.pow(value, 1.0);
+        // Изменил базовую высоту и множитель: минимум 10px, максимум примерно 80px
+        const newHeight = 0 + scaledValue * 48;
+        
+        // Обновляем симметрично левую и правую стороны
         bars[halfBars - 1 - i].style.height = `${newHeight}px`;
         bars[halfBars + i].style.height = `${newHeight}px`;
       }
     }
     animate();
-  }
-  
+}
