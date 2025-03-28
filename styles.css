@@ -230,10 +230,28 @@ height: 17px;
     margin-top: 1.5rem;
     width: 85%;
   }
-  .diods-img {
+
+
+ .equalizer-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  width: 100%;
+  height: 48px;
+}
+.equalizer-bar {
+  width: 4px;
+  background: linear-gradient(to top, #00F2B8, #00f2ba52);
+  height: 2px;
+  transition: height 0.1s linear;
+  border-radius: 2px;
+}
+
+  /* .diods-img {
     width: 200px;
     height: auto;
-  }
+  } */
   #playlistLoader {
     position: absolute;
     top: 50%;

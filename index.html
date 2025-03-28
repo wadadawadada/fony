@@ -83,7 +83,7 @@
           </div>
         </div>
         <div class="diods-row">
-          <img src="/img/diods.svg" alt="Diods" class="diods-img">
+          <!-- Вместо изображения эквалайзер будет создан скриптом equalizer.js -->
         </div>
       </div>
       <div class="player-controls">
@@ -153,7 +153,6 @@
           <option value="genres/rnb.m3u">RnB</option>
           <option value="genres/techno.m3u">Techno</option>
           <option value="genres/world.m3u">World</option>
-
         </select>
         <img src="/img/fav_list.svg" id="favoritesFilterBtn" class="favorites-filter-icon">
         <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
@@ -198,16 +197,12 @@
     </div>
   </div>
   
-  
-  
-
-
   <button id="themeToggle">
     <img src="/img/moon.svg" alt="Toggle Theme">
   </button>
   <script type="module" src="main.js"></script>
   <script type="module" src="theme.js"></script>
-
+  <script type="module" src="equalizer.js"></script>
   <script>
     document.getElementById('manifestoBtn').addEventListener('click', () => {
       document.getElementById('manifestoModal').style.display = 'block';
@@ -223,7 +218,5 @@
       }
     });
   </script>
-  
-
 </body>
 </html>
