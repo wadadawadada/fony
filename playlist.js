@@ -1,3 +1,10 @@
+// playlist.js
+
+// Включить/выключить фильтрацию только HTTPS-потоков
+// true  — показываем только станции на HTTPS
+// false — показываем все станции (HTTP и HTTPS)
+const USE_ONLY_HTTPS = true;
+
 function generateStationHash(url) {
   let hash = 0;
   for (let i = 0; i < url.length; i++) {
@@ -11,7 +18,7 @@ const style = document.createElement('style');
 style.textContent = `
 @keyframes heartBounce {
   0% { transform: scale(0); }
-  60% { transform: scale(1.2); }
+  60% { transform: scale(1); }
   80% { transform: scale(0.9); }
   100% { transform: scale(1); }
 }`;
@@ -24,6 +31,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
   playlistElement.innerHTML = "";
   const fragment = document.createDocumentFragment();
   const maxEnd = Math.min(endIndex, stations.length);
+
   for (let i = startIndex; i < maxEnd; i++) {
     const station = stations[i];
     const li = document.createElement("li");
@@ -48,9 +56,11 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     span.textContent = station.title + (station.bitrate ? ` (${station.bitrate})` : "");
     li.appendChild(span);
     
+    // Если станция активна (соответствует текущему URL)
     if (window.currentStationUrl && station.url === window.currentStationUrl) {
       li.classList.add("active");
       
+      // Иконка "Share"
       const shareIcon = document.createElement("img");
       shareIcon.src = "/img/share_icon.svg";
       shareIcon.alt = "Share station";
@@ -83,6 +93,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       li.appendChild(shareIcon);
       li.appendChild(copiedSpan);
       
+      // Кнопка удаления (×)
       const removeBtn = document.createElement("button");
       removeBtn.textContent = "×";
       removeBtn.style.position = "absolute";
@@ -96,6 +107,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       removeBtn.style.cursor = "pointer";
       removeBtn.addEventListener("click", (event) => {
         event.stopPropagation();
+        // Вызываем функцию удаления станции
         if (typeof window.markStationAsHidden === "function") {
           window.markStationAsHidden(parseInt(li.dataset.index, 10));
         } else {
@@ -105,6 +117,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       li.appendChild(removeBtn);
     }
     
+    // Если станция в избранном, показываем сердечко
     if (isFavorite(station)) {
       const favHeart = document.createElement("img");
       favHeart.classList.add("favorite-heart", "active");
@@ -164,16 +177,23 @@ export function loadPlaylist(url) {
         lines.shift();
       }
       for (let i = 0; i < lines.length; i += 2) {
+        // Если внезапно количество строк нечетное, последняя строка может "пропасть"
+        // В таком случае делаем проверку
+        if (i + 1 >= lines.length) break;
+        
         const infoLine = lines[i];
-        const streamUrl = lines[i + 1]; // оставляем оригинальный URL
+        const streamUrl = lines[i + 1];
+        
         let cover = null;
         const logoMatch = infoLine.match(/tvg-logo="([^"]+)"/);
         if (logoMatch) cover = logoMatch[1];
+        
         let infoText = "";
         const commaIndex = infoLine.indexOf(",");
         if (commaIndex !== -1) {
           infoText = infoLine.substring(commaIndex + 1).trim();
         }
+        
         let title = "Stream Unavailable";
         let bitrate = "";
         if (infoText) {
@@ -192,8 +212,17 @@ export function loadPlaylist(url) {
           cover
         });
       }
+
+      // Фильтруем станции, которые пользователь уже «скрыл» (removeBtn)
       const hiddenStations = JSON.parse(localStorage.getItem("hiddenStations") || "[]");
       loadedStations = loadedStations.filter(station => !hiddenStations.includes(station.url));
+
+      // Если включена опция «только HTTPS», убираем все http://
+      if (USE_ONLY_HTTPS) {
+        loadedStations = loadedStations.filter(station => station.url.startsWith('https://'));
+      }
+
+      // Параллельно подгружаем обложки (cover) — если есть
       return Promise.all(
         loadedStations.map(st => {
           return new Promise(resolve => {

@@ -93,12 +93,14 @@ function renderList() {
       renderList();
     };
 
+    // Добавляем название, затем кнопку удаления, затем URL станции
     li.appendChild(span);
-    li.appendChild(document.createTextNode(" " + station.url + " "));
     li.appendChild(del);
+    li.appendChild(document.createTextNode(" " + station.url + " "));
     playlistEl.appendChild(li);
   });
 }
+
 
 // Функция проигрывания станции
 function playStation(index) {

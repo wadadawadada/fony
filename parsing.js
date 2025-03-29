@@ -1,15 +1,16 @@
 // parsing.js
 
-// Функция для преобразования URL через прокси, если он начинается с "http://"
+// Функция для преобразования URL в HTTPS, если он начинается с "http://"
 function secureUrl(url) {
   if (url.startsWith("http://")) {
-    return "/.netlify/functions/proxy?url=" + encodeURIComponent(url);
+    return url.replace("http://", "https://");
   }
   return url;
 }
 
 // Метод 1: Извлечение метаданных через Icy-MetaData
 export async function fetchIcyMetadata(url) {
+  // Преобразуем URL в HTTPS, если требуется
   url = secureUrl(url);
   try {
     const controller = new AbortController();
@@ -21,7 +22,7 @@ export async function fetchIcyMetadata(url) {
     clearTimeout(timeoutId);
     const metaIntHeader = response.headers.get("icy-metaint");
     if (!metaIntHeader) {
-      console.warn("Icy-metaint header not available");
+      console.warn("Icy-metaint header no avaliable");
       return null;
     }
     const metaInt = parseInt(metaIntHeader);
@@ -63,10 +64,8 @@ export async function fetchIcyMetadata(url) {
 
 // Метод 4: Парсинг RSS/Atom-фида
 export async function fetchRSSMetadata(url) {
-  // Используем HTTPS-версию RSS-ленты (BBC поддерживает HTTPS)
-  if (url.startsWith("http://")) {
-    url = "/.netlify/functions/proxy?url=" + encodeURIComponent(url);
-  }
+  // Преобразуем URL в HTTPS
+  url = secureUrl(url);
   try {
     const response = await fetch(url);
     const rssText = await response.text();
@@ -81,7 +80,7 @@ export async function fetchRSSMetadata(url) {
     }
     return null;
   } catch (error) {
-    console.error("Error in RSS parsing:", error);
+    console.error("error RSS parsing:", error);
     return null;
   }
 }
@@ -99,7 +98,7 @@ export async function getStreamMetadata(url) {
 // Функция для получения данных RSS для бегущей строки (новости Global News)
 export async function getTickerRSS() {
   try {
-    const feedUrl = 'https://feeds.bbci.co.uk/news/world/rss.xml';
+    const feedUrl = 'http://feeds.bbci.co.uk/news/world/rss.xml';
     const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
     const response = await fetch(apiUrl);
     if (!response.ok) {
@@ -110,8 +109,11 @@ export async function getTickerRSS() {
     if (!items || items.length === 0) {
       return "No News";
     }
+    // Перемешиваем массив новостей случайным образом
     const shuffled = items.slice().sort(() => Math.random() - 0.5);
+    // Выбираем первые три новости
     const selected = shuffled.slice(0, 3);
+    // Формируем HTML-ссылки с открытием в новом окне
     const itemsHtml = selected.map(item => {
       return `<a href="${item.link}" target="_blank" style="text-decoration:none; color:inherit;">
                 ${item.title}

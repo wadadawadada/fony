@@ -1,3 +1,4 @@
+// main.js
 import { fadeAudioOut, fadeAudioIn } from './player.js'
 import { renderPlaylist, loadPlaylist } from './playlist.js'
 import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from './controls.js'
@@ -5,19 +6,100 @@ import { initChat, updateChat, syncChat } from './chat.js'
 import { getStreamMetadata } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
 
-function generateStationHash(url) {
-  let hash = 0;
-  for (let i = 0; i < url.length; i++) {
-    hash = ((hash << 5) - hash) + url.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash).toString(16);
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   let currentParsingUrl = null;
   let appInitialized = false;
   window.currentGenre = null;
+  let allPlaylists = []; // будет хранить список плейлистов из playlists.json
+
+  // Элементы DOM
+  const genreBox = document.querySelector('.genre-box');
+  const genreLabel = genreBox.querySelector('label');
+  const playlistSelect = document.getElementById('playlistSelect');
+  const searchInput = document.getElementById('searchInput');
+  const playlistContainer = document.getElementById('playlistContent');
+  const playlistElement = document.getElementById('playlist');
+  const audioPlayer = document.getElementById('audioPlayer');
+  audioPlayer.crossOrigin = 'anonymous';
+  const stationLabel = document.getElementById('stationLabel');
+  const playlistLoader = document.getElementById('playlistLoader');
+  const rrBtn = document.getElementById('rrBtn');
+  const ffBtn = document.getElementById('ffBtn');
+  const favBtn = document.getElementById('favBtn');
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  const randomBtn = document.getElementById('randomBtn');
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  const favoritesFilterBtn = document.getElementById('favoritesFilterBtn');
+
+  let allStations = [];
+  let currentPlaylist = [];
+  let currentTrackIndex = 0;
+  let shuffleActive = false;
+  const defaultVolume = { value: 0.9 };
+  audioPlayer.volume = defaultVolume.value;
+  let playCheckTimer = null;
+  const CHUNK_SIZE = 30;
+  let visibleStations = 0;
+
+  // Загружаем список плейлистов из playlists.json и заполняем select
+  fetch('playlists.json')
+    .then(res => res.json())
+    .then(playlists => {
+      allPlaylists = playlists;
+      playlistSelect.innerHTML = ''; // очищаем select
+      playlists.forEach(pl => {
+        const opt = document.createElement('option');
+        opt.value = pl.file;
+        opt.textContent = pl.name;
+        playlistSelect.appendChild(opt);
+      });
+      // Если есть сохранённый плейлист, используем его, иначе выбираем случайный
+      const lastStationData = localStorage.getItem('lastStation');
+      if (lastStationData) {
+        try {
+          const { genre, trackIndex } = JSON.parse(lastStationData);
+          playlistSelect.value = genre;
+          window.currentGenre = genre;
+          initChat(genre);
+          loadAndRenderPlaylist(genre, () => {
+            const safeIndex = (trackIndex < currentPlaylist.length) ? trackIndex : 0;
+            window.onStationSelect(safeIndex);
+            updateChat(genre);
+          });
+        } catch (e) {
+          console.error("Ошибка парсинга lastStation:", e);
+          defaultPlaylist();
+        }
+      } else {
+        defaultPlaylist();
+      }
+    })
+    .catch(err => {
+      console.error("Ошибка загрузки playlists.json:", err);
+      defaultPlaylist();
+    });
+
+  function defaultPlaylist() {
+    // Выбираем случайный плейлист из загруженных, если список пустой используем первый вариант
+    const randomIndex = allPlaylists.length ? Math.floor(Math.random() * allPlaylists.length) : 0;
+    const randomGenre = allPlaylists[randomIndex] ? allPlaylists[randomIndex].file : 'genres/african.m3u';
+    playlistSelect.value = randomGenre;
+    window.currentGenre = randomGenre;
+    initChat(randomGenre);
+    loadAndRenderPlaylist(randomGenre, () => {
+      if (currentPlaylist.length > 0) {
+        const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length);
+        window.onStationSelect(randomStationIndex);
+        localStorage.setItem('lastStation', JSON.stringify({
+          genre: randomGenre,
+          trackIndex: randomStationIndex
+        }));
+        updateChat(randomGenre);
+      } else {
+        console.warn("Нет доступных станций в выбранном жанре");
+      }
+    });
+  }
 
   function checkMarquee(container) {
     if (!container) return;
@@ -38,75 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
     navigator.mediaSession.setActionHandler('nexttrack', () => {
       ffBtn.click();
     });
-  }
-    
-  const genreBox = document.querySelector('.genre-box');
-  const genreLabel = genreBox.querySelector('label');
-  const playlistSelect = document.getElementById('playlistSelect');
-  const searchInput = document.getElementById('searchInput');
-  const playlistContainer = document.getElementById('playlistContent');
-  const playlistElement = document.getElementById('playlist');
-  let favoritesSpan = null;
-  const audioPlayer = document.getElementById('audioPlayer');
-  audioPlayer.crossOrigin = 'anonymous';
-  const stationLabel = document.getElementById('stationLabel');
-  const currentTrackEl = document.getElementById('currentTrack');
-  const playlistLoader = document.getElementById('playlistLoader');
-  const rrBtn = document.getElementById('rrBtn');
-  const ffBtn = document.getElementById('ffBtn');
-  const favBtn = document.getElementById('favBtn');
-  const shuffleBtn = document.getElementById('shuffleBtn');
-  const randomBtn = document.getElementById('randomBtn');
-  const playPauseBtn = document.getElementById('playPauseBtn');
-  const favoritesFilterBtn = document.getElementById('favoritesFilterBtn');
-  let allStations = [];
-  let currentPlaylist = [];
-  let currentTrackIndex = 0;
-  let shuffleActive = false;
-  const defaultVolume = { value: 0.9 };
-  audioPlayer.volume = defaultVolume.value;
-  const allGenres = [
-    'genres/african.m3u',
-    'genres/alternative.m3u',
-    'genres/asian.m3u',
-    'genres/blues.m3u',
-    'genres/chillout.m3u',
-    'genres/classical.m3u',
-    'genres/downtempo.m3u',
-    'genres/drum_and_bass.m3u',
-    'genres/electronic.m3u',
-    'genres/funk.m3u',
-    'genres/goa.m3u',
-    'genres/hardcore.m3u',
-    'genres/hip_hop.m3u',
-    'genres/house.m3u',
-    'genres/industrial.m3u',
-    'genres/jazz.m3u',
-    'genres/jungle.m3u',
-    'genres/lounge.m3u',
-    'genres/punk.m3u',
-    'genres/rap.m3u',
-    'genres/reggae.m3u',
-    'genres/rnb.m3u',
-    'genres/techno.m3u',
-    'genres/world.m3u'
-  ];
-  let playCheckTimer = null;
-  const CHUNK_SIZE = 30;
-  let visibleStations = 0;
-
-  function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return mins + ":" + (secs < 10 ? "0" + secs : secs);
-  }
-
-  function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(this, args), wait);
-    }
   }
 
   function ensureVisible(index) {
@@ -138,113 +151,92 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ... (остальной код не изменился)
-
-window.onStationSelect = function(index) {
-  ensureVisible(index);
-  const station = currentPlaylist[index];
-  const originalUrl = station.url;
-  // Сохраняем оригинальный URL для сравнения и метаданных
-  window.currentStationUrl = originalUrl;
-  renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations);
-  const allLi = document.querySelectorAll('#playlist li');
-  allLi.forEach(item => {
-    item.classList.remove('active');
-    item.style.setProperty('--buffer-percent', '0%');
-  });
-  const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === index);
-  currentTrackIndex = index;
-  currentParsingUrl = originalUrl;
-  localStorage.setItem('lastStation', JSON.stringify({
-    genre: playlistSelect.value,
-    trackIndex: index
-  }));
-  window.currentGenre = playlistSelect.value;
-  const rightGroup = document.querySelector('.right-group');
-  if (rightGroup) {
-    rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
-                            <span id="currentTrack" class="track-name">
-                              <span class="scrolling-text">Loading...</span>
-                            </span>`;
-    checkMarquee(rightGroup);
-  }
-  audioPlayer.crossOrigin = 'anonymous';
-  
-  // Если URL начинается с "http://", используем прокси для буферизации начального фрагмента
-  if (originalUrl.startsWith("http://")) {
-    const proxyUrl = "/.netlify/functions/proxy?url=" + encodeURIComponent(originalUrl);
-    fetch(proxyUrl)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Proxy response not ok");
-        }
-        return response.blob();
-      })
-      .then(blob => {
-        const blobUrl = URL.createObjectURL(blob);
-        audioPlayer.src = blobUrl;
-        audioPlayer.load();
-        audioPlayer.play().catch(err => console.warn("Playback error:", err));
-      })
-      .catch(err => {
-        console.error("Ошибка при получении буфера через прокси:", err);
-      });
-  } else {
-    // Для HTTPS URL просто назначаем напрямую
-    audioPlayer.src = originalUrl;
+  window.onStationSelect = function(index) {
+    ensureVisible(index);
+    const station = currentPlaylist[index];
+    window.currentStationUrl = station.url;
+    renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations);
+    const allLi = document.querySelectorAll('#playlist li');
+    allLi.forEach(item => {
+      item.classList.remove('active');
+      item.style.setProperty('--buffer-percent', '0%');
+    });
+    const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === index);
+    currentTrackIndex = index;
+    currentParsingUrl = station.url;
+    localStorage.setItem('lastStation', JSON.stringify({
+      genre: playlistSelect.value,
+      trackIndex: index
+    }));
+    window.currentGenre = playlistSelect.value;
+    const rightGroup = document.querySelector('.right-group');
+    if (rightGroup) {
+      rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+                              <span id="currentTrack" class="track-name">
+                                <span class="scrolling-text">Loading...</span>
+                              </span>`;
+      checkMarquee(rightGroup);
+    }
+    audioPlayer.crossOrigin = 'anonymous';
+    audioPlayer.src = station.url;
     audioPlayer.load();
-    audioPlayer.play().catch(err => console.warn("Playback error:", err));
-  }
-  
-  if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  if (window.playTimerInterval) clearInterval(window.playTimerInterval);
-  const playTimerEl = document.getElementById('playTimer');
-  if (playTimerEl) {
-    playTimerEl.textContent = formatTime(0);
-  }
-  function simulateBuffering(li, callback) {
-    let startTime = null;
-    const duration = 1000;
-    function animate(timestamp) {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      const progress = Math.min((elapsed / duration) * 100, 100);
-      if (li) {
-        li.style.setProperty('--buffer-percent', progress + '%');
-      }
-      if (progress < 100) {
-        requestAnimationFrame(animate);
-      } else {
-        if (callback) callback();
-      }
+    if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (window.playTimerInterval) clearInterval(window.playTimerInterval);
+    const playTimerEl = document.getElementById('playTimer');
+    if (playTimerEl) {
+      playTimerEl.textContent = formatTime(0);
     }
-    requestAnimationFrame(animate);
-  }
-  simulateBuffering(li, () => {
-    if (li) li.classList.add('active');
-    if (stationLabel) {
-      const stText = stationLabel.querySelector('.scrolling-text');
-      if (stText) {
-        stText.textContent = station.title || 'Unknown Station';
+    function simulateBuffering(li, callback) {
+      let startTime = null;
+      const duration = 1000;
+      function animate(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min((elapsed / duration) * 100, 100);
+        if (li) {
+          li.style.setProperty('--buffer-percent', progress + '%');
+        }
+        if (progress < 100) {
+          requestAnimationFrame(animate);
+        } else {
+          if (callback) callback();
+        }
       }
-      checkMarquee(stationLabel);
+      requestAnimationFrame(animate);
     }
-    fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
-    updatePlayPauseButton(audioPlayer, playPauseBtn);
-  });
-  if (playCheckTimer) clearTimeout(playCheckTimer);
-  if (appInitialized) {
-    playCheckTimer = setTimeout(() => {
-      if (audioPlayer.paused) {
-        markStationAsHidden(index);
+    simulateBuffering(li, () => {
+      if (li) li.classList.add('active');
+      if (stationLabel) {
+        const stText = stationLabel.querySelector('.scrolling-text');
+        if (stText) {
+          stText.textContent = station.title || 'Unknown Station';
+        }
+        checkMarquee(stationLabel);
       }
-    }, 10000);
-  }
-  updateStreamMetadata(originalUrl);
-};
-
-// ... (остальной код остается без изменений)
-
+      audioPlayer.muted = false;
+      audioPlayer.volume = defaultVolume.value;
+      audioPlayer.play().then(() => {
+        appInitialized = true;
+        if (!window.equalizerInitialized) {
+          initEqualizer();
+          window.equalizerInitialized = true;
+        }
+      }).catch(err => {
+        console.warn("Playback error:", err);
+      });
+      fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
+      updatePlayPauseButton(audioPlayer, playPauseBtn);
+    });
+    if (playCheckTimer) clearTimeout(playCheckTimer);
+    if (appInitialized) {
+      playCheckTimer = setTimeout(() => {
+        if (audioPlayer.paused) {
+          markStationAsHidden(index);
+        }
+      }, 10000);
+    }
+    updateStreamMetadata(station.url);
+  };
 
   playlistElement.addEventListener('click', function(e) {
     let li = e.target;
@@ -351,6 +343,20 @@ window.onStationSelect = function(index) {
   }
   window.markStationAsHidden = markStationAsHidden;
 
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return mins + ":" + (secs < 10 ? "0" + secs : secs);
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    }
+  }
+
   audioPlayer.addEventListener('play', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
     if (playCheckTimer) {
@@ -384,75 +390,6 @@ window.onStationSelect = function(index) {
     defaultVolume
   );
 
-  function processUrlHash() {
-    const hash = window.location.hash;
-    if (hash) {
-      const fragment = hash.substring(1);
-      const parts = fragment.split('/');
-      if (parts.length === 2) {
-        const genreFromHash = decodeURIComponent(parts[0]);
-        const stationHash = parts[1];
-        playlistSelect.value = genreFromHash;
-        window.currentGenre = genreFromHash;
-        loadAndRenderPlaylist(genreFromHash, () => {
-          const matchedIndex = currentPlaylist.findIndex(station => generateStationHash(station.url) === stationHash);
-          if (matchedIndex !== -1) {
-            window.onStationSelect(matchedIndex);
-          } else {
-            window.onStationSelect(0);
-          }
-        });
-        return true;
-      }
-    }
-    return false;
-  }
-
-  const lastStationData = localStorage.getItem('lastStation');
-  if (lastStationData) {
-    try {
-      const { genre, trackIndex } = JSON.parse(lastStationData);
-      if (!processUrlHash()) {
-        playlistSelect.value = genre;
-        window.currentGenre = genre;
-        initChat(genre);
-        loadAndRenderPlaylist(genre, () => {
-          const safeIndex = (trackIndex < currentPlaylist.length) ? trackIndex : 0;
-          window.onStationSelect(safeIndex);
-          updateChat(genre);
-        });
-      } else {
-        initChat(playlistSelect.value);
-        updateChat(playlistSelect.value);
-      }
-    } catch (e) {
-      console.error("Ошибка парсинга lastStation:", e);
-      initChat(playlistSelect.value);
-      loadAndRenderPlaylist(playlistSelect.value, () => {
-        window.onStationSelect(0);
-      });
-    }
-  } else {
-    const randomGenreIndex = Math.floor(Math.random() * allGenres.length);
-    const randomGenre = allGenres[randomGenreIndex];
-    playlistSelect.value = randomGenre;
-    window.currentGenre = randomGenre;
-    initChat(randomGenre);
-    loadAndRenderPlaylist(randomGenre, () => {
-      if (currentPlaylist.length > 0) {
-        const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length);
-        window.onStationSelect(randomStationIndex);
-        localStorage.setItem('lastStation', JSON.stringify({
-          genre: randomGenre,
-          trackIndex: randomStationIndex
-        }));
-        updateChat(randomGenre);
-      } else {
-        console.warn("Нет доступных станций в выбранном жанре");
-      }
-    });
-  }
-
   playlistSelect.addEventListener('change', () => {
     loadAndRenderPlaylist(playlistSelect.value, () => {
       searchInput.value = '';
@@ -474,10 +411,6 @@ window.onStationSelect = function(index) {
   favoritesFilterBtn.addEventListener('click', async () => {
     if (favoritesFilterBtn.classList.contains('active')) {
       favoritesFilterBtn.classList.remove('active');
-      if (favoritesSpan) {
-        favoritesSpan.remove();
-        favoritesSpan = null;
-      }
       genreLabel.style.display = "";
       playlistSelect.style.display = "";
       searchInput.style.display = "";
@@ -488,15 +421,10 @@ window.onStationSelect = function(index) {
       genreLabel.style.display = "none";
       playlistSelect.style.display = "none";
       searchInput.style.display = "none";
-      if (!favoritesSpan) {
-        favoritesSpan = document.createElement("span");
-        favoritesSpan.textContent = "Favorites";
-        genreBox.insertBefore(favoritesSpan, favoritesFilterBtn);
-      }
       const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
       let allFavStations = [];
-      await Promise.all(allGenres.map(async (genre) => {
-        const stations = await loadPlaylist(genre);
+      await Promise.all(allPlaylists.map(async (pl) => {
+        const stations = await loadPlaylist(pl.file);
         const favs = stations.filter(station => favorites.includes(station.url));
         allFavStations = allFavStations.concat(favs);
       }));
@@ -563,8 +491,9 @@ window.onStationSelect = function(index) {
 
   randomBtn.addEventListener('click', () => {
     fadeAudioOut(audioPlayer, 500, () => {
-      const randomGenreIndex = Math.floor(Math.random() * allGenres.length);
-      const randomGenre = allGenres[randomGenreIndex];
+      // Выбираем случайный плейлист из allPlaylists
+      const randomIndex = allPlaylists.length ? Math.floor(Math.random() * allPlaylists.length) : 0;
+      const randomGenre = allPlaylists[randomIndex] ? allPlaylists[randomIndex].file : 'genres/african.m3u';
       loadAndRenderPlaylist(randomGenre, () => {
         if (currentPlaylist.length > 0) {
           const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length);
