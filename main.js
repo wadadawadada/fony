@@ -142,7 +142,13 @@ document.addEventListener('DOMContentLoaded', () => {
   window.onStationSelect = function(index) {
     ensureVisible(index);
     const station = currentPlaylist[index];
-    window.currentStationUrl = station.url;
+    // Сохраняем оригинальный URL
+    const originalUrl = station.url;
+    // Если URL начинается с "http://", заменяем его на прокси-версию для проигрывания
+    const playbackUrl = originalUrl.startsWith("http://")
+      ? "/.netlify/functions/proxy?url=" + encodeURIComponent(originalUrl)
+      : originalUrl;
+    window.currentStationUrl = originalUrl;
     renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations);
     const allLi = document.querySelectorAll('#playlist li');
     allLi.forEach(item => {
@@ -151,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === index);
     currentTrackIndex = index;
-    currentParsingUrl = station.url;
+    currentParsingUrl = originalUrl;
     localStorage.setItem('lastStation', JSON.stringify({
       genre: playlistSelect.value,
       trackIndex: index
@@ -166,7 +172,8 @@ document.addEventListener('DOMContentLoaded', () => {
       checkMarquee(rightGroup);
     }
     audioPlayer.crossOrigin = 'anonymous';
-    audioPlayer.src = station.url;
+    // Используем playbackUrl для проигрывания
+    audioPlayer.src = playbackUrl;
     audioPlayer.load();
     if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (window.playTimerInterval) clearInterval(window.playTimerInterval);
@@ -223,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }, 10000);
     }
-    updateStreamMetadata(station.url);
+    updateStreamMetadata(originalUrl);
   };
 
   playlistElement.addEventListener('click', function(e) {
