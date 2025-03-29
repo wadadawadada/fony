@@ -276,7 +276,7 @@
   }
   .play-ellipse {
     left: 50%;
-    top: 38%;
+    top: 32%;
     transform: translate(-50%, -50%);
     width: 150px;
     height: 150px;
@@ -284,7 +284,7 @@
 
   .play-btn {
     left: 50%;
-    top: 38%;
+    top: 32%;
     transform: translate(-50%, -50%);
     width: 120px;
     height: 120px;
@@ -313,7 +313,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 40px;
   }
   .player-controls {
     position: relative;
@@ -322,7 +322,7 @@
   #randomBtn {
     position: absolute;
     left: 50%;
-    top: 150px;
+    top: 145px;
     transform: translateX(-50%);
     width: 170px;
     height: 80px;
