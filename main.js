@@ -138,99 +138,113 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  window.onStationSelect = function(index) {
-    ensureVisible(index);
-    const station = currentPlaylist[index];
-    const originalUrl = station.url;
-    // Если URL начинается с "http://", для воспроизведения подставляем прокси‑URL
-    const playbackUrl = originalUrl.startsWith("http://")
-      ? "/.netlify/functions/proxy?url=" + encodeURIComponent(originalUrl)
-      : originalUrl;
-    // Сохраняем оригинальный URL для сравнения и метаданных
-    window.currentStationUrl = originalUrl;
-    renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations);
-    const allLi = document.querySelectorAll('#playlist li');
-    allLi.forEach(item => {
-      item.classList.remove('active');
-      item.style.setProperty('--buffer-percent', '0%');
-    });
-    const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === index);
-    currentTrackIndex = index;
-    currentParsingUrl = originalUrl;
-    localStorage.setItem('lastStation', JSON.stringify({
-      genre: playlistSelect.value,
-      trackIndex: index
-    }));
-    window.currentGenre = playlistSelect.value;
-    const rightGroup = document.querySelector('.right-group');
-    if (rightGroup) {
-      rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
-                              <span id="currentTrack" class="track-name">
-                                <span class="scrolling-text">Loading...</span>
-                              </span>`;
-      checkMarquee(rightGroup);
-    }
-    audioPlayer.crossOrigin = 'anonymous';
-    // Устанавливаем audioPlayer.src с использованием playbackUrl (прокси для http)
-    audioPlayer.src = playbackUrl;
-    audioPlayer.load();
-    if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    if (window.playTimerInterval) clearInterval(window.playTimerInterval);
-    const playTimerEl = document.getElementById('playTimer');
-    if (playTimerEl) {
-      playTimerEl.textContent = formatTime(0);
-    }
-    function simulateBuffering(li, callback) {
-      let startTime = null;
-      const duration = 1000;
-      function animate(timestamp) {
-        if (!startTime) startTime = timestamp;
-        const elapsed = timestamp - startTime;
-        const progress = Math.min((elapsed / duration) * 100, 100);
-        if (li) {
-          li.style.setProperty('--buffer-percent', progress + '%');
+  // ... (остальной код не изменился)
+
+window.onStationSelect = function(index) {
+  ensureVisible(index);
+  const station = currentPlaylist[index];
+  const originalUrl = station.url;
+  // Сохраняем оригинальный URL для сравнения и метаданных
+  window.currentStationUrl = originalUrl;
+  renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations);
+  const allLi = document.querySelectorAll('#playlist li');
+  allLi.forEach(item => {
+    item.classList.remove('active');
+    item.style.setProperty('--buffer-percent', '0%');
+  });
+  const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === index);
+  currentTrackIndex = index;
+  currentParsingUrl = originalUrl;
+  localStorage.setItem('lastStation', JSON.stringify({
+    genre: playlistSelect.value,
+    trackIndex: index
+  }));
+  window.currentGenre = playlistSelect.value;
+  const rightGroup = document.querySelector('.right-group');
+  if (rightGroup) {
+    rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+                            <span id="currentTrack" class="track-name">
+                              <span class="scrolling-text">Loading...</span>
+                            </span>`;
+    checkMarquee(rightGroup);
+  }
+  audioPlayer.crossOrigin = 'anonymous';
+  
+  // Если URL начинается с "http://", используем прокси для буферизации начального фрагмента
+  if (originalUrl.startsWith("http://")) {
+    const proxyUrl = "/.netlify/functions/proxy?url=" + encodeURIComponent(originalUrl);
+    fetch(proxyUrl)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Proxy response not ok");
         }
-        if (progress < 100) {
-          requestAnimationFrame(animate);
-        } else {
-          if (callback) callback();
-        }
-      }
-      requestAnimationFrame(animate);
-    }
-    simulateBuffering(li, () => {
-      if (li) li.classList.add('active');
-      if (stationLabel) {
-        const stText = stationLabel.querySelector('.scrolling-text');
-        if (stText) {
-          stText.textContent = station.title || 'Unknown Station';
-        }
-        checkMarquee(stationLabel);
-      }
-      audioPlayer.muted = false;
-      audioPlayer.volume = defaultVolume.value;
-      audioPlayer.play().then(() => {
-        appInitialized = true;
-        if (!window.equalizerInitialized) {
-          initEqualizer();
-          window.equalizerInitialized = true;
-        }
-      }).catch(err => {
-        console.warn("Playback error:", err);
+        return response.blob();
+      })
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        audioPlayer.src = blobUrl;
+        audioPlayer.load();
+        audioPlayer.play().catch(err => console.warn("Playback error:", err));
+      })
+      .catch(err => {
+        console.error("Ошибка при получении буфера через прокси:", err);
       });
-      fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
-      updatePlayPauseButton(audioPlayer, playPauseBtn);
-    });
-    if (playCheckTimer) clearTimeout(playCheckTimer);
-    if (appInitialized) {
-      playCheckTimer = setTimeout(() => {
-        if (audioPlayer.paused) {
-          markStationAsHidden(index);
-        }
-      }, 10000);
+  } else {
+    // Для HTTPS URL просто назначаем напрямую
+    audioPlayer.src = originalUrl;
+    audioPlayer.load();
+    audioPlayer.play().catch(err => console.warn("Playback error:", err));
+  }
+  
+  if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (window.playTimerInterval) clearInterval(window.playTimerInterval);
+  const playTimerEl = document.getElementById('playTimer');
+  if (playTimerEl) {
+    playTimerEl.textContent = formatTime(0);
+  }
+  function simulateBuffering(li, callback) {
+    let startTime = null;
+    const duration = 1000;
+    function animate(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min((elapsed / duration) * 100, 100);
+      if (li) {
+        li.style.setProperty('--buffer-percent', progress + '%');
+      }
+      if (progress < 100) {
+        requestAnimationFrame(animate);
+      } else {
+        if (callback) callback();
+      }
     }
-    updateStreamMetadata(originalUrl);
-  };
+    requestAnimationFrame(animate);
+  }
+  simulateBuffering(li, () => {
+    if (li) li.classList.add('active');
+    if (stationLabel) {
+      const stText = stationLabel.querySelector('.scrolling-text');
+      if (stText) {
+        stText.textContent = station.title || 'Unknown Station';
+      }
+      checkMarquee(stationLabel);
+    }
+    fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
+    updatePlayPauseButton(audioPlayer, playPauseBtn);
+  });
+  if (playCheckTimer) clearTimeout(playCheckTimer);
+  if (appInitialized) {
+    playCheckTimer = setTimeout(() => {
+      if (audioPlayer.paused) {
+        markStationAsHidden(index);
+      }
+    }, 10000);
+  }
+  updateStreamMetadata(originalUrl);
+};
+
+// ... (остальной код остается без изменений)
+
 
   playlistElement.addEventListener('click', function(e) {
     let li = e.target;
