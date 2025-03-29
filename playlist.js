@@ -48,11 +48,9 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     span.textContent = station.title + (station.bitrate ? ` (${station.bitrate})` : "");
     li.appendChild(span);
     
-    // Если станция активна (соответствует текущему URL)
     if (window.currentStationUrl && station.url === window.currentStationUrl) {
       li.classList.add("active");
       
-      // Иконка шаринга
       const shareIcon = document.createElement("img");
       shareIcon.src = "/img/share_icon.svg";
       shareIcon.alt = "Share station";
@@ -85,7 +83,6 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       li.appendChild(shareIcon);
       li.appendChild(copiedSpan);
       
-      // Кнопка удаления станции
       const removeBtn = document.createElement("button");
       removeBtn.textContent = "×";
       removeBtn.style.position = "absolute";
@@ -108,7 +105,6 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       li.appendChild(removeBtn);
     }
     
-    // Если станция избранная, отображаем иконку сердечка
     if (isFavorite(station)) {
       const favHeart = document.createElement("img");
       favHeart.classList.add("favorite-heart", "active");
@@ -169,7 +165,7 @@ export function loadPlaylist(url) {
       }
       for (let i = 0; i < lines.length; i += 2) {
         const infoLine = lines[i];
-        const streamUrl = lines[i + 1]; // оставляем URL без преобразования
+        const streamUrl = lines[i + 1]; // оставляем оригинальный URL
         let cover = null;
         const logoMatch = infoLine.match(/tvg-logo="([^"]+)"/);
         if (logoMatch) cover = logoMatch[1];

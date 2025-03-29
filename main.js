@@ -32,8 +32,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('previoustrack', () => { rrBtn.click(); });
-    navigator.mediaSession.setActionHandler('nexttrack', () => { ffBtn.click(); });
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      rrBtn.click();
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      ffBtn.click();
+    });
   }
     
   const genreBox = document.querySelector('.genre-box');
@@ -46,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const audioPlayer = document.getElementById('audioPlayer');
   audioPlayer.crossOrigin = 'anonymous';
   const stationLabel = document.getElementById('stationLabel');
+  const currentTrackEl = document.getElementById('currentTrack');
   const playlistLoader = document.getElementById('playlistLoader');
   const rrBtn = document.getElementById('rrBtn');
   const ffBtn = document.getElementById('ffBtn');
@@ -136,11 +141,12 @@ document.addEventListener('DOMContentLoaded', () => {
   window.onStationSelect = function(index) {
     ensureVisible(index);
     const station = currentPlaylist[index];
-    const originalUrl = station.url; // сохраняем оригинальный URL
-    // Для воспроизведения, если URL начинается с "http://", используем прокси
+    const originalUrl = station.url;
+    // Если URL начинается с "http://", для воспроизведения подставляем прокси‑URL
     const playbackUrl = originalUrl.startsWith("http://")
       ? "/.netlify/functions/proxy?url=" + encodeURIComponent(originalUrl)
       : originalUrl;
+    // Сохраняем оригинальный URL для сравнения и метаданных
     window.currentStationUrl = originalUrl;
     renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations);
     const allLi = document.querySelectorAll('#playlist li');
@@ -165,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
       checkMarquee(rightGroup);
     }
     audioPlayer.crossOrigin = 'anonymous';
+    // Устанавливаем audioPlayer.src с использованием playbackUrl (прокси для http)
     audioPlayer.src = playbackUrl;
     audioPlayer.load();
     if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -222,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }, 10000);
     }
-    // Для метаданных используем оригинальный URL через secureUrl (из parsing.js)
     updateStreamMetadata(originalUrl);
   };
 

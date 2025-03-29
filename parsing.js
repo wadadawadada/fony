@@ -63,8 +63,10 @@ export async function fetchIcyMetadata(url) {
 
 // Метод 4: Парсинг RSS/Atom-фида
 export async function fetchRSSMetadata(url) {
-  // Заменяем RSS-URL на HTTPS
-  url = secureUrl(url.replace(/^http:\/\//, "https://"));
+  // Используем HTTPS-версию RSS-ленты (BBC поддерживает HTTPS)
+  if (url.startsWith("http://")) {
+    url = "/.netlify/functions/proxy?url=" + encodeURIComponent(url);
+  }
   try {
     const response = await fetch(url);
     const rssText = await response.text();
@@ -79,7 +81,7 @@ export async function fetchRSSMetadata(url) {
     }
     return null;
   } catch (error) {
-    console.error("Ошибка RSS parsing:", error);
+    console.error("Error in RSS parsing:", error);
     return null;
   }
 }
