@@ -32,12 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-      rrBtn.click();
-    });
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
-      ffBtn.click();
-    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => { rrBtn.click(); });
+    navigator.mediaSession.setActionHandler('nexttrack', () => { ffBtn.click(); });
   }
     
   const genreBox = document.querySelector('.genre-box');
@@ -48,10 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const playlistElement = document.getElementById('playlist');
   let favoritesSpan = null;
   const audioPlayer = document.getElementById('audioPlayer');
-  // Важно: задаем crossOrigin для audioPlayer
   audioPlayer.crossOrigin = 'anonymous';
   const stationLabel = document.getElementById('stationLabel');
-  const currentTrackEl = document.getElementById('currentTrack');
   const playlistLoader = document.getElementById('playlistLoader');
   const rrBtn = document.getElementById('rrBtn');
   const ffBtn = document.getElementById('ffBtn');
@@ -142,9 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
   window.onStationSelect = function(index) {
     ensureVisible(index);
     const station = currentPlaylist[index];
-    // Сохраняем оригинальный URL
-    const originalUrl = station.url;
-    // Если URL начинается с "http://", заменяем его на прокси-версию для проигрывания
+    const originalUrl = station.url; // сохраняем оригинальный URL
+    // Для воспроизведения, если URL начинается с "http://", используем прокси
     const playbackUrl = originalUrl.startsWith("http://")
       ? "/.netlify/functions/proxy?url=" + encodeURIComponent(originalUrl)
       : originalUrl;
@@ -172,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
       checkMarquee(rightGroup);
     }
     audioPlayer.crossOrigin = 'anonymous';
-    // Используем playbackUrl для проигрывания
     audioPlayer.src = playbackUrl;
     audioPlayer.load();
     if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -230,6 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }, 10000);
     }
+    // Для метаданных используем оригинальный URL через secureUrl (из parsing.js)
     updateStreamMetadata(originalUrl);
   };
 

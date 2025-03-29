@@ -1,6 +1,5 @@
 // netlify/functions/proxy.js
-// Эта функция принимает параметр url и запрашивает его с серверной стороны,
-// возвращая данные по HTTPS. Обратите внимание на использование Base64 для бинарных данных.
+// Эта функция запрашивает указанный URL на серверной стороне и возвращает его содержимое по HTTPS
 exports.handler = async function(event, context) {
     const url = event.queryStringParameters.url;
     if (!url) {
