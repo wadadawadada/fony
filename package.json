@@ -1,0 +1,13 @@
+{
+    "name": "fony-radio",
+    "version": "1.0.0",
+    "description": "FONY Web3 Internet Radio",
+    "main": "index.js",
+    "scripts": {
+      "build": "netlify build"
+    },
+    "dependencies": {
+      "node-fetch": "^2.6.1"
+    }
+  }
+  
