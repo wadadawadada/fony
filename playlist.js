@@ -94,12 +94,11 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       removeBtn.style.transform = "translateY(-50%)";
       removeBtn.style.background = "transparent";
       removeBtn.style.border = "none";
-      removeBtn.style.color = "#00F2B8";  // белый цвет
-      removeBtn.style.fontSize = "18px"; // немного больше, чем раньше
+      removeBtn.style.color = "#00F2B8";
+      removeBtn.style.fontSize = "18px";
       removeBtn.style.cursor = "pointer";
       removeBtn.addEventListener("click", (event) => {
         event.stopPropagation();
-        // Вызываем функцию удаления станции. Предполагается, что функция markStationAsHidden определена глобально.
         if (typeof window.markStationAsHidden === "function") {
           window.markStationAsHidden(parseInt(li.dataset.index, 10));
         } else {
@@ -170,7 +169,12 @@ export function loadPlaylist(url) {
       }
       for (let i = 0; i < lines.length; i += 2) {
         const infoLine = lines[i];
-        const streamUrl = lines[i + 1];
+        const originalUrl = lines[i + 1];
+        // Если URL начинается с "http://", заменяем его на URL прокси-функции
+        let streamUrl = originalUrl;
+        if (originalUrl.startsWith("http://")) {
+          streamUrl = "/.netlify/functions/proxy?url=" + encodeURIComponent(originalUrl);
+        }
         let cover = null;
         const logoMatch = infoLine.match(/tvg-logo="([^"]+)"/);
         if (logoMatch) cover = logoMatch[1];

@@ -1,16 +1,16 @@
 // parsing.js
 
-// Функция для преобразования URL в HTTPS, если он начинается с "http://"
+// Функция для преобразования URL через прокси, если он начинается с "http://"
 function secureUrl(url) {
   if (url.startsWith("http://")) {
-    return url.replace("http://", "https://");
+    return "/.netlify/functions/proxy?url=" + encodeURIComponent(url);
   }
   return url;
 }
 
 // Метод 1: Извлечение метаданных через Icy-MetaData
 export async function fetchIcyMetadata(url) {
-  // Преобразуем URL в HTTPS, если требуется
+  // Преобразуем URL через прокси, если требуется
   url = secureUrl(url);
   try {
     const controller = new AbortController();
@@ -64,7 +64,7 @@ export async function fetchIcyMetadata(url) {
 
 // Метод 4: Парсинг RSS/Atom-фида
 export async function fetchRSSMetadata(url) {
-  // Преобразуем URL в HTTPS
+  // Преобразуем URL через прокси, если требуется
   url = secureUrl(url);
   try {
     const response = await fetch(url);
