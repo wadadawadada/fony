@@ -153,8 +153,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Функция для проверки реальной буферизации.
   // targetBuffer – требуемое время буфера в секундах (например, 5 сек).
-  // Вместо процентов выводим шкалу из символов "i", где каждый символ соответствует 20%.
-  function checkRealBuffering(targetBuffer, callback) {
+  // li – элемент выбранной станции, для обновления его CSS-переменной "--buffer-percent".
+  // Вместо процентов в play-timer выводим шкалу из символов "i" (каждый "i" = 20%).
+  function checkRealBuffering(targetBuffer, li, callback) {
     const playTimerEl = document.getElementById('playTimer');
     const interval = setInterval(() => {
       let bufferedTime = 0;
@@ -162,10 +163,14 @@ document.addEventListener('DOMContentLoaded', () => {
         bufferedTime = audioPlayer.buffered.end(0) - (audioPlayer.currentTime || 0);
       }
       const percent = Math.min((bufferedTime / targetBuffer) * 100, 100);
-      // Вычисляем количество символов: 1 "i" на каждые 20%
+      // Обновляем текстовую шкалу
       const numSymbols = Math.floor(percent / 10);
       if (playTimerEl) {
         playTimerEl.textContent = ':'.repeat(numSymbols);
+      }
+      // Обновляем фон выбранного элемента
+      if (li) {
+        li.style.setProperty('--buffer-percent', percent + '%');
       }
       if (bufferedTime >= targetBuffer) {
         clearInterval(interval);
@@ -175,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 100);
   }
 
-  // Изменённая функция выбора станции с использованием MediaSource и реальной буферизации
+  // Функция выбора станции с использованием MediaSource и реальной буферизации
   window.onStationSelect = function(index) {
     ensureVisible(index);
     const station = currentPlaylist[index];
@@ -208,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mediaSource = new MediaSource();
     audioPlayer.src = URL.createObjectURL(mediaSource);
     mediaSource.addEventListener('sourceopen', () => {
-      const mimeCodec = 'audio/mpeg'; // укажите корректный MIME тип, если требуется
+      const mimeCodec = 'audio/mpeg'; // корректный MIME тип, если требуется
       const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
       fetch(station.url)
         .then(response => {
@@ -251,9 +256,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (playTimerEl) {
       playTimerEl.textContent = formatTime(0);
     }
-    // Ждем реальной буферизации (например, 5 секунд) прежде чем запускать воспроизведение.
-    // При этом отображается шкала из символов "i" (каждый "i" = 20%).
-    checkRealBuffering(5, () => {
+    // Ждем реальной буферизации (например, 5 сек) прежде чем запускать воспроизведение.
+    // Обновляем как play-timer, так и фон выбранного li.
+    checkRealBuffering(5, li, () => {
       if (li) li.classList.add('active');
       if (stationLabel) {
         const stText = stationLabel.querySelector('.scrolling-text');
