@@ -328,8 +328,12 @@
     height: 80px;
     z-index: 999;
   }
+  #randomBtn:hover {
+    transform: translateX(-50%);
+  }
   #randomBtn:active {
     transform: translateX(-50%) !important;
+    /* transform: none !important; */
   }
   .volume-container {
     display: none;

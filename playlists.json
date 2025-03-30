@@ -2,6 +2,7 @@
   { "file": "genres/african.m3u",         "name": "African" },
   { "file": "genres/alternative.m3u",     "name": "Alternative" },
   { "file": "genres/asian.m3u",          "name": "Asian" },
+  { "file": "genres/balkans.m3u",          "name": "Balkans" },
   { "file": "genres/blues.m3u",          "name": "Blues" },
   { "file": "genres/chillout.m3u",       "name": "Chillout" },
   { "file": "genres/classical.m3u",      "name": "Classical" },
