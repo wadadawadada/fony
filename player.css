@@ -148,7 +148,9 @@
   left: 0;
   width: 200px;
   height: 200px;
+  transition: all 1.3s ease-in-out;
 }
+
 .play-btn {
   position: absolute;
   top: 40px;

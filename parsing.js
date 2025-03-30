@@ -1,6 +1,3 @@
-// parsing.js
-
-// Функция для преобразования URL в HTTPS, если он начинается с "http://"
 function secureUrl(url) {
   if (url.startsWith("http://")) {
     return url.replace("http://", "https://");
@@ -8,9 +5,7 @@ function secureUrl(url) {
   return url;
 }
 
-// Метод 1: Извлечение метаданных через Icy-MetaData
 export async function fetchIcyMetadata(url) {
-  // Преобразуем URL в HTTPS, если требуется
   url = secureUrl(url);
   try {
     const controller = new AbortController();
@@ -22,7 +17,7 @@ export async function fetchIcyMetadata(url) {
     clearTimeout(timeoutId);
     const metaIntHeader = response.headers.get("icy-metaint");
     if (!metaIntHeader) {
-      console.warn("Icy-metaint header no avaliable");
+      console.warn("Icy-metaint header not available");
       return null;
     }
     const metaInt = parseInt(metaIntHeader);
@@ -57,14 +52,63 @@ export async function fetchIcyMetadata(url) {
     }
     return null;
   } catch (error) {
-    console.error("Ошибка Icy-MetaData:", error);
+    console.error("ICY Metadata Error:", error);
     return null;
   }
 }
 
-// Метод 4: Парсинг RSS/Atom-фида
+export async function resolveStreamUrl(url) {
+  try {
+    // 0. Прямые медиафайлы — mp3, ogg, aac, etc.
+    if (url.match(/\.(mp3|ogg|aac|m4a|opus)(\?.*)?$/i)) {
+      return url;
+    }
+
+    const response = await fetch(url);
+    const contentType = response.headers.get('content-type') || '';
+    const text = await response.text();
+
+    // .pls
+    if (text.includes('[playlist]') || contentType.includes('audio/x-scpls')) {
+      const match = text.match(/File\d+=(.+)/i);
+      if (match) return match[1].trim();
+    }
+
+    // .m3u / .m3u8
+    if (text.includes('#EXTM3U') || contentType.includes('audio/x-mpegurl')) {
+      const lines = text.split('\n').filter(line => line && !line.startsWith('#'));
+      if (lines.length > 0) return lines[0].trim();
+    }
+
+    // .xspf
+    if (text.includes('<playlist') || contentType.includes('application/xspf+xml')) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, "application/xml");
+      const loc = doc.querySelector("location");
+      if (loc) return loc.textContent.trim();
+    }
+
+    // .asx
+    if (text.includes('<asx') || contentType.includes('video/x-ms-asf')) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, "application/xml");
+      const ref = doc.querySelector('ref');
+      if (ref?.getAttribute('href')) return ref.getAttribute('href').trim();
+    }
+
+    // .ram / .txt — просто ссылка внутри
+    const lines = text.trim().split('\n');
+    const firstLine = lines.find(line => line.match(/^https?:\/\/.+$/));
+    if (firstLine) return firstLine.trim();
+
+    return url;
+  } catch (err) {
+    console.warn("resolveStreamUrl() error:", err);
+    return url;
+  }
+}
+
 export async function fetchRSSMetadata(url) {
-  // Преобразуем URL в HTTPS
   url = secureUrl(url);
   try {
     const response = await fetch(url);
@@ -80,48 +124,42 @@ export async function fetchRSSMetadata(url) {
     }
     return null;
   } catch (error) {
-    console.error("error RSS parsing:", error);
+    console.error("RSS Parsing Error:", error);
     return null;
   }
 }
 
-// Основная функция получения метаданных: сначала через ICY, затем через RSS
-export async function getStreamMetadata(url) {
-  const icyMetadata = await fetchIcyMetadata(url);
-  if (icyMetadata && icyMetadata.trim().length > 0) {
-    return icyMetadata;
+export async function getStreamMetadata(streamUrl) {
+  const icy = await fetchIcyMetadata(streamUrl);
+  if (icy && icy.trim().length > 0) return icy;
+
+  const resolved = await resolveStreamUrl(streamUrl);
+  if (resolved && resolved !== streamUrl) {
+    const fallbackIcy = await fetchIcyMetadata(resolved);
+    if (fallbackIcy && fallbackIcy.trim().length > 0) return fallbackIcy;
   }
-  const rssData = await fetchRSSMetadata(url);
-  return rssData || "No Metadata";
+
+  const rss = await fetchRSSMetadata(streamUrl);
+  return rss || "No Metadata";
 }
 
-// Функция для получения данных RSS для бегущей строки (новости Global News)
 export async function getTickerRSS() {
   try {
     const feedUrl = 'http://feeds.bbci.co.uk/news/world/rss.xml';
     const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
     const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
+    if (!response.ok) throw new Error("Network error");
     const data = await response.json();
     const items = data.items;
-    if (!items || items.length === 0) {
-      return "No News";
-    }
-    // Перемешиваем массив новостей случайным образом
+    if (!items || items.length === 0) return "No News";
     const shuffled = items.slice().sort(() => Math.random() - 0.5);
-    // Выбираем первые три новости
     const selected = shuffled.slice(0, 3);
-    // Формируем HTML-ссылки с открытием в новом окне
     const itemsHtml = selected.map(item => {
-      return `<a href="${item.link}" target="_blank" style="text-decoration:none; color:inherit;">
-                ${item.title}
-              </a>`;
+      return `<a href="${item.link}" target="_blank" style="text-decoration:none; color:inherit;">${item.title}</a>`;
     });
     return itemsHtml.join(" | ");
   } catch (error) {
-    console.error("RSS Ticker ERROR:", error);
+    console.error("RSS Ticker Error:", error);
     return "RSS unavailable";
   }
 }

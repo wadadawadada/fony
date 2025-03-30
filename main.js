@@ -251,44 +251,65 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     } else {
       // Для остальных устройств – стандартная логика с MediaSource
-      const mediaSource = new MediaSource();
-      audioPlayer.src = URL.createObjectURL(mediaSource);
-      mediaSource.addEventListener('sourceopen', () => {
-        const mimeCodec = 'audio/mpeg';
-        const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
-        fetch(station.url)
-          .then(response => {
-            const reader = response.body.getReader();
-            function push() {
-              reader.read().then(({ done, value }) => {
-                if (done) {
-                  return;
-                }
-                if (!sourceBuffer.updating) {
-                  try {
-                    sourceBuffer.appendBuffer(value);
-                  } catch (e) {
-                    console.error('Ошибка при добавлении чанка в буфер:', e);
-                  }
-                } else {
-                  sourceBuffer.addEventListener('updateend', function handler() {
-                    sourceBuffer.removeEventListener('updateend', handler);
-                    try {
-                      sourceBuffer.appendBuffer(value);
-                    } catch (e) {
-                      console.error('Ошибка при добавлении чанка после updateend:', e);
-                    }
-                  });
-                }
-                push();
-              }).catch(error => {
-                console.error('Ошибка чтения потока:', error);
-              });
+      // Для устройств, не являющихся iOS – стандартная логика с MediaSource
+const mediaSource = new MediaSource();
+audioPlayer.src = URL.createObjectURL(mediaSource);
+mediaSource.addEventListener('sourceopen', () => {
+  const mimeCodec = 'audio/mpeg';
+  let sourceBuffer;
+  try {
+    sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+  } catch (e) {
+    console.error('Ошибка создания SourceBuffer:', e);
+    return;
+  }
+  fetch(station.url)
+    .then(response => {
+      const reader = response.body.getReader();
+      function push() {
+        // Если MediaSource уже не открыта, прекращаем чтение
+        if (mediaSource.readyState !== 'open') return;
+        reader.read().then(({ done, value }) => {
+          if (done) {
+            try {
+              // Завершаем работу MediaSource, если возможно
+              if (mediaSource.readyState === 'open') {
+                mediaSource.endOfStream();
+              }
+            } catch (e) {
+              console.error('Ошибка завершения MediaSource:', e);
             }
-            push();
-          })
-          .catch(error => console.error('Fetch ошибка:', error));
-      });
+            return;
+          }
+          if (!sourceBuffer.updating) {
+            try {
+              sourceBuffer.appendBuffer(value);
+            } catch (e) {
+              console.error('Ошибка при добавлении чанка в буфер:', e);
+            }
+          } else {
+            sourceBuffer.addEventListener('updateend', function handler() {
+              sourceBuffer.removeEventListener('updateend', handler);
+              // Проверяем, что MediaSource по-прежнему открыта и SourceBuffer готов
+              if (mediaSource.readyState === 'open' && !sourceBuffer.updating) {
+                try {
+                  sourceBuffer.appendBuffer(value);
+                } catch (e) {
+                  console.error('Ошибка при добавлении чанка после updateend:', e);
+                }
+              }
+            });
+          }
+          push();
+        }).catch(error => {
+          console.error('Ошибка чтения потока:', error);
+        });
+      }
+      push();
+    })
+    .catch(error => console.error('Fetch ошибка:', error));
+});
+
       if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
       if (window.playTimerInterval) clearInterval(window.playTimerInterval);
       const playTimerEl = document.getElementById('playTimer');
