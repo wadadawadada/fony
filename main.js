@@ -6,6 +6,11 @@ import { initChat, updateChat, syncChat } from './chat.js'
 import { getStreamMetadata } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
 
+// Функция определения iOS-устройства
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   let currentParsingUrl = null;
   let appInitialized = false;
@@ -80,7 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
   function defaultPlaylist() {
-    // Если список пустой, используем первый вариант
     const randomIndex = allPlaylists.length ? Math.floor(Math.random() * allPlaylists.length) : 0;
     const randomGenre = allPlaylists[randomIndex] ? allPlaylists[randomIndex].file : 'genres/african.m3u';
     playlistSelect.value = randomGenre;
@@ -151,10 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Функция для проверки реальной буферизации.
-  // targetBuffer – требуемое время буфера в секундах (например, 5 сек).
-  // li – элемент выбранной станции, для обновления его CSS-переменной "--buffer-percent".
-  // Вместо процентов в play-timer выводим шкалу из символов "i" (каждый "i" = 20%).
+  // Функция для проверки реальной буферизации (для устройств с MediaSource)
   function checkRealBuffering(targetBuffer, li, callback) {
     const playTimerEl = document.getElementById('playTimer');
     const interval = setInterval(() => {
@@ -163,24 +164,22 @@ document.addEventListener('DOMContentLoaded', () => {
         bufferedTime = audioPlayer.buffered.end(0) - (audioPlayer.currentTime || 0);
       }
       const percent = Math.min((bufferedTime / targetBuffer) * 100, 100);
-      // Обновляем текстовую шкалу
       const numSymbols = Math.floor(percent / 10);
       if (playTimerEl) {
         playTimerEl.textContent = ':'.repeat(numSymbols);
       }
-      // Обновляем фон выбранного элемента
       if (li) {
         li.style.setProperty('--buffer-percent', percent + '%');
       }
       if (bufferedTime >= targetBuffer) {
         clearInterval(interval);
-        if (playTimerEl) playTimerEl.textContent = formatTime(0); // сброс до 0:00
+        if (playTimerEl) playTimerEl.textContent = formatTime(0);
         callback();
       }
     }, 100);
   }
 
-  // Функция выбора станции с использованием MediaSource и реальной буферизации
+  // Функция выбора станции с поддержкой отдельной логики для iOS
   window.onStationSelect = function(index) {
     ensureVisible(index);
     const station = currentPlaylist[index];
@@ -209,56 +208,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     audioPlayer.crossOrigin = 'anonymous';
 
-    // Создаем MediaSource и привязываем его к аудиоплееру
-    const mediaSource = new MediaSource();
-    audioPlayer.src = URL.createObjectURL(mediaSource);
-    mediaSource.addEventListener('sourceopen', () => {
-      const mimeCodec = 'audio/mpeg'; // корректный MIME тип, если требуется
-      const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
-      fetch(station.url)
-        .then(response => {
-          const reader = response.body.getReader();
-          function push() {
-            reader.read().then(({ done, value }) => {
-              if (done) {
-                // Для живого потока не вызываем mediaSource.endOfStream()
-                return;
-              }
-              if (!sourceBuffer.updating) {
-                try {
-                  sourceBuffer.appendBuffer(value);
-                } catch (e) {
-                  console.error('Ошибка при добавлении чанка в буфер:', e);
-                }
-              } else {
-                sourceBuffer.addEventListener('updateend', function handler() {
-                  sourceBuffer.removeEventListener('updateend', handler);
-                  try {
-                    sourceBuffer.appendBuffer(value);
-                  } catch (e) {
-                    console.error('Ошибка при добавлении чанка после updateend:', e);
-                  }
-                });
-              }
-              push();
-            }).catch(error => {
-              console.error('Ошибка чтения потока:', error);
-            });
-          }
-          push();
-        })
-        .catch(error => console.error('Fetch ошибка:', error));
-    });
-
-    if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    if (window.playTimerInterval) clearInterval(window.playTimerInterval);
-    const playTimerEl = document.getElementById('playTimer');
-    if (playTimerEl) {
-      playTimerEl.textContent = formatTime(0);
-    }
-    // Ждем реальной буферизации (например, 5 сек) прежде чем запускать воспроизведение.
-    // Обновляем как play-timer, так и фон выбранного li.
-    checkRealBuffering(5, li, () => {
+    if (isIOS()) {
+      // Для iOS: устанавливаем src напрямую и сразу запускаем воспроизведение без ожидания буферизации
+      audioPlayer.src = station.url;
+      if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (window.playTimerInterval) clearInterval(window.playTimerInterval);
+      const playTimerEl = document.getElementById('playTimer');
+      if (playTimerEl) {
+        playTimerEl.textContent = formatTime(0);
+      }
+      // Обновляем UI сразу
       if (li) li.classList.add('active');
       if (stationLabel) {
         const stText = stationLabel.querySelector('.scrolling-text');
@@ -280,16 +239,96 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
       updatePlayPauseButton(audioPlayer, playPauseBtn);
-    });
-    if (playCheckTimer) clearTimeout(playCheckTimer);
-    if (appInitialized) {
-      playCheckTimer = setTimeout(() => {
-        if (audioPlayer.paused) {
-          markStationAsHidden(index);
+      if (playCheckTimer) clearTimeout(playCheckTimer);
+      if (appInitialized) {
+        playCheckTimer = setTimeout(() => {
+          if (audioPlayer.paused) {
+            markStationAsHidden(index);
+          }
+        }, 10000);
+      }
+      updateStreamMetadata(station.url);
+      return;
+    } else {
+      // Для остальных устройств – стандартная логика с MediaSource
+      const mediaSource = new MediaSource();
+      audioPlayer.src = URL.createObjectURL(mediaSource);
+      mediaSource.addEventListener('sourceopen', () => {
+        const mimeCodec = 'audio/mpeg';
+        const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+        fetch(station.url)
+          .then(response => {
+            const reader = response.body.getReader();
+            function push() {
+              reader.read().then(({ done, value }) => {
+                if (done) {
+                  return;
+                }
+                if (!sourceBuffer.updating) {
+                  try {
+                    sourceBuffer.appendBuffer(value);
+                  } catch (e) {
+                    console.error('Ошибка при добавлении чанка в буфер:', e);
+                  }
+                } else {
+                  sourceBuffer.addEventListener('updateend', function handler() {
+                    sourceBuffer.removeEventListener('updateend', handler);
+                    try {
+                      sourceBuffer.appendBuffer(value);
+                    } catch (e) {
+                      console.error('Ошибка при добавлении чанка после updateend:', e);
+                    }
+                  });
+                }
+                push();
+              }).catch(error => {
+                console.error('Ошибка чтения потока:', error);
+              });
+            }
+            push();
+          })
+          .catch(error => console.error('Fetch ошибка:', error));
+      });
+      if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (window.playTimerInterval) clearInterval(window.playTimerInterval);
+      const playTimerEl = document.getElementById('playTimer');
+      if (playTimerEl) {
+        playTimerEl.textContent = formatTime(0);
+      }
+      // Ждем буферизацию через checkRealBuffering
+      checkRealBuffering(5, li, () => {
+        if (li) li.classList.add('active');
+        if (stationLabel) {
+          const stText = stationLabel.querySelector('.scrolling-text');
+          if (stText) {
+            stText.textContent = station.title || 'Unknown Station';
+          }
+          checkMarquee(stationLabel);
         }
-      }, 10000);
+        audioPlayer.muted = false;
+        audioPlayer.volume = defaultVolume.value;
+        audioPlayer.play().then(() => {
+          appInitialized = true;
+          if (!window.equalizerInitialized) {
+            initEqualizer();
+            window.equalizerInitialized = true;
+          }
+        }).catch(err => {
+          console.warn("Playback error:", err);
+        });
+        fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
+        updatePlayPauseButton(audioPlayer, playPauseBtn);
+      });
+      if (playCheckTimer) clearTimeout(playCheckTimer);
+      if (appInitialized) {
+        playCheckTimer = setTimeout(() => {
+          if (audioPlayer.paused) {
+            markStationAsHidden(index);
+          }
+        }, 10000);
+      }
+      updateStreamMetadata(station.url);
     }
-    updateStreamMetadata(station.url);
   };
 
   playlistElement.addEventListener('click', function(e) {
@@ -545,7 +584,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   randomBtn.addEventListener('click', () => {
     fadeAudioOut(audioPlayer, 500, () => {
-      // Выбираем случайный плейлист из allPlaylists
       const randomIndex = allPlaylists.length ? Math.floor(Math.random() * allPlaylists.length) : 0;
       const randomGenre = allPlaylists[randomIndex] ? allPlaylists[randomIndex].file : 'genres/african.m3u';
       loadAndRenderPlaylist(randomGenre, () => {
