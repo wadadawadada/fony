@@ -52,59 +52,8 @@ export async function fetchIcyMetadata(url) {
     }
     return null;
   } catch (error) {
-    console.error("ICY Metadata Error:", error);
+    console.error("Ошибка Icy-MetaData:", error);
     return null;
-  }
-}
-
-export async function resolveStreamUrl(url) {
-  try {
-    // 0. Прямые медиафайлы — mp3, ogg, aac, etc.
-    if (url.match(/\.(mp3|ogg|aac|m4a|opus)(\?.*)?$/i)) {
-      return url;
-    }
-
-    const response = await fetch(url);
-    const contentType = response.headers.get('content-type') || '';
-    const text = await response.text();
-
-    // .pls
-    if (text.includes('[playlist]') || contentType.includes('audio/x-scpls')) {
-      const match = text.match(/File\d+=(.+)/i);
-      if (match) return match[1].trim();
-    }
-
-    // .m3u / .m3u8
-    if (text.includes('#EXTM3U') || contentType.includes('audio/x-mpegurl')) {
-      const lines = text.split('\n').filter(line => line && !line.startsWith('#'));
-      if (lines.length > 0) return lines[0].trim();
-    }
-
-    // .xspf
-    if (text.includes('<playlist') || contentType.includes('application/xspf+xml')) {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(text, "application/xml");
-      const loc = doc.querySelector("location");
-      if (loc) return loc.textContent.trim();
-    }
-
-    // .asx
-    if (text.includes('<asx') || contentType.includes('video/x-ms-asf')) {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(text, "application/xml");
-      const ref = doc.querySelector('ref');
-      if (ref?.getAttribute('href')) return ref.getAttribute('href').trim();
-    }
-
-    // .ram / .txt — просто ссылка внутри
-    const lines = text.trim().split('\n');
-    const firstLine = lines.find(line => line.match(/^https?:\/\/.+$/));
-    if (firstLine) return firstLine.trim();
-
-    return url;
-  } catch (err) {
-    console.warn("resolveStreamUrl() error:", err);
-    return url;
   }
 }
 
@@ -124,23 +73,19 @@ export async function fetchRSSMetadata(url) {
     }
     return null;
   } catch (error) {
-    console.error("RSS Parsing Error:", error);
+    console.error("Ошибка RSS parsing:", error);
     return null;
   }
 }
 
 export async function getStreamMetadata(streamUrl) {
-  const icy = await fetchIcyMetadata(streamUrl);
-  if (icy && icy.trim().length > 0) return icy;
-
-  const resolved = await resolveStreamUrl(streamUrl);
-  if (resolved && resolved !== streamUrl) {
-    const fallbackIcy = await fetchIcyMetadata(resolved);
-    if (fallbackIcy && fallbackIcy.trim().length > 0) return fallbackIcy;
+  const icyMetadata = await fetchIcyMetadata(streamUrl);
+  if (icyMetadata && icyMetadata.trim().length > 0) {
+    return icyMetadata;
   }
 
-  const rss = await fetchRSSMetadata(streamUrl);
-  return rss || "No Metadata";
+  const rssData = await fetchRSSMetadata(streamUrl);
+  return rssData || "No Metadata";
 }
 
 export async function getTickerRSS() {
@@ -148,7 +93,7 @@ export async function getTickerRSS() {
     const feedUrl = 'http://feeds.bbci.co.uk/news/world/rss.xml';
     const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
     const response = await fetch(apiUrl);
-    if (!response.ok) throw new Error("Network error");
+    if (!response.ok) throw new Error("Network response was not ok");
     const data = await response.json();
     const items = data.items;
     if (!items || items.length === 0) return "No News";
@@ -159,7 +104,7 @@ export async function getTickerRSS() {
     });
     return itemsHtml.join(" | ");
   } catch (error) {
-    console.error("RSS Ticker Error:", error);
+    console.error("RSS Ticker ERROR:", error);
     return "RSS unavailable";
   }
 }
