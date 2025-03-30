@@ -6,11 +6,6 @@ import { initChat, updateChat, syncChat } from './chat.js'
 import { getStreamMetadata } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
 
-// Функция определения iOS-устройства
-function isIOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   let currentParsingUrl = null;
   let appInitialized = false;
@@ -185,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 100);
   }
 
-  // Функция выбора станции с поддержкой отдельной логики для iOS
+  // Функция выбора станции с использованием MediaSource и реальной буферизации
   window.onStationSelect = function(index) {
     ensureVisible(index);
     const station = currentPlaylist[index];
@@ -214,128 +209,87 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     audioPlayer.crossOrigin = 'anonymous';
 
-    if (isIOS()) {
-      // Для iOS: устанавливаем src напрямую и используем нативную буферизацию
-      audioPlayer.src = station.url;
-      if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      if (window.playTimerInterval) clearInterval(window.playTimerInterval);
-      const playTimerEl = document.getElementById('playTimer');
-      if (playTimerEl) {
-        playTimerEl.textContent = formatTime(0);
-      }
-      checkRealBuffering(5, li, () => {
-        if (li) li.classList.add('active');
-        if (stationLabel) {
-          const stText = stationLabel.querySelector('.scrolling-text');
-          if (stText) {
-            stText.textContent = station.title || 'Unknown Station';
-          }
-          checkMarquee(stationLabel);
-        }
-        audioPlayer.muted = false;
-        audioPlayer.volume = defaultVolume.value;
-        audioPlayer.play().then(() => {
-          appInitialized = true;
-          if (!window.equalizerInitialized) {
-            initEqualizer();
-            window.equalizerInitialized = true;
-          }
-        }).catch(err => {
-          console.warn("Playback error:", err);
-        });
-        fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
-        updatePlayPauseButton(audioPlayer, playPauseBtn);
-      });
-      if (playCheckTimer) clearTimeout(playCheckTimer);
-      if (appInitialized) {
-        playCheckTimer = setTimeout(() => {
-          if (audioPlayer.paused) {
-            markStationAsHidden(index);
-          }
-        }, 10000);
-      }
-      updateStreamMetadata(station.url);
-      return;
-    } else {
-      // Для остальных устройств – стандартная логика с MediaSource
-      const mediaSource = new MediaSource();
-      audioPlayer.src = URL.createObjectURL(mediaSource);
-      mediaSource.addEventListener('sourceopen', () => {
-        const mimeCodec = 'audio/mpeg'; // корректный MIME тип, если требуется
-        const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
-        fetch(station.url)
-          .then(response => {
-            const reader = response.body.getReader();
-            function push() {
-              reader.read().then(({ done, value }) => {
-                if (done) {
-                  // Для живого потока не вызываем mediaSource.endOfStream()
-                  return;
+    // Создаем MediaSource и привязываем его к аудиоплееру
+    const mediaSource = new MediaSource();
+    audioPlayer.src = URL.createObjectURL(mediaSource);
+    mediaSource.addEventListener('sourceopen', () => {
+      const mimeCodec = 'audio/mpeg'; // корректный MIME тип, если требуется
+      const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+      fetch(station.url)
+        .then(response => {
+          const reader = response.body.getReader();
+          function push() {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                // Для живого потока не вызываем mediaSource.endOfStream()
+                return;
+              }
+              if (!sourceBuffer.updating) {
+                try {
+                  sourceBuffer.appendBuffer(value);
+                } catch (e) {
+                  console.error('Ошибка при добавлении чанка в буфер:', e);
                 }
-                if (!sourceBuffer.updating) {
+              } else {
+                sourceBuffer.addEventListener('updateend', function handler() {
+                  sourceBuffer.removeEventListener('updateend', handler);
                   try {
                     sourceBuffer.appendBuffer(value);
                   } catch (e) {
-                    console.error('Ошибка при добавлении чанка в буфер:', e);
+                    console.error('Ошибка при добавлении чанка после updateend:', e);
                   }
-                } else {
-                  sourceBuffer.addEventListener('updateend', function handler() {
-                    sourceBuffer.removeEventListener('updateend', handler);
-                    try {
-                      sourceBuffer.appendBuffer(value);
-                    } catch (e) {
-                      console.error('Ошибка при добавлении чанка после updateend:', e);
-                    }
-                  });
-                }
-                push();
-              }).catch(error => {
-                console.error('Ошибка чтения потока:', error);
-              });
-            }
-            push();
-          })
-          .catch(error => console.error('Fetch ошибка:', error));
-      });
-      if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      if (window.playTimerInterval) clearInterval(window.playTimerInterval);
-      const playTimerEl = document.getElementById('playTimer');
-      if (playTimerEl) {
-        playTimerEl.textContent = formatTime(0);
-      }
-      checkRealBuffering(5, li, () => {
-        if (li) li.classList.add('active');
-        if (stationLabel) {
-          const stText = stationLabel.querySelector('.scrolling-text');
-          if (stText) {
-            stText.textContent = station.title || 'Unknown Station';
+                });
+              }
+              push();
+            }).catch(error => {
+              console.error('Ошибка чтения потока:', error);
+            });
           }
-          checkMarquee(stationLabel);
-        }
-        audioPlayer.muted = false;
-        audioPlayer.volume = defaultVolume.value;
-        audioPlayer.play().then(() => {
-          appInitialized = true;
-          if (!window.equalizerInitialized) {
-            initEqualizer();
-            window.equalizerInitialized = true;
-          }
-        }).catch(err => {
-          console.warn("Playback error:", err);
-        });
-        fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
-        updatePlayPauseButton(audioPlayer, playPauseBtn);
-      });
-      if (playCheckTimer) clearTimeout(playCheckTimer);
-      if (appInitialized) {
-        playCheckTimer = setTimeout(() => {
-          if (audioPlayer.paused) {
-            markStationAsHidden(index);
-          }
-        }, 10000);
-      }
-      updateStreamMetadata(station.url);
+          push();
+        })
+        .catch(error => console.error('Fetch ошибка:', error));
+    });
+
+    if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (window.playTimerInterval) clearInterval(window.playTimerInterval);
+    const playTimerEl = document.getElementById('playTimer');
+    if (playTimerEl) {
+      playTimerEl.textContent = formatTime(0);
     }
+    // Ждем реальной буферизации (например, 5 сек) прежде чем запускать воспроизведение.
+    // Обновляем как play-timer, так и фон выбранного li.
+    checkRealBuffering(5, li, () => {
+      if (li) li.classList.add('active');
+      if (stationLabel) {
+        const stText = stationLabel.querySelector('.scrolling-text');
+        if (stText) {
+          stText.textContent = station.title || 'Unknown Station';
+        }
+        checkMarquee(stationLabel);
+      }
+      audioPlayer.muted = false;
+      audioPlayer.volume = defaultVolume.value;
+      audioPlayer.play().then(() => {
+        appInitialized = true;
+        if (!window.equalizerInitialized) {
+          initEqualizer();
+          window.equalizerInitialized = true;
+        }
+      }).catch(err => {
+        console.warn("Playback error:", err);
+      });
+      fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
+      updatePlayPauseButton(audioPlayer, playPauseBtn);
+    });
+    if (playCheckTimer) clearTimeout(playCheckTimer);
+    if (appInitialized) {
+      playCheckTimer = setTimeout(() => {
+        if (audioPlayer.paused) {
+          markStationAsHidden(index);
+        }
+      }, 10000);
+    }
+    updateStreamMetadata(station.url);
   };
 
   playlistElement.addEventListener('click', function(e) {
