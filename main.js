@@ -18,6 +18,19 @@ function isIOS() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
 }
 
+function updateMediaSessionMetadata(station) {
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: station.title || 'Unknown Station',
+      artist: '',
+      album: '',
+      artwork: [
+        { src: station.cover || '/img/stream_icon.svg', sizes: '96x96', type: 'image/svg' }
+      ]
+    })
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   let currentParsingUrl = null
   let appInitialized = false
@@ -50,6 +63,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const CHUNK_SIZE = 30
   let visibleStations = 0
   const BUFFER_THRESHOLD = 60
+
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', async () => {
+      try {
+        await audioPlayer.play()
+      } catch (err) {
+        console.warn('Ошибка при запуске воспроизведения', err)
+      }
+    })
+    navigator.mediaSession.setActionHandler('pause', () => {
+      audioPlayer.pause()
+    })
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      rrBtn.click()
+    })
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      ffBtn.click()
+    })
+  }
 
   function defaultPlaylist() {
     const randomIndex = allPlaylists.length ? Math.floor(Math.random() * allPlaylists.length) : 0
@@ -210,6 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 10000)
       }
       updateStreamMetadata(station.url)
+      updateMediaSessionMetadata(station)
       return
     } else {
       const mediaSource = new MediaSource()
@@ -304,6 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 10000)
       }
       updateStreamMetadata(station.url)
+      updateMediaSessionMetadata(station)
     }
   }
 
@@ -629,7 +663,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }))
           updateChat(hashGenre)
         } else {
-          console.warn('Station by hash not found, using default.')
           defaultPlaylist()
         }
       })
@@ -645,14 +678,12 @@ document.addEventListener('DOMContentLoaded', () => {
           updateChat(genre)
         })
       } catch (e) {
-        console.error('lastStation parse error:', e)
         defaultPlaylist()
       }
     } else {
       defaultPlaylist()
     }
   }).catch(err => {
-    console.error('playlists.json load error:', err)
     defaultPlaylist()
   })
 
