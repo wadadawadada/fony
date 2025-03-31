@@ -1,4 +1,3 @@
-// main.js
 import { fadeAudioOut, fadeAudioIn } from './player.js'
 import { renderPlaylist, loadPlaylist } from './playlist.js'
 import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from './controls.js'
@@ -6,7 +5,6 @@ import { initChat, updateChat, syncChat } from './chat.js'
 import { getStreamMetadata } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
 
-// Функция для вычисления хэша URL радиостанции (так же, как в playlist.js)
 function generateStationHash(url) {
   let hash = 0
   for (let i = 0; i < url.length; i++) {
@@ -16,7 +14,6 @@ function generateStationHash(url) {
   return Math.abs(hash).toString(16)
 }
 
-// Функция определения iOS-устройства
 function isIOS() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
 }
@@ -25,9 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentParsingUrl = null
   let appInitialized = false
   window.currentGenre = null
-  let allPlaylists = [] // список плейлистов из playlists.json
-
-  // Элементы DOM
+  let allPlaylists = []
   const genreBox = document.querySelector('.genre-box')
   const genreLabel = genreBox.querySelector('label')
   const playlistSelect = document.getElementById('playlistSelect')
@@ -45,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const randomBtn = document.getElementById('randomBtn')
   const playPauseBtn = document.getElementById('playPauseBtn')
   const favoritesFilterBtn = document.getElementById('favoritesFilterBtn')
-
   let allStations = []
   let currentPlaylist = []
   let currentTrackIndex = 0
@@ -55,85 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let playCheckTimer = null
   const CHUNK_SIZE = 30
   let visibleStations = 0
+  const BUFFER_THRESHOLD = 60
 
-  // Загрузка плейлистов
-  fetch('playlists.json')
-    .then(res => res.json())
-    .then(playlists => {
-      allPlaylists = playlists
-      playlistSelect.innerHTML = ''
-      playlists.forEach(pl => {
-        const opt = document.createElement('option')
-        opt.value = pl.file
-        opt.textContent = pl.name
-        playlistSelect.appendChild(opt)
-      })
-
-      // Проверяем, не передан ли #genre/stationHash в ссылке
-      const locationHash = window.location.hash ? window.location.hash.slice(1) : ''
-      let hashGenre = ''
-      let stationHash = ''
-      let hasHashLink = false
-      if (locationHash.includes('/')) {
-        const parts = locationHash.split('/')
-        if (parts.length === 2) {
-          hashGenre = decodeURIComponent(parts[0]) // жанр
-          stationHash = parts[1]                  // хэш
-          hasHashLink = true
-        }
-      }
-
-      const lastStationData = localStorage.getItem('lastStation')
-
-      // 1) Если есть хэш-ссылка
-      if (hasHashLink) {
-        playlistSelect.value = hashGenre
-        window.currentGenre = hashGenre
-        initChat(hashGenre)
-        loadAndRenderPlaylist(hashGenre, () => {
-          // Ищем станцию по хэшу
-          const foundIndex = currentPlaylist.findIndex(st => generateStationHash(st.url) === stationHash)
-          if (foundIndex !== -1) {
-            window.onStationSelect(foundIndex)
-            localStorage.setItem('lastStation', JSON.stringify({
-              genre: hashGenre,
-              trackIndex: foundIndex
-            }))
-            updateChat(hashGenre)
-          } else {
-            console.warn('Станция по хэшу не найдена, включаем дефолтный вариант.')
-            defaultPlaylist()
-          }
-        })
-      }
-      // 2) Иначе если есть сохранённый lastStation
-      else if (lastStationData) {
-        try {
-          const { genre, trackIndex } = JSON.parse(lastStationData)
-          playlistSelect.value = genre
-          window.currentGenre = genre
-          initChat(genre)
-          loadAndRenderPlaylist(genre, () => {
-            const safeIndex = (trackIndex < currentPlaylist.length) ? trackIndex : 0
-            window.onStationSelect(safeIndex)
-            updateChat(genre)
-          })
-        } catch (e) {
-          console.error('Ошибка парсинга lastStation:', e)
-          defaultPlaylist()
-        }
-      }
-      // 3) Иначе (нет ни hash, ни lastStation) – включаем рандом
-      else {
-        defaultPlaylist()
-      }
-    })
-    .catch(err => {
-      console.error('Ошибка загрузки playlists.json:', err)
-      defaultPlaylist()
-    })
-
-  // Случайный плейлист + случайная станция
   function defaultPlaylist() {
     const randomIndex = allPlaylists.length ? Math.floor(Math.random() * allPlaylists.length) : 0
     const randomGenre = allPlaylists[randomIndex] ? allPlaylists[randomIndex].file : 'genres/african.m3u'
@@ -149,8 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
           trackIndex: randomStationIndex
         }))
         updateChat(randomGenre)
-      } else {
-        console.warn('Нет доступных станций в выбранном жанре')
       }
     })
   }
@@ -165,16 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (textWidth > containerWidth) {
       scrollingText.classList.add('marquee')
     }
-  }
-
-  // Поддержка MediaSession на мобильных
-  if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-      rrBtn.click()
-    })
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
-      ffBtn.click()
-    })
   }
 
   function ensureVisible(index) {
@@ -206,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  // Проверка реальной буферизации (для устройств с MediaSource)
   function checkRealBuffering(targetBuffer, li, callback) {
     const playTimerEl = document.getElementById('playTimer')
     const interval = setInterval(() => {
@@ -230,13 +134,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 100)
   }
 
-  // Главное: выбор станции
+  function cleanupBuffer(sb) {
+    if (audioPlayer.buffered.length > 0) {
+      const currentTime = audioPlayer.currentTime
+      const removeEnd = currentTime - BUFFER_THRESHOLD
+      if (removeEnd > 0) {
+        try {
+          sb.remove(0, removeEnd)
+        } catch (err) {
+          console.error('Buffer remove error:', err)
+        }
+      }
+    }
+  }
+
   window.onStationSelect = function (index) {
     ensureVisible(index)
     const station = currentPlaylist[index]
     window.currentStationUrl = station.url
     renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations)
-
     const allLi = document.querySelectorAll('#playlist li')
     allLi.forEach(item => {
       item.classList.remove('active')
@@ -245,12 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === index)
     currentTrackIndex = index
     currentParsingUrl = station.url
-
-    localStorage.setItem('lastStation', JSON.stringify({
-      genre: playlistSelect.value,
-      trackIndex: index
-    }))
-
+    localStorage.setItem('lastStation', JSON.stringify({ genre: playlistSelect.value, trackIndex: index }))
     window.currentGenre = playlistSelect.value
     const rightGroup = document.querySelector('.right-group')
     if (rightGroup) {
@@ -261,8 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
       checkMarquee(rightGroup)
     }
     audioPlayer.crossOrigin = 'anonymous'
-
-    // iOS
     if (isIOS()) {
       audioPlayer.src = station.url
       if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -281,17 +190,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       audioPlayer.muted = false
       audioPlayer.volume = defaultVolume.value
-      audioPlayer.play()
-        .then(() => {
-          appInitialized = true
-          if (!window.equalizerInitialized) {
-            initEqualizer()
-            window.equalizerInitialized = true
-          }
-        })
-        .catch(err => {
-          console.warn('Autoplay blocked on iOS or playback error:', err)
-        })
+      audioPlayer.play().then(() => {
+        appInitialized = true
+        if (!window.equalizerInitialized) {
+          initEqualizer()
+          window.equalizerInitialized = true
+        }
+      }).catch(err => {
+        console.warn('Autoplay blocked on iOS or playback error:', err)
+      })
       fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
       updatePlayPauseButton(audioPlayer, playPauseBtn)
       if (playCheckTimer) clearTimeout(playCheckTimer)
@@ -305,7 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
       updateStreamMetadata(station.url)
       return
     } else {
-      // MediaSource
       const mediaSource = new MediaSource()
       audioPlayer.src = URL.createObjectURL(mediaSource)
       mediaSource.addEventListener('sourceopen', () => {
@@ -314,53 +220,52 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           sourceBuffer = mediaSource.addSourceBuffer(mimeCodec)
         } catch (e) {
-          console.error('Ошибка создания SourceBuffer:', e)
+          console.error('SourceBuffer creation error:', e)
           return
         }
-        fetch(station.url)
-          .then(response => {
-            const reader = response.body.getReader()
-            function push() {
-              if (mediaSource.readyState !== 'open') return
-              reader.read().then(({ done, value }) => {
-                if (done) {
-                  try {
-                    if (mediaSource.readyState === 'open') {
-                      mediaSource.endOfStream()
-                    }
-                  } catch (e) {
-                    console.error('Ошибка завершения MediaSource:', e)
+        fetch(station.url).then(response => {
+          const reader = response.body.getReader()
+          function push() {
+            if (mediaSource.readyState !== 'open') return
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                try {
+                  if (mediaSource.readyState === 'open') {
+                    mediaSource.endOfStream()
                   }
-                  return
+                } catch (e) {
+                  console.error('MediaSource endOfStream error:', e)
                 }
-                if (!sourceBuffer.updating) {
-                  try {
-                    sourceBuffer.appendBuffer(value)
-                  } catch (e) {
-                    console.error('Ошибка appendBuffer:', e)
-                  }
-                } else {
-                  sourceBuffer.addEventListener('updateend', function handler() {
-                    sourceBuffer.removeEventListener('updateend', handler)
-                    if (mediaSource.readyState === 'open' && !sourceBuffer.updating) {
-                      try {
-                        sourceBuffer.appendBuffer(value)
-                      } catch (e) {
-                        console.error('Ошибка appendBuffer после updateend:', e)
-                      }
+                return
+              }
+              if (!sourceBuffer.updating) {
+                try {
+                  sourceBuffer.appendBuffer(value)
+                  cleanupBuffer(sourceBuffer)
+                } catch (e) {
+                  console.error('appendBuffer error:', e)
+                }
+              } else {
+                sourceBuffer.addEventListener('updateend', function handler() {
+                  sourceBuffer.removeEventListener('updateend', handler)
+                  if (mediaSource.readyState === 'open' && !sourceBuffer.updating) {
+                    try {
+                      sourceBuffer.appendBuffer(value)
+                      cleanupBuffer(sourceBuffer)
+                    } catch (e) {
+                      console.error('appendBuffer after updateend error:', e)
                     }
-                  })
-                }
-                push()
-              }).catch(error => {
-                console.error('Ошибка чтения потока:', error)
-              })
-            }
-            push()
-          })
-          .catch(error => console.error('Fetch ошибка:', error))
+                  }
+                })
+              }
+              push()
+            }).catch(error => {
+              console.error('Stream read error:', error)
+            })
+          }
+          push()
+        }).catch(error => console.error('Fetch error:', error))
       })
-
       if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' })
       if (window.playTimerInterval) clearInterval(window.playTimerInterval)
       const playTimerEl = document.getElementById('playTimer')
@@ -378,17 +283,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         audioPlayer.muted = false
         audioPlayer.volume = defaultVolume.value
-        audioPlayer.play()
-          .then(() => {
-            appInitialized = true
-            if (!window.equalizerInitialized) {
-              initEqualizer()
-              window.equalizerInitialized = true
-            }
-          })
-          .catch(err => {
-            console.warn('Autoplay blocked or playback error:', err)
-          })
+        audioPlayer.play().then(() => {
+          appInitialized = true
+          if (!window.equalizerInitialized) {
+            initEqualizer()
+            window.equalizerInitialized = true
+          }
+        }).catch(err => {
+          console.warn('Autoplay blocked or playback error:', err)
+        })
         fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
         updatePlayPauseButton(audioPlayer, playPauseBtn)
       })
@@ -404,7 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Клик по станции в списке
   playlistElement.addEventListener('click', function(e) {
     let li = e.target
     while (li && li.tagName !== 'LI') {
@@ -416,7 +318,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  // Метаданные (название трека и т.п.)
   async function updateStreamMetadata(stationUrl) {
     if (stationUrl !== currentParsingUrl) return
     const rightGroup = document.querySelector('.right-group')
@@ -447,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
           rightGroup.innerHTML = `
             <img src="/img/news_icon.svg" alt="News Icon" class="track-icon">
             <span id="currentTrack" class="track-name">
-              <span class="scrolling-text marquee">RSS недоступен</span>
+              <span class="scrolling-text marquee">RSS unavailable</span>
             </span>`
           setTimeout(() => { checkMarquee(rightGroup) }, 10000)
         })
@@ -458,36 +359,33 @@ document.addEventListener('DOMContentLoaded', () => {
   function showPlaylistLoader() {
     playlistLoader.classList.remove('hidden')
   }
+
   function hidePlaylistLoader() {
     playlistLoader.classList.add('hidden')
   }
 
   function loadAndRenderPlaylist(url, callback, scrollToTop = false) {
     showPlaylistLoader()
-    loadPlaylist(url)
-      .then(loadedStations => {
-        allStations = loadedStations
-        currentPlaylist = loadedStations.slice()
-        resetVisibleStations()
-        if (scrollToTop) {
-          setTimeout(() => {
-            playlistContainer.scrollTo({ top: 0, behavior: 'smooth' })
-          }, 50)
-        }
-      })
-      .then(() => {
-        hidePlaylistLoader()
-        if (typeof callback === 'function') {
-          callback()
-        }
-      })
-      .catch(error => {
-        console.error('Ошибка загрузки списка станций:', error)
-        hidePlaylistLoader()
-      })
+    loadPlaylist(url).then(loadedStations => {
+      allStations = loadedStations
+      currentPlaylist = loadedStations.slice()
+      resetVisibleStations()
+      if (scrollToTop) {
+        setTimeout(() => {
+          playlistContainer.scrollTo({ top: 0, behavior: 'smooth' })
+        }, 50)
+      }
+    }).then(() => {
+      hidePlaylistLoader()
+      if (typeof callback === 'function') {
+        callback()
+      }
+    }).catch(error => {
+      console.error('Playlist load error:', error)
+      hidePlaylistLoader()
+    })
   }
 
-  // Если станция не проигрывается, скрываем её
   function markStationAsHidden(index) {
     const failedStation = currentPlaylist[index]
     if (!failedStation) return
@@ -503,9 +401,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentPlaylist.length > 0) {
       window.onStationSelect(nextIndex)
     } else {
-      console.warn('Нет доступных станций в плейлисте')
       if (stationLabel) {
-        stationLabel.textContent = 'Нет доступных станций'
+        stationLabel.textContent = 'No available stations'
       }
     }
   }
@@ -525,7 +422,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Обновления UI при play/pause
   audioPlayer.addEventListener('play', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn)
     if (playCheckTimer) {
@@ -543,6 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 1000)
     }
   })
+
   audioPlayer.addEventListener('pause', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn)
     if (window.playTimerInterval) {
@@ -551,7 +448,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  // Инициализация громкости
   initVolumeControl(
     audioPlayer,
     document.querySelector('.volume-slider'),
@@ -559,7 +455,6 @@ document.addEventListener('DOMContentLoaded', () => {
     defaultVolume
   )
 
-  // Смена жанра
   playlistSelect.addEventListener('change', () => {
     loadAndRenderPlaylist(playlistSelect.value, () => {
       searchInput.value = ''
@@ -570,7 +465,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateChat(playlistSelect.value)
   })
 
-  // Поиск
   searchInput.addEventListener('input', debounce(() => {
     const query = searchInput.value.toLowerCase()
     currentPlaylist = allStations.filter(station =>
@@ -579,7 +473,6 @@ document.addEventListener('DOMContentLoaded', () => {
     resetVisibleStations()
   }, 300))
 
-  // Фильтр избранных
   favoritesFilterBtn.addEventListener('click', async () => {
     if (favoritesFilterBtn.classList.contains('active')) {
       favoritesFilterBtn.classList.remove('active')
@@ -608,7 +501,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  // Кнопка Play/Pause
   playPauseBtn.addEventListener('click', () => {
     if (audioPlayer.paused) {
       audioPlayer.play().catch(err => console.warn('Playback error:', err))
@@ -618,7 +510,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePlayPauseButton(audioPlayer, playPauseBtn)
   })
 
-  // Предыдущая станция
   rrBtn.addEventListener('click', () => {
     if (currentTrackIndex > 0) {
       fadeAudioOut(audioPlayer, 500, () => {
@@ -627,7 +518,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  // Следующая станция
   ffBtn.addEventListener('click', () => {
     if (shuffleActive) {
       let randomIndex
@@ -646,7 +536,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  // Добавить в избранное
   favBtn.addEventListener('click', () => {
     if (currentPlaylist.length > 0) {
       const currentStation = currentPlaylist[currentTrackIndex]
@@ -655,19 +544,16 @@ document.addEventListener('DOMContentLoaded', () => {
         favs.push(currentStation.url)
         localStorage.setItem('favorites', JSON.stringify(favs))
       }
-      // После добавления возвращаемся к полному списку
       currentPlaylist = allStations.slice()
       resetVisibleStations()
     }
   })
 
-  // Переключение shuffle
   shuffleBtn.addEventListener('click', () => {
     shuffleActive = !shuffleActive
     updateShuffleButton(shuffleActive, shuffleBtn)
   })
 
-  // Кнопка Random (полностью меняем жанр)
   randomBtn.addEventListener('click', () => {
     fadeAudioOut(audioPlayer, 500, () => {
       const randomIndex = allPlaylists.length ? Math.floor(Math.random() * allPlaylists.length) : 0
@@ -687,7 +573,6 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   })
 
-  // Периодический апдейт чата и метаданных
   let lastChatUpdate = 0
   let lastMetadataUpdate = 0
   const chatUpdateInterval = 15000
@@ -696,7 +581,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function globalUpdater(timestamp) {
     if (!lastChatUpdate) lastChatUpdate = timestamp
     if (!lastMetadataUpdate) lastMetadataUpdate = timestamp
-
     if (timestamp - lastChatUpdate >= chatUpdateInterval) {
       syncChat()
       lastChatUpdate = timestamp
@@ -708,6 +592,69 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(globalUpdater)
   }
   requestAnimationFrame(globalUpdater)
+
+  fetch('playlists.json').then(res => res.json()).then(playlists => {
+    allPlaylists = playlists
+    playlistSelect.innerHTML = ''
+    playlists.forEach(pl => {
+      const opt = document.createElement('option')
+      opt.value = pl.file
+      opt.textContent = pl.name
+      playlistSelect.appendChild(opt)
+    })
+    const locationHash = window.location.hash ? window.location.hash.slice(1) : ''
+    let hashGenre = ''
+    let stationHash = ''
+    let hasHashLink = false
+    if (locationHash.includes('/')) {
+      const parts = locationHash.split('/')
+      if (parts.length === 2) {
+        hashGenre = decodeURIComponent(parts[0])
+        stationHash = parts[1]
+        hasHashLink = true
+      }
+    }
+    const lastStationData = localStorage.getItem('lastStation')
+    if (hasHashLink) {
+      playlistSelect.value = hashGenre
+      window.currentGenre = hashGenre
+      initChat(hashGenre)
+      loadAndRenderPlaylist(hashGenre, () => {
+        const foundIndex = currentPlaylist.findIndex(st => generateStationHash(st.url) === stationHash)
+        if (foundIndex !== -1) {
+          window.onStationSelect(foundIndex)
+          localStorage.setItem('lastStation', JSON.stringify({
+            genre: hashGenre,
+            trackIndex: foundIndex
+          }))
+          updateChat(hashGenre)
+        } else {
+          console.warn('Station by hash not found, using default.')
+          defaultPlaylist()
+        }
+      })
+    } else if (lastStationData) {
+      try {
+        const { genre, trackIndex } = JSON.parse(lastStationData)
+        playlistSelect.value = genre
+        window.currentGenre = genre
+        initChat(genre)
+        loadAndRenderPlaylist(genre, () => {
+          const safeIndex = (trackIndex < currentPlaylist.length) ? trackIndex : 0
+          window.onStationSelect(safeIndex)
+          updateChat(genre)
+        })
+      } catch (e) {
+        console.error('lastStation parse error:', e)
+        defaultPlaylist()
+      }
+    } else {
+      defaultPlaylist()
+    }
+  }).catch(err => {
+    console.error('playlists.json load error:', err)
+    defaultPlaylist()
+  })
 
   document.dispatchEvent(new Event('appLoaded'))
 })
