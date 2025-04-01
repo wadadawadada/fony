@@ -361,11 +361,18 @@ height: 17px;
   .genre-select {
     padding: 8px 0;
     font-size: 1.2rem;
-    border-radius: 8px;
+    border-radius: 3px;
     border: none;
     outline: none;
     cursor: pointer;
   }
+
+  .genre-select option {
+    font-size: 1rem;
+    padding: 10px 12px;
+    cursor: pointer;
+  }
+
   .genre-search {
     border-radius: 50px;
     padding: 3px;
