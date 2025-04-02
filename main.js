@@ -64,6 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let visibleStations = 0
   const BUFFER_THRESHOLD = 30
 
+  // Переменная для хранения последнего валидного значения now playing
+  let lastValidNowPlaying = ''
+
   if ('mediaSession' in navigator) {
     navigator.mediaSession.setActionHandler('play', async () => {
       try { await audioPlayer.play() } catch (err) { console.warn(err) }
@@ -159,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.onStationSelect = function (index) {
+    console.log('onStationSelect, index:', index) // диагностика
     // Reset parsing for new station selection
     currentParsingUrl = ""
     ensureVisible(index)
@@ -175,11 +179,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.currentGenre = playlistSelect.value
     const rightGroup = document.querySelector('.right-group')
     if (rightGroup) {
-      // Remove any previous "No Data" message by resetting the UI
+      // Удаляем предыдущие данные, показываем сообщение "Loading..."
       rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
         <span id="currentTrack" class="track-name">
           <span class="scrolling-text">Loading...</span>
-        </span>`;
+        </span>`
       checkMarquee(rightGroup)
     }
     audioPlayer.crossOrigin = 'anonymous'
@@ -271,41 +275,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Обработчик клика по плейлисту с добавлением логирования
   playlistElement.addEventListener('click', function(e) {
     let li = e.target
     while (li && li.tagName !== 'LI') { li = li.parentElement }
     if (li && li.dataset.index !== undefined) {
       const index = parseInt(li.dataset.index, 10)
+      console.log('Playlist item clicked, index:', index)
       window.onStationSelect(index)
     }
   })
 
+  // Изменённая функция обновления метаданных с кэшированием lastValidNowPlaying
   async function updateStreamMetadata(stationUrl) {
     if (stationUrl !== currentParsingUrl) return;
     const rightGroup = document.querySelector('.right-group');
     if (!rightGroup) return;
     rightGroup.style.display = 'flex';
-    // Ждём метаданные до 15 секунд
     const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 15000));
     const metadataPromise = getStreamMetadata(stationUrl);
     const result = await Promise.race([metadataPromise, timeoutPromise]);
     if (stationUrl !== currentParsingUrl) return;
     if (result && result.trim() && result !== 'No Metadata' && result !== 'No Track Data') {
-      const searchUrl = "https://www.google.com/search?q=" + encodeURIComponent(result);
+      lastValidNowPlaying = result.trim();
+      const searchUrl = "https://www.google.com/search?q=" + encodeURIComponent(lastValidNowPlaying);
       rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
         <span id="currentTrack" class="track-name">
-          <a href="${searchUrl}" target="_blank" rel="noopener noreferrer" class="scrolling-text">${result}</a>
+          <a href="${searchUrl}" target="_blank" rel="noopener noreferrer" class="scrolling-text">${lastValidNowPlaying}</a>
         </span>`;
-      setTimeout(() => { checkMarquee(rightGroup) }, 10000);
+      setTimeout(() => { checkMarquee(rightGroup) }, 20000);
     } else {
-      rightGroup.innerHTML = `<img src="/img/info_icon.svg" alt="Info Icon" class="track-icon">
-        <span id="currentTrack" class="track-name">
-          <span class="scrolling-text">No Data</span>
-        </span>`;
-      setTimeout(() => { checkMarquee(rightGroup) }, 3000);
+      // Если уже есть валидное значение, оставляем его; иначе выводим "No Data"
+      if (!lastValidNowPlaying) {
+        rightGroup.innerHTML = `<img src="/img/news_icon.svg" alt="Info Icon" class="track-icon">
+          <span id="currentTrack" class="track-name">
+            <span class="scrolling-text">No Data</span>
+          </span>`;
+        setTimeout(() => { checkMarquee(rightGroup) }, 3000);
+      }
     }
   }
-  
 
   function showPlaylistLoader() { playlistLoader.classList.remove('hidden') }
   function hidePlaylistLoader() { playlistLoader.classList.add('hidden') }
@@ -488,7 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastChatUpdate = 0
   let lastMetadataUpdate = 0
   const chatUpdateInterval = 15000
-  const metadataUpdateInterval = 10000
+  const metadataUpdateInterval = 20000
 
   function globalUpdater(timestamp) {
     if (!lastChatUpdate) lastChatUpdate = timestamp
