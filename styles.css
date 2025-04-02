@@ -217,6 +217,19 @@ height: 17px;
     font-size: 1rem;
     color: #fff;
   }
+  /* Style for the clickable now playing link */
+  .track-name a {
+  color: #ffffff;        /* Matches your station label color */
+  text-decoration: none; /* Remove underline by default */
+  font-weight: bold;
+  transition: color 0.3s ease;
+  }
+
+.track-name a:hover {
+  text-decoration: underline; /* Underline on hover */
+  color: #08e0d0;             /* A slightly different shade on hover */
+}
+
   .play-timer {
     font-size: 2rem;
     color: #fff;

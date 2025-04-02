@@ -1,0 +1,4 @@
+name = "fonyworker"           # Название вашего Worker
+main = "index.js"                 # Точка входа — файл с кодом Worker
+compatibility_date = "2025-04-02"   # Дата совместимости (обновите при необходимости)
+workers_dev = true                # Развертывание на workers.dev (для тестирования)

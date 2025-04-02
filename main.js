@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let playCheckTimer = null
   const CHUNK_SIZE = 30
   let visibleStations = 0
-  const BUFFER_THRESHOLD = 60
+  const BUFFER_THRESHOLD = 30
 
   if ('mediaSession' in navigator) {
     navigator.mediaSession.setActionHandler('play', async () => {
@@ -138,16 +138,29 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function cleanupBuffer(sb) {
+    if (sb.updating) {
+      sb.addEventListener("updateend", function handler() {
+        sb.removeEventListener("updateend", handler)
+        cleanupBuffer(sb)
+      })
+      return
+    }
     if (audioPlayer.buffered.length > 0) {
       const currentTime = audioPlayer.currentTime
       const removeEnd = currentTime - BUFFER_THRESHOLD
       if (removeEnd > 0) {
-        try { sb.remove(0, removeEnd) } catch (err) { console.error(err) }
+        try {
+          sb.remove(0, removeEnd)
+        } catch (err) {
+          console.error("Remove error:", err)
+        }
       }
     }
   }
 
   window.onStationSelect = function (index) {
+    // Reset parsing for new station selection
+    currentParsingUrl = ""
     ensureVisible(index)
     const station = currentPlaylist[index]
     window.currentStationUrl = station.url
@@ -156,12 +169,17 @@ document.addEventListener('DOMContentLoaded', () => {
     allLi.forEach(item => { item.classList.remove('active'); item.style.setProperty('--buffer-percent', '0%') })
     const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === index)
     currentTrackIndex = index
+    // Set the new station URL for parsing and clear any previous metadata message
     currentParsingUrl = station.url
     localStorage.setItem('lastStation', JSON.stringify({ genre: playlistSelect.value, trackIndex: index }))
     window.currentGenre = playlistSelect.value
     const rightGroup = document.querySelector('.right-group')
     if (rightGroup) {
-      rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon"><span id="currentTrack" class="track-name"><span class="scrolling-text">Loading...</span></span>`
+      // Remove any previous "No Data" message by resetting the UI
+      rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+        <span id="currentTrack" class="track-name">
+          <span class="scrolling-text">Loading...</span>
+        </span>`;
       checkMarquee(rightGroup)
     }
     audioPlayer.crossOrigin = 'anonymous'
@@ -187,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updatePlayPauseButton(audioPlayer, playPauseBtn)
       if (playCheckTimer) clearTimeout(playCheckTimer)
       if (appInitialized) {
-        playCheckTimer = setTimeout(() => { if (audioPlayer.paused) { markStationAsHidden(index) } }, 10000)
+        playCheckTimer = setTimeout(() => { if (audioPlayer.paused) { markStationAsHidden(index) } }, 15000)
       }
       updateStreamMetadata(station.url)
       updateMediaSessionMetadata(station)
@@ -246,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       if (playCheckTimer) clearTimeout(playCheckTimer)
       if (appInitialized) {
-        playCheckTimer = setTimeout(() => { if (audioPlayer.paused) { markStationAsHidden(index) } }, 10000)
+        playCheckTimer = setTimeout(() => { if (audioPlayer.paused) { markStationAsHidden(index) } }, 15000)
       }
       updateStreamMetadata(station.url)
       updateMediaSessionMetadata(station)
@@ -263,30 +281,31 @@ document.addEventListener('DOMContentLoaded', () => {
   })
 
   async function updateStreamMetadata(stationUrl) {
-    if (stationUrl !== currentParsingUrl) return
-    const rightGroup = document.querySelector('.right-group')
-    if (!rightGroup) return
-    rightGroup.style.display = 'flex'
-    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve('TIMEOUT'), 5000))
-    const metadataPromise = getStreamMetadata(stationUrl)
-    const result = await Promise.race([metadataPromise, timeoutPromise])
-    if (stationUrl !== currentParsingUrl) return
-    if (result !== 'TIMEOUT' && result && result.trim() && result !== 'No Metadata' && result !== 'No Track Data') {
-      rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon"><span id="currentTrack" class="track-name"><span class="scrolling-text">${result}</span></span>`
-      setTimeout(() => { checkMarquee(rightGroup) }, 10000)
+    if (stationUrl !== currentParsingUrl) return;
+    const rightGroup = document.querySelector('.right-group');
+    if (!rightGroup) return;
+    rightGroup.style.display = 'flex';
+    // Ждём метаданные до 15 секунд
+    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 15000));
+    const metadataPromise = getStreamMetadata(stationUrl);
+    const result = await Promise.race([metadataPromise, timeoutPromise]);
+    if (stationUrl !== currentParsingUrl) return;
+    if (result && result.trim() && result !== 'No Metadata' && result !== 'No Track Data') {
+      const searchUrl = "https://www.google.com/search?q=" + encodeURIComponent(result);
+      rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+        <span id="currentTrack" class="track-name">
+          <a href="${searchUrl}" target="_blank" rel="noopener noreferrer" class="scrolling-text">${result}</a>
+        </span>`;
+      setTimeout(() => { checkMarquee(rightGroup) }, 10000);
     } else {
-      import('./parsing.js').then(module => {
-        module.getTickerRSS().then(tickerText => {
-          if (stationUrl !== currentParsingUrl) return
-          rightGroup.innerHTML = `<img src="/img/news_icon.svg" alt="News Icon" class="track-icon"><span id="currentTrack" class="track-name"><span class="scrolling-text">${tickerText}</span></span>`
-          setTimeout(() => { checkMarquee(rightGroup) }, 3000)
-        }).catch(err => {
-          rightGroup.innerHTML = `<img src="/img/news_icon.svg" alt="News Icon" class="track-icon"><span id="currentTrack" class="track-name"><span class="scrolling-text marquee">RSS unavailable</span></span>`
-          setTimeout(() => { checkMarquee(rightGroup) }, 10000)
-        })
-      })
+      rightGroup.innerHTML = `<img src="/img/info_icon.svg" alt="Info Icon" class="track-icon">
+        <span id="currentTrack" class="track-name">
+          <span class="scrolling-text">No Data</span>
+        </span>`;
+      setTimeout(() => { checkMarquee(rightGroup) }, 3000);
     }
   }
+  
 
   function showPlaylistLoader() { playlistLoader.classList.remove('hidden') }
   function hidePlaylistLoader() { playlistLoader.classList.add('hidden') }
@@ -479,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lastChatUpdate = timestamp
     }
     if (timestamp - lastMetadataUpdate >= metadataUpdateInterval) {
-      updateStreamMetadata(audioPlayer.src)
+      updateStreamMetadata(currentParsingUrl)
       lastMetadataUpdate = timestamp
     }
     requestAnimationFrame(globalUpdater)
