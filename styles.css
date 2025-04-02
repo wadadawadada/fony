@@ -227,7 +227,7 @@ height: 17px;
 
 .track-name a:hover {
   text-decoration: underline; /* Underline on hover */
-  color: #08e0d0;             /* A slightly different shade on hover */
+  color: #00F2B8;             /* A slightly different shade on hover */
 }
 
   .play-timer {
