@@ -142,9 +142,6 @@ height: 17px;
     to { opacity: 1; }
   }
   
-
-
-
   .container {
     display: flex;
     flex-direction: row;
@@ -170,7 +167,6 @@ height: 17px;
     padding: 20px;
     overflow-y: auto;
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-    transition: background 0.5s ease;
   }
   
   .top-bar {
@@ -341,8 +337,8 @@ height: 17px;
     border: 2px solid #07F2B8;
     color: #07F2B8;
     border-radius: 50px;
-    padding: 2px;
-    padding-left: 5px;
+    padding: 5px;
+    padding-left: 8px;
     font-size: 0.8rem;
     font-family: 'Ruda', sans-serif;
   }
@@ -354,10 +350,11 @@ height: 17px;
     display: flex;
     align-items: center;
     justify-content: center;
+    
   }
   .chat-send-btn img {
     transition: transform 0.2s ease-in-out;
-    height: 26px;
+    height: 32px;
   }
   .chat-send-btn img:hover {
     transform: scale(0.97);
@@ -568,7 +565,10 @@ height: 17px;
       top: 5px;
       right: 5px;
       z-index: 3100;
-      font-size: 3rem; 
+      font-size: 3rem;
+      background-color: #171C2B;
+      padding: unset;
+      width: unset; 
     }
 
     .manifesto-modal {
@@ -582,6 +582,7 @@ height: 17px;
       padding: 0;
       margin: 0;
       padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
     }
   
     /* Контент манифеста растягивается и при переполнении текста появляется скролл */
