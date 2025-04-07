@@ -394,7 +394,7 @@ height: 17px;
     margin-left: 1rem;
   }
   .genre-search::placeholder {
-    color: rgb(255, 255, 255);
+    color: rgba(255, 255, 255, 0.5);
     font-family: 'Ruda', sans-serif;
     padding-left: 0.2rem;
   }
@@ -470,7 +470,7 @@ height: 17px;
   .favorites-filter-icon {
     filter: brightness(0) invert(1);
     transition: filter 0.3s ease;
-    margin-left: 1rem;
+    margin-right: 1rem;
     cursor: pointer;
     height: 2.5rem;
   }

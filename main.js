@@ -410,14 +410,16 @@ document.addEventListener('DOMContentLoaded', () => {
   favoritesFilterBtn.addEventListener('click', async () => {
     if (favoritesFilterBtn.classList.contains('active')) {
       favoritesFilterBtn.classList.remove('active')
-      genreLabel.style.display = ''
+      // Возвращаем оригинальный текст метки
+      genreLabel.textContent = 'Genre:'
       playlistSelect.style.display = ''
       searchInput.style.display = ''
       currentPlaylist = allStations.slice()
       resetVisibleStations()
     } else {
       favoritesFilterBtn.classList.add('active')
-      genreLabel.style.display = 'none'
+      // Меняем текст метки на "Favorites"
+      genreLabel.textContent = 'Favorites'
       playlistSelect.style.display = 'none'
       searchInput.style.display = 'none'
       const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
@@ -432,6 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
       resetVisibleStations()
     }
   })
+  
 
   playPauseBtn.addEventListener('click', () => {
     if (audioPlayer.paused) {
