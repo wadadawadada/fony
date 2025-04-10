@@ -1,8 +1,5 @@
 // playlist.js
 
-// Включить/выключить фильтрацию только HTTPS-потоков
-// true  — показываем только станции на HTTPS
-// false — показываем все станции (HTTP и HTTPS)
 const USE_ONLY_HTTPS = true;
 
 function generateStationHash(url) {
@@ -13,16 +10,6 @@ function generateStationHash(url) {
   }
   return Math.abs(hash).toString(16);
 }
-
-const style = document.createElement('style');
-style.textContent = `
-@keyframes heartBounce {
-  0% { transform: scale(0); }
-  60% { transform: scale(1); }
-  80% { transform: scale(0.9); }
-  100% { transform: scale(1); }
-}`;
-document.head.appendChild(style);
 
 export function renderPlaylist(playlistElement, stations, startIndex = 0, endIndex = null) {
   if (endIndex === null) {
@@ -38,11 +25,11 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     li.style.position = "relative";
     li.style.setProperty("--buffer-percent", "0%");
     li.dataset.index = i;
-    
+
     const progressDiv = document.createElement("div");
     progressDiv.classList.add("progress");
     li.appendChild(progressDiv);
-    
+
     if (station.cover) {
       const icon = document.createElement("img");
       icon.src = station.cover;
@@ -51,73 +38,68 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       icon.loading = "lazy";
       li.appendChild(icon);
     }
-    
+
+    // If NFT => show station.playlistTitle, else => station.title
+    const displayName = station.nft ? station.playlistTitle : station.title;
+
     const span = document.createElement("span");
-    span.textContent = station.title + (station.bitrate ? ` (${station.bitrate})` : "");
+    span.textContent = displayName + (station.bitrate ? ` (${station.bitrate})` : "");
     li.appendChild(span);
-    
-    // Если станция активна (соответствует текущему URL)
+
     if (window.currentStationUrl && station.url === window.currentStationUrl) {
       li.classList.add("active");
-      
-      // Иконка "Share"
-      const shareIcon = document.createElement("img");
-      shareIcon.src = "/img/share_icon.svg";
-      shareIcon.alt = "Share station";
-      shareIcon.style.width = "14px";
-      shareIcon.style.height = "14px";
-      shareIcon.style.cursor = "pointer";
-      shareIcon.style.marginLeft = "10px";
-      
-      const copiedSpan = document.createElement("span");
-      copiedSpan.textContent = "copied!";
-      copiedSpan.style.color = "#fff";
-      copiedSpan.style.marginLeft = "5px";
-      copiedSpan.style.display = "none";
-      
-      shareIcon.addEventListener("click", (event) => {
-        event.stopPropagation();
-        const hash = generateStationHash(station.url);
-        const genre = window.currentGenre || (localStorage.getItem("lastStation") && JSON.parse(localStorage.getItem("lastStation")).genre) || "";
-        const longLink = window.location.origin + window.location.pathname + "#" + encodeURIComponent(genre) + "/" + hash;
-        fetch("https://tinyurl.com/api-create.php?url=" + encodeURIComponent(longLink))
-          .then(response => response.text())
-          .then(shortUrl => {
-            return navigator.clipboard.writeText(shortUrl).then(() => {
-              copiedSpan.style.display = "inline";
-              setTimeout(() => { copiedSpan.style.display = "none"; }, 2000);
-            });
-          })
-          .catch(err => console.error("Ошибка копирования", err));
-      });
-      li.appendChild(shareIcon);
-      li.appendChild(copiedSpan);
-      
-      // Кнопка удаления (×)
-      const removeBtn = document.createElement("button");
-      removeBtn.textContent = "×";
-      removeBtn.style.position = "absolute";
-      removeBtn.style.right = "10px";
-      removeBtn.style.top = "50%";
-      removeBtn.style.transform = "translateY(-50%)";
-      removeBtn.style.background = "transparent";
-      removeBtn.style.border = "none";
-      removeBtn.style.color = "#00F2B8";
-      removeBtn.style.fontSize = "18px";
-      removeBtn.style.cursor = "pointer";
-      removeBtn.addEventListener("click", (event) => {
-        event.stopPropagation();
-        // Вызываем функцию удаления станции
-        if (typeof window.markStationAsHidden === "function") {
-          window.markStationAsHidden(parseInt(li.dataset.index, 10));
-        } else {
-          console.error("Функция удаления станции не определена");
-        }
-      });
-      li.appendChild(removeBtn);
+      if (typeof currentMode === "undefined" || currentMode !== "web3") {
+        const shareIcon = document.createElement("img");
+        shareIcon.src = "/img/share_icon.svg";
+        shareIcon.alt = "Share station";
+        shareIcon.style.width = "14px";
+        shareIcon.style.height = "14px";
+        shareIcon.style.cursor = "pointer";
+        shareIcon.style.marginLeft = "10px";
+        const copiedSpan = document.createElement("span");
+        copiedSpan.textContent = "copied!";
+        copiedSpan.style.color = "#fff";
+        copiedSpan.style.marginLeft = "5px";
+        copiedSpan.style.display = "none";
+        shareIcon.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const hash = generateStationHash(station.url);
+          const genre = window.currentGenre || (localStorage.getItem("lastStation") && JSON.parse(localStorage.getItem("lastStation")).genre) || "";
+          const longLink = window.location.origin + window.location.pathname + "#" + encodeURIComponent(genre) + "/" + hash;
+          fetch("https://tinyurl.com/api-create.php?url=" + encodeURIComponent(longLink))
+            .then(response => response.text())
+            .then(shortUrl => {
+              return navigator.clipboard.writeText(shortUrl).then(() => {
+                copiedSpan.style.display = "inline";
+                setTimeout(() => { copiedSpan.style.display = "none"; }, 2000);
+              });
+            })
+            .catch(err => console.error("Ошибка копирования", err));
+        });
+        li.appendChild(shareIcon);
+        li.appendChild(copiedSpan);
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "×";
+        removeBtn.style.position = "absolute";
+        removeBtn.style.right = "10px";
+        removeBtn.style.top = "50%";
+        removeBtn.style.transform = "translateY(-50%)";
+        removeBtn.style.background = "transparent";
+        removeBtn.style.border = "none";
+        removeBtn.style.color = "#00F2B8";
+        removeBtn.style.fontSize = "18px";
+        removeBtn.style.cursor = "pointer";
+        removeBtn.addEventListener("click", (event) => {
+          event.stopPropagation();
+          if (typeof window.markStationAsHidden === "function") {
+            window.markStationAsHidden(parseInt(li.dataset.index, 10));
+          }
+        });
+        li.appendChild(removeBtn);
+      }
     }
     
-    // Если станция в избранном, показываем сердечко
+
     if (isFavorite(station)) {
       const favHeart = document.createElement("img");
       favHeart.classList.add("favorite-heart", "active");
@@ -132,33 +114,23 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       });
       li.appendChild(favHeart);
     }
-    
+
     fragment.appendChild(li);
   }
   playlistElement.appendChild(fragment);
 }
 
+// Favorites logic left unchanged
 function getFavorites() {
   return JSON.parse(localStorage.getItem("favorites") || "[]");
 }
-
 function saveFavorites(favs) {
   localStorage.setItem("favorites", JSON.stringify(favs));
 }
-
 function isFavorite(station) {
   const favs = getFavorites();
   return favs.includes(station.url);
 }
-
-function addFavorite(station) {
-  let favs = getFavorites();
-  if (!favs.includes(station.url)) {
-    favs.push(station.url);
-    saveFavorites(favs);
-  }
-}
-
 function removeFavorite(station) {
   let favs = getFavorites();
   if (favs.includes(station.url)) {
@@ -177,23 +149,17 @@ export function loadPlaylist(url) {
         lines.shift();
       }
       for (let i = 0; i < lines.length; i += 2) {
-        // Если внезапно количество строк нечетное, последняя строка может "пропасть"
-        // В таком случае делаем проверку
         if (i + 1 >= lines.length) break;
-        
         const infoLine = lines[i];
         const streamUrl = lines[i + 1];
-        
         let cover = null;
         const logoMatch = infoLine.match(/tvg-logo="([^"]+)"/);
         if (logoMatch) cover = logoMatch[1];
-        
         let infoText = "";
         const commaIndex = infoLine.indexOf(",");
         if (commaIndex !== -1) {
           infoText = infoLine.substring(commaIndex + 1).trim();
         }
-        
         let title = "Stream Unavailable";
         let bitrate = "";
         if (infoText) {
@@ -212,17 +178,11 @@ export function loadPlaylist(url) {
           cover
         });
       }
-
-      // Фильтруем станции, которые пользователь уже «скрыл» (removeBtn)
       const hiddenStations = JSON.parse(localStorage.getItem("hiddenStations") || "[]");
       loadedStations = loadedStations.filter(station => !hiddenStations.includes(station.url));
-
-      // Если включена опция «только HTTPS», убираем все http://
       if (USE_ONLY_HTTPS) {
         loadedStations = loadedStations.filter(station => station.url.startsWith('https://'));
       }
-
-      // Параллельно подгружаем обложки (cover) — если есть
       return Promise.all(
         loadedStations.map(st => {
           return new Promise(resolve => {

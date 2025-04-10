@@ -262,22 +262,7 @@ height: 17px;
     width: 200px;
     height: auto;
   } */
-  #playlistLoader {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 0;
-    height: 0;
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
-    animation: spin 1s linear infinite;
-    z-index: 999;
-  }
-  @keyframes spin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
-  }
+
   .hidden {
     display: none;
   }
@@ -398,6 +383,23 @@ height: 17px;
     font-family: 'Ruda', sans-serif;
     padding-left: 0.2rem;
   }
+
+  #connectWalletBtn {
+    margin-left: 1rem;
+    margin-left: auto;
+  }
+
+  #walletAddress {
+    font-size: 1rem;
+    margin-left: auto;
+  }
+
+  #radioModeBtn {
+    margin-left: auto;
+    margin-right: 0rem;
+  }
+  
+
   .playlist-area {
     flex: 1;
     border-radius: 12px;
@@ -405,6 +407,28 @@ height: 17px;
     overflow-y: auto;
     position: relative;
   }
+
+  #playlistLoader {
+    position: absolute;
+    width: 100%;
+    background-color: #4b85ea;
+    top: 30%;
+    left: 30%;
+    transform: translate(-50%, -50%);
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    animation: spin 1s linear infinite;
+    z-index: 999;
+  }
+  @keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+
+
   #playlist {
     list-style: none;
     margin: 0;
@@ -473,7 +497,9 @@ height: 17px;
     margin-right: 1rem;
     cursor: pointer;
     height: 2.5rem;
+    pointer-events: auto;
   }
+  
   .favorites-filter-icon.active {
     filter: invert(7%) sepia(20%) saturate(500%) hue-rotate(200deg) brightness(90%) contrast(100%);
   }
@@ -624,6 +650,7 @@ height: 17px;
       box-sizing: border-box;
       /* ваш фон, тени и т. д. */
     }
+
   
     /* Прокрутка только внутри списка треков */
     .playlist-area {
@@ -682,14 +709,32 @@ height: 17px;
       display: none;
     }
 
+
+    .genre-box {
+      font-size: 0.7rem;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+    
+    .genre-select {
+      font-size: 1rem;
+    }
+
     .genre-search {
-      width: 60px;
+      width: unset;
       width: 6ch
     }
+
     .genre-search::placeholder {
       width: 6ch;
       padding-left: unset;
     }
+
+    #radioModeBtn {
+      margin-left: auto;
+      margin-right: 0rem;
+    }
+
     #randomBtn:active {
       transform: translateX(-50%) !important;
     }

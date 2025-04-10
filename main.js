@@ -4,575 +4,876 @@ import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from '.
 import { initChat, updateChat, syncChat } from './chat.js'
 import { getStreamMetadata } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
-
+import { connectWallet, getNFTContractList, connectAndLoadWalletNFTs } from './web3.js'
+let currentMode = "radio"
+let currentParsingUrl = ""
+let appInitialized = false
+let allPlaylists = []
+let allStations = []
+let currentPlaylist = []
+let currentTrackIndex = 0
+let shuffleActive = false
+let visibleStations = 0
+let lastValidNowPlaying = ""
+const defaultVolume = { value: 0.9 }
+const CHUNK_SIZE = 30
+const BUFFER_THRESHOLD = 30
+let playCheckTimer = null
+let preloaderInterval = null
+let lastChatUpdate = 0
+let lastMetadataUpdate = 0
+const chatUpdateInterval = 15000
+const metadataUpdateInterval = 20000
+const audioPlayer = document.getElementById('audioPlayer')
+audioPlayer.volume = defaultVolume.value
+audioPlayer.crossOrigin = 'anonymous'
+const stationLabel = document.getElementById('stationLabel')
+const playlistSelect = document.getElementById('playlistSelect')
+const searchInput = document.getElementById('searchInput')
+const playlistContainer = document.getElementById('playlistContent')
+const playlistElement = document.getElementById('playlist')
+const rrBtn = document.getElementById('rrBtn')
+const ffBtn = document.getElementById('ffBtn')
+const favBtn = document.getElementById('favBtn')
+const shuffleBtn = document.getElementById('shuffleBtn')
+const randomBtn = document.getElementById('randomBtn')
+const walletBtn = document.getElementById('connectWalletBtn')
+const radioModeBtn = document.getElementById('radioModeBtn')
 function generateStationHash(url) {
-  let hash = 0
+  let h = 0
   for (let i = 0; i < url.length; i++) {
-    hash = ((hash << 5) - hash) + url.charCodeAt(i)
-    hash |= 0
+    h = ((h << 5) - h) + url.charCodeAt(i)
+    h |= 0
   }
-  return Math.abs(hash).toString(16)
+  return Math.abs(h).toString(16)
 }
-
 function isIOS() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
 }
-
-function updateMediaSessionMetadata(station) {
-  if ('mediaSession' in navigator) {
+function formatTime(sec) {
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  return m + ":" + (s < 10 ? "0" + s : s)
+}
+function debounce(fn, wait) {
+  let t
+  return (...args) => {
+    clearTimeout(t)
+    t = setTimeout(() => fn(...args), wait)
+  }
+}
+function updateMediaSessionMetadata(st) {
+  if ("mediaSession" in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: station.title || 'Unknown Station',
-      artist: '',
-      album: '',
-      artwork: [
-        { src: station.cover || '/img/stream_icon.svg', sizes: '96x96', type: 'image/svg' }
-      ]
+      title: st.nft ? st.playlistTitle : (st.trackTitle || "Unknown Track"),
+      artist: st.artist || "",
+      album: "",
+      artwork: [{ src: st.cover || "/img/stream_icon.svg", sizes: "96x96", type: "image/svg" }]
     })
   }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  let currentParsingUrl = null
-  let appInitialized = false
-  window.currentGenre = null
-  let allPlaylists = []
-  const genreBox = document.querySelector('.genre-box')
-  const genreLabel = genreBox.querySelector('label')
-  const playlistSelect = document.getElementById('playlistSelect')
-  const searchInput = document.getElementById('searchInput')
-  const playlistContainer = document.getElementById('playlistContent')
-  const playlistElement = document.getElementById('playlist')
-  const audioPlayer = document.getElementById('audioPlayer')
-  audioPlayer.crossOrigin = 'anonymous'
-  const stationLabel = document.getElementById('stationLabel')
-  const playlistLoader = document.getElementById('playlistLoader')
-  const rrBtn = document.getElementById('rrBtn')
-  const ffBtn = document.getElementById('ffBtn')
-  const favBtn = document.getElementById('favBtn')
-  const shuffleBtn = document.getElementById('shuffleBtn')
-  const randomBtn = document.getElementById('randomBtn')
-  const playPauseBtn = document.getElementById('playPauseBtn')
-  const favoritesFilterBtn = document.getElementById('favoritesFilterBtn')
-  let allStations = []
-  let currentPlaylist = []
-  let currentTrackIndex = 0
-  let shuffleActive = false
-  const defaultVolume = { value: 0.9 }
-  audioPlayer.volume = defaultVolume.value
-  let playCheckTimer = null
-  const CHUNK_SIZE = 30
-  let visibleStations = 0
-  const BUFFER_THRESHOLD = 30
-
-  // Переменная для хранения последнего валидного значения now playing
-  let lastValidNowPlaying = ''
-
-  if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('play', async () => {
-      try { await audioPlayer.play() } catch (err) { console.warn(err) }
+function cleanupBuffer(sb) {
+  if (sb.updating) {
+    sb.addEventListener("updateend", function h() {
+      sb.removeEventListener("updateend", h)
+      cleanupBuffer(sb)
     })
-    navigator.mediaSession.setActionHandler('pause', () => { audioPlayer.pause() })
-    navigator.mediaSession.setActionHandler('previoustrack', () => { rrBtn.click() })
-    navigator.mediaSession.setActionHandler('nexttrack', () => { ffBtn.click() })
+    return
   }
-
-  function defaultPlaylist() {
-    const randomIndex = allPlaylists.length ? Math.floor(Math.random() * allPlaylists.length) : 0
-    const randomGenre = allPlaylists[randomIndex] ? allPlaylists[randomIndex].file : 'genres/african.m3u'
-    playlistSelect.value = randomGenre
-    window.currentGenre = randomGenre
-    initChat(randomGenre)
-    loadAndRenderPlaylist(randomGenre, () => {
-      if (currentPlaylist.length > 0) {
-        const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length)
-        window.onStationSelect(randomStationIndex)
-        localStorage.setItem('lastStation', JSON.stringify({ genre: randomGenre, trackIndex: randomStationIndex }))
-        updateChat(randomGenre)
-      }
-    })
-  }
-
-  function checkMarquee(container) {
-    if (!container) return
-    const scrollingText = container.querySelector('.scrolling-text')
-    if (!scrollingText) return
-    scrollingText.classList.remove('marquee')
-    const containerWidth = container.clientWidth
-    const textWidth = scrollingText.scrollWidth
-    if (textWidth > containerWidth) { scrollingText.classList.add('marquee') }
-  }
-
-  function ensureVisible(index) {
-    if (index >= visibleStations) {
-      visibleStations = index + CHUNK_SIZE
-      if (visibleStations > currentPlaylist.length) { visibleStations = currentPlaylist.length }
-      renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations)
+  if (audioPlayer.buffered.length > 0) {
+    const c = audioPlayer.currentTime
+    const e = c - BUFFER_THRESHOLD
+    if (e > 0) {
+      try { sb.remove(0, e) } catch (err) {}
     }
   }
-
-  function resetVisibleStations() {
-    visibleStations = 0
-    renderMoreStations()
+}
+function startPlaylistPreloader() {
+  // Если анимация уже запущена – очищаем предыдущий interval.
+  if (preloaderInterval) {
+    clearInterval(preloaderInterval);
+    preloaderInterval = null;
   }
+  playlistLoader.classList.remove("hidden");
+  playlistLoader.style.animation = "none";
+  playlistLoader.style.color = "#fff";
+  playlistLoader.style.fontSize = "22px";
+  playlistLoader.style.fontFamily = "Ruda";
+  playlistLoader.style.textAlign = "center";
+  // Гарантируем, что контент не переносится на несколько строк:
+  playlistLoader.style.whiteSpace = "nowrap";
 
-  function renderMoreStations() {
-    if (visibleStations < currentPlaylist.length) {
-      visibleStations += CHUNK_SIZE
-      renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations)
-    }
-  }
+  // Создаем три контейнера: левый, центральный с надписью и правый.
+  // Устанавливаем фиксированную минимальную ширину (например, для 3-х символов, используя единицу 'ch').
+  playlistLoader.innerHTML =
+    '<span id="leftColons" style="display: inline-block; min-width: 3ch; text-align: right;"></span>' +
+    '<span id="loaderText" style="display: inline-block; margin: 0 10px;">IPFS load</span>' +
+    '<span id="rightColons" style="display: inline-block; min-width: 3ch; text-align: left;"></span>';
 
-  playlistContainer.addEventListener('scroll', () => {
-    const { scrollTop, clientHeight, scrollHeight } = playlistContainer
-    if (scrollTop + clientHeight >= scrollHeight - 50) { renderMoreStations() }
-  })
+  let colonCount = 0;
+  const maxColons = 3; // Количество кадров: 0, 1, 2, 3 двоеточий
+  preloaderInterval = setInterval(() => {
+    colonCount = (colonCount + 1) % (maxColons + 1);
+    document.getElementById("leftColons").textContent = ":".repeat(colonCount);
+    document.getElementById("rightColons").textContent = ":".repeat(colonCount);
+  }, 250);
+}
 
-  function checkRealBuffering(targetBuffer, li, callback) {
-    const playTimerEl = document.getElementById('playTimer')
-    const interval = setInterval(() => {
-      let bufferedTime = 0
-      if (audioPlayer.buffered.length > 0) { bufferedTime = audioPlayer.buffered.end(0) - (audioPlayer.currentTime || 0) }
-      const percent = Math.min((bufferedTime / targetBuffer) * 100, 100)
-      const numSymbols = Math.floor(percent / 10)
-      if (playTimerEl) { playTimerEl.textContent = ':'.repeat(numSymbols) }
-      if (li) { li.style.setProperty('--buffer-percent', percent + '%') }
-      if (bufferedTime >= targetBuffer) { clearInterval(interval); if (playTimerEl) playTimerEl.textContent = formatTime(0); callback() }
-    }, 100)
-  }
 
-  function cleanupBuffer(sb) {
-    if (sb.updating) {
-      sb.addEventListener("updateend", function handler() {
-        sb.removeEventListener("updateend", handler)
-        cleanupBuffer(sb)
-      })
-      return
-    }
-    if (audioPlayer.buffered.length > 0) {
-      const currentTime = audioPlayer.currentTime
-      const removeEnd = currentTime - BUFFER_THRESHOLD
-      if (removeEnd > 0) {
-        try {
-          sb.remove(0, removeEnd)
-        } catch (err) {
-          console.error("Remove error:", err)
-        }
-      }
-    }
-  }
 
-  window.onStationSelect = function (index) {
-    console.log('onStationSelect, index:', index) // диагностика
-    // Reset parsing for new station selection
-    currentParsingUrl = ""
-    ensureVisible(index)
-    const station = currentPlaylist[index]
-    window.currentStationUrl = station.url
+function stopPlaylistPreloader() {
+  if (preloaderInterval) clearInterval(preloaderInterval)
+  preloaderInterval = null
+  playlistLoader.classList.add("hidden")
+  playlistLoader.textContent = ""
+}
+function ensureVisible(i) {
+  if (i >= visibleStations) {
+    visibleStations = i + CHUNK_SIZE
+    if (visibleStations > currentPlaylist.length) visibleStations = currentPlaylist.length
     renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations)
-    const allLi = document.querySelectorAll('#playlist li')
-    allLi.forEach(item => { item.classList.remove('active'); item.style.setProperty('--buffer-percent', '0%') })
-    const li = Array.from(allLi).find(item => parseInt(item.dataset.index, 10) === index)
-    currentTrackIndex = index
-    // Set the new station URL for parsing and clear any previous metadata message
-    currentParsingUrl = station.url
-    localStorage.setItem('lastStation', JSON.stringify({ genre: playlistSelect.value, trackIndex: index }))
+  }
+}
+function resetVisibleStations() {
+  visibleStations = 0
+  renderMoreStations()
+}
+function renderMoreStations() {
+  if (visibleStations < currentPlaylist.length) {
+    visibleStations += CHUNK_SIZE
+    renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations)
+  }
+}
+function checkMarquee(container) {
+  if (!container) return
+  const st = container.querySelector(".scrolling-text")
+  if (!st) return
+  st.classList.remove("marquee")
+  const cW = container.clientWidth
+  const sW = st.scrollWidth
+  if (sW > cW) st.classList.add("marquee")
+}
+function fillPlaylistSelect() {
+  const pSel = document.getElementById("playlistSelect")
+  if (!pSel) return
+  pSel.innerHTML = ""
+  allPlaylists.forEach(pl => {
+    const o = document.createElement("option")
+    o.value = pl.file
+    o.textContent = pl.name
+    pSel.appendChild(o)
+  })
+}
+
+function switchToRadio() {
+  currentMode = "radio";
+  window.currentMode = currentMode;
+  if (window.playTimerInterval) {
+    clearInterval(window.playTimerInterval);
+    window.playTimerInterval = null;
+  }
+  const playTimerElem = document.getElementById("playTimer");
+  if (playTimerElem) {
+    playTimerElem.textContent = formatTime(0);
+  }
+  audioPlayer.pause();
+  audioPlayer.src = "";
+  audioPlayer.currentTime = 0;
+  audioPlayer.ontimeupdate = null;
+  currentPlaylist = [];
+  playlistElement.innerHTML = "";
+  const g = document.querySelector(".genre-box");
+  if (g) {
+    g.innerHTML = `
+      <img src="/img/fav_list.svg" id="favoritesFilterBtn" class="favorites-filter-icon">
+      <label for="playlistSelect">Genre:</label>
+      <select id="playlistSelect" class="genre-select"></select>
+      <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
+      <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
+      <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
+    `;
+  }
+  fillPlaylistSelect();
+  setRadioListeners();
+  const ls = localStorage.getItem("lastStation");
+  if (ls) {
+    try {
+      const { genre, trackIndex } = JSON.parse(ls);
+      const pSel = document.getElementById("playlistSelect");
+      if (pSel) pSel.value = genre;
+      initChat(genre);
+      loadAndRenderPlaylist(genre, () => {
+        const i = trackIndex < currentPlaylist.length ? trackIndex : 0;
+        onStationSelect(i);
+        updateChat(genre);
+      });
+      return;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  defaultPlaylist();
+}
+
+
+function switchToWeb3(acc) {
+  currentMode = "web3"
+  window.currentMode = currentMode;
+  audioPlayer.pause()
+  audioPlayer.src = ""
+  currentPlaylist = []
+  playlistElement.innerHTML = ""
+  updateWalletUI(acc).then(() => {
+    const cs = document.getElementById("contractSelect")
+    if (cs) {
+      cs.addEventListener("change", async () => {
+        playlistElement.innerHTML = ""
+        startPlaylistPreloader()
+        try {
+          const sel = cs.value
+          const { tracks } = await connectAndLoadWalletNFTs(sel)
+          if (tracks && tracks.length > 0) {
+            currentPlaylist = tracks
+            visibleStations = tracks.length
+            renderPlaylist(playlistElement, tracks, 0, tracks.length)
+            onStationSelect(0)
+          } else {
+            currentPlaylist = []
+            renderPlaylist(playlistElement, [], 0, 0)
+            stationLabel.textContent = "No NFT tracks found"
+          }
+        } finally {
+          stopPlaylistPreloader()
+        }
+      })
+      playlistElement.innerHTML = ""
+      startPlaylistPreloader()
+      const sel = cs.value
+      connectAndLoadWalletNFTs(sel).then(({ tracks }) => {
+        if (tracks && tracks.length > 0) {
+          currentPlaylist = tracks
+          visibleStations = tracks.length
+          renderPlaylist(playlistElement, tracks, 0, tracks.length)
+          onStationSelect(0)
+        } else {
+          currentPlaylist = []
+          renderPlaylist(playlistElement, [], 0, 0)
+          stationLabel.textContent = "No NFT tracks found"
+        }
+      }).finally(() => stopPlaylistPreloader())
+    }
+  })
+}
+async function updateWalletUI(account) {
+  const c = await getNFTContractList()
+  const g = document.querySelector(".genre-box")
+  if (g) {
+    const ops = c.map(x => `<option value="${x.address}">${x.collectionName}</option>`).join("")
+    const shortAddr = account.slice(0, 2) + "..." + account.slice(-2)
+    g.innerHTML = `
+      <span id="walletConnectedLabel">WEB3: </span>
+      <select id="contractSelect" class="genre-select">${ops}</select>
+      <span id="walletAddress">${shortAddr}</span>
+      <img src="/img/wallet.svg" alt="Wallet" id="walletIcon" style="cursor: pointer; width: 28px; height: 28px;">
+      <img src="/img/radio.svg" alt="Radio" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px;">
+    `
+  }
+  const r = document.getElementById("radioModeBtn")
+  if (r) {
+    r.style.display = "inline-block"
+    r.addEventListener("click", () => switchToRadio())
+  }
+}
+function defaultPlaylist() {
+  if (!allPlaylists.length) return
+  const firstGenre = allPlaylists[0].file
+  if (playlistSelect) playlistSelect.value = firstGenre
+  window.currentGenre = firstGenre
+  initChat(firstGenre)
+  loadAndRenderPlaylist(firstGenre, () => {
+    if (currentPlaylist.length) {
+      const i = 0
+      onStationSelect(i)
+      localStorage.setItem("lastStation", JSON.stringify({ genre: firstGenre, trackIndex: i }))
+      updateChat(firstGenre)
+    }
+  })
+}
+function loadAndRenderPlaylist(url, cb, scTop = false) {
+  playlistLoader.classList.remove("hidden")
+  loadPlaylist(url)
+    .then(s => {
+      allStations = s
+      currentPlaylist = s.slice()
+      resetVisibleStations()
+      if (scTop) setTimeout(() => playlistContainer.scrollTo({ top: 0, behavior: "smooth" }), 50)
+    })
+    .then(() => {
+      playlistLoader.classList.add("hidden")
+      if (typeof cb === "function") cb()
+    })
+    .catch(() => {
+      playlistLoader.classList.add("hidden")
+    })
+}
+function markStationAsHidden(i) {
+  const st = currentPlaylist[i]
+  if (!st) return
+  let h = JSON.parse(localStorage.getItem("hiddenStations") || "[]")
+  if (!h.includes(st.url)) {
+    h.push(st.url)
+    localStorage.setItem("hiddenStations", JSON.stringify(h))
+  }
+  allStations = allStations.filter(x => x.url !== st.url)
+  currentPlaylist.splice(i, 1)
+  resetVisibleStations()
+  const n = i < currentPlaylist.length ? i : 0
+  if (currentPlaylist.length) onStationSelect(n)
+  else if (stationLabel) stationLabel.textContent = "No available stations"
+}
+window.markStationAsHidden = markStationAsHidden;
+
+function checkRealBuffering(tb, li, cb) {
+  const p = document.getElementById("playTimer")
+  const x = setInterval(() => {
+    let buf = 0
+    if (audioPlayer.buffered.length > 0) buf = audioPlayer.buffered.end(0) - (audioPlayer.currentTime || 0)
+    const pr = Math.min((buf / tb) * 100, 100)
+    const sy = Math.floor(pr / 10)
+    if (p) p.textContent = ":".repeat(sy)
+    if (li) li.style.setProperty("--buffer-percent", pr + "%")
+    if (buf >= tb) {
+      clearInterval(x)
+      if (p) p.textContent = formatTime(0)
+      cb()
+    }
+  }, 100)
+}
+function updateStreamMetadata(u) {
+  if (u !== currentParsingUrl) return
+  const rg = document.querySelector(".right-group")
+  if (!rg) return
+  rg.style.display = "flex"
+  const t = new Promise(r => setTimeout(() => r(null), 15000))
+  const p = getStreamMetadata(u)
+  Promise.race([p, t]).then(r => {
+    if (u !== currentParsingUrl) return
+    if (r && r.trim() && r !== "No Metadata" && r !== "No Track Data") {
+      lastValidNowPlaying = r.trim()
+      const su = "https://www.google.com/search?q=" + encodeURIComponent(lastValidNowPlaying)
+      rg.innerHTML = `
+        <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+        <span id="currentTrack" class="track-name">
+          <a href="${su}" target="_blank" rel="noopener noreferrer" class="scrolling-text">${lastValidNowPlaying}</a>
+        </span>
+      `
+      setTimeout(() => checkMarquee(rg), 20000)
+    } else {
+      if (!lastValidNowPlaying) {
+        rg.innerHTML = `
+          <img src="/img/news_icon.svg" alt="Info Icon" class="track-icon">
+          <span id="currentTrack" class="track-name">
+            <span class="scrolling-text">No Data</span>
+          </span>
+        `
+        setTimeout(() => checkMarquee(rg), 3000)
+      }
+    }
+  })
+}
+function onStationSelect(i) {
+  currentParsingUrl = ""
+  ensureVisible(i)
+  const st = currentPlaylist[i]
+  if (!st) return
+  window.currentStationUrl = st.url
+  renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations)
+  const lis = document.querySelectorAll("#playlist li")
+  lis.forEach(x => {
+    x.classList.remove("active")
+    x.style.setProperty("--buffer-percent", "0%")
+  })
+  const li = Array.from(lis).find(x => parseInt(x.dataset.index) === i)
+  currentTrackIndex = i
+  currentParsingUrl = st.url
+  if (playlistSelect) {
+    localStorage.setItem("lastStation", JSON.stringify({ genre: playlistSelect.value, trackIndex: i }))
     window.currentGenre = playlistSelect.value
-    const rightGroup = document.querySelector('.right-group')
-    if (rightGroup) {
-      // Удаляем предыдущие данные, показываем сообщение "Loading..."
-      rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+  }
+  if (stationLabel) {
+    const t = stationLabel.querySelector(".scrolling-text")
+    if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station")
+    checkMarquee(stationLabel)
+  }
+  const rg = document.querySelector(".right-group")
+  if (rg) {
+    if (st.nft) {
+      rg.innerHTML = `
+        <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+        <span id="currentTrack" class="track-name">
+          <span class="scrolling-text">${st.playlistTitle}</span>
+        </span>
+      `
+      checkMarquee(rg)
+    } else {
+      rg.innerHTML = `
+        <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
         <span id="currentTrack" class="track-name">
           <span class="scrolling-text">Loading...</span>
-        </span>`
-      checkMarquee(rightGroup)
+        </span>
+      `
+      checkMarquee(rg)
     }
-    audioPlayer.crossOrigin = 'anonymous'
-    if (isIOS()) {
-      audioPlayer.src = station.url
-      if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      if (window.playTimerInterval) clearInterval(window.playTimerInterval)
-      const playTimerEl = document.getElementById('playTimer')
-      if (playTimerEl) { playTimerEl.textContent = formatTime(0) }
-      if (li) li.classList.add('active')
-      if (stationLabel) {
-        const stText = stationLabel.querySelector('.scrolling-text')
-        if (stText) { stText.textContent = station.title || 'Unknown Station' }
-        checkMarquee(stationLabel)
+  }
+  if (!st.url) return
+  if (st.nft) {
+    audioPlayer.src = st.url
+    audioPlayer.onloadedmetadata = () => {
+      const el = document.getElementById("playTimer")
+      if (el && audioPlayer.duration) {
+        el.textContent = formatTime(Math.floor(audioPlayer.duration - audioPlayer.currentTime))
       }
+    }
+    audioPlayer.ontimeupdate = () => {
+      const el = document.getElementById("playTimer")
+      if (el && audioPlayer.duration) {
+        const remaining = Math.floor(audioPlayer.duration - audioPlayer.currentTime)
+        el.textContent = formatTime(remaining)
+        const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100
+        if (li) li.style.setProperty("--buffer-percent", percent + "%")
+      }
+    }
+    if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
+    if (window.playTimerInterval) clearInterval(window.playTimerInterval)
+    audioPlayer.muted = false
+    audioPlayer.volume = defaultVolume.value
+    audioPlayer.play().then(() => {
+      appInitialized = true
+      if (!window.equalizerInitialized) {
+        initEqualizer()
+        window.equalizerInitialized = true
+      }
+    }).catch(() => {})
+    fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
+    updatePlayPauseButton(audioPlayer, playPauseBtn)
+    if (playCheckTimer) clearTimeout(playCheckTimer)
+    if (appInitialized) {
+      playCheckTimer = setTimeout(() => {
+        if (audioPlayer.paused) markStationAsHidden(i)
+      }, 15000)
+    }
+    updateMediaSessionMetadata(st)
+  } else {
+    if (isIOS()) {
+      audioPlayer.src = st.url
+      if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
+      if (window.playTimerInterval) clearInterval(window.playTimerInterval)
+      const pt = document.getElementById("playTimer")
+      if (pt) pt.textContent = formatTime(0)
+      if (li) li.classList.add("active")
       audioPlayer.muted = false
       audioPlayer.volume = defaultVolume.value
       audioPlayer.play().then(() => {
         appInitialized = true
-        if (!window.equalizerInitialized) { initEqualizer(); window.equalizerInitialized = true }
-      }).catch(err => { console.warn(err) })
+        if (!window.equalizerInitialized) {
+          initEqualizer()
+          window.equalizerInitialized = true
+        }
+      }).catch(() => {})
       fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
       updatePlayPauseButton(audioPlayer, playPauseBtn)
       if (playCheckTimer) clearTimeout(playCheckTimer)
       if (appInitialized) {
-        playCheckTimer = setTimeout(() => { if (audioPlayer.paused) { markStationAsHidden(index) } }, 15000)
+        playCheckTimer = setTimeout(() => {
+          if (audioPlayer.paused) markStationAsHidden(i)
+        }, 15000)
       }
-      updateStreamMetadata(station.url)
-      updateMediaSessionMetadata(station)
-      return
+      if (!st.nft) updateStreamMetadata(st.url)
+      updateMediaSessionMetadata(st)
     } else {
-      const mediaSource = new MediaSource()
-      audioPlayer.src = URL.createObjectURL(mediaSource)
-      mediaSource.addEventListener('sourceopen', () => {
-        const mimeCodec = 'audio/mpeg'
-        let sourceBuffer
-        try { sourceBuffer = mediaSource.addSourceBuffer(mimeCodec) } catch (e) { console.error(e); return }
-        fetch(station.url).then(response => {
-          const reader = response.body.getReader()
+      const ms = new MediaSource()
+      audioPlayer.src = URL.createObjectURL(ms)
+      ms.addEventListener("sourceopen", () => {
+        const mc = "audio/mpeg"
+        let sb
+        try {
+          sb = ms.addSourceBuffer(mc)
+        } catch (e) { return }
+        fetch(st.url).then(r => {
+          const rd = r.body.getReader()
           function push() {
-            if (mediaSource.readyState !== 'open') return
-            reader.read().then(({ done, value }) => {
+            if (ms.readyState !== "open") return
+            rd.read().then(({ done, value }) => {
               if (done) {
-                try { if (mediaSource.readyState === 'open') { mediaSource.endOfStream() } } catch (e) { console.error(e) }
+                try { if (ms.readyState === "open") ms.endOfStream() } catch(e){}
                 return
               }
-              if (!sourceBuffer.updating) {
-                try { sourceBuffer.appendBuffer(value); cleanupBuffer(sourceBuffer) } catch (e) { console.error(e) }
+              if (!sb.updating) {
+                try {
+                  sb.appendBuffer(value)
+                  cleanupBuffer(sb)
+                } catch(e){}
               } else {
-                sourceBuffer.addEventListener('updateend', function handler() {
-                  sourceBuffer.removeEventListener('updateend', handler)
-                  if (mediaSource.readyState === 'open' && !sourceBuffer.updating) {
-                    try { sourceBuffer.appendBuffer(value); cleanupBuffer(sourceBuffer) } catch (e) { console.error(e) }
+                sb.addEventListener("updateend", function h() {
+                  sb.removeEventListener("updateend", h)
+                  if (ms.readyState === "open" && !sb.updating) {
+                    try {
+                      sb.appendBuffer(value)
+                      cleanupBuffer(sb)
+                    } catch(e){}
                   }
                 })
               }
               push()
-            }).catch(error => { console.error(error) })
+            }).catch(() => {})
           }
           push()
-        }).catch(error => console.error(error))
+        }).catch(() => {})
       })
-      if (li) li.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
       if (window.playTimerInterval) clearInterval(window.playTimerInterval)
-      const playTimerEl = document.getElementById('playTimer')
-      if (playTimerEl) { playTimerEl.textContent = formatTime(0) }
+      const pt = document.getElementById("playTimer")
+      if (pt) pt.textContent = formatTime(0)
       checkRealBuffering(5, li, () => {
-        if (li) li.classList.add('active')
+        if (li) li.classList.add("active")
         if (stationLabel) {
-          const stText = stationLabel.querySelector('.scrolling-text')
-          if (stText) { stText.textContent = station.title || 'Unknown Station' }
+          const t = stationLabel.querySelector(".scrolling-text")
+          if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station")
           checkMarquee(stationLabel)
         }
         audioPlayer.muted = false
         audioPlayer.volume = defaultVolume.value
         audioPlayer.play().then(() => {
           appInitialized = true
-          if (!window.equalizerInitialized) { initEqualizer(); window.equalizerInitialized = true }
-        }).catch(err => { console.warn(err) })
+          if (!window.equalizerInitialized) {
+            initEqualizer()
+            window.equalizerInitialized = true
+          }
+        }).catch(() => {})
         fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
         updatePlayPauseButton(audioPlayer, playPauseBtn)
       })
       if (playCheckTimer) clearTimeout(playCheckTimer)
       if (appInitialized) {
-        playCheckTimer = setTimeout(() => { if (audioPlayer.paused) { markStationAsHidden(index) } }, 15000)
+        playCheckTimer = setTimeout(() => {
+          if (audioPlayer.paused) markStationAsHidden(i)
+        }, 15000)
       }
-      updateStreamMetadata(station.url)
-      updateMediaSessionMetadata(station)
+      if (!st.nft) updateStreamMetadata(st.url)
+      updateMediaSessionMetadata(st)
     }
   }
-
-  // Обработчик клика по плейлисту с добавлением логирования
-  playlistElement.addEventListener('click', function(e) {
-    let li = e.target
-    while (li && li.tagName !== 'LI') { li = li.parentElement }
-    if (li && li.dataset.index !== undefined) {
-      const index = parseInt(li.dataset.index, 10)
-      console.log('Playlist item clicked, index:', index)
-      window.onStationSelect(index)
-    }
-  })
-
-  // Изменённая функция обновления метаданных с кэшированием lastValidNowPlaying
-  async function updateStreamMetadata(stationUrl) {
-    if (stationUrl !== currentParsingUrl) return;
-    const rightGroup = document.querySelector('.right-group');
-    if (!rightGroup) return;
-    rightGroup.style.display = 'flex';
-    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 15000));
-    const metadataPromise = getStreamMetadata(stationUrl);
-    const result = await Promise.race([metadataPromise, timeoutPromise]);
-    if (stationUrl !== currentParsingUrl) return;
-    if (result && result.trim() && result !== 'No Metadata' && result !== 'No Track Data') {
-      lastValidNowPlaying = result.trim();
-      const searchUrl = "https://www.google.com/search?q=" + encodeURIComponent(lastValidNowPlaying);
-      rightGroup.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
-        <span id="currentTrack" class="track-name">
-          <a href="${searchUrl}" target="_blank" rel="noopener noreferrer" class="scrolling-text">${lastValidNowPlaying}</a>
-        </span>`;
-      setTimeout(() => { checkMarquee(rightGroup) }, 20000);
-    } else {
-      // Если уже есть валидное значение, оставляем его; иначе выводим "No Data"
-      if (!lastValidNowPlaying) {
-        rightGroup.innerHTML = `<img src="/img/news_icon.svg" alt="Info Icon" class="track-icon">
-          <span id="currentTrack" class="track-name">
-            <span class="scrolling-text">No Data</span>
-          </span>`;
-        setTimeout(() => { checkMarquee(rightGroup) }, 3000);
+}
+function setRadioListeners() {
+  const pSel = document.getElementById("playlistSelect");
+  const sIn = document.getElementById("searchInput");
+  const fBtn = document.getElementById("favoritesFilterBtn");
+  const wBtn = document.getElementById("connectWalletBtn");
+  const rBtn = document.getElementById("radioModeBtn");
+  
+  if (rBtn) rBtn.style.display = "none";
+  
+  if (pSel) {
+    pSel.addEventListener("change", () => {
+      const newGenre = pSel.value;
+      loadAndRenderPlaylist(newGenre, () => {
+        if (sIn) sIn.value = "";
+        if (currentPlaylist.length) {
+          onStationSelect(0);
+          localStorage.setItem("lastStation", JSON.stringify({ genre: newGenre, trackIndex: 0 }));
+          updateChat(newGenre);
+        }
+      }, true);
+    });
+  }
+  
+  if (sIn) {
+    sIn.addEventListener("input", debounce(() => {
+      const q = sIn.value.toLowerCase();
+      currentPlaylist = allStations.filter(x => x.title.toLowerCase().includes(q));
+      resetVisibleStations();
+    }, 300));
+  }
+  
+  if (fBtn) {
+    fBtn.addEventListener("click", async () => {
+      const genreLabel = document.querySelector("label[for='playlistSelect']");
+      if (fBtn.classList.contains("active")) {
+        fBtn.classList.remove("active");
+        if (pSel) pSel.style.display = "";
+        if (sIn) sIn.style.display = "";
+        if (genreLabel) genreLabel.textContent = "Genre:";
+        currentPlaylist = allStations.slice();
+        resetVisibleStations();
+      } else {
+        fBtn.classList.add("active");
+        if (pSel) pSel.style.display = "none";
+        if (sIn) sIn.style.display = "none";
+        if (genreLabel) genreLabel.textContent = "Favorites";
+        const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
+        let list = [];
+        for (let pl of allPlaylists) {
+          const st = await loadPlaylist(pl.file);
+          const matched = st.filter(x => fav.includes(x.url));
+          list = list.concat(matched);
+        }
+        const u = Array.from(new Map(list.map(o => [o.url, o])).values());
+        currentPlaylist = u;
+        resetVisibleStations();
       }
-    }
+    });
   }
-
-  function showPlaylistLoader() { playlistLoader.classList.remove('hidden') }
-  function hidePlaylistLoader() { playlistLoader.classList.add('hidden') }
-
-  function loadAndRenderPlaylist(url, callback, scrollToTop = false) {
-    showPlaylistLoader()
-    loadPlaylist(url).then(loadedStations => {
-      allStations = loadedStations
-      currentPlaylist = loadedStations.slice()
-      resetVisibleStations()
-      if (scrollToTop) {
-        setTimeout(() => { playlistContainer.scrollTo({ top: 0, behavior: 'smooth' }) }, 50)
-      }
-    }).then(() => {
-      hidePlaylistLoader()
-      if (typeof callback === 'function') { callback() }
-    }).catch(error => {
-      console.error(error)
-      hidePlaylistLoader()
-    })
+  
+  if (wBtn) {
+    wBtn.addEventListener("click", async () => {
+      const acc = await connectWallet();
+      switchToWeb3(acc);
+    });
   }
+}
 
-  function markStationAsHidden(index) {
-    const failedStation = currentPlaylist[index]
-    if (!failedStation) return
-    let hiddenStations = JSON.parse(localStorage.getItem('hiddenStations') || '[]')
-    if (!hiddenStations.includes(failedStation.url)) {
-      hiddenStations.push(failedStation.url)
-      localStorage.setItem('hiddenStations', JSON.stringify(hiddenStations))
-    }
-    allStations = allStations.filter(st => st.url !== failedStation.url)
-    currentPlaylist.splice(index, 1)
-    resetVisibleStations()
-    const nextIndex = (index < currentPlaylist.length) ? index : 0
-    if (currentPlaylist.length > 0) {
-      window.onStationSelect(nextIndex)
-    } else {
-      if (stationLabel) { stationLabel.textContent = 'No available stations' }
-    }
-  }
-  window.markStationAsHidden = markStationAsHidden
-
-  function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return mins + ':' + (secs < 10 ? '0' + secs : secs)
-  }
-
-  function debounce(func, wait) {
-    let timeout
-    return function(...args) {
-      clearTimeout(timeout)
-      timeout = setTimeout(() => func.apply(this, args), wait)
-    }
-  }
-
-  audioPlayer.addEventListener('play', () => {
+audioPlayer.addEventListener("play", () => {
+  if (!(currentPlaylist[currentTrackIndex] && currentPlaylist[currentTrackIndex].nft)) {
     updatePlayPauseButton(audioPlayer, playPauseBtn)
-    if (playCheckTimer) { clearTimeout(playCheckTimer); playCheckTimer = null }
+    if (playCheckTimer) {
+      clearTimeout(playCheckTimer)
+      playCheckTimer = null
+    }
     if (window.playTimerInterval) clearInterval(window.playTimerInterval)
-    let playTimer = 0
-    const playTimerEl = document.getElementById('playTimer')
-    if (playTimerEl) {
-      playTimerEl.textContent = formatTime(playTimer)
+    let pt = 0
+    const el = document.getElementById("playTimer")
+    if (el) {
+      el.textContent = formatTime(pt)
       window.playTimerInterval = setInterval(() => {
-        playTimer++
-        playTimerEl.textContent = formatTime(playTimer)
+        pt++
+        el.textContent = formatTime(pt)
       }, 1000)
     }
-  })
-
-  audioPlayer.addEventListener('pause', () => {
-    updatePlayPauseButton(audioPlayer, playPauseBtn)
-    if (window.playTimerInterval) { clearInterval(window.playTimerInterval); window.playTimerInterval = null }
-  })
-
-  initVolumeControl(audioPlayer, document.querySelector('.volume-slider'), document.querySelector('.volume-knob'), defaultVolume)
-
-  playlistSelect.addEventListener('change', () => {
-    loadAndRenderPlaylist(playlistSelect.value, () => {
-      searchInput.value = ''
-      if (favoritesFilterBtn.classList.contains('active')) { favoritesFilterBtn.classList.remove('active') }
-    }, true)
-    updateChat(playlistSelect.value)
-  })
-
-  searchInput.addEventListener('input', debounce(() => {
-    const query = searchInput.value.toLowerCase()
-    currentPlaylist = allStations.filter(station => station.title.toLowerCase().includes(query))
-    resetVisibleStations()
-  }, 300))
-
-  favoritesFilterBtn.addEventListener('click', async () => {
-    if (favoritesFilterBtn.classList.contains('active')) {
-      favoritesFilterBtn.classList.remove('active')
-      // Возвращаем оригинальный текст метки
-      genreLabel.textContent = 'Genre:'
-      playlistSelect.style.display = ''
-      searchInput.style.display = ''
-      currentPlaylist = allStations.slice()
-      resetVisibleStations()
+  }
+})
+audioPlayer.addEventListener("ended", () => {
+  if (currentMode === "web3") {
+    if (currentTrackIndex < currentPlaylist.length - 1) {
+      fadeAudioOut(audioPlayer, 500, () => onStationSelect(currentTrackIndex + 1))
     } else {
-      favoritesFilterBtn.classList.add('active')
-      // Меняем текст метки на "Favorites"
-      genreLabel.textContent = 'Favorites'
-      playlistSelect.style.display = 'none'
-      searchInput.style.display = 'none'
-      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
-      let allFavStations = []
-      await Promise.all(allPlaylists.map(async (pl) => {
-        const stations = await loadPlaylist(pl.file)
-        const favs = stations.filter(station => favorites.includes(station.url))
-        allFavStations = allFavStations.concat(favs)
-      }))
-      const uniqueFavStations = Array.from(new Map(allFavStations.map(station => [station.url, station])).values())
-      currentPlaylist = uniqueFavStations
-      resetVisibleStations()
+      fadeAudioOut(audioPlayer, 500, () => onStationSelect(0))
     }
-  })
-  
+  }
+})
 
-  playPauseBtn.addEventListener('click', () => {
-    if (audioPlayer.paused) {
-      audioPlayer.play().catch(err => console.warn(err))
-    } else {
-      audioPlayer.pause()
-    }
+audioPlayer.addEventListener("pause", () => {
+  updatePlayPauseButton(audioPlayer, playPauseBtn)
+  if (window.playTimerInterval) {
+    clearInterval(window.playTimerInterval)
+    window.playTimerInterval = null
+  }
+})
+if ("mediaSession" in navigator) {
+  navigator.mediaSession.setActionHandler("play", async () => {
+    try { await audioPlayer.play() } catch(e){}
+  })
+  navigator.mediaSession.setActionHandler("pause", () => {
+    audioPlayer.pause()
+  })
+  navigator.mediaSession.setActionHandler("previoustrack", () => rrBtn.click())
+  navigator.mediaSession.setActionHandler("nexttrack", () => ffBtn.click())
+}
+playlistContainer.addEventListener("scroll", () => {
+  const { scrollTop, clientHeight, scrollHeight } = playlistContainer
+  if (scrollTop + clientHeight >= scrollHeight - 50) renderMoreStations()
+})
+playlistElement.addEventListener("click", e => {
+  const li = e.target.closest("li")
+  if (!li || li.dataset.index === undefined) return
+  const index = parseInt(li.dataset.index)
+  if (index === currentTrackIndex && currentPlaylist[index].nft && audioPlayer.duration) {
+    const rect = li.getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const newTime = (clickX / rect.width) * audioPlayer.duration
+    audioPlayer.currentTime = newTime
+  } else {
+    onStationSelect(index)
+  }
+})
+
+if (playPauseBtn) {
+  playPauseBtn.addEventListener("click", () => {
+    if (audioPlayer.paused) audioPlayer.play().catch(() => {})
+    else audioPlayer.pause()
     updatePlayPauseButton(audioPlayer, playPauseBtn)
   })
-
-  rrBtn.addEventListener('click', () => {
+}
+if (rrBtn) {
+  rrBtn.addEventListener("click", () => {
     if (currentTrackIndex > 0) {
-      fadeAudioOut(audioPlayer, 500, () => { window.onStationSelect(currentTrackIndex - 1) })
+      fadeAudioOut(audioPlayer, 500, () => {
+        onStationSelect(currentTrackIndex - 1)
+      })
     }
   })
-
-  ffBtn.addEventListener('click', () => {
+}
+if (ffBtn) {
+  ffBtn.addEventListener("click", () => {
     if (shuffleActive) {
-      let randomIndex
-      do { randomIndex = Math.floor(Math.random() * currentPlaylist.length) } while (randomIndex === currentTrackIndex && currentPlaylist.length > 1)
-      fadeAudioOut(audioPlayer, 500, () => { window.onStationSelect(randomIndex) })
+      let r
+      do {
+        r = Math.floor(Math.random() * currentPlaylist.length)
+      } while (r === currentTrackIndex && currentPlaylist.length > 1)
+      fadeAudioOut(audioPlayer, 500, () => onStationSelect(r))
     } else {
       if (currentTrackIndex < currentPlaylist.length - 1) {
-        fadeAudioOut(audioPlayer, 500, () => { window.onStationSelect(currentTrackIndex + 1) })
+        fadeAudioOut(audioPlayer, 500, () => {
+          onStationSelect(currentTrackIndex + 1)
+        })
       }
     }
   })
-
-  favBtn.addEventListener('click', () => {
-    if (currentPlaylist.length > 0) {
-      const currentStation = currentPlaylist[currentTrackIndex]
-      let favs = JSON.parse(localStorage.getItem('favorites') || '[]')
-      if (!favs.includes(currentStation.url)) {
-        favs.push(currentStation.url)
-        localStorage.setItem('favorites', JSON.stringify(favs))
-      }
-      currentPlaylist = allStations.slice()
-      resetVisibleStations()
+}
+if (favBtn) {
+  favBtn.addEventListener("click", () => {
+    if (!currentPlaylist.length) return
+    const c = currentPlaylist[currentTrackIndex]
+    let fv = JSON.parse(localStorage.getItem("favorites") || "[]")
+    if (!fv.includes(c.url)) {
+      fv.push(c.url)
+      localStorage.setItem("favorites", JSON.stringify(fv))
     }
+    currentPlaylist = allStations.slice()
+    resetVisibleStations()
   })
-
-  shuffleBtn.addEventListener('click', () => {
+}
+if (shuffleBtn) {
+  shuffleBtn.addEventListener("click", () => {
     shuffleActive = !shuffleActive
     updateShuffleButton(shuffleActive, shuffleBtn)
   })
-
-  randomBtn.addEventListener('click', () => {
-    fadeAudioOut(audioPlayer, 500, () => {
-      const randomIndex = allPlaylists.length ? Math.floor(Math.random() * allPlaylists.length) : 0
-      const randomGenre = allPlaylists[randomIndex] ? allPlaylists[randomIndex].file : 'genres/african.m3u'
-      loadAndRenderPlaylist(randomGenre, () => {
-        if (currentPlaylist.length > 0) {
-          const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length)
-          window.onStationSelect(randomStationIndex)
-          localStorage.setItem('lastStation', JSON.stringify({ genre: randomGenre, trackIndex: randomStationIndex }))
-          updateChat(randomGenre)
-          playlistSelect.value = randomGenre
+}
+if (randomBtn) {
+  randomBtn.addEventListener("click", () => {
+    if (currentMode === "web3") {
+      fadeAudioOut(audioPlayer, 500, async () => {
+        const contracts = await getNFTContractList();
+        if (!contracts.length) return;
+        const randomContract = contracts[Math.floor(Math.random() * contracts.length)];
+        const cs = document.getElementById("contractSelect");
+        if (cs) {
+          cs.value = randomContract.address;
+          cs.dispatchEvent(new Event("change"));
         }
-      })
-    })
+        const { tracks } = await connectAndLoadWalletNFTs(randomContract.address);
+        if (tracks && tracks.length) {
+          const ix = Math.floor(Math.random() * tracks.length);
+          currentPlaylist = tracks;
+          onStationSelect(ix);
+        }
+      });
+    } else {
+      fadeAudioOut(audioPlayer, 500, () => {
+        if (!allPlaylists.length) return;
+        const ri = Math.floor(Math.random() * allPlaylists.length);
+        const rg = allPlaylists[ri].file;
+        loadAndRenderPlaylist(rg, () => {
+          if (currentPlaylist.length) {
+            const ix = Math.floor(Math.random() * currentPlaylist.length);
+            onStationSelect(ix);
+            localStorage.setItem("lastStation", JSON.stringify({ genre: rg, trackIndex: ix }));
+            updateChat(rg);
+            const pSel = document.getElementById("playlistSelect");
+            if (pSel) {
+              pSel.value = rg;
+            }
+          }
+        });
+      });
+    }
+  });
+}
+
+
+if (walletBtn) {
+  walletBtn.addEventListener("click", async () => {
+    const a = await connectWallet()
+    switchToWeb3(a)
   })
-
-  let lastChatUpdate = 0
-  let lastMetadataUpdate = 0
-  const chatUpdateInterval = 15000
-  const metadataUpdateInterval = 20000
-
-  function globalUpdater(timestamp) {
-    if (!lastChatUpdate) lastChatUpdate = timestamp
-    if (!lastMetadataUpdate) lastMetadataUpdate = timestamp
-    if (timestamp - lastChatUpdate >= chatUpdateInterval) {
-      syncChat()
-      lastChatUpdate = timestamp
-    }
-    if (timestamp - lastMetadataUpdate >= metadataUpdateInterval) {
-      updateStreamMetadata(currentParsingUrl)
-      lastMetadataUpdate = timestamp
-    }
-    requestAnimationFrame(globalUpdater)
+}
+initVolumeControl(audioPlayer, document.querySelector(".volume-slider"), document.querySelector(".volume-knob"), defaultVolume)
+function globalUpdater(ts) {
+  if (!lastChatUpdate) lastChatUpdate = ts
+  if (!lastMetadataUpdate) lastMetadataUpdate = ts
+  if (ts - lastChatUpdate >= chatUpdateInterval) {
+    syncChat()
+    lastChatUpdate = ts
+  }
+  if (ts - lastMetadataUpdate >= metadataUpdateInterval) {
+    updateStreamMetadata(currentParsingUrl)
+    lastMetadataUpdate = ts
   }
   requestAnimationFrame(globalUpdater)
-
-  fetch('playlists.json').then(res => res.json()).then(playlists => {
-    allPlaylists = playlists
-    playlistSelect.innerHTML = ''
-    playlists.forEach(pl => {
-      const opt = document.createElement('option')
-      opt.value = pl.file
-      opt.textContent = pl.name
-      playlistSelect.appendChild(opt)
-    })
-    const locationHash = window.location.hash ? window.location.hash.slice(1) : ''
-    let hashGenre = ''
-    let stationHash = ''
-    let hasHashLink = false
-    if (locationHash.includes('/')) {
-      const parts = locationHash.split('/')
-      if (parts.length === 2) {
-        hashGenre = decodeURIComponent(parts[0])
-        stationHash = parts[1]
-        hasHashLink = true
-      }
+}
+requestAnimationFrame(globalUpdater)
+fetch("playlists.json")
+  .then(r => r.json())
+  .then(pl => {
+    allPlaylists = pl;
+    if (playlistSelect) {
+      playlistSelect.innerHTML = "";
+      pl.forEach(x => {
+        const o = document.createElement("option");
+        o.value = x.file;
+        o.textContent = x.name;
+        playlistSelect.appendChild(o);
+      });
     }
-    const lastStationData = localStorage.getItem('lastStation')
-    if (hasHashLink) {
-      playlistSelect.value = hashGenre
-      window.currentGenre = hashGenre
-      initChat(hashGenre)
-      loadAndRenderPlaylist(hashGenre, () => {
-        const foundIndex = currentPlaylist.findIndex(st => generateStationHash(st.url) === stationHash)
-        if (foundIndex !== -1) {
-          window.onStationSelect(foundIndex)
-          localStorage.setItem('lastStation', JSON.stringify({ genre: hashGenre, trackIndex: foundIndex }))
-          updateChat(hashGenre)
-        } else {
-          defaultPlaylist()
+    if (window.location.hash) {
+      let hg = "";
+      let sh = "";
+      let hh = false;
+      const lh = window.location.hash.slice(1);
+      if (lh.includes("/")) {
+        const pt = lh.split("/");
+        if (pt.length === 2) {
+          hg = decodeURIComponent(pt[0]);
+          sh = pt[1];
+          hh = true;
         }
-      })
-    } else if (lastStationData) {
+      }
+      if (hh) {
+        if (playlistSelect) playlistSelect.value = hg;
+        window.currentGenre = hg;
+        initChat(hg);
+        loadAndRenderPlaylist(hg, () => {
+          const fi = currentPlaylist.findIndex(x => generateStationHash(x.url) === sh);
+          if (fi !== -1) {
+            onStationSelect(fi);
+            localStorage.setItem("lastStation", JSON.stringify({ genre: hg, trackIndex: fi }));
+            updateChat(hg);
+          } else {
+            defaultPlaylist();
+          }
+        });
+      }
+    } else if (localStorage.getItem("lastStation")) {
       try {
-        const { genre, trackIndex } = JSON.parse(lastStationData)
-        playlistSelect.value = genre
-        window.currentGenre = genre
-        initChat(genre)
+        const { genre, trackIndex } = JSON.parse(localStorage.getItem("lastStation"));
+        if (playlistSelect) playlistSelect.value = genre;
+        window.currentGenre = genre;
+        initChat(genre);
         loadAndRenderPlaylist(genre, () => {
-          const safeIndex = (trackIndex < currentPlaylist.length) ? trackIndex : 0
-          window.onStationSelect(safeIndex)
-          updateChat(genre)
-        })
-      } catch (e) {
-        defaultPlaylist()
+          const si = trackIndex < currentPlaylist.length ? trackIndex : 0;
+          onStationSelect(si);
+          updateChat(genre);
+        });
+      } catch(e) {
+        defaultPlaylist();
       }
     } else {
-      defaultPlaylist()
+      defaultPlaylist();
     }
-  }).catch(err => {
-    defaultPlaylist()
+    setRadioListeners();
   })
+  .catch(() => {
+    defaultPlaylist();
+    setRadioListeners();
+  });
 
-  document.dispatchEvent(new Event('appLoaded'))
-})
+document.dispatchEvent(new Event("appLoaded"))
