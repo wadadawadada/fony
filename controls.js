@@ -1,6 +1,5 @@
 // controls.js
 
-// Обновляем иконку Play/Pause
 export function updatePlayPauseButton(audioPlayer, playPauseBtn) {
   const isDark = localStorage.getItem('theme') === 'dark';
   const prefix = isDark ? '/img/dark/' : '/img/';
@@ -11,7 +10,6 @@ export function updatePlayPauseButton(audioPlayer, playPauseBtn) {
   }
 }
 
-// Обновляем иконку Shuffle (активная/неактивная)
 export function updateShuffleButton(shuffleActive, shuffleBtn) {
   const isDark = localStorage.getItem('theme') === 'dark';
   const prefix = isDark ? '/img/dark/' : '/img/';
@@ -24,21 +22,17 @@ export function updateShuffleButton(shuffleActive, shuffleBtn) {
   }
 }
 
-// Инициализация регулятора громкости с поддержкой touch-событий для мобильных устройств
 export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, defaultVolume) {
   let isDragging = false;
 
   function updateVolume(clientX) {
     const rect = volumeSlider.getBoundingClientRect();
-    // Задаём отступы: 5% от ширины с каждой стороны
     const leftMargin = rect.width * 0.06;
     const rightMargin = rect.width * 0.06;
     const effectiveWidth = rect.width - leftMargin - rightMargin;
     
     let pos = clientX - rect.left;
-    // Ограничиваем позицию отступами
     pos = Math.max(leftMargin, Math.min(pos, rect.width - rightMargin));
-    // Вычисляем громкость исходя из эффективной длины
     const newVolume = (pos - leftMargin) / effectiveWidth;
     
     audioPlayer.volume = newVolume;
@@ -46,7 +40,6 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
     volumeKnob.style.left = pos + "px";
   }
 
-  // Обработчики для мыши
   volumeKnob.addEventListener('mousedown', (e) => {
     isDragging = true;
     e.preventDefault();
@@ -60,7 +53,6 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
     isDragging = false;
   });
 
-  // Обработчики для touch-событий
   volumeKnob.addEventListener('touchstart', (e) => {
     isDragging = true;
     e.preventDefault();
@@ -77,7 +69,6 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
 
 
 
-  // При загрузке страницы устанавливаем положение ручки
   window.addEventListener('load', () => {
     const rect = volumeSlider.getBoundingClientRect();
     volumeKnob.style.left = (defaultVolume.value * rect.width) + "px";

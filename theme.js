@@ -5,20 +5,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const leftPanel = document.querySelector('.left-panel');
   const rightPanel = document.querySelector('.right-panel');
 
-  // Определяем дефолтную (светлую) и тёмную темы (фон и т. д.)
   const defaultTheme = {
     leftPanelBg: '#f2f2f2',
     rightPanelBg: 'linear-gradient(135deg, #5587e4 0%, #d68255 20%, #ec7b2a 40%, #4b85ea 60%, #C36C8B 80%, #55cbd8 100%)',
-    icon: '/img/moon.svg' // иконка переключения темы
+    icon: '/img/moon.svg' 
   };
 
   const darkTheme = {
     leftPanelBg: '#171C2B',
     rightPanelBg: 'linear-gradient(135deg, hsl(165, 94%, 30%) 0%, hsl(165, 94%, 49%) 50%, hsl(165, 94%, 70%) 100%)',
-    icon: '/img/sun.svg'  // иконка переключения темы
+    icon: '/img/sun.svg'  
   };
 
-  // Находим нужные элементы (иконки) в DOM
   const icons = {
     playPauseBtn: document.getElementById('playPauseBtn'),
     randomBtn: document.getElementById('randomBtn'),
@@ -32,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     manifestoBtn: document.querySelector('#manifestoBtn img')
   };
 
-  // Пути к иконкам для светлой и тёмной темы, включая кнопку manifesto
   const iconVariants = {
     light: {
       playPauseBtn: '/img/play_button.svg',
@@ -62,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Функция, которая меняет пути у всех иконок в зависимости от темы
   function applyThemeIcons(theme) {
     const variant = iconVariants[theme] || iconVariants.light;
     for (const key in icons) {
@@ -79,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Функция применения темы (фон, градиент, иконка переключения)
   function applyTheme(theme) {
     if (theme === 'dark') {
       leftPanel.style.backgroundColor = darkTheme.leftPanelBg;
@@ -95,11 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
     applyThemeIcons(theme);
   }
 
-  // Загружаем сохранённую тему из localStorage (по умолчанию — светлая)
   let currentTheme = localStorage.getItem('theme') || 'light';
   applyTheme(currentTheme);
 
-  // При клике по кнопке переключаем тему
   themeToggleBtn.addEventListener('click', () => {
     currentTheme = (currentTheme === 'light') ? 'dark' : 'light';
     applyTheme(currentTheme);

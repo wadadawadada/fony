@@ -66,14 +66,12 @@
   transform: translateX(-50%);
   justify-content: center;
 }
-/* 1) Изменение: изначально скрываем right-group */
 .right-group {
   margin-left: 10%;
   flex: 1;
   justify-content: flex-end;
   gap: 5px;
   overflow: hidden;
-  /* display: none; <-- добавлено */
 }
 .stream-icon,
 .track-icon {
@@ -93,7 +91,7 @@
 .track-name .scrolling-text {
   display: inline-block;
 }
-/* класс .marquee включает анимацию */
+
 .station-label .scrolling-text.marquee {
   animation: marquee 20s linear infinite;
 }

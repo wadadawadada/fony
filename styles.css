@@ -47,7 +47,6 @@ html, body {
 
   .container {
     transition: opacity 1.5s ease;
-    /* Задайте нужный фон, например: */
     background-color: #171C2B;
   }
 
@@ -587,13 +586,11 @@ height: 17px;
       margin: 0;
       padding: 0;
       width: 100%;
-      /* 100svh – «Small Viewport Height», учитывает адресную строку, чтобы верх не уезжал */
       height: 100svh;
       box-sizing: border-box;
-      overflow: hidden; /* Запрещаем глобальную прокрутку */
+      overflow: hidden; 
     }
   
-    /* Поддержка безопасной зоны (iOS) – сдвигаем контент на высоту выреза/адресной строки */
     body {
       padding-top: env(safe-area-inset-top);
     }
@@ -631,7 +628,6 @@ height: 17px;
       padding-bottom: env(safe-area-inset-bottom);
     }
   
-    /* Контент манифеста растягивается и при переполнении текста появляется скролл */
     .manifesto-content {
       width: 100%;
       height: 100%;
@@ -642,43 +638,35 @@ height: 17px;
       box-sizing: border-box;
     }
   
-    /* 2. Контейнер во весь экран, без прокрутки */
     .container {
       display: flex;
       flex-direction: column;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      /* Фон и т. д. можете оставить/скопировать из вашей .container */
     }
 
 
     .left-panel {
-      flex: 0 0 auto; /* фиксирует под высоту содержимого */
-      padding: 10px;  /* ваш отступ */
-      /* остальной ваш код: background, цвета и т. д. */
+      flex: 0 0 auto; 
+      padding: 10px; 
     }
 
     #resizer {
-      display: none; /* скрываем на мобильных */
+      display: none;
     }
   
-    /* 4. Правая панель (с плейлистом) – «вся оставшаяся» высота */
     .right-panel {
-      flex: 1 1 auto; /* растягивается */
+      flex: 1 1 auto;
       display: flex;
       flex-direction: column;
       padding: 10px;
       box-sizing: border-box;
-      /* ваш фон, тени и т. д. */
     }
 
-  
-    /* Прокрутка только внутри списка треков */
     .playlist-area {
-      flex: 1 1 auto; /* растягивается внутри .right-panel */
-      overflow-y: auto; /* здесь включаем вертикальный скролл для станций */
-      /* ваш остальной код под оформление списка */
+      flex: 1 1 auto; 
+      overflow-y: auto; 
     }
 
     .wadada {

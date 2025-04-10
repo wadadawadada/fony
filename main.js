@@ -89,7 +89,6 @@ function cleanupBuffer(sb) {
   }
 }
 function startPlaylistPreloader() {
-  // Если анимация уже запущена – очищаем предыдущий interval.
   if (preloaderInterval) {
     clearInterval(preloaderInterval);
     preloaderInterval = null;
@@ -100,18 +99,15 @@ function startPlaylistPreloader() {
   playlistLoader.style.fontSize = "22px";
   playlistLoader.style.fontFamily = "Ruda";
   playlistLoader.style.textAlign = "center";
-  // Гарантируем, что контент не переносится на несколько строк:
   playlistLoader.style.whiteSpace = "nowrap";
 
-  // Создаем три контейнера: левый, центральный с надписью и правый.
-  // Устанавливаем фиксированную минимальную ширину (например, для 3-х символов, используя единицу 'ch').
   playlistLoader.innerHTML =
     '<span id="leftColons" style="display: inline-block; min-width: 3ch; text-align: right;"></span>' +
     '<span id="loaderText" style="display: inline-block; margin: 0 10px;">IPFS load</span>' +
     '<span id="rightColons" style="display: inline-block; min-width: 3ch; text-align: left;"></span>';
 
   let colonCount = 0;
-  const maxColons = 3; // Количество кадров: 0, 1, 2, 3 двоеточий
+  const maxColons = 3;
   preloaderInterval = setInterval(() => {
     colonCount = (colonCount + 1) % (maxColons + 1);
     document.getElementById("leftColons").textContent = ":".repeat(colonCount);
