@@ -877,3 +877,36 @@ fetch("playlists.json")
   });
 
 document.dispatchEvent(new Event("appLoaded"))
+
+const leftPanel = document.querySelector('.left-panel');
+const rightPanel = document.querySelector('.right-panel');
+const resizer = document.getElementById('resizer');
+
+let isResizing = false;
+let startX;
+let startWidth;
+
+resizer.addEventListener('mousedown', (e) => {
+  isResizing = true;
+  startX = e.clientX;
+  startWidth = leftPanel.offsetWidth;
+  document.body.style.cursor = 'ew-resize';
+  document.body.style.userSelect = 'none';
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isResizing) return;
+
+  const dx = e.clientX - startX;
+  if (Math.abs(dx) > 50) return;
+
+  const newWidth = startWidth + dx;
+  leftPanel.style.width = `${newWidth}px`;
+  rightPanel.style.width = `calc(100% - ${newWidth + 5}px)`;
+});
+
+document.addEventListener('mouseup', () => {
+  isResizing = false;
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+});

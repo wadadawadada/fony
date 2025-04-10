@@ -1,6 +1,3 @@
-// chat.js
-
-// Функция для получения конфигурации из Netlify Functions
 async function fetchConfig() {
   const response = await fetch('/.netlify/functions/get-config');
   if (!response.ok) {
@@ -9,7 +6,6 @@ async function fetchConfig() {
   return await response.json();
 }
 
-// Глобальные переменные для хранения конфигурационных данных
 let GIST_ID;
 let GITHUB_TOKEN;
 let CHAT_FILENAME;
@@ -17,11 +13,9 @@ let CHAT_FILENAME;
 let currentGenre = '';
 let username = localStorage.getItem('chatUsername') || '';
 
-// Переменные для кэширования данных чата
 let lastChatETag = '';
 let cachedChatData = {};
 
-// Геттеры для элементов чата
 function getChatMessagesElement() {
   return document.getElementById('chatMessages');
 }
@@ -38,7 +32,6 @@ function getChatUsernameInput() {
   return document.getElementById('chatUsernameInput');
 }
 
-// Инициализация имени пользователя
 function initChatUsername() {
   const usernameInput = getChatUsernameInput();
   if (username) {
@@ -61,7 +54,6 @@ function initChatUsername() {
   });
 }
 
-// Загрузка чата с Gist с кэшированием через ETag
 async function fetchChatData() {
   const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
     headers: { 
@@ -71,7 +63,6 @@ async function fetchChatData() {
   });
   
   if (response.status === 304) {
-    // Данные не изменились – возвращаем закэшированное значение
     return cachedChatData;
   }
   
@@ -89,7 +80,6 @@ async function fetchChatData() {
   return data;
 }
 
-// Обновление чата в Gist
 async function updateChatData(updatedData) {
   await fetch(`https://api.github.com/gists/${GIST_ID}`, {
     method: 'PATCH',
@@ -107,7 +97,6 @@ async function updateChatData(updatedData) {
   });
 }
 
-// Отрисовка сообщений в блоке #chatMessages
 export async function renderChatMessages() {
   const messagesElem = getChatMessagesElement();
   messagesElem.innerHTML = '';
@@ -119,11 +108,10 @@ export async function renderChatMessages() {
     msgDiv.innerHTML = `<strong>${msg.username}</strong> [${new Date(msg.timestamp).toLocaleTimeString()}]: ${msg.text}`;
     messagesElem.appendChild(msgDiv);
   });
-  // Прокрутка вниз
+  
   messagesElem.scrollTop = messagesElem.scrollHeight;
 }
 
-// Отправка нового сообщения с мгновенным обновлением UI
 export async function sendMessage() {
   const input = getChatInput();
   const text = input.value.trim();
@@ -143,17 +131,17 @@ export async function sendMessage() {
   });
   await updateChatData(data);
   input.value = '';
-  // Обновляем сообщения сразу после отправки
+
   renderChatMessages();
 }
 
 /**
- * Инициализация чата.
- * @param {string} genre - Жанр (например, из плейлиста), для которого открывается чат.
+ * .
+ * @param {string} genre .
  */
 export async function initChat(genre) {
   try {
-    // Получаем конфигурационные значения из Netlify Functions
+    
     const config = await fetchConfig();
     GIST_ID = config.GIST_ID;
     GITHUB_TOKEN = config.GITHUB_TOKEN;
@@ -166,10 +154,10 @@ export async function initChat(genre) {
   currentGenre = genre;
   getChatHeader().textContent = `Chat in /${genre.replace('genres/','').replace('.m3u','')} genre`;
   initChatUsername();
-  // Первичная отрисовка сообщений
+  
   renderChatMessages();
 
-  // Навешиваем обработчики на кнопку "Отправить" и Enter
+  
   const sendBtn = getChatSendBtn();
   const chatInput = getChatInput();
 
@@ -191,8 +179,8 @@ export async function initChat(genre) {
 }
 
 /**
- * Обновление чата при смене жанра.
- * @param {string} genre - Новый жанр.
+ * .
+ * @param {string} genre - .
  */
 export function updateChat(genre) {
   currentGenre = genre;
@@ -200,7 +188,7 @@ export function updateChat(genre) {
   renderChatMessages();
 }
 
-// Для синхронизации чата из глобального цикла обновления
+// 
 export function syncChat() {
   renderChatMessages();
 }
