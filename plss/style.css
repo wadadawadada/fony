@@ -4,7 +4,7 @@ body {
     margin: 0;
 }
 
-/* Фиксированный блок вверху */
+
 #header {
     position: fixed;
     top: 0;
@@ -19,9 +19,9 @@ body {
     z-index: 1000;
 }
 
-/* Блок контента с отступом сверху, равным высоте фиксированного блока */
+
 #content {
-    margin-top: 70px; /* Отрегулируйте значение в зависимости от фактической высоты #header */
+    margin-top: 70px; 
 }
 
 #drop-area {
@@ -35,7 +35,7 @@ body {
 #playlist {
     list-style: none;
     padding: 0;
-    max-height: 400px; /* Максимальная высота плейлиста, при переполнении появится скроллинг */
+    max-height: 400px; 
     overflow-y: auto;
 }
 
@@ -52,12 +52,11 @@ li button {
     margin-left: 10px;
 }
 
-/* Подсветка проигранных станций */
+
 li.played {
     background-color: #d3ffd3;
 }
 
-/* Стили для отображения текущей станции */
 #current-station {
     margin-bottom: 20px;
     font-weight: bold;

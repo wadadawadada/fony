@@ -1,12 +1,11 @@
 let stations = [];
 let originalFileName = '';
-let playlistKey = ''; // ключ текущего плейлиста (имя файла)
+let playlistKey = '';
 
-// Загружаем мапы проигранных станций и текущей станции из localStorage
+
 let playedStationsMap = JSON.parse(localStorage.getItem('playedStationsMap')) || {};
 let currentStationMap = JSON.parse(localStorage.getItem('currentStationMap')) || {};
 
-// Массив проигранных станций для текущего плейлиста (будет ссылкой на объект playedStationsMap)
 let playedStations = [];
 
 const dropArea = document.getElementById('drop-area');
@@ -16,7 +15,6 @@ const saveBtn = document.getElementById('save');
 const saveUnfinishedBtn = document.getElementById('saveUnfinished');
 const currentStationEl = document.getElementById('current-station');
 
-// Обработчики для drag & drop загрузки M3U-файла
 dropArea.addEventListener('dragover', (e) => {
   e.preventDefault();
   dropArea.style.backgroundColor = '#eee';
@@ -33,19 +31,19 @@ dropArea.addEventListener('drop', async (e) => {
   if (!file.name.endsWith('.m3u')) return;
 
   originalFileName = file.name;
-  playlistKey = originalFileName; // используем имя файла как уникальный ключ для плейлиста
+  playlistKey = originalFileName;
   
-  // Загружаем ранее сохранённые данные для этого плейлиста, если они есть
+
   playedStations = playedStationsMap[playlistKey] || [];
   
   const text = await file.text();
   parseM3U(text);
   renderList();
-  // После загрузки файла пробуем восстановить текущую станцию
+  
   restoreCurrentStation();
 });
 
-// Парсинг M3U-файла
+
 function parseM3U(content) {
   const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
   stations = [];
@@ -55,17 +53,15 @@ function parseM3U(content) {
         title: lines[i].replace('#EXTINF:-1,', ''),
         url: lines[i + 1]
       });
-      i++; // пропускаем следующий URL
+      i++;
     }
   }
 }
 
-// Отрисовка списка станций
 function renderList() {
   playlistEl.innerHTML = '';
   stations.forEach((station, index) => {
     const li = document.createElement('li');
-    // Если станция уже проигрывалась для этого плейлиста, добавляем класс для подсветки
     if (playedStations.includes(station.url)) {
       li.classList.add('played');
     }
@@ -79,12 +75,10 @@ function renderList() {
     del.textContent = '❌';
     del.onclick = () => {
       stations.splice(index, 1);
-      // При удалении станции также удаляем её URL из списка проигранных
       playedStations = playedStations.filter(url => url !== station.url);
       playedStationsMap[playlistKey] = playedStations;
       localStorage.setItem('playedStationsMap', JSON.stringify(playedStationsMap));
       
-      // Если удалена текущая станция, сбрасываем её
       if (currentStationMap[playlistKey] == station.url) {
         delete currentStationMap[playlistKey];
         localStorage.setItem('currentStationMap', JSON.stringify(currentStationMap));
@@ -93,7 +87,6 @@ function renderList() {
       renderList();
     };
 
-    // Добавляем название, затем кнопку удаления, затем URL станции
     li.appendChild(span);
     li.appendChild(del);
     li.appendChild(document.createTextNode(" " + station.url + " "));
@@ -102,15 +95,12 @@ function renderList() {
 }
 
 
-// Функция проигрывания станции
 function playStation(index) {
   const station = stations[index];
   player.src = station.url;
   player.play();
-  // Сохраняем текущую станцию для данного плейлиста
   currentStationMap[playlistKey] = station.url;
   localStorage.setItem('currentStationMap', JSON.stringify(currentStationMap));
-  // Отмечаем станцию как проигранную, если её там ещё нет (используем URL для уникальности)
   if (!playedStations.includes(station.url)) {
     playedStations.push(station.url);
     playedStationsMap[playlistKey] = playedStations;
@@ -120,10 +110,8 @@ function playStation(index) {
   renderList();
 }
 
-// Обновление отображения текущей станции
 function displayCurrentStation() {
   if (playlistKey && currentStationMap[playlistKey]) {
-    // Находим название станции по URL
     const currentUrl = currentStationMap[playlistKey];
     const station = stations.find(s => s.url === currentUrl);
     if (station) {
@@ -134,7 +122,6 @@ function displayCurrentStation() {
   currentStationEl.textContent = 'Станция не выбрана';
 }
 
-// Восстановление и автозапуск текущей станции
 function restoreCurrentStation() {
   if (playlistKey && currentStationMap[playlistKey]) {
     const currentUrl = currentStationMap[playlistKey];
@@ -147,7 +134,6 @@ function restoreCurrentStation() {
   }
 }
 
-// Сохранение изменений в файл M3U с использованием исходного имени файла
 saveBtn.onclick = () => {
   let content = '#EXTM3U\n';
   stations.forEach(s => {
@@ -161,7 +147,6 @@ saveBtn.onclick = () => {
   a.click();
 };
 
-// Сохранение изменений в файл M3U, содержащий только станции, которые отмечены как проигранные (выделены зелёным)
 saveUnfinishedBtn.onclick = () => {
   let content = '#EXTM3U\n';
   stations.forEach(s => {
@@ -177,7 +162,6 @@ saveUnfinishedBtn.onclick = () => {
   a.click();
 };
 
-// При загрузке страницы обновляем отображение текущей станции
 window.addEventListener('load', () => {
   displayCurrentStation();
 });
