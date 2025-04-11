@@ -484,12 +484,34 @@ height: 17px;
     transition: width 0.3s ease;
     pointer-events: none;
   }
+
+
+  #playlist li.radio-mode .progress {
+    background-color: #171c2b8b; 
+  }
+  
+  #playlist li.web3-mode .progress {
+    background-color: #00F2B8; 
+  }
+
   #playlist li:hover {
     background-color: #00F2B8;
     color: #000000;
     scale: 1.02;
     transition: all 0.3s ease-in-out;
   }
+
+  #playlist li.radio-mode:hover {
+    background-color: #00F2B8; 
+    color: #000000;
+  }
+  
+  #playlist li.web3-mode:hover {
+    background-color: #ffffff77; 
+    color: #000000;
+  }
+  
+
   #playlist li img.station-icon {
     width: 40px;
     height: 40px;

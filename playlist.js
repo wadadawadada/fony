@@ -25,6 +25,8 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     li.style.position = "relative";
     li.style.setProperty("--buffer-percent", "0%");
     li.dataset.index = i;
+    li.classList.add(window.currentMode === 'web3' ? 'web3-mode' : 'radio-mode');
+
 
     const progressDiv = document.createElement("div");
     progressDiv.classList.add("progress");
