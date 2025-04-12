@@ -874,31 +874,40 @@ fetch("playlists.json")
 
 document.dispatchEvent(new Event("appLoaded"))
 
+const container = document.querySelector('.container');
 const leftPanel = document.querySelector('.left-panel');
 const rightPanel = document.querySelector('.right-panel');
 const resizer = document.getElementById('resizer');
 
 let isResizing = false;
 let startX;
-let startWidth;
+let startLeftWidthPercent;
 
 resizer.addEventListener('mousedown', (e) => {
   isResizing = true;
   startX = e.clientX;
-  startWidth = leftPanel.offsetWidth;
+
+  startLeftWidthPercent = (leftPanel.offsetWidth / container.clientWidth) * 100;
   document.body.style.cursor = 'ew-resize';
   document.body.style.userSelect = 'none';
 });
 
 document.addEventListener('mousemove', (e) => {
   if (!isResizing) return;
-
+  
+  const containerWidth = container.clientWidth;
   const dx = e.clientX - startX;
-  if (Math.abs(dx) > 50) return;
 
-  const newWidth = startWidth + dx;
-  leftPanel.style.width = `${newWidth}px`;
-  rightPanel.style.width = `calc(100% - ${newWidth + 5}px)`;
+  const dxPercent = (dx / containerWidth) * 100;
+  let newLeftWidthPercent = startLeftWidthPercent + dxPercent;
+  
+  if (newLeftWidthPercent < 40) newLeftWidthPercent = 40;
+  if (newLeftWidthPercent > 70) newLeftWidthPercent = 70;
+
+  leftPanel.style.width = `${newLeftWidthPercent}%`;
+  rightPanel.style.width = `${100 - newLeftWidthPercent}%`;
+
+  resizer.style.left = `calc(${newLeftWidthPercent}% - ${resizer.offsetWidth / 2}px)`;
 });
 
 document.addEventListener('mouseup', () => {
@@ -906,3 +915,7 @@ document.addEventListener('mouseup', () => {
   document.body.style.cursor = '';
   document.body.style.userSelect = '';
 });
+
+
+
+

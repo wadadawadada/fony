@@ -171,10 +171,13 @@ height: 17px;
   }
 
   #resizer {
-    display: hidden;
-    width: 0.3px;
+    position: absolute; 
+    top: 0;
+    width: 5px;   
+    height: 100%;
+    left: calc(65% - 2.5px);
+    background-color: transparent;
     cursor: ew-resize;
-    background-color: #03ffc45c;
     z-index: 10;
   }
   
