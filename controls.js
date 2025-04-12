@@ -1,5 +1,3 @@
-// controls.js
-
 export function updatePlayPauseButton(audioPlayer, playPauseBtn) {
   const isDark = localStorage.getItem('theme') === 'dark';
   const prefix = isDark ? '/img/dark/' : '/img/';
@@ -22,6 +20,18 @@ export function updateShuffleButton(shuffleActive, shuffleBtn) {
   }
 }
 
+function updateVolumeScale(volume) {
+  const numLevels = 13;
+  const activeCount = Math.floor(volume * numLevels);
+  for (let i = 1; i <= numLevels; i++) {
+    const levelElem = document.getElementById(i.toString());
+    if (levelElem) {
+      levelElem.style.transition = "fill 0.3s ease";
+      levelElem.setAttribute("fill", (i <= activeCount) ? "#00F2B8" : "#3C3C3C");
+    }
+  }
+}
+
 export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, defaultVolume) {
   let isDragging = false;
 
@@ -30,14 +40,13 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
     const leftMargin = rect.width * 0.06;
     const rightMargin = rect.width * 0.06;
     const effectiveWidth = rect.width - leftMargin - rightMargin;
-    
     let pos = clientX - rect.left;
     pos = Math.max(leftMargin, Math.min(pos, rect.width - rightMargin));
     const newVolume = (pos - leftMargin) / effectiveWidth;
-    
     audioPlayer.volume = newVolume;
     defaultVolume.value = newVolume;
     volumeKnob.style.left = pos + "px";
+    updateVolumeScale(newVolume);
   }
 
   volumeKnob.addEventListener('mousedown', (e) => {
@@ -67,10 +76,10 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
     isDragging = false;
   });
 
-
-
   window.addEventListener('load', () => {
     const rect = volumeSlider.getBoundingClientRect();
-    volumeKnob.style.left = (defaultVolume.value * rect.width) + "px";
+    const pos = defaultVolume.value * rect.width;
+    volumeKnob.style.left = pos + "px";
+    updateVolumeScale(defaultVolume.value);
   });
 }
