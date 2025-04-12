@@ -439,16 +439,19 @@ height: 17px;
 
   #playlistLoader {
     position: absolute;
-    width: 100%;
-    background-color: #4b85ea;
-    top: 30%;
-    left: 30%;
+    /* width: 100%; */
+    /* background-color: #07F2B8; */
+    border-radius: 50px;
+    border: 1px solid #fff;
+    top: 20%;
+    left: 50%;
     transform: translate(-50%, -50%);
-    width: 0;
+    padding: 0.5rem;
+    /* width: 0;
     height: 0;
     border-left: 20px solid transparent;
     border-right: 20px solid transparent;
-    animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite; */
     z-index: 999;
   }
   @keyframes spin {
