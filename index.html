@@ -179,7 +179,9 @@
   <script type="module" src="main.js"></script>
   <script type="module" src="theme.js"></script>
   <script type="module" src="equalizer.js"></script>
-  <script>
+  <script type="module" src="settings.js"></script>
+
+  <!-- <script>
     function attachSettingsListener() {
       const settingsIcon = document.getElementById("settingsIcon");
       if (settingsIcon) {
@@ -218,9 +220,12 @@
     document.getElementById('manifestoBtn').addEventListener('click', function() {
       document.getElementById('manifestoModal').style.display = 'block';
     });
-    document.querySelector('.manifesto-close').addEventListener('click', function() {
-      document.getElementById('manifestoModal').style.display = 'none';
-    });
+    document.getElementById('manifestoModal').addEventListener('click', function(e) {
+  if (e.target.classList.contains('manifesto-close')) {
+    this.style.display = 'none';
+  }
+});
+
     window.addEventListener('click', function(e) {
       if (e.target.id === 'manifestoModal') {
         document.getElementById('manifestoModal').style.display = 'none';
@@ -229,7 +234,7 @@
     document.addEventListener("DOMContentLoaded", function() {
       attachSettingsListener();
     });
-  </script>
+  </script> -->
   <div class="wadada">
     <a href="https://blockarkstudios.com" target="_blank">created by Block Ark Studios</a>
   </div>
