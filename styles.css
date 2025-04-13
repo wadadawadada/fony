@@ -664,7 +664,7 @@ height: 17px;
     .manifesto-close {
       position: fixed;
       top: 5px;
-      right: 5px;
+      right: 15px;
       z-index: 3100;
       font-size: 3rem;
       background-color: #171C2B;
@@ -695,6 +695,7 @@ height: 17px;
       margin: 0;
       border-radius: 0;
       box-sizing: border-box;
+      border: none;
     }
 
    
