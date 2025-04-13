@@ -37,7 +37,7 @@ function handleSettingsClick(e) {
   var modal = document.getElementById("manifestoModal");
   var modalContent = modal.querySelector(".manifesto-content");
   defaultModalContent = modalContent.innerHTML;
-  modalContent.innerHTML = '<h1 style="color:#00F2B8; text-align: center;">SETTINGS</h1><div style="padding: 20px;"><label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;"><input type="checkbox" id="httpStationsCheckbox">Show http stations (not safe)</label><label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;"><input type="checkbox" id="leftHandedCheckbox">Left Handed</label></div><button id="saveSettingsBtn" class="save-settings-btn">Save Settings</button>';
+  modalContent.innerHTML = '<h1 style="color:#00F2B8; text-align: center;">SETTINGS</h1><div style="padding: 20px;"><label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;"><input type="checkbox" id="httpStationsCheckbox">Show http stations (not safe)</label><label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;"><input type="checkbox" id="leftHandedCheckbox">Left Handed</label></div><button id="resetAppBtn" style="background-color: red; color: white; border: none; border-radius: 25px; padding: 7px 13px; font-family: \'Ruda\', sans-serif; font-size: 12px; cursor: pointer; margin-top: 10px;">RESET APP</button><button id="saveSettingsBtn" class="save-settings-btn" style="margin-top:10px;">Save Settings</button>';
   var checkbox = document.getElementById("httpStationsCheckbox");
   checkbox.checked = (localStorage.getItem("useOnlyHttps") === "false");
   var leftHandedCheckbox = document.getElementById("leftHandedCheckbox");
@@ -54,9 +54,13 @@ function handleSettingsClick(e) {
     if (select) {
       select.dispatchEvent(new Event("change"));
     }
-    document.querySelector("#manifestoModal .manifesto-content").innerHTML = defaultModalContent;
+    modalContent.innerHTML = defaultModalContent;
     attachSettingsListener();
     modal.style.display = "none";
+  });
+  document.getElementById("resetAppBtn").addEventListener("click", function() {
+    localStorage.clear();
+    location.reload();
   });
   modal.style.display = "block";
 }
