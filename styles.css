@@ -112,8 +112,26 @@ height: 17px;
     top: 2rem;    
     left: 2rem; 
     display: flex;
-    gap: 10px;
+    gap: 20px;
   }
+
+  .save-settings-btn {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 25px;
+    background-color: #00F2B8;
+    color: #171C2B;
+    cursor: pointer;
+    font-family: Ruda;
+  }
+
+  .save-settings-btn:hover {
+    scale: 0.95;
+  }
+  
   
   .manifesto-close {
     position: absolute;
@@ -667,6 +685,7 @@ height: 17px;
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
     }
+
   
     .manifesto-content {
       width: 100%;

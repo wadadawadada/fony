@@ -102,7 +102,6 @@
                 <rect id="11" x="96.9067" y="0.974243" width="6.46045" height="32.9521" fill="#3C3C3C"/>
               </g>
             </svg>
-            
             <div class="volume-slider">
               <img src="/img/volume_line.svg" alt="Volume line" class="volume-line">
               <img src="/img/volume_knob.svg" alt="Volume knob" class="volume-knob">
@@ -149,14 +148,19 @@
   <div id="manifestoModal" class="manifesto-modal">
     <div class="manifesto-content">
       <div class="manifesto-icons">
+        <a href="#" id="settingsIcon">
+          <img src="/img/settings.svg" alt="Settings Icon" width="24" height="24">
+        </a>
         <a href="https://x.com/fonyspace" target="_blank" rel="noopener noreferrer">
           <img src="/img/x_icon.svg" alt="X Icon" width="24" height="24">
         </a>
         <a href="https://github.com/wadadawadada/fony" target="_blank" rel="noopener noreferrer">
           <img src="/img/github_icon.svg" alt="GitHub Icon" width="24" height="24">
         </a>
+        <!-- <a href="#" id="settingsIcon">
+          <img src="/img/settings.svg" alt="Settings Icon" width="24" height="24">
+        </a> -->
       </div>
-      
       <p class="disclaimer" style="font-style: italic; color: #07F2B8;">This web app is still under development and continuous improvement. We strive to make it fast and user-friendly so you can enjoy it on any device.</p>
       <button class="manifesto-close">&times;</button>
       <h1>The Next-Gen Music Player</h1>
@@ -176,16 +180,54 @@
   <script type="module" src="theme.js"></script>
   <script type="module" src="equalizer.js"></script>
   <script>
-    document.getElementById('manifestoBtn').addEventListener('click', () => {
+    function attachSettingsListener() {
+      const settingsIcon = document.getElementById("settingsIcon");
+      if (settingsIcon) {
+        settingsIcon.addEventListener("click", handleSettingsClick);
+      }
+    }
+    function handleSettingsClick(e) {
+      e.preventDefault();
+      const modal = document.getElementById("manifestoModal");
+      const modalContent = modal.querySelector(".manifesto-content");
+      const defaultModalContent = modalContent.innerHTML;
+      modalContent.innerHTML = '<h1 style="color:#00F2B8; text-align: center;">SETTINGS</h1><div style="padding: 20px;"><label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;"><input type="checkbox" id="httpStationsCheckbox">Show http stations (not safe)</label></div><button id="saveSettingsBtn" class="save-settings-btn">Save Settings</button><button class="manifesto-close">&times;</button>';
+      const checkbox = document.getElementById("httpStationsCheckbox");
+      checkbox.checked = (localStorage.getItem("useOnlyHttps") === "false");
+      document.getElementById("saveSettingsBtn").addEventListener("click", function() {
+        const newValue = checkbox.checked ? "false" : "true";
+        localStorage.setItem("useOnlyHttps", newValue);
+        if (window.updateUseOnlyHttpsSetting) {
+          window.updateUseOnlyHttpsSetting(checkbox.checked ? false : true);
+        }
+        var select = document.getElementById("playlistSelect");
+        if (select) {
+          select.dispatchEvent(new Event("change"));
+        }
+        modalContent.innerHTML = defaultModalContent;
+        attachSettingsListener();
+        modal.style.display = "none";
+      });
+      modalContent.querySelector(".manifesto-close").addEventListener("click", function() {
+        modal.style.display = "none";
+        modalContent.innerHTML = defaultModalContent;
+        attachSettingsListener();
+      });
+      modal.style.display = "block";
+    }
+    document.getElementById('manifestoBtn').addEventListener('click', function() {
       document.getElementById('manifestoModal').style.display = 'block';
     });
-    document.querySelector('.manifesto-close').addEventListener('click', () => {
+    document.querySelector('.manifesto-close').addEventListener('click', function() {
       document.getElementById('manifestoModal').style.display = 'none';
     });
-    window.addEventListener('click', (e) => {
+    window.addEventListener('click', function(e) {
       if (e.target.id === 'manifestoModal') {
         document.getElementById('manifestoModal').style.display = 'none';
       }
+    });
+    document.addEventListener("DOMContentLoaded", function() {
+      attachSettingsListener();
     });
   </script>
   <div class="wadada">

@@ -1,7 +1,7 @@
-// playlist.js
-
-const USE_ONLY_HTTPS = true;
-
+export let USE_ONLY_HTTPS = localStorage.getItem("useOnlyHttps") === "false" ? false : true;
+export function updateUseOnlyHttpsSetting(newValue) {
+  USE_ONLY_HTTPS = newValue;
+}
 function generateStationHash(url) {
   let hash = 0;
   for (let i = 0; i < url.length; i++) {
@@ -10,7 +10,6 @@ function generateStationHash(url) {
   }
   return Math.abs(hash).toString(16);
 }
-
 export function renderPlaylist(playlistElement, stations, startIndex = 0, endIndex = null) {
   if (endIndex === null) {
     endIndex = stations.length;
@@ -18,20 +17,16 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
   playlistElement.innerHTML = "";
   const fragment = document.createDocumentFragment();
   const maxEnd = Math.min(endIndex, stations.length);
-
   for (let i = startIndex; i < maxEnd; i++) {
     const station = stations[i];
     const li = document.createElement("li");
     li.style.position = "relative";
     li.style.setProperty("--buffer-percent", "0%");
     li.dataset.index = i;
-    li.classList.add(window.currentMode === 'web3' ? 'web3-mode' : 'radio-mode');
-
-
+    li.classList.add(window.currentMode === "web3" ? "web3-mode" : "radio-mode");
     const progressDiv = document.createElement("div");
     progressDiv.classList.add("progress");
     li.appendChild(progressDiv);
-
     if (station.cover) {
       const icon = document.createElement("img");
       icon.src = station.cover;
@@ -40,14 +35,17 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       icon.loading = "lazy";
       li.appendChild(icon);
     }
-
-    // If NFT => show station.playlistTitle, else => station.title
     const displayName = station.nft ? station.playlistTitle : station.title;
-
     const span = document.createElement("span");
     span.textContent = displayName + (station.bitrate ? ` (${station.bitrate})` : "");
     li.appendChild(span);
-
+    if (!USE_ONLY_HTTPS && station.url.startsWith("http://")) {
+      const httpLabel = document.createElement("span");
+      httpLabel.textContent = " http";
+      httpLabel.style.color = "rgba(14, 139, 106, 0.5)";
+      httpLabel.style.fontSize = "0.9em";
+      li.appendChild(httpLabel);
+    }
     if (window.currentStationUrl && station.url === window.currentStationUrl) {
       li.classList.add("active");
       if (typeof currentMode === "undefined" || currentMode !== "web3") {
@@ -100,8 +98,6 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         li.appendChild(removeBtn);
       }
     }
-    
-
     if (isFavorite(station)) {
       const favHeart = document.createElement("img");
       favHeart.classList.add("favorite-heart", "active");
@@ -112,17 +108,14 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       favHeart.addEventListener("click", (event) => {
         event.stopPropagation();
         removeFavorite(station);
-        renderPlaylist(playlistElement, stations, startIndex, endIndex);
+        renderPlaylist(playlistElement, stations, startIndex, maxEnd);
       });
       li.appendChild(favHeart);
     }
-
     fragment.appendChild(li);
   }
   playlistElement.appendChild(fragment);
 }
-
-// Favorites logic left unchanged
 function getFavorites() {
   return JSON.parse(localStorage.getItem("favorites") || "[]");
 }
@@ -140,7 +133,6 @@ function removeFavorite(station) {
     saveFavorites(favs);
   }
 }
-
 export function loadPlaylist(url) {
   return fetch(url)
     .then(response => response.text())
@@ -201,3 +193,4 @@ export function loadPlaylist(url) {
       ).then(() => loadedStations);
     });
 }
+window.updateUseOnlyHttpsSetting = updateUseOnlyHttpsSetting;
