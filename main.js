@@ -711,19 +711,19 @@ if (rrBtn) {
 if (ffBtn) {
   ffBtn.addEventListener("click", () => {
     if (shuffleActive) {
-      let r
+      let r;
       do {
-        r = Math.floor(Math.random() * currentPlaylist.length)
-      } while (r === currentTrackIndex && currentPlaylist.length > 1)
-      fadeAudioOut(audioPlayer, 500, () => onStationSelect(r))
+        r = Math.floor(Math.random() * currentPlaylist.length);
+      } while (r === currentTrackIndex && currentPlaylist.length > 1);
+      fadeAudioOut(audioPlayer, 500, () => onStationSelect(r));
     } else {
       if (currentTrackIndex < currentPlaylist.length - 1) {
-        fadeAudioOut(audioPlayer, 500, () => {
-          onStationSelect(currentTrackIndex + 1)
-        })
+        fadeAudioOut(audioPlayer, 500, () => onStationSelect(currentTrackIndex + 1));
+      } else {
+        fadeAudioOut(audioPlayer, 500, () => onStationSelect(0));
       }
     }
-  })
+  });
 }
 if (favBtn) {
   favBtn.addEventListener("click", () => {
