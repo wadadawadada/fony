@@ -37,17 +37,27 @@ function handleSettingsClick(e) {
   var modal = document.getElementById("manifestoModal");
   var modalContent = modal.querySelector(".manifesto-content");
   defaultModalContent = modalContent.innerHTML;
-  modalContent.innerHTML = '<h1 style="color:#00F2B8; text-align: center;">SETTINGS</h1><div style="padding: 20px;"><label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;"><input type="checkbox" id="httpStationsCheckbox">Show http stations (not safe)</label><label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;"><input type="checkbox" id="leftHandedCheckbox">Left Handed</label></div><button id="resetAppBtn" style="background-color: red; color: white; border: none; border-radius: 25px; padding: 7px 13px; font-family: \'Ruda\', sans-serif; font-size: 12px; cursor: pointer; margin-top: 10px;">RESET APP</button><button id="saveSettingsBtn" class="save-settings-btn" style="margin-top:10px;">Save Settings</button>';
-  var checkbox = document.getElementById("httpStationsCheckbox");
-  checkbox.checked = (localStorage.getItem("useOnlyHttps") === "false");
-  var leftHandedCheckbox = document.getElementById("leftHandedCheckbox");
-  leftHandedCheckbox.checked = (localStorage.getItem("leftHanded") === "true");
+  modalContent.innerHTML =
+    '<h1 style="color:#00F2B8; text-align: center;">SETTINGS</h1>' +
+    '<button class="manifesto-close" style="position: absolute; top: 15px; right: 20px; font-size: 24px; background: none; border: none; color: #00F2B8; cursor: pointer;">&times;</button>' +
+    '<div style="padding: 20px;">' +
+      '<label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;">' +
+        '<input type="checkbox" id="httpStationsCheckbox">Show http stations (not safe)' +
+      '</label>' +
+      '<label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;">' +
+        '<input type="checkbox" id="leftHandedCheckbox">Left Handed' +
+      '</label>' +
+    '</div>' +
+    '<button id="resetAppBtn" style="background-color: red; color: white; border: none; border-radius: 25px; padding: 7px 13px; font-family: \'Ruda\', sans-serif; font-size: 12px; cursor: pointer; margin-top: 10px;">Reset App</button>' +
+    '<button id="saveSettingsBtn" class="save-settings-btn" style="margin-top:10px;">Save Settings</button>';
   document.getElementById("saveSettingsBtn").addEventListener("click", function() {
+    var checkbox = document.getElementById("httpStationsCheckbox");
     var newValue = checkbox.checked ? "false" : "true";
     localStorage.setItem("useOnlyHttps", newValue);
     if (window.updateUseOnlyHttpsSetting) {
       window.updateUseOnlyHttpsSetting(checkbox.checked ? false : true);
     }
+    var leftHandedCheckbox = document.getElementById("leftHandedCheckbox");
     localStorage.setItem("leftHanded", leftHandedCheckbox.checked ? "true" : "false");
     updateLeftHandedSetting();
     var select = document.getElementById("playlistSelect");
