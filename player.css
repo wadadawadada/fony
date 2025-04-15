@@ -47,8 +47,6 @@
   }
 }
 
-
-
 .left-group,
 .center-group,
 .right-group {
@@ -253,6 +251,7 @@
   }
   .screen {
     width: 90%;
+    height: 1rem;
     /* margin-bottom: 1rem; */
   }
   .diods-row {
@@ -262,12 +261,59 @@
   .left-group {
     max-width: unset;
     min-width: 100%;
+    padding-left: 15px;
   }
+
+  .right-group {
+    justify-content: flex-start;
+    max-width: unset;
+    min-width: 100%;
+    /* background-color: blue; */
+    padding-left: 15px;
+  }
+
+  .right-group,
+  .right-group .track-name,
+  .right-group .scrolling-text,
+  .right-group .scrolling-text a {
+    /* padding-left: 0 !important; */
+    margin-left: 0 !important;
+  }
+  
+  .right-group .scrolling-text a {
+    max-width: 100%;
+  }
+
+  .scrolling-text.marquee {
+    animation: scrollText 10s linear infinite;
+    display: inline-block;
+    white-space: nowrap;
+  }
+  
+  @keyframes scrollText {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+  
+  
+  .track-name {
+    max-width: 100%;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+   
   .station-label {
     width: 100%;
   }
 
-  .track-icon, .track-name, .center-group, .right-group {
+ .center-group {
     display: none;
   }
 

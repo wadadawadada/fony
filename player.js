@@ -112,4 +112,49 @@ document.addEventListener("DOMContentLoaded", () => {
     addTooltip("shuffleBtn", "Shuffle", "left");
     addTooltip("favBtn", "+ Favorites", "right");
   }
+
+  const screen = document.querySelector('.screen');
+  const leftGroup = document.querySelector('.left-group');
+  const rightGroup = document.querySelector('.right-group');
+
+  if (screen && leftGroup && rightGroup && window.innerWidth <= 768) {
+    [leftGroup, rightGroup].forEach(el => {
+      el.style.position = 'absolute';
+      el.style.top = '50%';
+      el.style.left = '0';
+      el.style.width = '100%';
+      el.style.transform = 'translateY(0)';
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      el.style.justifyContent = 'flex-start';
+      el.style.alignItems = 'center';
+      el.style.zIndex = '1';
+    });
+
+    let current = 'left';
+
+    function show(el) {
+      el.style.transform = 'translateY(-50%)';
+      el.style.opacity = '1';
+    }
+    function hide(el) {
+      el.style.transform = 'translateY(0)';
+      el.style.opacity = '0';
+    }
+
+    show(leftGroup);
+    hide(rightGroup);
+
+    setInterval(() => {
+      if (current === 'left') {
+        hide(leftGroup);
+        show(rightGroup);
+        current = 'right';
+      } else {
+        hide(rightGroup);
+        show(leftGroup);
+        current = 'left';
+      }
+    }, 5000);
+  }
 });
