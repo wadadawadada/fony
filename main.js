@@ -173,7 +173,7 @@ function switchToRadio() {
     playTimerElem.textContent = formatTime(0);
   }
   audioPlayer.pause();
-  audioPlayer.src = secureUrl(station.url);
+  audioPlayer.src = "";
   audioPlayer.currentTime = 0;
   audioPlayer.ontimeupdate = null;
   currentPlaylist = [];
@@ -423,7 +423,7 @@ function onStationSelect(i) {
   }
   if (!st.url) return
   if (st.nft) {
-    audioPlayer.src = st.url
+    audioPlayer.src = secureUrl(st.url)
     audioPlayer.onloadedmetadata = () => {
       const el = document.getElementById("playTimer")
       if (el && audioPlayer.duration) {
@@ -461,7 +461,7 @@ function onStationSelect(i) {
     updateMediaSessionMetadata(st)
   } else {
     if (isIOS()) {
-      audioPlayer.src = st.url
+      audioPlayer.src = secureUrl(st.url)
       if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
       if (window.playTimerInterval) clearInterval(window.playTimerInterval)
       const pt = document.getElementById("playTimer")
