@@ -378,30 +378,30 @@ function updateStreamMetadata(u) {
   })
 }
 function onStationSelect(i) {
-  currentParsingUrl = "";
-  ensureVisible(i);
-  const st = currentPlaylist[i];
-  if (!st) return;
-  window.currentStationUrl = st.url;
-  renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations);
-  const lis = document.querySelectorAll("#playlist li");
+  currentParsingUrl = ""
+  ensureVisible(i)
+  const st = currentPlaylist[i]
+  if (!st) return
+  window.currentStationUrl = st.url
+  renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations)
+  const lis = document.querySelectorAll("#playlist li")
   lis.forEach(x => {
-    x.classList.remove("active");
-    x.style.setProperty("--buffer-percent", "0%");
-  });
-  const li = Array.from(lis).find(x => parseInt(x.dataset.index) === i);
-  currentTrackIndex = i;
-  currentParsingUrl = st.url;
+    x.classList.remove("active")
+    x.style.setProperty("--buffer-percent", "0%")
+  })
+  const li = Array.from(lis).find(x => parseInt(x.dataset.index) === i)
+  currentTrackIndex = i
+  currentParsingUrl = st.url
   if (playlistSelect) {
-    localStorage.setItem("lastStation", JSON.stringify({ genre: playlistSelect.value, trackIndex: i }));
-    window.currentGenre = playlistSelect.value;
+    localStorage.setItem("lastStation", JSON.stringify({ genre: playlistSelect.value, trackIndex: i }))
+    window.currentGenre = playlistSelect.value
   }
   if (stationLabel) {
-    const t = stationLabel.querySelector(".scrolling-text");
-    if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station");
-    checkMarquee(stationLabel);
+    const t = stationLabel.querySelector(".scrolling-text")
+    if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station")
+    checkMarquee(stationLabel)
   }
-  const rg = document.querySelector(".right-group");
+  const rg = document.querySelector(".right-group")
   if (rg) {
     if (st.nft) {
       rg.innerHTML = `
@@ -409,167 +409,157 @@ function onStationSelect(i) {
         <span id="currentTrack" class="track-name">
           <span class="scrolling-text">${st.playlistTitle}</span>
         </span>
-      `;
-      checkMarquee(rg);
+      `
+      checkMarquee(rg)
     } else {
       rg.innerHTML = `
         <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
         <span id="currentTrack" class="track-name">
           <span class="scrolling-text">Loading...</span>
         </span>
-      `;
-      checkMarquee(rg);
+      `
+      checkMarquee(rg)
     }
   }
-  if (!st.url) return;
-  
-  // Если ссылка начинается на "http://", используем secureUrl, чтобы проксировать поток через HTTPS
-  let srcUrl = st.url;
-  if (srcUrl.startsWith("http://")) {
-    srcUrl = secureUrl(srcUrl);
-  }
-
+  if (!st.url) return
   if (st.nft) {
-    audioPlayer.src = srcUrl;
+    audioPlayer.src = secureUrl(st.url)
     audioPlayer.onloadedmetadata = () => {
-      const el = document.getElementById("playTimer");
+      const el = document.getElementById("playTimer")
       if (el && audioPlayer.duration) {
-        el.textContent = formatTime(Math.floor(audioPlayer.duration - audioPlayer.currentTime));
+        el.textContent = formatTime(Math.floor(audioPlayer.duration - audioPlayer.currentTime))
       }
     }
     audioPlayer.ontimeupdate = () => {
-      const el = document.getElementById("playTimer");
+      const el = document.getElementById("playTimer")
       if (el && audioPlayer.duration) {
-        const remaining = Math.floor(audioPlayer.duration - audioPlayer.currentTime);
-        el.textContent = formatTime(remaining);
-        const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-        if (li) li.style.setProperty("--buffer-percent", percent + "%");
+        const remaining = Math.floor(audioPlayer.duration - audioPlayer.currentTime)
+        el.textContent = formatTime(remaining)
+        const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100
+        if (li) li.style.setProperty("--buffer-percent", percent + "%")
       }
     }
-    if (li) li.scrollIntoView({ behavior: "smooth", block: "start" });
-    if (window.playTimerInterval) clearInterval(window.playTimerInterval);
-    audioPlayer.muted = false;
-    audioPlayer.volume = defaultVolume.value;
+    if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
+    if (window.playTimerInterval) clearInterval(window.playTimerInterval)
+    audioPlayer.muted = false
+    audioPlayer.volume = defaultVolume.value
     audioPlayer.play().then(() => {
-      appInitialized = true;
+      appInitialized = true
       if (!window.equalizerInitialized) {
-        initEqualizer();
-        window.equalizerInitialized = true;
+        initEqualizer()
+        window.equalizerInitialized = true
       }
-    }).catch(() => {});
-    fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
-    updatePlayPauseButton(audioPlayer, playPauseBtn);
-    if (playCheckTimer) clearTimeout(playCheckTimer);
+    }).catch(() => {})
+    fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
+    updatePlayPauseButton(audioPlayer, playPauseBtn)
+    if (playCheckTimer) clearTimeout(playCheckTimer)
     if (appInitialized) {
       playCheckTimer = setTimeout(() => {
-        if (audioPlayer.paused) markStationAsHidden(i);
-      }, 15000);
+        if (audioPlayer.paused) markStationAsHidden(i)
+      }, 15000)
     }
-    updateMediaSessionMetadata(st);
+    updateMediaSessionMetadata(st)
   } else {
     if (isIOS()) {
-      // На мобильных устройствах также используем srcUrl через secureUrl
-      audioPlayer.src = srcUrl;
-      if (li) li.scrollIntoView({ behavior: "smooth", block: "start" });
-      if (window.playTimerInterval) clearInterval(window.playTimerInterval);
-      const pt = document.getElementById("playTimer");
-      if (pt) pt.textContent = formatTime(0);
-      if (li) li.classList.add("active");
-      audioPlayer.muted = false;
-      audioPlayer.volume = defaultVolume.value;
+      audioPlayer.src = secureUrl(st.url)
+      if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
+      if (window.playTimerInterval) clearInterval(window.playTimerInterval)
+      const pt = document.getElementById("playTimer")
+      if (pt) pt.textContent = formatTime(0)
+      if (li) li.classList.add("active")
+      audioPlayer.muted = false
+      audioPlayer.volume = defaultVolume.value
       audioPlayer.play().then(() => {
-        appInitialized = true;
+        appInitialized = true
         if (!window.equalizerInitialized) {
-          initEqualizer();
-          window.equalizerInitialized = true;
+          initEqualizer()
+          window.equalizerInitialized = true
         }
-      }).catch(() => {});
-      fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
-      updatePlayPauseButton(audioPlayer, playPauseBtn);
-      if (playCheckTimer) clearTimeout(playCheckTimer);
+      }).catch(() => {})
+      fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
+      updatePlayPauseButton(audioPlayer, playPauseBtn)
+      if (playCheckTimer) clearTimeout(playCheckTimer)
       if (appInitialized) {
         playCheckTimer = setTimeout(() => {
-          if (audioPlayer.paused) markStationAsHidden(i);
-        }, 15000);
+          if (audioPlayer.paused) markStationAsHidden(i)
+        }, 15000)
       }
-      if (!st.nft) updateStreamMetadata(st.url);
-      updateMediaSessionMetadata(st);
+      if (!st.nft) updateStreamMetadata(st.url)
+      updateMediaSessionMetadata(st)
     } else {
-      // Десктопная версия использует MediaSource; здесь также вызываем fetch с srcUrl через secureUrl
-      const ms = new MediaSource();
-      audioPlayer.src = URL.createObjectURL(ms);
+      const ms = new MediaSource()
+      audioPlayer.src = URL.createObjectURL(ms)
       ms.addEventListener("sourceopen", () => {
-        const mc = "audio/mpeg";
-        let sb;
+        const mc = "audio/mpeg"
+        let sb
         try {
-          sb = ms.addSourceBuffer(mc);
-        } catch (e) { return; }
-        fetch(srcUrl).then(r => {
-          const rd = r.body.getReader();
+          sb = ms.addSourceBuffer(mc)
+        } catch (e) { return }
+        fetch(st.url).then(r => {
+          const rd = r.body.getReader()
           function push() {
-            if (ms.readyState !== "open") return;
+            if (ms.readyState !== "open") return
             rd.read().then(({ done, value }) => {
               if (done) {
-                try { if (ms.readyState === "open") ms.endOfStream(); } catch(e){}
-                return;
+                try { if (ms.readyState === "open") ms.endOfStream() } catch(e){}
+                return
               }
               if (!sb.updating) {
                 try {
-                  sb.appendBuffer(value);
-                  cleanupBuffer(sb);
+                  sb.appendBuffer(value)
+                  cleanupBuffer(sb)
                 } catch(e){}
               } else {
                 sb.addEventListener("updateend", function h() {
-                  sb.removeEventListener("updateend", h);
+                  sb.removeEventListener("updateend", h)
                   if (ms.readyState === "open" && !sb.updating) {
                     try {
-                      sb.appendBuffer(value);
-                      cleanupBuffer(sb);
+                      sb.appendBuffer(value)
+                      cleanupBuffer(sb)
                     } catch(e){}
                   }
-                });
+                })
               }
-              push();
-            }).catch(() => {});
+              push()
+            }).catch(() => {})
           }
-          push();
-        }).catch(() => {});
-      });
-      if (li) li.scrollIntoView({ behavior: "smooth", block: "start" });
-      if (window.playTimerInterval) clearInterval(window.playTimerInterval);
-      const pt = document.getElementById("playTimer");
-      if (pt) pt.textContent = formatTime(0);
+          push()
+        }).catch(() => {})
+      })
+      if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
+      if (window.playTimerInterval) clearInterval(window.playTimerInterval)
+      const pt = document.getElementById("playTimer")
+      if (pt) pt.textContent = formatTime(0)
       checkRealBuffering(5, li, () => {
-        if (li) li.classList.add("active");
+        if (li) li.classList.add("active")
         if (stationLabel) {
-          const t = stationLabel.querySelector(".scrolling-text");
-          if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station");
-          checkMarquee(stationLabel);
+          const t = stationLabel.querySelector(".scrolling-text")
+          if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station")
+          checkMarquee(stationLabel)
         }
-        audioPlayer.muted = false;
-        audioPlayer.volume = defaultVolume.value;
+        audioPlayer.muted = false
+        audioPlayer.volume = defaultVolume.value
         audioPlayer.play().then(() => {
-          appInitialized = true;
+          appInitialized = true
           if (!window.equalizerInitialized) {
-            initEqualizer();
-            window.equalizerInitialized = true;
+            initEqualizer()
+            window.equalizerInitialized = true
           }
-        }).catch(() => {});
-        fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
-        updatePlayPauseButton(audioPlayer, playPauseBtn);
-      });
-      if (playCheckTimer) clearTimeout(playCheckTimer);
+        }).catch(() => {})
+        fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
+        updatePlayPauseButton(audioPlayer, playPauseBtn)
+      })
+      if (playCheckTimer) clearTimeout(playCheckTimer)
       if (appInitialized) {
         playCheckTimer = setTimeout(() => {
-          if (audioPlayer.paused) markStationAsHidden(i);
-        }, 15000);
+          if (audioPlayer.paused) markStationAsHidden(i)
+        }, 15000)
       }
-      if (!st.nft) updateStreamMetadata(st.url);
-      updateMediaSessionMetadata(st);
+      if (!st.nft) updateStreamMetadata(st.url)
+      updateMediaSessionMetadata(st)
     }
   }
 }
-
 function setRadioListeners() {
   const pSel = document.getElementById("playlistSelect");
   const sIn = document.getElementById("searchInput");
