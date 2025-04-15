@@ -2,7 +2,7 @@ import { fadeAudioOut, fadeAudioIn } from './player.js'
 import { renderPlaylist, loadPlaylist } from './playlist.js'
 import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from './controls.js'
 import { initChat, updateChat, syncChat } from './chat.js'
-import { getStreamMetadata } from './parsing.js'
+import { getStreamMetadata, secureUrl } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
 import { connectWallet, getNFTContractList, connectAndLoadWalletNFTs } from './web3.js'
 let currentMode = "radio"

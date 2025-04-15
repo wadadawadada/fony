@@ -1,4 +1,4 @@
-function secureUrl(url) {
+export function secureUrl(url) {
   if (url.startsWith("http://")) {
     return "https://yourserver.com/stream?url=" + encodeURIComponent(url);
   }
