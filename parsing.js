@@ -1,6 +1,6 @@
 export function secureUrl(url) {
   if (url.startsWith("http://")) {
-    return "https://yourserver.com/stream?url=" + encodeURIComponent(url);
+    return "https://fonyserver.onrender.com/stream?url=" + encodeURIComponent(url);
   }
   return url;
 }
