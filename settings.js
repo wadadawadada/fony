@@ -50,6 +50,11 @@ function handleSettingsClick(e) {
     '</div>' +
     '<button id="resetAppBtn" style="background-color: red; color: white; border: none; border-radius: 25px; padding: 7px 13px; font-family: \'Ruda\', sans-serif; font-size: 12px; cursor: pointer; margin-top: 10px;">Reset App</button>' +
     '<button id="saveSettingsBtn" class="save-settings-btn" style="margin-top:10px;">Save Settings</button>';
+
+  // Добавляем проверку сохранённых значений для чекбоксов
+  document.getElementById("httpStationsCheckbox").checked = (localStorage.getItem("useOnlyHttps") === "false");
+  document.getElementById("leftHandedCheckbox").checked = (localStorage.getItem("leftHanded") === "true");
+
   document.getElementById("saveSettingsBtn").addEventListener("click", function() {
     var checkbox = document.getElementById("httpStationsCheckbox");
     var newValue = checkbox.checked ? "false" : "true";
@@ -74,4 +79,5 @@ function handleSettingsClick(e) {
   });
   modal.style.display = "block";
 }
+
 window.addEventListener("resize", updateLeftHandedSetting);

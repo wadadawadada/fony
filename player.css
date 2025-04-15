@@ -157,15 +157,15 @@
   cursor: pointer;
   transition: all 0.3s ease-in-out;
   filter:
-    drop-shadow(0px 10px 3px rgba(50, 50, 93, 0.25))
-    drop-shadow(0px 8px 6px rgba(0, 0, 0, 0.3));
+    drop-shadow(0px 16px 8px #00000031)
+    drop-shadow(0px 10px 4px #00000031);
 }
 .player-btn:hover {
   transition: all 0.3s ease-in-out;
   transform: scale(0.95);
   filter:
-    drop-shadow(0px 8px 2px rgba(50, 50, 93, 0.313))
-    drop-shadow(0px 6px 5px rgba(0, 0, 0, 0.367));
+    drop-shadow(0px 12px 6px #00000047)
+    drop-shadow(0px 8px 3px #00000047);
 }
 
 @keyframes bounce {
@@ -189,7 +189,6 @@
 .player-btn:active {
   animation: bounce 0.8s ease-in-out;
 }
-
 
 #playPauseBtn {
   width: 120px;
@@ -299,7 +298,6 @@
     }
   }
   
-  
   .track-name {
     max-width: 100%;
     flex: 1;
@@ -308,7 +306,6 @@
     white-space: nowrap;
   }
   
-   
   .station-label {
     width: 100%;
   }
