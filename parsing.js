@@ -1,9 +1,9 @@
-function secureUrl(url) {
-  if (url.startsWith("http://")) {
-    return url.replace("http://", "https://")
-  }
-  return url
-}
+// function secureUrl(url) {
+//   if (url.startsWith("http://")) {
+//     return url.replace("http://", "https://")
+//   }
+//   return url
+// }
 
 // Direct ICY request (without proxy)
 export async function fetchIcyMetadata(url) {

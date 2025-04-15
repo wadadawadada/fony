@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     rightPanelBg: 'linear-gradient(135deg, #5587e4 0%, #d68255 20%, #ec7b2a 40%, #4b85ea 60%, #C36C8B 80%, #55cbd8 100%)',
     icon: '/img/moon.svg' 
   };
+  
 
   const darkTheme = {
     leftPanelBg: '#171C2B',
