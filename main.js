@@ -173,7 +173,7 @@ function switchToRadio() {
     playTimerElem.textContent = formatTime(0);
   }
   audioPlayer.pause();
-  audioPlayer.src = "";
+  audioPlayer.src = secureUrl(station.url);
   audioPlayer.currentTime = 0;
   audioPlayer.ontimeupdate = null;
   currentPlaylist = [];
