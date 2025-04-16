@@ -41,7 +41,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     const span = document.createElement("span");
     span.textContent = displayName + (station.bitrate ? ` (${station.bitrate})` : "");
     li.appendChild(span);
-    if (!USE_ONLY_HTTPS && station.url.startsWith("http://")) {
+    if (!USE_ONLY_HTTPS && station.originalUrl && station.originalUrl.startsWith("http://")) {
       const httpLabel = document.createElement("span");
       httpLabel.textContent = " http";
       httpLabel.style.color = "rgba(14, 139, 106, 0.5)";
