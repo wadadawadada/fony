@@ -178,7 +178,7 @@ export function loadPlaylist(url) {
       const hiddenStations = JSON.parse(localStorage.getItem("hiddenStations") || "[]");
       loadedStations = loadedStations.filter(station => !hiddenStations.includes(station.url));
       if (USE_ONLY_HTTPS) {
-        loadedStations = loadedStations.filter(station => station.url.startsWith('https://'));
+        loadedStations = loadedStations.filter(station => station.originalUrl.startsWith('https://'));
       }
       return Promise.all(
         loadedStations.map(st => {
