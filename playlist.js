@@ -1,3 +1,5 @@
+import { secureUrl } from './parsing.js';
+
 export let USE_ONLY_HTTPS = localStorage.getItem("useOnlyHttps") === "false" ? false : true;
 export function updateUseOnlyHttpsSetting(newValue) {
   USE_ONLY_HTTPS = newValue;
@@ -168,7 +170,7 @@ export function loadPlaylist(url) {
         loadedStations.push({
           title,
           bitrate,
-          url: streamUrl,
+          url: secureUrl(streamUrl),
           cover
         });
       }
