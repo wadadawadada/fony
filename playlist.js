@@ -171,6 +171,7 @@ export function loadPlaylist(url) {
           title,
           bitrate,
           url: secureUrl(streamUrl),
+          originalUrl: streamUrl,
           cover
         });
       }
