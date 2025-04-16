@@ -391,7 +391,7 @@ function onStationSelect(i) {
   })
   const li = Array.from(lis).find(x => parseInt(x.dataset.index) === i)
   currentTrackIndex = i
-  currentParsingUrl = st.url
+  currentParsingUrl = st.originalUrl || st.url;
   if (playlistSelect) {
     localStorage.setItem("lastStation", JSON.stringify({ genre: playlistSelect.value, trackIndex: i }))
     window.currentGenre = playlistSelect.value
@@ -484,7 +484,7 @@ function onStationSelect(i) {
           if (audioPlayer.paused) markStationAsHidden(i)
         }, 15000)
       }
-      if (!st.nft) updateStreamMetadata(st.url)
+      if (!st.nft) updateStreamMetadata(st.originalUrl || st.url)
       updateMediaSessionMetadata(st)
     } else {
       const ms = new MediaSource()
@@ -555,7 +555,7 @@ function onStationSelect(i) {
           if (audioPlayer.paused) markStationAsHidden(i)
         }, 15000)
       }
-      if (!st.nft) updateStreamMetadata(st.url)
+      if (!st.nft) updateStreamMetadata(st.originalUrl || st.url)
       updateMediaSessionMetadata(st)
     }
   }
