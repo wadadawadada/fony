@@ -100,12 +100,10 @@ function startPlaylistPreloader() {
   playlistLoader.style.fontFamily = "Ruda";
   playlistLoader.style.textAlign = "center";
   playlistLoader.style.whiteSpace = "nowrap";
-
   playlistLoader.innerHTML =
     '<span id="leftColons" style="display: inline-block; min-width: 3ch; text-align: right;"></span>' +
     '<span id="loaderText" style="display: inline-block; margin: 0 10px;">IPFS load</span>' +
     '<span id="rightColons" style="display: inline-block; min-width: 3ch; text-align: left;"></span>';
-
   let colonCount = 0;
   const maxColons = 3;
   preloaderInterval = setInterval(() => {
@@ -114,9 +112,6 @@ function startPlaylistPreloader() {
     document.getElementById("rightColons").textContent = ":".repeat(colonCount);
   }, 250);
 }
-
-
-
 function stopPlaylistPreloader() {
   if (preloaderInterval) clearInterval(preloaderInterval)
   preloaderInterval = null
@@ -160,7 +155,6 @@ function fillPlaylistSelect() {
     pSel.appendChild(o)
   })
 }
-
 function switchToRadio() {
   currentMode = "radio";
   window.currentMode = currentMode;
@@ -210,8 +204,6 @@ function switchToRadio() {
   }
   defaultPlaylist();
 }
-
-
 function switchToWeb3(acc) {
   currentMode = "web3"
   window.currentMode = currentMode;
@@ -328,7 +320,6 @@ function markStationAsHidden(i) {
   else if (stationLabel) stationLabel.textContent = "No available stations"
 }
 window.markStationAsHidden = markStationAsHidden;
-
 function checkRealBuffering(tb, li, cb) {
   const p = document.getElementById("playTimer")
   const x = setInterval(() => {
@@ -566,9 +557,7 @@ function setRadioListeners() {
   const fBtn = document.getElementById("favoritesFilterBtn");
   const wBtn = document.getElementById("connectWalletBtn");
   const rBtn = document.getElementById("radioModeBtn");
-  
   if (rBtn) rBtn.style.display = "none";
-  
   if (pSel) {
     pSel.addEventListener("change", () => {
       const newGenre = pSel.value;
@@ -582,7 +571,6 @@ function setRadioListeners() {
       }, true);
     });
   }
-  
   if (sIn) {
     sIn.addEventListener("input", debounce(() => {
       const q = sIn.value.toLowerCase();
@@ -590,7 +578,6 @@ function setRadioListeners() {
       resetVisibleStations();
     }, 300));
   }
-  
   if (fBtn) {
     fBtn.addEventListener("click", async () => {
       const genreLabel = document.querySelector("label[for='playlistSelect']");
@@ -619,7 +606,6 @@ function setRadioListeners() {
       }
     });
   }
-  
   if (wBtn) {
     wBtn.addEventListener("click", async () => {
       const acc = await connectWallet();
@@ -627,7 +613,6 @@ function setRadioListeners() {
     });
   }
 }
-
 audioPlayer.addEventListener("play", () => {
   if (!(currentPlaylist[currentTrackIndex] && currentPlaylist[currentTrackIndex].nft)) {
     updatePlayPauseButton(audioPlayer, playPauseBtn)
@@ -656,7 +641,6 @@ audioPlayer.addEventListener("ended", () => {
     }
   }
 })
-
 audioPlayer.addEventListener("pause", () => {
   updatePlayPauseButton(audioPlayer, playPauseBtn)
   if (window.playTimerInterval) {
@@ -691,7 +675,6 @@ playlistElement.addEventListener("click", e => {
     onStationSelect(index)
   }
 })
-
 if (playPauseBtn) {
   playPauseBtn.addEventListener("click", () => {
     if (audioPlayer.paused) audioPlayer.play().catch(() => {})
@@ -784,8 +767,6 @@ if (randomBtn) {
     }
   });
 }
-
-
 if (walletBtn) {
   walletBtn.addEventListener("click", async () => {
     const a = await connectWallet()
@@ -871,51 +852,35 @@ fetch("playlists.json")
     defaultPlaylist();
     setRadioListeners();
   });
-
 document.dispatchEvent(new Event("appLoaded"))
-
 const container = document.querySelector('.container');
 const leftPanel = document.querySelector('.left-panel');
 const rightPanel = document.querySelector('.right-panel');
 const resizer = document.getElementById('resizer');
-
 let isResizing = false;
 let startX;
 let startLeftWidthPercent;
-
 resizer.addEventListener('mousedown', (e) => {
   isResizing = true;
   startX = e.clientX;
-
   startLeftWidthPercent = (leftPanel.offsetWidth / container.clientWidth) * 100;
   document.body.style.cursor = 'ew-resize';
   document.body.style.userSelect = 'none';
 });
-
 document.addEventListener('mousemove', (e) => {
   if (!isResizing) return;
-  
   const containerWidth = container.clientWidth;
   const dx = e.clientX - startX;
-
   const dxPercent = (dx / containerWidth) * 100;
   let newLeftWidthPercent = startLeftWidthPercent + dxPercent;
-  
   if (newLeftWidthPercent < 40) newLeftWidthPercent = 40;
   if (newLeftWidthPercent > 70) newLeftWidthPercent = 70;
-
   leftPanel.style.width = `${newLeftWidthPercent}%`;
   rightPanel.style.width = `${100 - newLeftWidthPercent}%`;
-
   resizer.style.left = `calc(${newLeftWidthPercent}% - ${resizer.offsetWidth / 2}px)`;
 });
-
 document.addEventListener('mouseup', () => {
   isResizing = false;
   document.body.style.cursor = '';
   document.body.style.userSelect = '';
 });
-
-
-
-
