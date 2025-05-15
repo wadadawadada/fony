@@ -5,6 +5,7 @@ import { initChat, updateChat, syncChat } from './chat.js'
 import { getStreamMetadata, secureUrl } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
 import { connectWallet, getNFTContractList, connectAndLoadWalletNFTs } from './web3.js'
+
 let currentMode = "radio"
 let currentParsingUrl = ""
 let appInitialized = false
@@ -24,14 +25,17 @@ let lastChatUpdate = 0
 let lastMetadataUpdate = 0
 const chatUpdateInterval = 15000
 const metadataUpdateInterval = 20000
+
 const audioPlayer = document.getElementById('audioPlayer')
 audioPlayer.volume = defaultVolume.value
 audioPlayer.crossOrigin = 'anonymous'
+
 const stationLabel = document.getElementById('stationLabel')
 const playlistSelect = document.getElementById('playlistSelect')
 const searchInput = document.getElementById('searchInput')
 const playlistContainer = document.getElementById('playlistContent')
 const playlistElement = document.getElementById('playlist')
+
 const rrBtn = document.getElementById('rrBtn')
 const ffBtn = document.getElementById('ffBtn')
 const favBtn = document.getElementById('favBtn')
@@ -39,6 +43,7 @@ const shuffleBtn = document.getElementById('shuffleBtn')
 const randomBtn = document.getElementById('randomBtn')
 const walletBtn = document.getElementById('connectWalletBtn')
 const radioModeBtn = document.getElementById('radioModeBtn')
+
 function generateStationHash(url) {
   let h = 0
   for (let i = 0; i < url.length; i++) {
@@ -47,14 +52,17 @@ function generateStationHash(url) {
   }
   return Math.abs(h).toString(16)
 }
+
 function isIOS() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
 }
+
 function formatTime(sec) {
   const m = Math.floor(sec / 60)
   const s = sec % 60
   return m + ":" + (s < 10 ? "0" + s : s)
 }
+
 function debounce(fn, wait) {
   let t
   return (...args) => {
@@ -62,6 +70,7 @@ function debounce(fn, wait) {
     t = setTimeout(() => fn(...args), wait)
   }
 }
+
 function updateMediaSessionMetadata(st) {
   if ("mediaSession" in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
@@ -72,6 +81,7 @@ function updateMediaSessionMetadata(st) {
     })
   }
 }
+
 function cleanupBuffer(sb) {
   if (sb.updating) {
     sb.addEventListener("updateend", function h() {
@@ -88,6 +98,7 @@ function cleanupBuffer(sb) {
     }
   }
 }
+
 function startPlaylistPreloader() {
   if (preloaderInterval) {
     clearInterval(preloaderInterval);
@@ -112,12 +123,14 @@ function startPlaylistPreloader() {
     document.getElementById("rightColons").textContent = ":".repeat(colonCount);
   }, 250);
 }
+
 function stopPlaylistPreloader() {
   if (preloaderInterval) clearInterval(preloaderInterval)
   preloaderInterval = null
   playlistLoader.classList.add("hidden")
   playlistLoader.textContent = ""
 }
+
 function ensureVisible(i) {
   if (i >= visibleStations) {
     visibleStations = i + CHUNK_SIZE
@@ -125,16 +138,19 @@ function ensureVisible(i) {
     renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations)
   }
 }
+
 function resetVisibleStations() {
   visibleStations = 0
   renderMoreStations()
 }
+
 function renderMoreStations() {
   if (visibleStations < currentPlaylist.length) {
     visibleStations += CHUNK_SIZE
     renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations)
   }
 }
+
 function checkMarquee(container) {
   if (!container) return
   const st = container.querySelector(".scrolling-text")
@@ -144,6 +160,7 @@ function checkMarquee(container) {
   const sW = st.scrollWidth
   if (sW > cW) st.classList.add("marquee")
 }
+
 function fillPlaylistSelect() {
   const pSel = document.getElementById("playlistSelect")
   if (!pSel) return
@@ -155,6 +172,7 @@ function fillPlaylistSelect() {
     pSel.appendChild(o)
   })
 }
+
 function switchToRadio() {
   currentMode = "radio";
   window.currentMode = currentMode;
@@ -198,12 +216,11 @@ function switchToRadio() {
         updateChat(genre);
       });
       return;
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) {}
   }
   defaultPlaylist();
 }
+
 function switchToWeb3(acc) {
   currentMode = "web3"
   window.currentMode = currentMode;
@@ -252,6 +269,7 @@ function switchToWeb3(acc) {
     }
   })
 }
+
 async function updateWalletUI(account) {
   const c = await getNFTContractList()
   const g = document.querySelector(".genre-box")
@@ -272,6 +290,7 @@ async function updateWalletUI(account) {
     r.addEventListener("click", () => switchToRadio())
   }
 }
+
 function defaultPlaylist() {
   if (!allPlaylists.length) return
   const firstGenre = allPlaylists[0].file
@@ -287,6 +306,7 @@ function defaultPlaylist() {
     }
   })
 }
+
 function loadAndRenderPlaylist(url, cb, scTop = false) {
   playlistLoader.classList.remove("hidden")
   loadPlaylist(url)
@@ -304,6 +324,7 @@ function loadAndRenderPlaylist(url, cb, scTop = false) {
       playlistLoader.classList.add("hidden")
     })
 }
+
 function markStationAsHidden(i) {
   const st = currentPlaylist[i]
   if (!st) return
@@ -319,23 +340,34 @@ function markStationAsHidden(i) {
   if (currentPlaylist.length) onStationSelect(n)
   else if (stationLabel) stationLabel.textContent = "No available stations"
 }
-window.markStationAsHidden = markStationAsHidden;
-function checkRealBuffering(tb, li, cb) {
+
+window.markStationAsHidden = markStationAsHidden
+
+function checkRealBuffering(durationMs, li, cb) {
+  if (!li) {
+    cb()
+    return
+  }
   const p = document.getElementById("playTimer")
-  const x = setInterval(() => {
-    let buf = 0
-    if (audioPlayer.buffered.length > 0) buf = audioPlayer.buffered.end(0) - (audioPlayer.currentTime || 0)
-    const pr = Math.min((buf / tb) * 100, 100)
-    const sy = Math.floor(pr / 10)
-    if (p) p.textContent = ":".repeat(sy)
-    if (li) li.style.setProperty("--buffer-percent", pr + "%")
-    if (buf >= tb) {
-      clearInterval(x)
+  let progress = 0
+  const step = 100
+  const maxSteps = durationMs / step
+  let currentStep = 0
+  li.style.setProperty("--buffer-percent", "0%")
+  if (p) p.textContent = ""
+  const intervalId = setInterval(() => {
+    currentStep++
+    progress = Math.min((currentStep / maxSteps) * 100, 100)
+    if (p) p.textContent = ":".repeat(Math.floor(progress / 10))
+    li.style.setProperty("--buffer-percent", progress + "%")
+    if (currentStep >= maxSteps) {
+      clearInterval(intervalId)
       if (p) p.textContent = formatTime(0)
       cb()
     }
-  }, 100)
+  }, step)
 }
+
 function updateStreamMetadata(u) {
   if (u !== currentParsingUrl) return
   const rg = document.querySelector(".right-group")
@@ -368,6 +400,7 @@ function updateStreamMetadata(u) {
     }
   })
 }
+
 function onStationSelect(i) {
   currentParsingUrl = ""
   ensureVisible(i)
@@ -478,7 +511,6 @@ function onStationSelect(i) {
       if (!st.nft) updateStreamMetadata(st.originalUrl || st.url)
       updateMediaSessionMetadata(st)
     } else {
-      // ЗАМЕНЁННЫЙ БЛОК: вместо MediaSource - прямое воспроизведение
       audioPlayer.src = secureUrl(st.url)
 
       if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
@@ -487,26 +519,23 @@ function onStationSelect(i) {
       const pt = document.getElementById("playTimer")
       if (pt) pt.textContent = formatTime(0)
 
-      if (li) li.classList.add("active")
-      if (stationLabel) {
-        const t = stationLabel.querySelector(".scrolling-text")
-        if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station")
-        checkMarquee(stationLabel)
-      }
-
-      audioPlayer.muted = false
-      audioPlayer.volume = defaultVolume.value
-
-      audioPlayer.play().then(() => {
-        appInitialized = true
-        if (!window.equalizerInitialized) {
-          initEqualizer()
-          window.equalizerInitialized = true
+      checkRealBuffering(3000, li, () => {
+        if (li) li.classList.add("active")
+        if (stationLabel) {
+          const t = stationLabel.querySelector(".scrolling-text")
+          if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station")
+          checkMarquee(stationLabel)
         }
-      }).catch(() => {})
+      })
 
-      fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
-      updatePlayPauseButton(audioPlayer, playPauseBtn)
+      audioPlayer.oncanplay = () => {
+        audioPlayer.oncanplay = null
+        audioPlayer.muted = false
+        audioPlayer.volume = defaultVolume.value
+        audioPlayer.play().catch(() => {})
+        fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
+        updatePlayPauseButton(audioPlayer, playPauseBtn)
+      }
 
       if (playCheckTimer) clearTimeout(playCheckTimer)
       if (appInitialized) {
@@ -520,6 +549,7 @@ function onStationSelect(i) {
     }
   }
 }
+
 function setRadioListeners() {
   const pSel = document.getElementById("playlistSelect");
   const sIn = document.getElementById("searchInput");
@@ -582,6 +612,7 @@ function setRadioListeners() {
     });
   }
 }
+
 audioPlayer.addEventListener("play", () => {
   if (!(currentPlaylist[currentTrackIndex] && currentPlaylist[currentTrackIndex].nft)) {
     updatePlayPauseButton(audioPlayer, playPauseBtn)
@@ -601,6 +632,7 @@ audioPlayer.addEventListener("play", () => {
     }
   }
 })
+
 audioPlayer.addEventListener("ended", () => {
   if (currentMode === "web3") {
     if (currentTrackIndex < currentPlaylist.length - 1) {
@@ -610,6 +642,7 @@ audioPlayer.addEventListener("ended", () => {
     }
   }
 })
+
 audioPlayer.addEventListener("pause", () => {
   updatePlayPauseButton(audioPlayer, playPauseBtn)
   if (window.playTimerInterval) {
@@ -617,6 +650,7 @@ audioPlayer.addEventListener("pause", () => {
     window.playTimerInterval = null
   }
 })
+
 if ("mediaSession" in navigator) {
   navigator.mediaSession.setActionHandler("play", async () => {
     try { await audioPlayer.play() } catch(e){}
@@ -627,10 +661,12 @@ if ("mediaSession" in navigator) {
   navigator.mediaSession.setActionHandler("previoustrack", () => rrBtn.click())
   navigator.mediaSession.setActionHandler("nexttrack", () => ffBtn.click())
 }
+
 playlistContainer.addEventListener("scroll", () => {
   const { scrollTop, clientHeight, scrollHeight } = playlistContainer
   if (scrollTop + clientHeight >= scrollHeight - 50) renderMoreStations()
 })
+
 playlistElement.addEventListener("click", e => {
   const li = e.target.closest("li")
   if (!li || li.dataset.index === undefined) return
@@ -644,6 +680,7 @@ playlistElement.addEventListener("click", e => {
     onStationSelect(index)
   }
 })
+
 if (playPauseBtn) {
   playPauseBtn.addEventListener("click", () => {
     if (audioPlayer.paused) audioPlayer.play().catch(() => {})
@@ -651,6 +688,7 @@ if (playPauseBtn) {
     updatePlayPauseButton(audioPlayer, playPauseBtn)
   })
 }
+
 if (rrBtn) {
   rrBtn.addEventListener("click", () => {
     if (currentTrackIndex > 0) {
@@ -660,6 +698,7 @@ if (rrBtn) {
     }
   })
 }
+
 if (ffBtn) {
   ffBtn.addEventListener("click", () => {
     if (shuffleActive) {
@@ -677,6 +716,7 @@ if (ffBtn) {
     }
   });
 }
+
 if (favBtn) {
   favBtn.addEventListener("click", () => {
     if (!currentPlaylist.length) return
@@ -690,12 +730,14 @@ if (favBtn) {
     resetVisibleStations()
   })
 }
+
 if (shuffleBtn) {
   shuffleBtn.addEventListener("click", () => {
     shuffleActive = !shuffleActive
     updateShuffleButton(shuffleActive, shuffleBtn)
   })
 }
+
 if (randomBtn) {
   randomBtn.addEventListener("click", () => {
     if (currentMode === "web3") {
@@ -736,13 +778,16 @@ if (randomBtn) {
     }
   });
 }
+
 if (walletBtn) {
   walletBtn.addEventListener("click", async () => {
     const a = await connectWallet()
     switchToWeb3(a)
   })
 }
+
 initVolumeControl(audioPlayer, document.querySelector(".volume-slider"), document.querySelector(".volume-knob"), defaultVolume)
+
 function globalUpdater(ts) {
   if (!lastChatUpdate) lastChatUpdate = ts
   if (!lastMetadataUpdate) lastMetadataUpdate = ts
@@ -757,6 +802,7 @@ function globalUpdater(ts) {
   requestAnimationFrame(globalUpdater)
 }
 requestAnimationFrame(globalUpdater)
+
 fetch("playlists.json")
   .then(r => r.json())
   .then(pl => {
@@ -821,7 +867,9 @@ fetch("playlists.json")
     defaultPlaylist();
     setRadioListeners();
   });
+
 document.dispatchEvent(new Event("appLoaded"))
+
 const container = document.querySelector('.container');
 const leftPanel = document.querySelector('.left-panel');
 const rightPanel = document.querySelector('.right-panel');
@@ -829,6 +877,7 @@ const resizer = document.getElementById('resizer');
 let isResizing = false;
 let startX;
 let startLeftWidthPercent;
+
 resizer.addEventListener('mousedown', (e) => {
   isResizing = true;
   startX = e.clientX;
@@ -836,6 +885,7 @@ resizer.addEventListener('mousedown', (e) => {
   document.body.style.cursor = 'ew-resize';
   document.body.style.userSelect = 'none';
 });
+
 document.addEventListener('mousemove', (e) => {
   if (!isResizing) return;
   const containerWidth = container.clientWidth;
@@ -848,6 +898,7 @@ document.addEventListener('mousemove', (e) => {
   rightPanel.style.width = `${100 - newLeftWidthPercent}%`;
   resizer.style.left = `calc(${newLeftWidthPercent}% - ${resizer.offsetWidth / 2}px)`;
 });
+
 document.addEventListener('mouseup', () => {
   isResizing = false;
   document.body.style.cursor = '';
