@@ -478,74 +478,43 @@ function onStationSelect(i) {
       if (!st.nft) updateStreamMetadata(st.originalUrl || st.url)
       updateMediaSessionMetadata(st)
     } else {
-      const ms = new MediaSource()
-      audioPlayer.src = URL.createObjectURL(ms)
-      ms.addEventListener("sourceopen", () => {
-        const mc = "audio/mpeg"
-        let sb
-        try {
-          sb = ms.addSourceBuffer(mc)
-        } catch (e) { return }
-        fetch(st.url).then(r => {
-          const rd = r.body.getReader()
-          function push() {
-            if (ms.readyState !== "open") return
-            rd.read().then(({ done, value }) => {
-              if (done) {
-                try { if (ms.readyState === "open") ms.endOfStream() } catch(e){}
-                return
-              }
-              if (!sb.updating) {
-                try {
-                  sb.appendBuffer(value)
-                  cleanupBuffer(sb)
-                } catch(e){}
-              } else {
-                sb.addEventListener("updateend", function h() {
-                  sb.removeEventListener("updateend", h)
-                  if (ms.readyState === "open" && !sb.updating) {
-                    try {
-                      sb.appendBuffer(value)
-                      cleanupBuffer(sb)
-                    } catch(e){}
-                  }
-                })
-              }
-              push()
-            }).catch(() => {})
-          }
-          push()
-        }).catch(() => {})
-      })
+      // ЗАМЕНЁННЫЙ БЛОК: вместо MediaSource - прямое воспроизведение
+      audioPlayer.src = secureUrl(st.url)
+
       if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
       if (window.playTimerInterval) clearInterval(window.playTimerInterval)
+
       const pt = document.getElementById("playTimer")
       if (pt) pt.textContent = formatTime(0)
-      checkRealBuffering(5, li, () => {
-        if (li) li.classList.add("active")
-        if (stationLabel) {
-          const t = stationLabel.querySelector(".scrolling-text")
-          if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station")
-          checkMarquee(stationLabel)
+
+      if (li) li.classList.add("active")
+      if (stationLabel) {
+        const t = stationLabel.querySelector(".scrolling-text")
+        if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station")
+        checkMarquee(stationLabel)
+      }
+
+      audioPlayer.muted = false
+      audioPlayer.volume = defaultVolume.value
+
+      audioPlayer.play().then(() => {
+        appInitialized = true
+        if (!window.equalizerInitialized) {
+          initEqualizer()
+          window.equalizerInitialized = true
         }
-        audioPlayer.muted = false
-        audioPlayer.volume = defaultVolume.value
-        audioPlayer.play().then(() => {
-          appInitialized = true
-          if (!window.equalizerInitialized) {
-            initEqualizer()
-            window.equalizerInitialized = true
-          }
-        }).catch(() => {})
-        fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
-        updatePlayPauseButton(audioPlayer, playPauseBtn)
-      })
+      }).catch(() => {})
+
+      fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
+      updatePlayPauseButton(audioPlayer, playPauseBtn)
+
       if (playCheckTimer) clearTimeout(playCheckTimer)
       if (appInitialized) {
         playCheckTimer = setTimeout(() => {
           if (audioPlayer.paused) markStationAsHidden(i)
         }, 15000)
       }
+
       if (!st.nft) updateStreamMetadata(st.originalUrl || st.url)
       updateMediaSessionMetadata(st)
     }
