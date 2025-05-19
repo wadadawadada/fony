@@ -5,7 +5,8 @@ exports.handler = async function (event, context) {
       body: JSON.stringify({
         GIST_ID: process.env.GIST_ID,
         GITHUB_TOKEN: process.env.GITHUB_TOKEN,
-        CHAT_FILENAME: process.env.CHAT_FILENAME
+        CHAT_FILENAME: process.env.CHAT_FILENAME,
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY || ""
       })
     };
   };

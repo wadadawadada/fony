@@ -1,0 +1,144 @@
+{
+  "title": "FONY Web3 Music Player - Comprehensive Knowledge Base",
+  "description": "Detailed information, features, tips, and commands to optimize your experience with FONY - the next-gen Web3 music player combining internet radio and NFT audio integration.",
+  
+  "applicationOverview": {
+    "summary": "FONY combines free 24/7 internet radio streaming with NFT-based audio collectibles, wrapped in a user-friendly Web3 interface featuring smart playlists, AI-powered music advisor, and discovery tools to enhance your listening experience.",
+    "platforms": ["Desktop browsers", "Mobile browsers"],
+    "technologies": ["Web3 (Ethereum)", "IPFS/Arweave", "Web Audio API", "OpenAI integration"]
+  },
+  
+  "features": [
+    {
+      "name": "Internet Radio Streaming",
+      "description": "Access thousands of curated radio stations across various genres worldwide, with seamless streaming and metadata display."
+    },
+    {
+      "name": "NFT Audio Integration",
+      "description": "Connect your Ethereum-compatible wallet to access and play your owned NFT audio collectibles with metadata and cover art fetched from IPFS or Arweave."
+    },
+    {
+      "name": "Playback Controls",
+      "description": "Use intuitive controls: Play/Pause, Next, Previous, Shuffle, Random, and Volume with smooth dragging and animated buttons."
+    },
+    {
+      "name": "Real-Time Equalizer Visualization",
+      "description": "Visualize audio frequency bands dynamically with animated diods responding to the music."
+    },
+    {
+      "name": "AI Music Advisor & Discovery Tools",
+      "description": "Get personalized music recommendations, similar tracks, facts, and new releases with AI-driven commands to explore music effortlessly."
+    },
+    {
+      "name": "Search Within Genres",
+      "description": "Filter stations instantly by typing in the search box while browsing a genre."
+    },
+    {
+      "name": "Favorites Management",
+      "description": "Mark stations as favorites, manage them easily, and quickly access your preferred streams."
+    },
+    {
+      "name": "Theme Support",
+      "description": "Toggle between light and dark themes with adaptive icon sets for improved UX."
+    },
+    {
+      "name": "Responsive UI with Resizer",
+      "description": "Adjust the split view between player and playlist panels via a draggable resizer, adaptable to screen size."
+    },
+    {
+      "name": "Secure Streaming and Metadata Fetching",
+      "description": "Streams are proxied securely if using http sources, with ICY metadata fetching for current track display and Google search integration for track info."
+    },
+    {
+      "name": "OpenAI-Powered Chat Commands",
+      "description": "Use chat commands like /similar, /facts, /new, /info to get AI-generated music recommendations and track details."
+    }
+  ],
+  
+  "tips": [
+    {
+      "command": "/similar",
+      "usage": "Find 5 similar tracks from other artists based on the currently playing track.",
+      "example": "/similar artist:Coldplay track:Yellow"
+    },
+    {
+      "command": "/facts",
+      "usage": "Get interesting facts about the current artist or track.",
+      "note": "Emojis may be included for better engagement."
+    },
+    {
+      "command": "/new",
+      "usage": "Discover 5 newly released tracks in the same or related genres."
+    },
+    {
+      "command": "/info",
+      "usage": "Retrieve detailed metadata about the current track including release year, label, and genre."
+    },
+    {
+      "command": "[fony tips]",
+      "usage": "Show detailed tips and feature highlights about the FONY application."
+    },
+    {
+      "tip": "Use the shuffle button to randomly play stations within a genre to discover new music effortlessly."
+    },
+    {
+      "tip": "Mark your favorite stations by clicking the heart icon for quick access later."
+    },
+    {
+      "tip": "Connect your Ethereum wallet to access and play your NFT audio collectibles directly."
+    },
+    {
+      "tip": "Enjoy the animated equalizer for a visual representation of the audio frequencies."
+    },
+    {
+      "tip": "Use the search box to filter stations inside a genre quickly without scrolling."
+    }
+  ],
+  
+  "commands": [
+    {
+      "command": "/similar",
+      "description": "Shows tracks similar to the current one."
+    },
+    {
+      "command": "/facts",
+      "description": "Provides facts about the current artist or track."
+    },
+    {
+      "command": "/new",
+      "description": "Lists new tracks in a similar genre."
+    },
+    {
+      "command": "/info",
+      "description": "Gives technical metadata about the current track."
+    },
+    {
+      "command": "[fony tips]",
+      "description": "Displays tips and tricks about FONY usage."
+    }
+  ],
+
+  "settings": {
+    "httpStations": {
+      "description": "Option to show stations with http streams (not secure).",
+      "default": false
+    },
+    "leftHandedMode": {
+      "description": "Switches the layout to left-handed mode by reversing panels.",
+      "default": false
+    }
+  },
+
+  "technicalDetails": {
+    "volumeControl": "Volume adjustable by dragging the knob on the volume slider, with visual feedback.",
+    "equalizer": "Uses Web Audio API AnalyserNode with 30 bars representing frequency bands for real-time animation.",
+    "buffering": "Streams proxied for http, buffering state managed with visual progress in playlist items.",
+    "web3": {
+      "walletConnect": "Connect via MetaMask or compatible Ethereum wallet.",
+      "nftContracts": "Supports predefined NFT contracts with metadata fetching via IPFS or Arweave gateways.",
+      "trackPlayback": "NFT tracks streamed similarly to radio, with track metadata and cover art displayed."
+    },
+    "chat": "Built-in chat with OpenAI backend for advanced queries and user engagement.",
+    "responsiveDesign": "UI adapts to screen size with specific behavior for mobile devices."
+  }
+}

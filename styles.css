@@ -297,7 +297,7 @@ html, body {
   align-items: flex-end;
   gap: 25px;
   width: 100%;
-  height: 48px;
+  height: 50px;
   /* background-color: #f20000; */
 }
 .equalizer-bar {
@@ -318,12 +318,13 @@ html, body {
   }
   .chat-container {
     margin-top: 60px;
+    margin-bottom: 10px;
     background-color: #171C2B;
     border-radius: 7px;
     border: 2px solid #00F2B8;
     display: flex;
     flex-direction: column;
-    height: 250px;
+    height: 100%;
     overflow: hidden;
     box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
   }
@@ -338,6 +339,16 @@ html, body {
     align-items: center;
     border: 1px solid #00F2B8;
   }
+  #chatGenre a {
+  color: #171C2B !important;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#chatGenre a:hover {
+  text-decoration: underline;
+}
+
   .chat-username-box input {
     border: 0px solid #ffffff;
     color: #07F2B8;
@@ -349,16 +360,48 @@ html, body {
     font-family: 'Ruda', sans-serif;
   }
   .chat-username-box ::placeholder {
-    color: #818181;
+    color: #d1d1d1;
     font-family: 'Ruda', sans-serif;
   }
   .chat-messages {
     flex: 1;
     padding: 10px;
     overflow-y: auto;
-    color: #00F2B8;
-    font-size: 1.2rem;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 100;
   }
+
+  .chat-messages a {
+    color: #07F2B8;
+    text-decoration: none;
+  }
+   .chat-messages a:hover {
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  .chat-message p {
+  margin: 0.1em 0;
+  line-height: 1.25;
+}
+.chat-message {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.chat-message.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+  .user-message {
+  color: #00F2B8 !important;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  text-align: right;
+}
   .chat-input-box {
     background-color: #171C2B;
     display: flex;
@@ -377,6 +420,11 @@ html, body {
     font-size: 0.8rem;
     font-family: 'Ruda', sans-serif;
   }
+  #chatInput::placeholder {
+  color: #b3b3b3; /* серый или любой другой */
+  opacity: 1;     /* убедись, что он виден */
+}
+
   .chat-send-btn {
     border: none;
     background: none;

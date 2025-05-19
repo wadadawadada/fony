@@ -1,7 +1,7 @@
 import { fadeAudioOut, fadeAudioIn } from './player.js'
 import { renderPlaylist, loadPlaylist } from './playlist.js'
 import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from './controls.js'
-import { initChat, updateChat, syncChat } from './chat.js'
+import { initChat} from './chat.js'
 import { getStreamMetadata, secureUrl } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
 import { connectWallet, getNFTContractList, connectAndLoadWalletNFTs } from './web3.js'
@@ -209,7 +209,7 @@ function switchToRadio() {
       const { genre, trackIndex } = JSON.parse(ls);
       const pSel = document.getElementById("playlistSelect");
       if (pSel) pSel.value = genre;
-      initChat(genre);
+      initChat();
       loadAndRenderPlaylist(genre, () => {
         const i = trackIndex < currentPlaylist.length ? trackIndex : 0;
         onStationSelect(i);
@@ -296,7 +296,7 @@ function defaultPlaylist() {
   const firstGenre = allPlaylists[0].file
   if (playlistSelect) playlistSelect.value = firstGenre
   window.currentGenre = firstGenre
-  initChat(firstGenre)
+  initChat()
   loadAndRenderPlaylist(firstGenre, () => {
     if (currentPlaylist.length) {
       const i = 0
@@ -528,14 +528,19 @@ function onStationSelect(i) {
         }
       })
 
-      audioPlayer.oncanplay = () => {
-        audioPlayer.oncanplay = null
-        audioPlayer.muted = false
-        audioPlayer.volume = defaultVolume.value
-        audioPlayer.play().catch(() => {})
-        fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
-        updatePlayPauseButton(audioPlayer, playPauseBtn)
-      }
+  audioPlayer.oncanplay = () => {
+  audioPlayer.oncanplay = null
+  audioPlayer.muted = false
+  audioPlayer.volume = defaultVolume.value
+  audioPlayer.play().catch(() => {})
+  fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
+  updatePlayPauseButton(audioPlayer, playPauseBtn)
+  if (!window.equalizerInitialized) {
+    initEqualizer()
+    window.equalizerInitialized = true
+  }
+}
+
 
       if (playCheckTimer) clearTimeout(playCheckTimer)
       if (appInitialized) {
@@ -762,18 +767,12 @@ if (randomBtn) {
         if (!allPlaylists.length) return;
         const ri = Math.floor(Math.random() * allPlaylists.length);
         const rg = allPlaylists[ri].file;
-        loadAndRenderPlaylist(rg, () => {
-          if (currentPlaylist.length) {
-            const ix = Math.floor(Math.random() * currentPlaylist.length);
-            onStationSelect(ix);
-            localStorage.setItem("lastStation", JSON.stringify({ genre: rg, trackIndex: ix }));
-            updateChat(rg);
-            const pSel = document.getElementById("playlistSelect");
-            if (pSel) {
-              pSel.value = rg;
-            }
-          }
-        });
+        const pSel = document.getElementById("playlistSelect");
+if (pSel) {
+  pSel.value = rg;
+  pSel.dispatchEvent(new Event("change"));
+}
+
       });
     }
   });
@@ -791,10 +790,10 @@ initVolumeControl(audioPlayer, document.querySelector(".volume-slider"), documen
 function globalUpdater(ts) {
   if (!lastChatUpdate) lastChatUpdate = ts
   if (!lastMetadataUpdate) lastMetadataUpdate = ts
-  if (ts - lastChatUpdate >= chatUpdateInterval) {
-    syncChat()
-    lastChatUpdate = ts
-  }
+  // if (ts - lastChatUpdate >= chatUpdateInterval) {
+  //   syncChat()
+  //   lastChatUpdate = ts
+  // }
   if (ts - lastMetadataUpdate >= metadataUpdateInterval) {
     updateStreamMetadata(currentParsingUrl)
     lastMetadataUpdate = ts
@@ -832,7 +831,7 @@ fetch("playlists.json")
       if (hh) {
         if (playlistSelect) playlistSelect.value = hg;
         window.currentGenre = hg;
-        initChat(hg);
+        initChat();
         loadAndRenderPlaylist(hg, () => {
           const fi = currentPlaylist.findIndex(x => generateStationHash(x.url) === sh);
           if (fi !== -1) {
@@ -849,7 +848,7 @@ fetch("playlists.json")
         const { genre, trackIndex } = JSON.parse(localStorage.getItem("lastStation"));
         if (playlistSelect) playlistSelect.value = genre;
         window.currentGenre = genre;
-        initChat(genre);
+        initChat();
         loadAndRenderPlaylist(genre, () => {
           const si = trackIndex < currentPlaylist.length ? trackIndex : 0;
           onStationSelect(si);
