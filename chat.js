@@ -152,15 +152,17 @@ async function fetchOpenAIKey() {
   } catch {}
 
   try {
+    // Используем правильный URL для Netlify функции в продакшене:
     const res = await fetch("/api/get-config");
-    if (!res.ok) throw new Error();
+    if (!res.ok) throw new Error("Failed to fetch config from Netlify function");
     const data = await res.json();
     if (data.OPENAI_API_KEY) {
       openAiApiKey = data.OPENAI_API_KEY;
     }
-  } catch {}
+  } catch (e) {
+    console.error("Error fetching OpenAI API key:", e);
+  }
 }
-
 
 function getNowPlayingText() {
   const currentTrackElem = document.querySelector("#currentTrack .scrolling-text");
