@@ -150,13 +150,17 @@ async function fetchOpenAIKey() {
       }
     }
   } catch {}
+
   try {
     const res = await fetch("/api/get-config");
     if (!res.ok) throw new Error();
     const data = await res.json();
-    openAiApiKey = data.OPENAI_API_KEY;
+    if (data.OPENAI_API_KEY) {
+      openAiApiKey = data.OPENAI_API_KEY;
+    }
   } catch {}
 }
+
 
 function getNowPlayingText() {
   const currentTrackElem = document.querySelector("#currentTrack .scrolling-text");
