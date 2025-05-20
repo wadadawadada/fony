@@ -42,6 +42,24 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
     const effectiveWidth = rect.width - leftMargin - rightMargin;
     let pos = clientX - rect.left;
     pos = Math.max(leftMargin, Math.min(pos, rect.width - rightMargin));
+
+    // Получаем масштаб (scale) .player-controls, если применён
+    const playerControls = document.querySelector('.player-controls');
+    let scale = 1;
+    if (playerControls) {
+      const style = window.getComputedStyle(playerControls);
+      const transform = style.transform || style.webkitTransform;
+      if (transform && transform !== 'none') {
+        const match = transform.match(/^matrix\(([^,]+),/);
+        if (match) {
+          scale = parseFloat(match[1]);
+        }
+      }
+    }
+
+    // Корректируем позицию бегунка с учетом масштаба
+    pos = pos / scale;
+
     const newVolume = (pos - leftMargin) / effectiveWidth;
     audioPlayer.volume = newVolume;
     defaultVolume.value = newVolume;
@@ -79,7 +97,23 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
   window.addEventListener('load', () => {
     const rect = volumeSlider.getBoundingClientRect();
     const pos = defaultVolume.value * rect.width;
-    volumeKnob.style.left = pos + "px";
+
+    const playerControls = document.querySelector('.player-controls');
+    let scale = 1;
+    if (playerControls) {
+      const style = window.getComputedStyle(playerControls);
+      const transform = style.transform || style.webkitTransform;
+      if (transform && transform !== 'none') {
+        const match = transform.match(/^matrix\(([^,]+),/);
+        if (match) {
+          scale = parseFloat(match[1]);
+        }
+      }
+    }
+
+    const adjustedPos = pos / scale;
+
+    volumeKnob.style.left = adjustedPos + "px";
     updateVolumeScale(defaultVolume.value);
   });
 }

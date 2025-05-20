@@ -38,23 +38,18 @@ async function buildSystemPrompt(nowPlayingText) {
   const lines = [];
 
   if (config.intro) lines.push(config.intro);
-
   if (config.commands && config.commands.length) {
     lines.push("Commands:");
     lines.push(...config.commands);
   }
-
   if (config.template) {
     lines.push(config.template.replace("{nowPlayingText}", nowPlayingText || "unknown"));
   }
-
   if (config.rules && config.rules.length) {
     lines.push("Rules:");
     lines.push(...config.rules);
   }
-
   if (config.footer) lines.push(config.footer);
-
   return lines.join("\n\n");
 }
 
@@ -81,7 +76,6 @@ function escapeHtml(str) {
 function addMessage(role, htmlContent) {
   const msgDiv = document.createElement("div");
   msgDiv.classList.add("chat-message", role === "user" ? "user-message" : "bot-message");
-  if (role === "bot") htmlContent += "";
   msgDiv.innerHTML = `<strong style="display:inline-block; font-weight:800; margin-bottom:6px;">${role === "user" ? "You" : ">_FONY:"}</strong><br>${htmlContent}`;
   chatMessagesElem.appendChild(msgDiv);
   requestAnimationFrame(() => {
@@ -114,16 +108,13 @@ function showFeatureChoices() {
     return;
   }
   const chunk = fonyTipsState.remainingFeatures.slice(0, fonyTipsState.shownFeaturesCount);
-  const htmlLinks = chunk.map((f, idx) => {
-    return `<a href="#" class="fony-tip-feature" data-index="${idx}">${escapeHtml(f.name)}</a>`;
-  }).join(" | ");
+  const htmlLinks = chunk.map((f, idx) => `<a href="#" class="fony-tip-feature" data-index="${idx}">${escapeHtml(f.name)}</a>`).join(" | ");
   addMessage("bot", `Select a feature to learn more:<br>${htmlLinks}`);
   setTimeout(() => {
     document.querySelectorAll(".fony-tip-feature").forEach(link => {
       link.addEventListener("click", e => {
         e.preventDefault();
-        const idx = parseInt(e.target.dataset.index, 10);
-        showFeatureDetails(idx);
+        showFeatureDetails(parseInt(e.target.dataset.index, 10));
       });
     });
   }, 100);
@@ -184,9 +175,7 @@ async function fetchMusicBrainzInfo(artist, track) {
   const url = `https://musicbrainz.org/ws/2/recording/?query=${encodeURIComponent(query)}&fmt=json&limit=1`;
   try {
     const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'FONY-App/1.0 (wadada@keemail.me)'
-      }
+      headers: { 'User-Agent': 'FONY-App/1.0 (wadada@keemail.me)' }
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -242,7 +231,6 @@ async function getChatBotResponse(history, userInput) {
   } else {
     isContinuation = false;
   }
-
   if (userInput.trim().toLowerCase() === "[fony tips]") {
     fonyTipsState.mode = 'list';
     await sendFonyTipsIntro();
@@ -251,28 +239,23 @@ async function getChatBotResponse(history, userInput) {
   if (fonyTipsState.mode === 'list') {
     fonyTipsState.mode = null;
   }
-
   const nowPlayingText = getNowPlayingText();
-
   if (userInput.trim().startsWith("/info") && nowPlayingText) {
     const parsed = parseArtistTrack(nowPlayingText);
     if (parsed) {
       const info = await fetchMusicBrainzInfo(parsed.artist, parsed.track);
-      if (info) {
-        return info;
-      } else {
+      if (info) return info;
+      else {
         addMessage("bot", "Database is currently unavailable.");
         return null;
       }
     }
   }
-
   if (!openAiApiKey) await fetchOpenAIKey();
   if (!openAiApiKey) {
     addMessage("bot", "Error: OpenAI API key is not available.");
     return;
   }
-
   let systemPrompt = "";
   try {
     systemPrompt = await buildSystemPrompt(nowPlayingText);
@@ -280,16 +263,8 @@ async function getChatBotResponse(history, userInput) {
     addMessage("bot", "Error loading chat configuration.");
     return;
   }
-
-  const messages = [
-    { role: "system", content: systemPrompt },
-    ...history
-  ];
-
-  if (!isContinuation && userInput) {
-    messages.push({ role: "user", content: userInput });
-  }
-
+  const messages = [{ role: "system", content: systemPrompt }, ...history];
+  if (!isContinuation && userInput) messages.push({ role: "user", content: userInput });
   try {
     const resp = await fetch(OPENAI_API_URL, {
       method: "POST",
@@ -311,7 +286,6 @@ async function getChatBotResponse(history, userInput) {
     }
     const data = await resp.json();
     let botReply = data.choices?.[0]?.message?.content || "No response.";
-
     return botReply;
   } catch {
     addMessage("bot", "Error communicating with OpenAI.");
@@ -324,43 +298,49 @@ async function sendMessage() {
   addMessage("user", escapeHtml(text));
   chatInput.value = "";
   conversationHistory.push({ role: "user", content: text });
+  const typingIndicator = document.createElement("div");
+  typingIndicator.classList.add("chat-message", "bot-message", "typing-indicator");
+  typingIndicator.innerHTML = `<span class="dot-flash"></span>`;
+  chatMessagesElem.appendChild(typingIndicator);
+  chatMessagesElem.scrollTop = chatMessagesElem.scrollHeight;
   chatSendBtn.disabled = true;
   const botReply = await getChatBotResponse(conversationHistory, text);
   chatSendBtn.disabled = false;
+  if (typingIndicator && typingIndicator.parentElement) typingIndicator.remove();
   if (botReply) {
     addMessage("bot", formatBotResponse(botReply));
     conversationHistory.push({ role: "assistant", content: botReply });
-
     if (botReply.length >= 120) {
       const lastBotMsg = chatMessagesElem.lastChild;
-if (lastBotMsg) {
-  // Создаем контейнер для ссылки
-  const linkContainer = document.createElement("div");
-  linkContainer.style.textAlign = "center";
-  linkContainer.style.marginTop = "4px";
-
-  const link = document.createElement("a");
-  link.href = "#";
-  link.id = "continueLink";
-  link.textContent = ">>>more<<<";
-  link.style.color = "#00F2B8";
-  link.style.cursor = "pointer";
-
-  linkContainer.appendChild(link);
-  lastBotMsg.appendChild(linkContainer);
-
-  link.addEventListener("click", async (e) => {
-    e.preventDefault();
-    chatSendBtn.disabled = true;
-    const continuationReply = await getChatBotResponse(conversationHistory, "<<continue>>");
-    chatSendBtn.disabled = false;
-    if (continuationReply) {
-      addMessage("bot", formatBotResponse(continuationReply));
-      conversationHistory.push({ role: "assistant", content: continuationReply });
-    }
-  });
-}
-
+      if (lastBotMsg) {
+        const linkContainer = document.createElement("div");
+        linkContainer.style.textAlign = "center";
+        linkContainer.style.marginTop = "4px";
+        const link = document.createElement("a");
+        link.href = "#";
+        link.id = "continueLink";
+        link.textContent = ">>>more<<<";
+        link.style.color = "#00F2B8";
+        link.style.cursor = "pointer";
+        linkContainer.appendChild(link);
+        lastBotMsg.appendChild(linkContainer);
+        link.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const typingIndicator = document.createElement("div");
+          typingIndicator.classList.add("chat-message", "bot-message", "typing-indicator");
+          typingIndicator.innerHTML = `<span class="dot-flash"></span>`;
+          chatMessagesElem.appendChild(typingIndicator);
+          chatMessagesElem.scrollTop = chatMessagesElem.scrollHeight;
+          chatSendBtn.disabled = true;
+          const continuationReply = await getChatBotResponse(conversationHistory, "<<continue>>");
+          chatSendBtn.disabled = false;
+          if (typingIndicator && typingIndicator.parentElement) typingIndicator.remove();
+          if (continuationReply) {
+            addMessage("bot", formatBotResponse(continuationReply));
+            conversationHistory.push({ role: "assistant", content: continuationReply });
+          }
+        });
+      }
     }
   }
 }
@@ -433,8 +413,8 @@ function renderQuickLinks() {
 
 function sendWelcomeMessage() {
   const welcomeText = `
-    Welcome to the FONY console! Here you can dive deeper into exploring music.<br><br>
-    Try clicking one of the commands below to get acquainted with the functionality:<br>
+    Welcome to the FONY console!<br> Here you can dive deeper into exploring music.<br><br>
+    You can use the chat to explore music or try the quick commands below.<br>
     <a href="#" onclick="event.preventDefault(); chatInput.value='Recommend 3 tracks similar to the current track'; chatSendBtn.click();">Similar Tracks</a>,&nbsp;
     <a href="#" onclick="event.preventDefault(); chatInput.value='List facts about the current track or artist'; chatSendBtn.click();">Facts</a>,&nbsp;
     <a href="#" onclick="event.preventDefault(); chatInput.value='Suggest 3 new tracks in a similar genre'; chatSendBtn.click();">New in Genre</a>,&nbsp;
@@ -448,6 +428,69 @@ function sendWelcomeMessage() {
 export function initChat() {
   renderQuickLinks();
   sendWelcomeMessage();
+
+  const chatUsernameContainer = document.getElementById("chatUsernameContainer");
+  const leftPanel = document.querySelector(".left-panel");
+
+  const toggleButton = document.createElement("button");
+  toggleButton.id = "chatToggleBtn";
+  toggleButton.textContent = ">_";
+  toggleButton.style.position = "absolute";
+  toggleButton.style.bottom = "20px";
+  toggleButton.style.right = "20px";
+  toggleButton.style.backgroundColor = "#00F2B8";
+  toggleButton.style.border = "none";
+  toggleButton.style.borderRadius = "8px";
+  toggleButton.style.padding = "8px 12px";
+  toggleButton.style.cursor = "pointer";
+  toggleButton.style.fontWeight = "bold";
+  toggleButton.style.fontFamily = "'Ruda', sans-serif";
+  toggleButton.style.color = "#171C2B";
+  toggleButton.style.zIndex = "1000";
+  toggleButton.style.display = "none";
+
+  const tooltip = document.createElement("span");
+  tooltip.className = "tooltip-text";
+  tooltip.textContent = "open fony console";
+  toggleButton.appendChild(tooltip);
+
+  if (leftPanel) {
+    if (window.getComputedStyle(leftPanel).position === "static") {
+      leftPanel.style.position = "relative";
+    }
+    leftPanel.appendChild(toggleButton);
+  }
+
+  chatUsernameContainer.style.cursor = "pointer";
+
+  chatUsernameContainer.addEventListener("click", () => {
+    chatContainer.style.display = "none";
+    toggleButton.style.display = "block";
+    const playerControls = document.querySelector('.player-controls');
+    if (playerControls) playerControls.classList.add('chat-collapsed');
+  });
+
+  chatUsernameContainer.addEventListener("mouseenter", () => {
+    chatInput.placeholder = "close console";
+  });
+  chatUsernameContainer.addEventListener("mouseleave", () => {
+    chatInput.placeholder = "Enter message...";
+  });
+
+  toggleButton.addEventListener("click", () => {
+    chatContainer.style.display = "flex";
+    toggleButton.style.display = "none";
+    const playerControls = document.querySelector('.player-controls');
+    if (playerControls) playerControls.classList.remove('chat-collapsed');
+  });
+
+  toggleButton.addEventListener("mouseenter", () => {
+    chatInput.placeholder = "Collapse console";
+  });
+  toggleButton.addEventListener("mouseleave", () => {
+    chatInput.placeholder = "Enter message...";
+  });
+
   const walletBtn = document.getElementById("connectWalletBtn");
   if (walletBtn) {
     walletBtn.addEventListener("click", async () => {

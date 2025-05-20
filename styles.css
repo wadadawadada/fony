@@ -442,6 +442,106 @@ html, body {
   .chat-send-btn img:hover {
     transform: scale(0.97);
   }
+  .typing-indicator {
+  font-size: 1.5rem;
+  color: #00F2B8;
+  margin-top: 0.5rem;
+  opacity: 0.75;
+  font-style: italic;
+}
+.dot-flash::after {
+  content: '';
+  display: inline-block;
+  animation: dots 1s steps(4, end) infinite;
+  width: 1em;
+  text-align: left;
+}
+
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '::'; }
+  50% { content: '::::'; }
+  75% { content: '::::::'; }
+  100% { content: ''; }
+}
+/* Плавное скрытие/появление чата */
+#chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: opacity 0.3s ease;
+  opacity: 1;
+}
+
+#chat[style*="display: none"] {
+  opacity: 0;
+  height: 0 !important;
+  overflow: hidden;
+}
+
+/* Если нужно, можно сделать адаптивность кнопки */
+@media (max-width: 768px) {
+  .left-panel button {
+    bottom: 10px !important;
+    right: 10px !important;
+    padding: 6px 10px !important;
+    font-size: 14px;
+  }
+}
+.player-controls.chat-collapsed {
+  margin-top: 50px; 
+  transform: scale(1.2); 
+  transform-origin: center top;
+  transition: margin-top 0.3s ease, transform 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .player-controls.chat-collapsed {
+    margin-top: 100px;
+    transform: scale(1.1);
+  }
+}
+
+#chatToggleBtn {
+  position: relative;
+  background-color: #00F2B8;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: 'Ruda', sans-serif;
+  color: #171C2B;
+  z-index: 1000;
+}
+
+#chatToggleBtn .tooltip-text {
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-right: 10px;
+  transform: translateY(-50%) translateX(10px);
+  background-color: #00F2B8;
+  color: #171C2B;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: 'Ruda', sans-serif;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform-origin: right center;
+}
+
+#chatToggleBtn:hover .tooltip-text {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0);
+}
+
+
   .genre-box {
     margin-bottom: 15px;
     margin-left: 1rem;

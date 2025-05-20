@@ -125,6 +125,37 @@
   justify-content: center;
   gap: 50px;
 }
+
+/* Класс для увеличенного режима управления */
+.player-controls.expanded {
+  gap: 80px; /* увеличить расстояния между элементами */
+  justify-content: space-around; /* равномерно распределить */
+}
+
+.player-controls.expanded .player-btn {
+  width: 90px !important;
+  height: 90px !important;
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.player-controls.expanded .play-btn {
+  width: 160px !important;
+  height: 160px !important;
+}
+
+/* Эквалайзер растянуть по ширине и увеличить */
+.diods-row.expanded {
+  height: 70px !important;
+  transition: height 0.3s ease;
+}
+
+.diods-row.expanded .equalizer-bar {
+  width: 8px !important;
+  margin: 0 4px !important;
+  transition: width 0.3s ease, margin 0.3s ease;
+}
+
+
 .left-stack,
 .right-stack {
   display: flex;
