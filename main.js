@@ -583,33 +583,38 @@ function setRadioListeners() {
     }, 300));
   }
   if (fBtn) {
-    fBtn.addEventListener("click", async () => {
-      const genreLabel = document.querySelector("label[for='playlistSelect']");
-      if (fBtn.classList.contains("active")) {
-        fBtn.classList.remove("active");
-        if (pSel) pSel.style.display = "";
-        if (sIn) sIn.style.display = "";
-        if (genreLabel) genreLabel.textContent = "Genre:";
-        currentPlaylist = allStations.slice();
-        resetVisibleStations();
-      } else {
-        fBtn.classList.add("active");
-        if (pSel) pSel.style.display = "none";
-        if (sIn) sIn.style.display = "none";
-        if (genreLabel) genreLabel.textContent = "Favorites";
-        const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
-        let list = [];
-        for (let pl of allPlaylists) {
-          const st = await loadPlaylist(pl.file);
-          const matched = st.filter(x => fav.includes(x.url));
-          list = list.concat(matched);
-        }
-        const u = Array.from(new Map(list.map(o => [o.url, o])).values());
-        currentPlaylist = u;
-        resetVisibleStations();
+  fBtn.addEventListener("click", async () => {
+    if (fBtn.disabled) return; // блокируем повторные нажатия
+    fBtn.disabled = true;
+
+    const genreLabel = document.querySelector("label[for='playlistSelect']");
+    if (fBtn.classList.contains("active")) {
+      fBtn.classList.remove("active");
+      if (pSel) pSel.style.display = "";
+      if (sIn) sIn.style.display = "";
+      if (genreLabel) genreLabel.textContent = "Genre:";
+      currentPlaylist = allStations.slice();
+      resetVisibleStations();
+      fBtn.disabled = false;
+    } else {
+      fBtn.classList.add("active");
+      if (pSel) pSel.style.display = "none";
+      if (sIn) sIn.style.display = "none";
+      if (genreLabel) genreLabel.textContent = "Favorites";
+      const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
+      let list = [];
+      for (let pl of allPlaylists) {
+        const st = await loadPlaylist(pl.file);
+        const matched = st.filter(x => fav.includes(x.url));
+        list = list.concat(matched);
       }
-    });
-  }
+      const u = Array.from(new Map(list.map(o => [o.url, o])).values());
+      currentPlaylist = u;
+      resetVisibleStations();
+      fBtn.disabled = false;
+    }
+  });
+}
   if (wBtn) {
     wBtn.addEventListener("click", async () => {
       const acc = await connectWallet();
