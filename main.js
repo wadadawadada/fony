@@ -618,25 +618,34 @@ function setRadioListeners() {
   }
 }
 
-audioPlayer.addEventListener("play", () => {
-  if (!(currentPlaylist[currentTrackIndex] && currentPlaylist[currentTrackIndex].nft)) {
-    updatePlayPauseButton(audioPlayer, playPauseBtn)
-    if (playCheckTimer) {
-      clearTimeout(playCheckTimer)
-      playCheckTimer = null
-    }
-    if (window.playTimerInterval) clearInterval(window.playTimerInterval)
-    let pt = 0
-    const el = document.getElementById("playTimer")
-    if (el) {
-      el.textContent = formatTime(pt)
-      window.playTimerInterval = setInterval(() => {
-        pt++
-        el.textContent = formatTime(pt)
-      }, 1000)
+audioPlayer.addEventListener("play", async () => {
+  if (window.audioContext && window.audioContext.state === 'suspended') {
+    try {
+      await window.audioContext.resume();
+      console.log('AudioContext resumed');
+    } catch (e) {
+      console.warn('Failed to resume AudioContext:', e);
     }
   }
-})
+
+  if (!(currentPlaylist[currentTrackIndex] && currentPlaylist[currentTrackIndex].nft)) {
+    updatePlayPauseButton(audioPlayer, playPauseBtn);
+    if (playCheckTimer) {
+      clearTimeout(playCheckTimer);
+      playCheckTimer = null;
+    }
+    if (window.playTimerInterval) clearInterval(window.playTimerInterval);
+    let pt = 0;
+    const el = document.getElementById("playTimer");
+    if (el) {
+      el.textContent = formatTime(pt);
+      window.playTimerInterval = setInterval(() => {
+        pt++;
+        el.textContent = formatTime(pt);
+      }, 1000);
+    }
+  }
+});
 
 audioPlayer.addEventListener("ended", () => {
   if (currentMode === "web3") {
