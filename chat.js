@@ -273,7 +273,7 @@ async function getChatBotResponse(history, userInput) {
         Authorization: `Bearer ${openAiApiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4.1",
         messages,
         temperature: 0.7,
         max_tokens: 100
