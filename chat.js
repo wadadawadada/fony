@@ -203,6 +203,17 @@ async function fetchMusicBrainzInfo(artist, track) {
   return null;
 }
 
+async function fetchMusicBrainzInfoWithRetries(artist, track, retries = 3, delayMs = 2000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const info = await fetchMusicBrainzInfo(artist, track);
+    if (info) return info;
+    if (attempt < retries) {
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+  }
+  return null;
+}
+
 function formatBotResponse(text) {
   if (!text) return "";
   const escapedText = escapeHtml(text.replace(/<br\s*\/?>/gi, "\n"));
@@ -243,17 +254,57 @@ async function getChatBotResponse(history, userInput) {
   if (userInput.trim().startsWith("/info") && nowPlayingText) {
     const parsed = parseArtistTrack(nowPlayingText);
     if (parsed) {
-      const info = await fetchMusicBrainzInfo(parsed.artist, parsed.track);
+      const info = await fetchMusicBrainzInfoWithRetries(parsed.artist, parsed.track, 3, 2000);
       if (info) return info;
       else {
-        addMessage("bot", "Database is currently unavailable.");
-        return null;
+        if (!openAiApiKey) await fetchOpenAIKey();
+        if (!openAiApiKey) {
+          addMessage("bot", "Error: FONY Console API key is not available.");
+          return;
+        }
+        let systemPrompt = "";
+        try {
+          systemPrompt = await buildSystemPrompt(nowPlayingText);
+        } catch {
+          addMessage("bot", "Error loading chat configuration.");
+          return;
+        }
+        const messages = [
+          { role: "system", content: systemPrompt },
+          ...history,
+          { role: "user", content: "Show technical metadata about the current track" }
+        ];
+        try {
+          const resp = await fetch(OPENAI_API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${openAiApiKey}`
+            },
+            body: JSON.stringify({
+              model: "gpt-4.1-mini",
+              messages,
+              temperature: 0.7,
+              max_tokens: 100
+            })
+          });
+          if (!resp.ok) {
+            const errorText = await resp.text();
+            addMessage("bot", `FONY Console error ${resp.status}: ${errorText}`);
+            return;
+          }
+          const data = await resp.json();
+          let botReply = data.choices?.[0]?.message?.content || "No response.";
+          return botReply;
+        } catch {
+          addMessage("bot", "Error communicating with FONY Console.");
+        }
       }
     }
   }
   if (!openAiApiKey) await fetchOpenAIKey();
   if (!openAiApiKey) {
-    addMessage("bot", "Error: OpenAI API key is not available.");
+    addMessage("bot", "Error: FONY Console API key is not available.");
     return;
   }
   let systemPrompt = "";
@@ -281,14 +332,14 @@ async function getChatBotResponse(history, userInput) {
     });
     if (!resp.ok) {
       const errorText = await resp.text();
-      addMessage("bot", `OpenAI error ${resp.status}: ${errorText}`);
+      addMessage("bot", `FONY Console error ${resp.status}: ${errorText}`);
       return;
     }
     const data = await resp.json();
     let botReply = data.choices?.[0]?.message?.content || "No response.";
     return botReply;
   } catch {
-    addMessage("bot", "Error communicating with OpenAI.");
+    addMessage("bot", "Error communicating with FONY Console.");
   }
 }
 
