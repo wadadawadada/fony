@@ -221,19 +221,24 @@ function formatBotResponse(text) {
   const formatted = lines.map(line => {
     const cleanLine = line.replace(/🔗/g, "").trim();
     if (!cleanLine) return "";
-    const match = cleanLine.match(/^(\d+\.\s*)?(.+?)\s*[-–—]\s*(.+)$/);
+    const match = cleanLine.match(/^(\d+\.\s+)?(.+?)\s*[-–—]\s*(.+)$/);
     if (match) {
       const [_, prefix = '', artist, title] = match;
       const full = `${artist.trim()} – ${title.trim()}`;
       if (full.toLowerCase() === "artist – title") return "";
       const query = encodeURIComponent(`${artist.trim()} ${title.trim()} YouTube`);
       const link = `https://www.google.com/search?q=${query}`;
-      return `<p>${prefix}${full} <a href="${link}" target="_blank" rel="noopener">🔗</a></p>`;
+      if (prefix) {
+        return `<p>${prefix}${full} <a href="${link}" target="_blank" rel="noopener">🔗</a></p>`;
+      } else {
+        return `<p>${full}</p>`;
+      }
     }
     return `<p>${cleanLine}</p>`;
   });
   return formatted.filter(Boolean).join("");
 }
+
 
 async function getChatBotResponse(history, userInput) {
   if (userInput.trim() === "<<continue>>") {
