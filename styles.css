@@ -421,8 +421,8 @@ html, body {
     font-family: 'Ruda', sans-serif;
   }
   #chatInput::placeholder {
-  color: #b3b3b3; /* серый или любой другой */
-  opacity: 1;     /* убедись, что он виден */
+  color: #b3b3b3;
+  opacity: 1; 
 }
 
   .chat-send-btn {

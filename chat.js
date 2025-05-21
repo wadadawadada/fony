@@ -76,7 +76,11 @@ function escapeHtml(str) {
 function addMessage(role, htmlContent) {
   const msgDiv = document.createElement("div");
   msgDiv.classList.add("chat-message", role === "user" ? "user-message" : "bot-message");
-  msgDiv.innerHTML = `<strong style="display:inline-block; font-weight:800; margin-bottom:6px;">${role === "user" ? "You" : ">_FONY:"}</strong><br>${htmlContent}`;
+  if (role === "user") {
+    msgDiv.innerHTML = `<strong style="display:inline-block; font-weight:800; margin-bottom:6px;">You</strong><br>${escapeHtml(htmlContent)}`;
+  } else {
+    msgDiv.innerHTML = `<strong style="display:inline-block; font-weight:800; margin-bottom:6px;">>_FONY:</strong><br>${htmlContent}`;
+  }
   chatMessagesElem.appendChild(msgDiv);
   requestAnimationFrame(() => {
     msgDiv.classList.add("show");
@@ -170,6 +174,33 @@ function parseArtistTrack(text) {
   };
 }
 
+async function fetchCoverArt(artist, track) {
+  const query = `recording:"${track}" AND artist:"${artist}"`;
+  const url = `https://musicbrainz.org/ws/2/recording/?query=${encodeURIComponent(query)}&fmt=json&limit=1`;
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'FONY-App/1.0 (contact@yourdomain.com)' }
+    });
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    if (data.recordings && data.recordings.length > 0) {
+      const recording = data.recordings[0];
+      if (recording.releases && recording.releases.length > 0) {
+        const releaseId = recording.releases[0].id;
+        const coverUrl = `https://coverartarchive.org/release/${releaseId}/front-500`;
+        const coverRes = await fetch(coverUrl, { method: 'HEAD' });
+        if (coverRes.ok) {
+          return coverUrl;
+        }
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 async function fetchMusicBrainzInfo(artist, track) {
   const query = `recording:"${track}" AND artist:"${artist}"`;
   const url = `https://musicbrainz.org/ws/2/recording/?query=${encodeURIComponent(query)}&fmt=json&limit=1`;
@@ -239,7 +270,6 @@ function formatBotResponse(text) {
   return formatted.filter(Boolean).join("");
 }
 
-
 async function getChatBotResponse(history, userInput) {
   if (userInput.trim() === "<<continue>>") {
     isContinuation = true;
@@ -247,20 +277,45 @@ async function getChatBotResponse(history, userInput) {
   } else {
     isContinuation = false;
   }
+
+  if (userInput.trim().toLowerCase() === "/img") {
+    const nowPlayingText = getNowPlayingText();
+    if (!nowPlayingText) {
+      return { type: "text", content: "Current track unknown." };
+    }
+
+    const parsed = parseArtistTrack(nowPlayingText);
+    if (!parsed) {
+      return { type: "text", content: "Failed to parse artist and track name." };
+    }
+
+    const cover = await fetchCoverArt(parsed.artist, parsed.track);
+    if (cover) {
+      return {
+        type: "image",
+        content: `<a href="${cover}" target="_blank" rel="noopener"><img src="${cover}" alt="Album Cover" style="max-width: 20%; border-radius: 8px;"></a>`
+      };
+    } else {
+      return { type: "text", content: "Cover art not found." };
+    }
+  }
+
   if (userInput.trim().toLowerCase() === "[fony tips]") {
     fonyTipsState.mode = 'list';
     await sendFonyTipsIntro();
     return null;
   }
+
   if (fonyTipsState.mode === 'list') {
     fonyTipsState.mode = null;
   }
+
   const nowPlayingText = getNowPlayingText();
   if (userInput.trim().startsWith("/info") && nowPlayingText) {
     const parsed = parseArtistTrack(nowPlayingText);
     if (parsed) {
       const info = await fetchMusicBrainzInfoWithRetries(parsed.artist, parsed.track, 3, 2000);
-      if (info) return info;
+      if (info) return { type: "text", content: info };
       else {
         if (!openAiApiKey) await fetchOpenAIKey();
         if (!openAiApiKey) {
@@ -300,13 +355,14 @@ async function getChatBotResponse(history, userInput) {
           }
           const data = await resp.json();
           let botReply = data.choices?.[0]?.message?.content || "No response.";
-          return botReply;
+          return { type: "text", content: botReply };
         } catch {
           addMessage("bot", "Error communicating with FONY Console.");
         }
       }
     }
   }
+
   if (!openAiApiKey) await fetchOpenAIKey();
   if (!openAiApiKey) {
     addMessage("bot", "Error: FONY Console API key is not available.");
@@ -342,7 +398,7 @@ async function getChatBotResponse(history, userInput) {
     }
     const data = await resp.json();
     let botReply = data.choices?.[0]?.message?.content || "No response.";
-    return botReply;
+    return { type: "text", content: botReply };
   } catch {
     addMessage("bot", "Error communicating with FONY Console.");
   }
@@ -364,39 +420,13 @@ async function sendMessage() {
   chatSendBtn.disabled = false;
   if (typingIndicator && typingIndicator.parentElement) typingIndicator.remove();
   if (botReply) {
-    addMessage("bot", formatBotResponse(botReply));
-    conversationHistory.push({ role: "assistant", content: botReply });
-    if (botReply.length >= 120) {
-      const lastBotMsg = chatMessagesElem.lastChild;
-      if (lastBotMsg) {
-        const linkContainer = document.createElement("div");
-        linkContainer.style.textAlign = "center";
-        linkContainer.style.marginTop = "4px";
-        const link = document.createElement("a");
-        link.href = "#";
-        link.id = "continueLink";
-        link.textContent = ">>> explore more <<<";
-        link.style.color = "#00F2B8";
-        link.style.cursor = "pointer";
-        linkContainer.appendChild(link);
-        lastBotMsg.appendChild(linkContainer);
-        link.addEventListener("click", async (e) => {
-          e.preventDefault();
-          const typingIndicator = document.createElement("div");
-          typingIndicator.classList.add("chat-message", "bot-message", "typing-indicator");
-          typingIndicator.innerHTML = `<span class="dot-flash"></span>`;
-          chatMessagesElem.appendChild(typingIndicator);
-          chatMessagesElem.scrollTop = chatMessagesElem.scrollHeight;
-          chatSendBtn.disabled = true;
-          const continuationReply = await getChatBotResponse(conversationHistory, "<<continue>>");
-          chatSendBtn.disabled = false;
-          if (typingIndicator && typingIndicator.parentElement) typingIndicator.remove();
-          if (continuationReply) {
-            addMessage("bot", formatBotResponse(continuationReply));
-            conversationHistory.push({ role: "assistant", content: continuationReply });
-          }
-        });
-      }
+    if (typeof botReply === "object" && botReply.type === "image") {
+      addMessage("bot", botReply.content);
+      conversationHistory.push({ role: "assistant", content: botReply.content });
+    } else {
+      const content = typeof botReply === "object" ? botReply.content : botReply;
+      addMessage("bot", formatBotResponse(content));
+      conversationHistory.push({ role: "assistant", content });
     }
   }
 }
@@ -438,6 +468,11 @@ function renderQuickLinks() {
       text: "/info",
       description: "Show technical metadata about the current track",
       command: () => nowPlayingText ? `/info ${nowPlayingText}` : "/info"
+    },
+    {
+      text: "/img",
+      description: "Show album cover of the playing track",
+      command: () => "/img"
     },
     {
       text: "[fony tips]",
