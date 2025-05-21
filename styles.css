@@ -801,6 +801,9 @@ html, body {
       padding-top: env(safe-area-inset-top);
     }
 
+    #chat {
+    display: none !important;
+  }
     .manifesto-button {
       position: fixed;
       top: 5px;
