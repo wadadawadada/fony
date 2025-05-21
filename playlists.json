@@ -24,6 +24,7 @@
   { "file": "genres/new_age.m3u",        "name": "New Age" },
   { "file": "genres/news1.m3u",        "name": "News" },
   { "file": "genres/oriental.m3u",        "name": "Oriental" },
+  { "file": "genres/spiritual.m3u",           "name": "Spiritual" },
   { "file": "genres/punk.m3u",           "name": "Punk" },
   { "file": "genres/rap.m3u",            "name": "Rap" },
   { "file": "genres/reggae.m3u",         "name": "Reggae" },
