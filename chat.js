@@ -76,19 +76,66 @@ function escapeHtml(str) {
 function addMessage(role, htmlContent) {
   const msgDiv = document.createElement("div");
   msgDiv.classList.add("chat-message", role === "user" ? "user-message" : "bot-message");
+
   if (role === "user") {
-    msgDiv.innerHTML = `<strong style="display:inline-block; font-weight:800; margin-bottom:6px;">You</strong><br>${escapeHtml(htmlContent)}`;
+    msgDiv.innerHTML = `
+      <strong style="display:block; font-weight:800; margin-bottom:6px;">You</strong>
+      <div class="message-content">${escapeHtml(htmlContent)}</div>
+    `;
+    chatMessagesElem.appendChild(msgDiv);
+    requestAnimationFrame(() => {
+      msgDiv.classList.add("show");
+      scrollToCenter(msgDiv);
+    });
   } else {
-    msgDiv.innerHTML = `<strong style="display:inline-block; font-weight:800; margin-bottom:6px;">>_FONY:</strong><br>${htmlContent}`;
+    msgDiv.innerHTML = `
+      <strong style="display:block; font-weight:800; margin-bottom:6px;">>_FONY:</strong>
+      <div class="message-content">${htmlContent}</div>
+    `;
+    chatMessagesElem.appendChild(msgDiv);
+    const imgs = msgDiv.querySelectorAll("img");
+    if (imgs.length === 0) {
+      requestAnimationFrame(() => {
+        msgDiv.classList.add("show");
+        scrollToCenter(msgDiv);
+      });
+    } else {
+      let loadedCount = 0;
+      imgs.forEach(img => {
+        img.addEventListener("load", () => {
+          loadedCount++;
+          if (loadedCount === imgs.length) {
+            requestAnimationFrame(() => {
+              msgDiv.classList.add("show");
+              scrollToCenter(msgDiv);
+            });
+          }
+        });
+        if (img.complete) {
+          loadedCount++;
+          if (loadedCount === imgs.length) {
+            requestAnimationFrame(() => {
+              msgDiv.classList.add("show");
+              scrollToCenter(msgDiv);
+            });
+          }
+        }
+      });
+    }
   }
-  chatMessagesElem.appendChild(msgDiv);
-  requestAnimationFrame(() => {
-    msgDiv.classList.add("show");
-    const containerTop = chatMessagesElem.getBoundingClientRect().top;
-    const msgTop = msgDiv.getBoundingClientRect().top;
-    const scrollOffset = msgTop - containerTop;
-    chatMessagesElem.scrollTop += scrollOffset - 20;
-  });
+}
+
+function scrollToCenter(element) {
+  const containerRect = chatMessagesElem.getBoundingClientRect();
+  const elemRect = element.getBoundingClientRect();
+  const scrollTopCurrent = chatMessagesElem.scrollTop;
+  const topDiff = elemRect.top - containerRect.top;
+  const contentElem = element.querySelector(".message-content") || element.querySelector(".image-container");
+  if (!contentElem) return;
+  const contentRect = contentElem.getBoundingClientRect();
+  let desiredOffset = topDiff + (contentRect.top + contentRect.height / 2) - (containerRect.top + containerRect.height / 2);
+  if (desiredOffset < topDiff) desiredOffset = topDiff;
+  chatMessagesElem.scrollTop = scrollTopCurrent + desiredOffset;
 }
 
 async function sendFonyTipsIntro() {
@@ -293,7 +340,7 @@ async function getChatBotResponse(history, userInput) {
     if (cover) {
       return {
         type: "image",
-        content: `<a href="${cover}" target="_blank" rel="noopener"><img src="${cover}" alt="Album Cover" style="max-width: 20%; border-radius: 8px;"></a>`
+        content: `<a href="${cover}" target="_blank" rel="noopener"><img src="${cover}" alt="Album Cover" style="max-width: 20%; border-radius: 4px;"></a>`
       };
     } else {
       return { type: "text", content: "Cover art not found." };
