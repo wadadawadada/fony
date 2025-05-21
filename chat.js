@@ -375,7 +375,7 @@ async function sendMessage() {
         const link = document.createElement("a");
         link.href = "#";
         link.id = "continueLink";
-        link.textContent = ">>>more<<<";
+        link.textContent = ">>> explore more <<<";
         link.style.color = "#00F2B8";
         link.style.cursor = "pointer";
         linkContainer.appendChild(link);

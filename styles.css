@@ -444,10 +444,9 @@ html, body {
   }
   .typing-indicator {
   font-size: 1.5rem;
-  color: #00F2B8;
+  color: #ffffff;
   margin-top: 0.5rem;
-  opacity: 0.75;
-  font-style: italic;
+  opacity: 1.0;
 }
 .dot-flash::after {
   content: '';
@@ -464,7 +463,7 @@ html, body {
   75% { content: '::::::'; }
   100% { content: ''; }
 }
-/* Плавное скрытие/появление чата */
+
 #chat {
   display: flex;
   flex-direction: column;
@@ -479,7 +478,6 @@ html, body {
   overflow: hidden;
 }
 
-/* Если нужно, можно сделать адаптивность кнопки */
 @media (max-width: 768px) {
   .left-panel button {
     bottom: 10px !important;
@@ -513,6 +511,7 @@ html, body {
   font-family: 'Ruda', sans-serif;
   color: #171C2B;
   z-index: 1000;
+  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
 }
 
 #chatToggleBtn .tooltip-text {
@@ -533,12 +532,14 @@ html, body {
   pointer-events: none;
   transition: opacity 0.3s ease, transform 0.3s ease;
   transform-origin: right center;
+  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
 }
 
 #chatToggleBtn:hover .tooltip-text {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(-50%) translateX(0);
+  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
 }
 
 
