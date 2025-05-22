@@ -1,4 +1,5 @@
 import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js";
+import { fetchDiscogsTrackInfo } from './discogs.js';
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const TIPS_JSON_URL = "/fony_tips.json";
@@ -226,7 +227,7 @@ async function fetchCoverArt(artist, track) {
   const url = `https://musicbrainz.org/ws/2/recording/?query=${encodeURIComponent(query)}&fmt=json&limit=1`;
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'FONY-App/1.0 (contact@yourdomain.com)' }
+      headers: { 'User-Agent': 'FONY-App/1.0 (contact@fony.space)' }
     });
     if (!res.ok) return null;
 
@@ -325,17 +326,40 @@ async function getChatBotResponse(history, userInput) {
     isContinuation = false;
   }
 
+  if (userInput.trim().toLowerCase().startsWith("/discogs")) {
+    let queryText = userInput.trim().slice(8).trim();
+    if (!queryText) {
+      const nowPlayingText = getNowPlayingText();
+      if (!nowPlayingText) {
+        return { type: "text", content: "⚠️ No track is currently playing to get info from." };
+      }
+      queryText = nowPlayingText;
+    }
+    let artist = "";
+    let track = "";
+    if (queryText.includes(" - ")) {
+      [artist, track] = queryText.split(" - ", 2);
+    } else if (queryText.includes(" – ")) {
+      [artist, track] = queryText.split(" – ", 2);
+    } else {
+      track = queryText;
+    }
+    artist = artist.trim();
+    track = track.trim();
+    const discogsInfo = await fetchDiscogsTrackInfo(artist, track);
+    // Возвращаем особый тип для корректного рендера HTML
+    return { type: "discogs", content: discogsInfo };
+  }
+
   if (userInput.trim().toLowerCase() === "/img") {
     const nowPlayingText = getNowPlayingText();
     if (!nowPlayingText) {
       return { type: "text", content: "Current track unknown." };
     }
-
     const parsed = parseArtistTrack(nowPlayingText);
     if (!parsed) {
       return { type: "text", content: "Failed to parse artist and track name." };
     }
-
     const cover = await fetchCoverArt(parsed.artist, parsed.track);
     if (cover) {
       return {
@@ -467,13 +491,19 @@ async function sendMessage() {
   chatSendBtn.disabled = false;
   if (typingIndicator && typingIndicator.parentElement) typingIndicator.remove();
   if (botReply) {
-    if (typeof botReply === "object" && botReply.type === "image") {
-      addMessage("bot", botReply.content);
-      conversationHistory.push({ role: "assistant", content: botReply.content });
+    if (typeof botReply === "object") {
+      if (botReply.type === "image" || botReply.type === "discogs") {
+        // Для изображений и discogs вставляем без экранирования, как HTML
+        addMessage("bot", botReply.content);
+        conversationHistory.push({ role: "assistant", content: botReply.content });
+      } else {
+        const content = botReply.content || "";
+        addMessage("bot", formatBotResponse(content));
+        conversationHistory.push({ role: "assistant", content });
+      }
     } else {
-      const content = typeof botReply === "object" ? botReply.content : botReply;
-      addMessage("bot", formatBotResponse(content));
-      conversationHistory.push({ role: "assistant", content });
+      addMessage("bot", formatBotResponse(botReply));
+      conversationHistory.push({ role: "assistant", content: botReply });
     }
   }
 }
@@ -520,6 +550,11 @@ function renderQuickLinks() {
       text: "/img",
       description: "Show album cover of the playing track",
       command: () => "/img"
+    },
+    {
+      text: "/discogs",
+      description: "Get detailed info from Discogs about a track",
+      command: () => "/discogs "
     },
     {
       text: "[fony tips]",

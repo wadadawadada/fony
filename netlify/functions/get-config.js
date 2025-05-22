@@ -6,7 +6,8 @@ exports.handler = async function (event, context) {
         GIST_ID: process.env.GIST_ID,
         GITHUB_TOKEN: process.env.GITHUB_TOKEN,
         CHAT_FILENAME: process.env.CHAT_FILENAME,
-        OPENAI_API_KEY: process.env.OPENAI_API_KEY || ""
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
+        DISCOGS_CONSUMER_SECRET: process.env.DISCOGS_CONSUMER_SECRET || ""
       })
     };
   };
