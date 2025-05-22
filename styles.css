@@ -408,6 +408,9 @@ html, body {
   align-items: center;
   height: 100%; 
 }
+.fony-tips-message {
+  margin-bottom: 1.5rem;
+}
 
   .chat-input-box {
     background-color: #171C2B;

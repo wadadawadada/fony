@@ -74,9 +74,13 @@ function escapeHtml(str) {
             .replace(/'/g, "&#39;");
 }
 
-function addMessage(role, htmlContent) {
+function addMessage(role, htmlContent, isFonyTip = false) {
   const msgDiv = document.createElement("div");
   msgDiv.classList.add("chat-message", role === "user" ? "user-message" : "bot-message");
+
+  if (isFonyTip && role === "bot") {
+    msgDiv.classList.add("fony-tips-message"); 
+  }
 
   if (role === "user") {
     msgDiv.innerHTML = `
@@ -142,26 +146,37 @@ function scrollToCenter(element) {
 async function sendFonyTipsIntro() {
   const tipsData = await loadFonyTips();
   if (!tipsData) {
-    addMessage("bot", "Sorry, tips data is unavailable now.");
+    addMessage("bot", "Sorry, tips data is unavailable now.", true);
     return;
   }
   fonyTipsState.mode = 'list';
   fonyTipsState.remainingFeatures = [...tipsData.features];
   fonyTipsState.history = [];
   const introText = `Welcome to FONY tips! ${tipsData.description}<br>I will show you features in groups of ${fonyTipsState.shownFeaturesCount}. Choose one to learn more.`;
-  addMessage("bot", introText);
+  addMessage("bot", introText, true);
   showFeatureChoices();
 }
 
 function showFeatureChoices() {
   if (fonyTipsState.remainingFeatures.length === 0) {
-    addMessage("bot", "You've seen all features! To repeat, type [fony tips].");
+    addMessage("bot", "You've seen all features! To repeat, type [fony tips].", true);
     fonyTipsState.mode = null;
     return;
   }
   const chunk = fonyTipsState.remainingFeatures.slice(0, fonyTipsState.shownFeaturesCount);
   const htmlLinks = chunk.map((f, idx) => `<a href="#" class="fony-tip-feature" data-index="${idx}">${escapeHtml(f.name)}</a>`).join(" | ");
-  addMessage("bot", `Select a feature to learn more:<br>${htmlLinks}`);
+
+  const messages = document.querySelectorAll("#chatMessages .chat-message.bot-message.fony-tips-message");
+  if (messages.length > 0) {
+    const lastBotMsg = messages[messages.length - 1];
+    const contentDiv = lastBotMsg.querySelector(".message-content");
+    if (contentDiv) {
+      contentDiv.innerHTML += `<br><br>Select a feature to learn more:<br>${htmlLinks}`;
+    }
+  } else {
+    addMessage("bot", `Select a feature to learn more:<br>${htmlLinks}`, true);
+  }
+
   setTimeout(() => {
     document.querySelectorAll(".fony-tip-feature").forEach(link => {
       link.addEventListener("click", e => {
@@ -172,14 +187,16 @@ function showFeatureChoices() {
   }, 100);
 }
 
+
 function showFeatureDetails(idx) {
   const f = fonyTipsState.remainingFeatures[idx];
   if (!f) return;
-  addMessage("bot", `<strong>${escapeHtml(f.name)}</strong><br>${escapeHtml(f.description)}`);
+  addMessage("bot", `<strong>${escapeHtml(f.name)}</strong><br>${escapeHtml(f.description)}`, true);
   fonyTipsState.history.push(f);
   fonyTipsState.remainingFeatures.splice(idx, 1);
   showFeatureChoices();
 }
+
 
 async function fetchOpenAIKey() {
   if (openAiApiKey) return;
@@ -533,7 +550,7 @@ function renderQuickLinks() {
     },
     {
       text: "/new",
-      description: "Suggest 5 new tracks in a similar genre",
+      description: "Suggest 3 new tracks in a similar genre",
       command: () => nowPlayingText ? `Suggest 3 new tracks in a similar genre to "${nowPlayingText}"` : "Suggest 3 new tracks in a similar genre"
     },
     {

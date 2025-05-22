@@ -1,13 +1,13 @@
 {
   "title": "FONY Web3 Music Player - Comprehensive Knowledge Base",
   "description": "Detailed information, features, tips, and commands to optimize your experience with FONY - the next-gen Web3 music player combining internet radio and NFT audio integration.",
-  
+
   "applicationOverview": {
     "summary": "FONY combines free 24/7 internet radio streaming with NFT-based audio collectibles, wrapped in a user-friendly Web3 interface featuring smart playlists, AI-powered music advisor, and discovery tools to enhance your listening experience.",
     "platforms": ["Desktop browsers", "Mobile browsers"],
-    "technologies": ["Web3 (Ethereum)", "IPFS/Arweave", "Web Audio API", "OpenAI integration"]
+    "technologies": ["Web3 (Ethereum)", "IPFS/Arweave", "Web Audio API", "OpenAI integration", "Discogs API integration", "YouTube/Spotify/Tidal search links"]
   },
-  
+
   "features": [
     {
       "name": "Internet Radio Streaming",
@@ -52,9 +52,21 @@
     {
       "name": "OpenAI-Powered Chat Commands",
       "description": "Use chat commands like /similar, /facts, /new, /info to get AI-generated music recommendations and track details."
-    }
+    },
+    {
+      "name": "Discogs Integration with Rich Track Info",
+      "description": "Fetch detailed track and release info from Discogs, including album art, label, genre, country, and year."
+    },
+    {
+      "name": "YouTube, Spotify & Tidal Search Links",
+      "description": "Quick links to search the current track on YouTube, Spotify, and Tidal directly from the chat for easy access to music."
+    },
+    {
+  "name": "Donation & Support",
+  "description": "Support FONY development\n\nERC-20 Tokens (ETH, USDT, Polygon):\n0xaA01e4F453d5ae9903EebeABA803f3388D20d024\n\nBitcoin:\nbc1qhahnrra9q4jc0k6vr8tf9vs8wtmgf746jxnsfe"
+}
   ],
-  
+
   "tips": [
     {
       "command": "/similar",
@@ -75,8 +87,16 @@
       "usage": "Retrieve detailed metadata about the current track including release year, label, and genre."
     },
     {
+      "command": "/discogs",
+      "usage": "Get detailed release info from Discogs with album art, label, genre, and year."
+    },
+    {
       "command": "[fony tips]",
       "usage": "Show detailed tips and feature highlights about the FONY application."
+    },
+    {
+      "command": "/donate",
+      "usage": "Learn how to support the ongoing development of FONY via cryptocurrency donations."
     },
     {
       "tip": "Use the shuffle button to randomly play stations within a genre to discover new music effortlessly."
@@ -94,7 +114,7 @@
       "tip": "Use the search box to filter stations inside a genre quickly without scrolling."
     }
   ],
-  
+
   "commands": [
     {
       "command": "/similar",
@@ -111,6 +131,14 @@
     {
       "command": "/info",
       "description": "Gives technical metadata about the current track."
+    },
+    {
+      "command": "/discogs",
+      "description": "Displays detailed info from Discogs about the current track."
+    },
+    {
+      "command": "/donate",
+      "description": "Shows donation info to support FONY development."
     },
     {
       "command": "[fony tips]",
