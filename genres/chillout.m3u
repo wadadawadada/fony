@@ -149,6 +149,8 @@ http://us4.internet-radio.com:8193/stream.nsv
 https://hochrhein-radio.stream.laut.fm/hochrhein-radio
 #EXTINF:-1,Charts FM
 https://charts-fm.stream.laut.fm/charts-fm
+#EXTINF:-1,Радио Эрмитаж
+https://hermitage.hostingradio.ru/hermitage128.mp3
 #EXTINF:-1,Seasalt
 https://seasaltradio.stream.laut.fm/seasaltradio
 #EXTINF:-1,Justclub

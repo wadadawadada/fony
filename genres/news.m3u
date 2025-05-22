@@ -10769,10 +10769,6 @@ http://uk7.internet-radio.com:8352/stream
 http://889fm.stream.laut.fm/889fm?t302=2018-08-06_12-26-54&ampuuid=01baae15-c123-4c9e-bc2a-88697c2b5b61
 #EXTINF:-1,Сastledown FM
 http://195.10.228.6:8008/live.mp3
-#EXTINF:-1,Русский мир
-https://a5.radioheart.ru:9043/RH4272
-#EXTINF:-1,Радио Эрмитаж
-https://hermitage.hostingradio.ru/hermitage128.mp3
 #EXTINF:-1,Радио ТВ ТВОЯ ВОЛНА
 https://icecast-tvoyavolna.cdnvideo.ru/tvoyavolna
 #EXTINF:-1,Радио Страна FM
