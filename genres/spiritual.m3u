@@ -1,6 +1,6 @@
 #EXTM3U
 #EXTINF:-1,==========BUDDHISM==============
-://00
+#
 #EXTINF:-1,LamRim Tibetan Buddhist Internet
 http://199.180.72.2:9097/lamrim
 #EXTINF:-1,วัดดอยเทพนิมิต สถานีวิทยุกระจายเสียง
@@ -18,7 +18,7 @@ https://tv.radiohosting.online:8288/stream
 #EXTINF:-1,Calm Radio Tibetan Monks
 https://streams.calmradio.com:30028/stream
 #EXTINF:-1,==========CATHOLIC==============
-://00
+#
 #EXTINF:-1,Gottes Radio
 https://gottesradio.stream.laut.fm/gottesradio?pl=m3u&t302=2023-05-10_13-47-02&uuid=5a38ec54-cea0-413b-bc38-c96b9d5fd0a9
 #EXTINF:-1,EWTN - Radio Católica Mundial
@@ -52,7 +52,7 @@ http://dreamsiteradiocp4.com:8016/;
 #EXTINF:-1,Radio Luce
 https://c34.radioboss.fm:18255/RadioLuceFM
 #EXTINF:-1,==========HINDUISM==============
-://00
+#
 #EXTINF:-1,2B! Radio Sangam Shiva
 http://hot.out.airtime.pro:8000/hot_a
 #EXTINF:-1,2B! Radio Sangam Devi Maa
@@ -75,8 +75,32 @@ https://prclive4.listenon.in/Smaran
 https://stream.sssmediacentre.org:8443/telugu
 #EXTINF:-1,Luminous Radio - Hindi
 http://192.111.140.6:8601/stream
+#EXTINF:-1,==========JUDAISM==============
+#
+#EXTINF:-1,Radio Judaica Lyon
+https://judaica.ice.infomaniak.ch/judaica-high
+#EXTINF:-1,Radio Center 1503AM
+http://stream.radiocenter.net:9960/
+#EXTINF:-1,Radio Breslov Karmiel
+https://securestreams6.autopo.st:2294/mp3
+#EXTINF:-1,Chabad.org Torah Classes Radio
+https://streams.radio.co/s9f35c3afc/listen
+#EXTINF:-1,Chabad.org Jewish Music
+https://stream.radio.co/sdfd68a101/listen
+#EXTINF:-1,Radio Orenu
+https://listen7.myradio24.com/orenu
+#EXTINF:-1,SIMJA TORAH RADIO
+http://204.12.193.98:8381/;
+#EXTINF:-1,RadioJ radio
+https://stream.rcs.revma.com/138w9xn95tuvv
+#EXTINF:-1,Radio Kol-Chai radio
+https://live.kcm.fm/live-new
+#EXTINF:-1,Radio 2000
+https://cdn.cybercdn.live/Radio2000/MP3/icecast.audio
+#EXTINF:-1,Kol Chai
+http://media.93fm.co.il/live
 #EXTINF:-1,==========MUSLIM==============
-://00
+#
 #EXTINF:-1,Radio Chaker
 http://live.mp3quran.net:9978/
 #EXTINF:-1,Radio Central 24
@@ -130,7 +154,7 @@ http://tijaniyyah.asuscomm.com:8000/stream/1/
 #EXTINF:-1,Umut FM
 http://yayin1.canliyayin.org:8888/;
 #EXTINF:-1,==========ORTODOX==============
-://00
+#
 #EXTINF:-1,Ιερά Μητρόπολις Σύρου 95.4
 http://sh.onweb.gr:8852/;stream
 #EXTINF:-1,ΡΣ. Ι.Μ. Αργολίδος 105.2

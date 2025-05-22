@@ -796,6 +796,16 @@ html, body {
       width: 100%;
       padding: 10px;
     }
+        #chat {
+    display: none !important;
+  }
+      .wadada {
+      rotate: 90deg;
+      top: unset;
+      right: unset;
+      bottom: 20%;
+      left: -65px;
+    }
   }
   @media (max-width: 768px) {
     
@@ -812,9 +822,7 @@ html, body {
       padding-top: env(safe-area-inset-top);
     }
 
-    #chat {
-    display: none !important;
-  }
+
     .manifesto-button {
       position: fixed;
       top: 5px;
@@ -892,13 +900,6 @@ html, body {
       overflow-y: auto; 
     }
 
-    .wadada {
-      rotate: 90deg;
-      top: unset;
-      right: unset;
-      bottom: 20%;
-      left: -65px;
-    }
 
     .wadada a {
       color: #ffffff;
