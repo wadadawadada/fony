@@ -528,19 +528,18 @@ function onStationSelect(i) {
         }
       })
 
-  audioPlayer.oncanplay = () => {
-  audioPlayer.oncanplay = null
-  audioPlayer.muted = false
-  audioPlayer.volume = defaultVolume.value
-  audioPlayer.play().catch(() => {})
-  fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
-  updatePlayPauseButton(audioPlayer, playPauseBtn)
-  if (!window.equalizerInitialized) {
-    initEqualizer()
-    window.equalizerInitialized = true
-  }
-}
-
+      audioPlayer.oncanplay = () => {
+        audioPlayer.oncanplay = null
+        audioPlayer.muted = false
+        audioPlayer.volume = defaultVolume.value
+        audioPlayer.play().catch(() => {})
+        fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
+        updatePlayPauseButton(audioPlayer, playPauseBtn)
+        if (!window.equalizerInitialized) {
+          initEqualizer()
+          window.equalizerInitialized = true
+        }
+      }
 
       if (playCheckTimer) clearTimeout(playCheckTimer)
       if (appInitialized) {
@@ -555,26 +554,47 @@ function onStationSelect(i) {
   }
 }
 
+function onGenreChange(randomStation = false) {
+  const pSel = document.getElementById("playlistSelect");
+  const sIn = document.getElementById("searchInput");
+  if (!pSel) return;
+  const newGenre = pSel.value;
+  loadAndRenderPlaylist(newGenre, () => {
+    if (sIn) sIn.value = "";
+    if (currentPlaylist.length) {
+      let idx = 0;
+      if (randomStation) {
+        idx = Math.floor(Math.random() * currentPlaylist.length);
+      }
+      ensureVisible(idx);
+      onStationSelect(idx);
+      setTimeout(() => {
+        const lis = document.querySelectorAll("#playlist li");
+        const li = Array.from(lis).find(x => parseInt(x.dataset.index) === idx);
+        if (li) {
+          li.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+      localStorage.setItem("lastStation", JSON.stringify({ genre: newGenre, trackIndex: idx }));
+      updateChat(newGenre);
+    }
+  }, true);
+}
+
+
 function setRadioListeners() {
   const pSel = document.getElementById("playlistSelect");
   const sIn = document.getElementById("searchInput");
   const fBtn = document.getElementById("favoritesFilterBtn");
   const wBtn = document.getElementById("connectWalletBtn");
   const rBtn = document.getElementById("radioModeBtn");
+
   if (rBtn) rBtn.style.display = "none";
+
   if (pSel) {
-    pSel.addEventListener("change", () => {
-      const newGenre = pSel.value;
-      loadAndRenderPlaylist(newGenre, () => {
-        if (sIn) sIn.value = "";
-        if (currentPlaylist.length) {
-          onStationSelect(0);
-          localStorage.setItem("lastStation", JSON.stringify({ genre: newGenre, trackIndex: 0 }));
-          updateChat(newGenre);
-        }
-      }, true);
-    });
+    pSel.addEventListener("change", () => onGenreChange(false));
   }
+
   if (sIn) {
     sIn.addEventListener("input", debounce(() => {
       const q = sIn.value.toLowerCase();
@@ -582,39 +602,41 @@ function setRadioListeners() {
       resetVisibleStations();
     }, 300));
   }
-  if (fBtn) {
-  fBtn.addEventListener("click", async () => {
-    if (fBtn.disabled) return; // блокируем повторные нажатия
-    fBtn.disabled = true;
 
-    const genreLabel = document.querySelector("label[for='playlistSelect']");
-    if (fBtn.classList.contains("active")) {
-      fBtn.classList.remove("active");
-      if (pSel) pSel.style.display = "";
-      if (sIn) sIn.style.display = "";
-      if (genreLabel) genreLabel.textContent = "Genre:";
-      currentPlaylist = allStations.slice();
-      resetVisibleStations();
-      fBtn.disabled = false;
-    } else {
-      fBtn.classList.add("active");
-      if (pSel) pSel.style.display = "none";
-      if (sIn) sIn.style.display = "none";
-      if (genreLabel) genreLabel.textContent = "Favorites";
-      const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
-      let list = [];
-      for (let pl of allPlaylists) {
-        const st = await loadPlaylist(pl.file);
-        const matched = st.filter(x => fav.includes(x.url));
-        list = list.concat(matched);
+  if (fBtn) {
+    fBtn.addEventListener("click", async () => {
+      if (fBtn.disabled) return;
+      fBtn.disabled = true;
+
+      const genreLabel = document.querySelector("label[for='playlistSelect']");
+      if (fBtn.classList.contains("active")) {
+        fBtn.classList.remove("active");
+        if (pSel) pSel.style.display = "";
+        if (sIn) sIn.style.display = "";
+        if (genreLabel) genreLabel.textContent = "Genre:";
+        currentPlaylist = allStations.slice();
+        resetVisibleStations();
+        fBtn.disabled = false;
+      } else {
+        fBtn.classList.add("active");
+        if (pSel) pSel.style.display = "none";
+        if (sIn) sIn.style.display = "none";
+        if (genreLabel) genreLabel.textContent = "Favorites";
+        const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
+        let list = [];
+        for (let pl of allPlaylists) {
+          const st = await loadPlaylist(pl.file);
+          const matched = st.filter(x => fav.includes(x.url));
+          list = list.concat(matched);
+        }
+        const uniqueStations = Array.from(new Map(list.map(o => [o.url, o])).values());
+        currentPlaylist = uniqueStations;
+        resetVisibleStations();
+        fBtn.disabled = false;
       }
-      const u = Array.from(new Map(list.map(o => [o.url, o])).values());
-      currentPlaylist = u;
-      resetVisibleStations();
-      fBtn.disabled = false;
-    }
-  });
-}
+    });
+  }
+
   if (wBtn) {
     wBtn.addEventListener("click", async () => {
       const acc = await connectWallet();
@@ -782,11 +804,10 @@ if (randomBtn) {
         const ri = Math.floor(Math.random() * allPlaylists.length);
         const rg = allPlaylists[ri].file;
         const pSel = document.getElementById("playlistSelect");
-if (pSel) {
-  pSel.value = rg;
-  pSel.dispatchEvent(new Event("change"));
-}
-
+        if (pSel) {
+          pSel.value = rg;
+          onGenreChange(true);
+        }
       });
     }
   });
@@ -804,10 +825,6 @@ initVolumeControl(audioPlayer, document.querySelector(".volume-slider"), documen
 function globalUpdater(ts) {
   if (!lastChatUpdate) lastChatUpdate = ts
   if (!lastMetadataUpdate) lastMetadataUpdate = ts
-  // if (ts - lastChatUpdate >= chatUpdateInterval) {
-  //   syncChat()
-  //   lastChatUpdate = ts
-  // }
   if (ts - lastMetadataUpdate >= metadataUpdateInterval) {
     updateStreamMetadata(currentParsingUrl)
     lastMetadataUpdate = ts

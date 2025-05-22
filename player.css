@@ -126,10 +126,9 @@
   gap: 50px;
 }
 
-/* Класс для увеличенного режима управления */
 .player-controls.expanded {
-  gap: 80px; /* увеличить расстояния между элементами */
-  justify-content: space-around; /* равномерно распределить */
+  gap: 80px;
+  justify-content: space-around;
 }
 
 .player-controls.expanded .player-btn {
@@ -143,7 +142,6 @@
   height: 160px !important;
 }
 
-/* Эквалайзер растянуть по ширине и увеличить */
 .diods-row.expanded {
   height: 70px !important;
   transition: height 0.3s ease;
