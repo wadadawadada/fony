@@ -88,7 +88,7 @@ export async function fetchDiscogsTrackInfo(artist, track) {
     const tidalSearchUrl = `https://tidal.com/browse/search?q=${artistTrackQuery}`;
 
     const searchLinks = `
-<div style="margin-top: 8px; font-size: 14px; font-family: 'Ruda', sans-serif;">
+<div style="margin-top: 8px; font-size: 14px; font-family: monospace, monospace;">
   🔎 <a href="${ytSearchUrl}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">YouTube</a> | 
   🎧 <a href="${spotifySearchUrl}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Spotify</a> | 
   🌊 <a href="${tidalSearchUrl}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Tidal</a>
@@ -96,7 +96,7 @@ export async function fetchDiscogsTrackInfo(artist, track) {
 `;
 
     const message = `
-<div style="display: flex; gap: 16px; align-items: flex-start; max-width: 100%; font-family: 'Ruda', sans-serif; color: #ddd;">
+<div style="display: flex; gap: 16px; align-items: flex-start; max-width: 100%; font-family: monospace, monospace; color: #ddd;">
   ${cover ? `<div style="flex-shrink: 0;"><img src="${cover}" alt="Cover" style="max-width: 150px; border-radius: 8px;"></div>` : ''}
   <div style="flex-grow: 1; line-height: 1.4; font-size: 14px;">
     <div><strong>${escapeHtml(artist)} - ${title}</strong></div>

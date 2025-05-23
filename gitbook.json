@@ -1,0 +1,109 @@
+{
+  "title": "FONY Web3 Music Player - Complete Documentation and User Guide",
+  "description": "FONY is a revolutionary Web3 music player combining free 24/7 internet radio streaming with NFT audio collectibles, AI music recommendations, and blockchain integration. This documentation covers all features, usage tips, chat commands, and technical details for users and developers.",
+  "keywords": [
+    "Web3 music player",
+    "NFT audio player",
+    "internet radio streaming",
+    "blockchain music",
+    "crypto music platform",
+    "AI music recommendations",
+    "digital collectibles",
+    "FONY app documentation"
+  ],
+  "sections": [
+    {
+      "id": "intro",
+      "title": "Introduction to FONY",
+      "content": "FONY is an innovative Web3-enabled music streaming platform designed for the next generation of audio listeners. It offers seamless integration of traditional internet radio with modern blockchain technology, allowing users to stream free 24/7 radio stations and access NFT-based audio collectibles securely and intuitively. This documentation serves as a comprehensive guide to help you explore all functionalities of FONY."
+    },
+    {
+      "id": "features",
+      "title": "Core Features of FONY",
+      "content": "FONY’s advanced feature set blends the best of streaming technology and blockchain innovation, delivering a rich and versatile listening experience.",
+      "items": [
+        "Extensive Catalog of Internet Radio Stations: Access thousands of hand-curated stations spanning multiple genres, countries, and styles, with live metadata and seamless playback.",
+        "NFT Audio Integration: Connect your Ethereum-compatible wallet to play NFT audio collectibles, complete with metadata, cover art, and provenance verified on blockchain.",
+        "User-Friendly Playback Controls: Includes Play/Pause, Next/Previous Track, Shuffle, Random Play, and Volume Adjustment with smooth drag controls and animated buttons.",
+        "Dynamic Real-Time Equalizer: Visualize music frequency bands live with 30 animated bars using the Web Audio API for immersive sound feedback.",
+        "AI-Powered Music Advisor: Leverage OpenAI backend to get personalized recommendations, similar tracks, facts, and new releases via chat commands.",
+        "Genre-Based Station Search: Instantly filter radio stations within selected genres using a fast, responsive search box.",
+        "Favorites Management: Mark and manage your favorite stations with easy access anytime.",
+        "Adaptive Theme Support: Switch seamlessly between light and dark modes with adaptive icons for enhanced user experience.",
+        "Responsive Design with Draggable Panels: Adjust the split view between player and playlist panels with a resizable divider, optimized for desktop and mobile.",
+        "Secure Streaming and Metadata Proxying: Ensure safe HTTP stream proxying, accurate ICY metadata fetching, and integration with Google search for track info.",
+        "Discogs API Integration: Retrieve detailed track and album information including labels, genres, countries, and release years.",
+        "Quick Access to Streaming Platforms: Instant search links for the current track on YouTube, Spotify, and Tidal from within the chat."
+      ]
+    },
+    {
+      "id": "getting-started",
+      "title": "Getting Started with FONY",
+      "content": "To begin, simply select your preferred genre and browse through the extensive playlist of internet radio stations. Use the playback controls to listen to your favorite streams or connect your Web3 wallet to access NFT audio content that you own. Explore the chat console for AI-powered music discovery and helpful commands."
+    },
+    {
+      "id": "chat-commands",
+      "title": "Chat Commands for Enhanced Music Exploration",
+      "commands": [
+        {
+          "command": "/similar",
+          "description": "Get suggestions of 5 tracks similar to the currently playing song, based on artist and style."
+        },
+        {
+          "command": "/facts",
+          "description": "Receive interesting facts and trivia about the current artist or track, sometimes enhanced with emojis for engagement."
+        },
+        {
+          "command": "/new",
+          "description": "Discover 5 recently released tracks within the same or related genres to keep your playlist fresh."
+        },
+        {
+          "command": "/info",
+          "description": "Access detailed technical metadata about the current track, including release date, label, genre, and duration."
+        },
+        {
+          "command": "/discogs",
+          "description": "Retrieve rich album and track info from Discogs database, including artwork, label info, and country of release."
+        },
+        {
+          "command": "/donate",
+          "description": "Find out how to support the ongoing development of FONY through cryptocurrency donations."
+        },
+        {
+          "command": "[fony tips]",
+          "description": "Display useful tips and tricks for navigating and maximizing your FONY experience."
+        }
+      ]
+    },
+    {
+      "id": "usage-tips",
+      "title": "Tips for Using FONY Efficiently",
+      "tips": [
+        "Shuffle Mode: Use the shuffle button to randomly cycle through stations in the selected genre for musical discovery.",
+        "Favorites: Mark stations with the heart icon to easily find your preferred streams anytime.",
+        "Wallet Connection: Connect your Ethereum wallet to unlock NFT audio collectibles you own and stream exclusive content.",
+        "Equalizer Visualization: Enjoy the dynamic frequency bars that react live to your music, enhancing the listening experience.",
+        "Search: Quickly filter and locate stations by typing keywords in the genre search box without manual scrolling."
+      ]
+    },
+    {
+      "id": "technical-overview",
+      "title": "Technical Overview",
+      "content": "FONY leverages modern web technologies and blockchain integration for a seamless music streaming experience.",
+      "items": [
+        "Audio Playback: Uses the Web Audio API and MediaElement for smooth streaming and volume control.",
+        "Equalizer: Implements an AnalyserNode with 30 frequency bands visualized via animated bars.",
+        "Web3 Support: Connects to Ethereum wallets using MetaMask, fetching NFT metadata through IPFS and Arweave gateways.",
+        "Metadata Fetching: Proxies HTTP streams securely and retrieves ICY metadata for live track info display.",
+        "AI Integration: Utilizes OpenAI GPT-4 mini for natural language chat and music advice.",
+        "Discogs Integration: Accesses the Discogs API for enriched music release data.",
+        "Responsive UI: Designed to adapt to various screen sizes and devices, with a draggable resizer for panels."
+      ]
+    },
+    {
+      "id": "support-donations",
+      "title": "Support and Donations",
+      "content": "Support the FONY project and contribute to its continued development with cryptocurrency donations.\n\nERC-20 Tokens (ETH, USDT, Polygon):\n0xaA01e4F453d5ae9903EebeABA803f3388D20d024\n\nBitcoin:\nbc1qhahnrra9q4jc0k6vr8tf9vs8wtmgf746jxnsfe"
+    }
+  ]
+}
