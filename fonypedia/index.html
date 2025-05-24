@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Fonypedia — Music Genres</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="Explore music genres available in the FONY player. Select a genre to view its description and open the playlist." />
+<style>
+  @font-face {
+    font-family: 'Fony';
+    src: url('/fonts/Fony.woff2') format('woff2'),
+         url('/fonts/Fony.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background-color: #171C2B;
+    font-family: monospace, monospace;
+    color: #ddd;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    font-family: 'Fony', monospace;
+    font-weight: normal;
+    font-size: 3rem;
+    color: #00F2B8;
+    text-align: center;
+    padding: 1rem 0;
+    user-select: none;
+    letter-spacing: 6px;
+  }
+  main {
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+
+  /* Кастомный скроллбар для main */
+  main::-webkit-scrollbar {
+    width: 12px;
+  }
+  main::-webkit-scrollbar-track {
+    background: #171C2B;
+  }
+  main::-webkit-scrollbar-thumb {
+    background-color: #00F2B8;
+    border-radius: 6px;
+    border: 3px solid #171C2B;
+  }
+  main {
+    scrollbar-width: thin;
+    scrollbar-color: #00F2B8 #171C2B;
+  }
+
+  a.genre-link {
+    color: inherit;
+    text-decoration: none;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .genre-tile {
+    background-color: #0e1a2a;
+    border: 2px solid #00F2B8;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    aspect-ratio: 1 / 1;
+  }
+  .genre-tile:hover {
+    background-color: #00F2B8;
+    color: #171C2B;
+  }
+  .genre-img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+    user-select: none;
+  }
+  .genre-title {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+  .genre-desc {
+    font-weight: 400;
+    font-size: 0.9rem;
+    text-align: center;
+    overflow: hidden;
+    flex-grow: 1;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;  
+    line-clamp: 2; 
+    box-orient: vertical;  
+  }
+
+  @media (max-width: 768px) {
+    main {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      padding: 1rem;
+      width: 90%;
+      /* max-width: 100%; */
+    }
+    header {
+    font-size: 1.5rem;
+    text-align: center;
+    justify-content: center;
+    padding: 0.5rem 0;
+  }
+    .genre-tile {
+      aspect-ratio: auto;
+      height: auto;
+      padding: 1rem 0;
+      width: 100%;
+      padding: 1rem;
+    }
+    .genre-img {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 0.75rem;
+    }
+    .genre-title {
+      font-size: 1.1rem;
+    }
+    .genre-desc {
+      font-size: 0.85rem;
+      -webkit-line-clamp: 2;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>FONYPEDIA</header>
+
+<main>
+
+<a href="african.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/african.png" alt="African" class="genre-img" />
+    <div class="genre-title">African</div>
+    <div class="genre-desc">Rich and diverse rhythms from the African continent.</div>
+  </div>
+</a>
+
+<a href="alternative.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/alternative.png" alt="Alternative" class="genre-img" />
+    <div class="genre-title">Alternative</div>
+    <div class="genre-desc">Music outside the mainstream, with unique sounds and styles.</div>
+  </div>
+</a>
+
+<a href="asian.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/asian.png" alt="Asian" class="genre-img" />
+    <div class="genre-title">Asian</div>
+    <div class="genre-desc">Traditional and modern music from Asia's many cultures.</div>
+  </div>
+</a>
+
+<a href="balkans.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/balkans.png" alt="Balkans" class="genre-img" />
+    <div class="genre-title">Balkans</div>
+    <div class="genre-desc">Energetic folk and pop music from the Balkan region.</div>
+  </div>
+</a>
+
+<a href="blues.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/blues.png" alt="Blues" class="genre-img" />
+    <div class="genre-title">Blues</div>
+    <div class="genre-desc">Soulful music with deep emotional expression and roots in African American history.</div>
+  </div>
+</a>
+
+<a href="chillout.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/chillout.png" alt="Chillout" class="genre-img" />
+    <div class="genre-title">Chillout</div>
+    <div class="genre-desc">Relaxing, atmospheric music for calm moments.</div>
+  </div>
+</a>
+
+<a href="classical.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/classical.png" alt="Classical" class="genre-img" />
+    <div class="genre-title">Classical</div>
+    <div class="genre-desc">Timeless orchestral and instrumental masterpieces.</div>
+  </div>
+</a>
+
+<a href="downtempo.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/downtempo.png" alt="Downtempo" class="genre-img" />
+    <div class="genre-title">Downtempo</div>
+    <div class="genre-desc">Slow, laid-back electronic beats.</div>
+  </div>
+</a>
+
+<a href="drum_and_bass.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/drum_and_bass.png" alt="Drum & Bass" class="genre-img" />
+    <div class="genre-title">Drum & Bass</div>
+    <div class="genre-desc">Fast-paced electronic music with heavy bass and drums.</div>
+  </div>
+</a>
+
+<a href="dub.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/dub.png" alt="Dub" class="genre-img" />
+    <div class="genre-title">Dub</div>
+    <div class="genre-desc">A subgenre of reggae with remixing and heavy use of effects.</div>
+  </div>
+</a>
+
+<a href="electronic.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/electronic.png" alt="Electronic" class="genre-img" />
+    <div class="genre-title">Electronic</div>
+    <div class="genre-desc">Music created with electronic instruments and technology.</div>
+  </div>
+</a>
+
+<a href="funk.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/funk.png" alt="Funk" class="genre-img" />
+    <div class="genre-title">Funk</div>
+    <div class="genre-desc">Rhythmic, danceable music with strong basslines.</div>
+  </div>
+</a>
+
+<a href="goa.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/goa.png" alt="Goa" class="genre-img" />
+    <div class="genre-title">Goa</div>
+    <div class="genre-desc">Psychedelic trance music originating from Goa, India.</div>
+  </div>
+</a>
+
+<a href="hardcore.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/hardcore.png" alt="Hardcore" class="genre-img" />
+    <div class="genre-title">Hardcore</div>
+    <div class="genre-desc">Intense and fast electronic music style.</div>
+  </div>
+</a>
+
+<a href="hip_hop.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/hip_hop.png" alt="Hip Hop" class="genre-img" />
+    <div class="genre-title">Hip Hop</div>
+    <div class="genre-desc">Rhythmic and rhyming speech with beats and DJing.</div>
+  </div>
+</a>
+
+<a href="house.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/house.png" alt="House" class="genre-img" />
+    <div class="genre-title">House</div>
+    <div class="genre-desc">Repetitive 4/4 beats with soulful vocals and bass.</div>
+  </div>
+</a>
+
+<a href="industrial.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/industrial.png" alt="Industrial" class="genre-img" />
+    <div class="genre-title">Industrial</div>
+    <div class="genre-desc">Harsh, experimental electronic sounds.</div>
+  </div>
+</a>
+
+<a href="jazz.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/jazz.png" alt="Jazz" class="genre-img" />
+    <div class="genre-title">Jazz</div>
+    <div class="genre-desc">Improvisational music with swing and blue notes.</div>
+  </div>
+</a>
+
+<a href="jungle.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/jungle.png" alt="Jungle" class="genre-img" />
+    <div class="genre-title">Jungle</div>
+    <div class="genre-desc">Breakbeat hardcore and drum & bass precursor.</div>
+  </div>
+</a>
+
+<a href="lounge.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/lounge.png" alt="Lounge" class="genre-img" />
+    <div class="genre-title">Lounge</div>
+    <div class="genre-desc">Smooth, relaxing background music.</div>
+  </div>
+</a>
+
+<a href="meditation.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/meditation.png" alt="Meditation" class="genre-img" />
+    <div class="genre-title">Meditation</div>
+    <div class="genre-desc">Calming sounds for mindfulness and relaxation.</div>
+  </div>
+</a>
+
+<a href="metal.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/metal.png" alt="Metal" class="genre-img" />
+    <div class="genre-title">Metal</div>
+    <div class="genre-desc">Aggressive and powerful rock music.</div>
+  </div>
+</a>
+
+<a href="new_age.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/new_age.png" alt="New Age" class="genre-img" />
+    <div class="genre-title">New Age</div>
+    <div class="genre-desc">Ambient and soothing music for relaxation.</div>
+  </div>
+</a>
+
+<a href="news1.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/news1.png" alt="News" class="genre-img" />
+    <div class="genre-title">News</div>
+    <div class="genre-desc">Live news radio stations.</div>
+  </div>
+</a>
+
+<a href="oriental.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/oriental.png" alt="Oriental" class="genre-img" />
+    <div class="genre-title">Oriental</div>
+    <div class="genre-desc">Music from the Middle East and surrounding areas.</div>
+  </div>
+</a>
+
+<a href="spiritual.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/spiritual.png" alt="Spiritual" class="genre-img" />
+    <div class="genre-title">Spiritual</div>
+    <div class="genre-desc">Music with religious or spiritual themes.</div>
+  </div>
+</a>
+
+<a href="punk.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/punk.png" alt="Punk" class="genre-img" />
+    <div class="genre-title">Punk</div>
+    <div class="genre-desc">Fast, rebellious rock music.</div>
+  </div>
+</a>
+
+<a href="rap.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/rap.png" alt="Rap" class="genre-img" />
+    <div class="genre-title">Rap</div>
+    <div class="genre-desc">Vocal style focusing on rhythmic speech and rhyme.</div>
+  </div>
+</a>
+
+<a href="reggae.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/reggae.png" alt="Reggae" class="genre-img" />
+    <div class="genre-title">Reggae</div>
+    <div class="genre-desc">Jamaican music with offbeat rhythms and socially conscious lyrics.</div>
+  </div>
+</a>
+
+<a href="rnb.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/rnb.png" alt="RnB" class="genre-img" />
+    <div class="genre-title">RnB</div>
+    <div class="genre-desc">Smooth, soulful rhythm and blues music.</div>
+  </div>
+</a>
+
+<a href="techno.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/techno.png" alt="Techno" class="genre-img" />
+    <div class="genre-title">Techno</div>
+    <div class="genre-desc">Repetitive electronic dance music originating in Detroit.</div>
+  </div>
+</a>
+
+<a href="world.html" class="genre-link">
+  <div class="genre-tile">
+    <img src="img/world.png" alt="World" class="genre-img" />
+    <div class="genre-title">World</div>
+    <div class="genre-desc">Diverse traditional and folk music from around the globe.</div>
+  </div>
+</a>
+
+</main>
+
+</body>
+</html>

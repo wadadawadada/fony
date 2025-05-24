@@ -1,6 +1,5 @@
 const MODAL_ID = 'gitbookModal';
 const CONTENT_ID = 'gitbookContent';
-const ICON_ID = 'gitbookIcon';
 
 async function fetchGitbookJson() {
   try {
@@ -34,12 +33,16 @@ function createModal() {
 
   document.body.appendChild(modal);
 
-  document.getElementById('gitbookCloseBtn').addEventListener('click', () => {
+  document.getElementById('gitbookCloseBtn').addEventListener('click', e => {
+    e.preventDefault();
     modal.style.display = 'none';
   });
 
   modal.addEventListener('click', e => {
-    if (e.target === modal) modal.style.display = 'none';
+    if (e.target === modal) {
+      e.preventDefault();
+      modal.style.display = 'none';
+    }
   });
 }
 
@@ -60,7 +63,6 @@ function renderContent(data) {
 
   container.innerHTML = '';
 
-  // Render Table of Contents
   container.innerHTML += asciiTitle('TABLE OF CONTENTS') + '\n\n';
 
   data.sections.forEach(section => {
@@ -69,7 +71,6 @@ function renderContent(data) {
 
   container.innerHTML += '\n' + asciiSeparator() + '\n\n';
 
-  // Render sections with anchors
   data.sections.forEach(section => {
     container.innerHTML += `<a id="${section.id}"></a>`;
     container.innerHTML += asciiTitle(section.title.toUpperCase()) + '\n\n';
@@ -104,18 +105,14 @@ function renderContent(data) {
     }
   });
 
-  // After injecting markdown-like links, convert them to real clickable anchors
   convertMarkdownLinks(container);
 }
 
-// Convert markdown style [text](#id) links to actual clickable anchors with smooth scroll
 function convertMarkdownLinks(container) {
-  // Replace all [text](#id) with <a href="#id" class="gitbook-link">text</a>
   container.innerHTML = container.innerHTML.replace(/\[([^\]]+)\]\(#([^)]+)\)/g, (match, text, id) => {
     return `<a href="#${id}" class="gitbook-link">${text}</a>`;
   });
 
-  // Attach click listeners to these links for smooth scrolling
   const links = container.querySelectorAll('.gitbook-link');
   links.forEach(link => {
     link.addEventListener('click', e => {
@@ -139,15 +136,25 @@ async function initGitbook() {
     const container = document.getElementById(CONTENT_ID);
     if (container) container.textContent = 'Failed to load documentation content.';
   }
-
-  const icon = document.getElementById(ICON_ID);
-  if (icon) {
-    icon.addEventListener('click', e => {
-      e.preventDefault();
-      const modal = document.getElementById(MODAL_ID);
-      if (modal) modal.style.display = 'flex';
-    });
-  }
 }
 
-document.addEventListener('DOMContentLoaded', initGitbook);
+document.addEventListener('DOMContentLoaded', () => {
+  initGitbook();
+
+  document.body.addEventListener('click', e => {
+    const target = e.target.closest('#gitbookIcon');
+    if (!target) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const modal = document.getElementById(MODAL_ID);
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+
+    if (window.location.hash === '#') {
+      history.replaceState(null, null, ' ');
+    }
+  });
+});

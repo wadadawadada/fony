@@ -1,0 +1,257 @@
+@font-face {
+  font-family: 'Fony';
+  src: url('/fonts/Fony.woff2') format('woff2'),
+       url('/fonts/Fony.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Общие стили для тела страницы */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #171C2B;
+  font-family: monospace, monospace;
+  color: #ddd;
+}
+
+/* Заголовок с шрифтом Fony */
+header {
+  font-family: 'Fony', monospace;
+  font-weight: normal;
+  font-size: 2rem;
+  color: #00F2B8;
+  text-align: center;
+  padding: 1rem 2rem;
+  user-select: none;
+  letter-spacing: 6px;
+}
+
+a.back-link, a.listen-btn {
+  color: #00F2B8;
+  font-weight: 700;
+  font-family: monospace, monospace;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+a.back-link:hover, a.listen-btn:hover {
+  text-decoration: underline;
+  background-color: transparent;
+}
+
+a.listen-btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: #00F2B8;
+  color: #171C2B;
+  border-radius: 6px;
+  text-align: center;
+  max-width: 200px;
+}
+
+a.listen-btn:hover {
+  background-color: #00d2a4;
+  color: #171C2B;
+}
+
+/* Контейнер для содержимого жанровой страницы */
+.content-wrapper {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding: 0 1rem 2rem 1rem;
+  box-sizing: border-box;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Левая колонка: изображение + кнопка */
+.left-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+/* Изображение жанра */
+.genre-img {
+  width: 230px;
+  height: auto;
+  border-radius: 10px;
+  /* border: 2px solid #00F2B8; */
+  user-select: none;
+}
+
+/* Текстовая колонка */
+.text-content {
+  flex: 1;
+}
+
+/* Заголовки внутри текста */
+h2 {
+  color: #00F2B8;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+h3 {
+  color: #00D1A8;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Абзацы */
+p {
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+/* Списки */
+ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+}
+
+/* --- Стили для страницы с плитками жанров --- */
+
+main.genre-grid {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Кастомный скроллбар для main с плитками */
+main.genre-grid::-webkit-scrollbar {
+  width: 12px;
+}
+main.genre-grid::-webkit-scrollbar-track {
+  background: #171C2B;
+}
+main.genre-grid::-webkit-scrollbar-thumb {
+  background-color: #00F2B8;
+  border-radius: 6px;
+  border: 3px solid #171C2B;
+}
+main.genre-grid {
+  scrollbar-width: thin;
+  scrollbar-color: #00F2B8 #171C2B;
+}
+
+/* Ссылка-обёртка для жанра */
+a.genre-link {
+  color: inherit;
+  text-decoration: none;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Ячейка жанра (плитка) */
+.genre-tile {
+  background-color: #0e1a2a;
+  border: 2px solid #00F2B8;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  aspect-ratio: 1 / 1;
+}
+
+.genre-tile:hover {
+  background-color: #00F2B8;
+  color: #171C2B;
+}
+
+.genre-img-tile {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 1rem;
+  user-select: none;
+}
+
+.genre-title {
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.genre-desc {
+  font-weight: 400;
+  font-size: 0.9rem;
+  text-align: center;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+/* Мобильная адаптация для страницы жанра */
+@media (max-width: 768px) {
+  .content-wrapper {
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+  }
+  .left-column {
+    flex-direction: column;
+    width: 100%;
+  }
+  .genre-img {
+    width: 100%;
+    max-width: 300px;
+  }
+  .listen-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+  .text-content {
+    width: 100%;
+  }
+
+  main.genre-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    padding: 0.5rem;
+    gap: 0.8rem;
+  }
+
+  .genre-tile {
+    padding: 0.8rem;
+  }
+
+  .genre-img-tile {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 0.6rem;
+  }
+
+  .genre-title {
+    font-size: 1rem;
+  }
+
+  .genre-desc {
+    font-size: 0.8rem;
+  }
+}

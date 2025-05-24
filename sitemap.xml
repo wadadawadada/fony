@@ -1,7 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+
   <url>
     <loc>https://fony.space/</loc>
     <priority>1.0</priority>
   </url>
+
+  <url><loc>https://fony.space/fonypedia/african.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/alternative.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/blues.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/chillout.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/classical.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/downtempo.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/drum_and_bass.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/dub.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/electronic.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/funk.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/goa.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/hardcore.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/hip_hop.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/house.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/industrial.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/jazz.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/jungle.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/lounge.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/meditation.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/metal.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/new_age.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/news1.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/oriental.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/spiritual.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/punk.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/rap.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/reggae.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/rnb.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/techno.html</loc><priority>0.8</priority></url>
+  <url><loc>https://fony.space/fonypedia/world.html</loc><priority>0.8</priority></url>
+
 </urlset>
