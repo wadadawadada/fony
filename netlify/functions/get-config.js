@@ -8,7 +8,8 @@ exports.handler = async function (event, context) {
         CHAT_FILENAME: process.env.CHAT_FILENAME,
         OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
         DISCOGS_CONSUMER_KEY: process.env.DISCOGS_CONSUMER_KEY || "",
-        DISCOGS_CONSUMER_SECRET: process.env.DISCOGS_CONSUMER_SECRET || ""
+        DISCOGS_CONSUMER_SECRET: process.env.DISCOGS_CONSUMER_SECRET || "",
+        ABBREVIATIONS_API_TOKEN: process.env.ABBREVIATIONS_API_TOKEN || ""
       })
     };
   };

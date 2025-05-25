@@ -108,6 +108,12 @@ html, body {
     font-family: monospace, monospace;  
   }
 
+  .manifesto-modal a {
+    color: #00F2B8;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
   .manifesto-icons {
     position: absolute;
     top: 2rem;    
@@ -841,19 +847,6 @@ html, body {
     border-radius: 10px;
   }
 
-  .wadada {
-    position: absolute;
-    bottom: 10px;
-    left: 25px;
-    color: #00F2B8;
-    /* z-index: 10; */
-    font-size: 12px;
-}
-
-    .wadada a {
-    color: #00F2B8;
-}
-
 
   @media (max-width: 1024px) {
     .container {
@@ -1014,7 +1007,7 @@ html, body {
 
 
     .genre-box {
-      font-size: 0.7rem;
+      font-size: 1rem;
       flex-wrap: wrap;
       justify-content: flex-start;
     }

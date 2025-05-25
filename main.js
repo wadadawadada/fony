@@ -895,7 +895,7 @@ fetch("playlists.json")
     }
 
     if (playRandomFromUrlGenre()) {
-      return; // если URL с жанром обработан — дальше не идём
+      return;
     }
 
     if (window.location.hash) {
