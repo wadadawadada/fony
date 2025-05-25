@@ -83,6 +83,7 @@
   .genre-tile:hover {
     background-color: #00F2B8;
     color: #171C2B;
+    scale: 0.95;
   }
   .genre-img {
     width: 120px;
@@ -115,8 +116,9 @@
     main {
       grid-template-columns: 1fr;
       gap: 1rem;
-      padding: 1rem;
-      width: 90%;
+      padding-left: 1rem;
+    padding-right: 1rem;
+      width: 100%;
       /* max-width: 100%; */
     }
     header {
@@ -133,8 +135,8 @@
       padding: 1rem;
     }
     .genre-img {
-      width: 100px;
-      height: 100px;
+      width: 150px;
+      height: 150px;
       margin-bottom: 0.75rem;
     }
     .genre-title {
@@ -150,6 +152,18 @@
 <body>
 
 <header>FONYPEDIA</header>
+
+<section id="intro-text" style="
+  font-family: monospace, monospace;
+  color: #00F2B8;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  font-size: 1.2rem;
+  user-select: none;
+  letter-spacing: 1.5px;
+">
+  Choose a genre to discover new horizons
+</section>
 
 <main>
 
@@ -410,6 +424,27 @@
 </a>
 
 </main>
+
+<script>
+  const introText = document.getElementById('intro-text');
+  const main = document.querySelector('main');
+
+  function hideIntro() {
+    if (introText) {
+      introText.style.transition = 'opacity 0.5s ease';
+      introText.style.opacity = '0';
+      setTimeout(() => {
+        introText.style.display = 'none';
+      }, 500);
+      main.removeEventListener('scroll', hideIntro);
+    }
+  }
+
+  if (main) {
+    main.addEventListener('scroll', hideIntro, { once: true });
+  }
+</script>
+
 
 </body>
 </html>
