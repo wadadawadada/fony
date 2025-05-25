@@ -44,6 +44,36 @@ const randomBtn = document.getElementById('randomBtn')
 const walletBtn = document.getElementById('connectWalletBtn')
 const radioModeBtn = document.getElementById('radioModeBtn')
 
+function playRandomFromUrlGenre() {
+  const pathGenre = (window.location.pathname !== "/" ? window.location.pathname.slice(1) : "") ||
+                  (window.location.hash ? window.location.hash.slice(1) : "");
+  const isCustomGenre = pathGenre && pathGenre !== "" && pathGenre !== "/";
+
+  if (!isCustomGenre) return false;
+
+  const genreEntry = allPlaylists.find(pl =>
+    pl.file.toLowerCase().includes(pathGenre.toLowerCase()) ||
+    pl.name.toLowerCase().includes(pathGenre.toLowerCase())
+  );
+
+  if (!genreEntry) return false;
+
+  if (playlistSelect) playlistSelect.value = genreEntry.file;
+  window.currentGenre = genreEntry.file;
+  initChat();
+  loadAndRenderPlaylist(genreEntry.file, () => {
+    if (currentPlaylist.length) {
+      const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length);
+      onStationSelect(randomStationIndex);
+      localStorage.setItem("lastStation", JSON.stringify({ genre: genreEntry.file, trackIndex: randomStationIndex }));
+      updateChat(genreEntry.file);
+    }
+  });
+  setRadioListeners();
+  return true;
+}
+
+
 function generateStationHash(url) {
   let h = 0
   for (let i = 0; i < url.length; i++) {
@@ -833,6 +863,23 @@ function globalUpdater(ts) {
 }
 requestAnimationFrame(globalUpdater)
 
+function playRandomGenreAndStation() {
+  if (!allPlaylists.length) return;
+  const randomGenreIndex = Math.floor(Math.random() * allPlaylists.length);
+  const randomGenre = allPlaylists[randomGenreIndex].file;
+  if (playlistSelect) playlistSelect.value = randomGenre;
+  window.currentGenre = randomGenre;
+  initChat();
+  loadAndRenderPlaylist(randomGenre, () => {
+    if (currentPlaylist.length) {
+      const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length);
+      onStationSelect(randomStationIndex);
+      localStorage.setItem("lastStation", JSON.stringify({ genre: randomGenre, trackIndex: randomStationIndex }));
+      updateChat(randomGenre);
+    }
+  });
+}
+
 fetch("playlists.json")
   .then(r => r.json())
   .then(pl => {
@@ -846,6 +893,11 @@ fetch("playlists.json")
         playlistSelect.appendChild(o);
       });
     }
+
+    if (playRandomFromUrlGenre()) {
+      return; // если URL с жанром обработан — дальше не идём
+    }
+
     if (window.location.hash) {
       let hg = "";
       let sh = "";
@@ -870,7 +922,7 @@ fetch("playlists.json")
             localStorage.setItem("lastStation", JSON.stringify({ genre: hg, trackIndex: fi }));
             updateChat(hg);
           } else {
-            defaultPlaylist();
+            playRandomGenreAndStation();
           }
         });
       }
@@ -886,17 +938,19 @@ fetch("playlists.json")
           updateChat(genre);
         });
       } catch(e) {
-        defaultPlaylist();
+        playRandomGenreAndStation();
       }
     } else {
-      defaultPlaylist();
+      playRandomGenreAndStation();
     }
     setRadioListeners();
   })
   .catch(() => {
-    defaultPlaylist();
+    playRandomGenreAndStation();
     setRadioListeners();
   });
+
+
 
 document.dispatchEvent(new Event("appLoaded"))
 
