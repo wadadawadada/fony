@@ -1,10 +1,12 @@
-oooooooooooo   .oooooo.   ooooo      ooo oooooo   oooo
-`888'     `8  d8P'  `Y8b  `888b.     `8'  `888.   .8' 
- 888         888      888  8 `88b.    8    `888. .8'  
- 888oooo8    888      888  8   `88b.  8     `888.8'   
- 888    "    888      888  8     `88b.8      `888'    
- 888         `88b    d88'  8       `888       888     
-o888o         `Y8bood8P'  o8o        `8      o888o      
+echo "+------------------------------------------------------+";
+echo "|oooooooooooo   .oooooo.   ooooo      ooo oooooo   oooo|";
+echo "|`888'     `8  d8P'  `Y8b  `888b.     `8'  `888.   .8' |";
+echo "| 888         888      888  8 `88b.    8    `888. .8'  |";
+echo "| 888oooo8    888      888  8   `88b.  8     `888.8'   |";
+echo "| 888    "    888      888  8     `88b.8      `888'    |";
+echo "| 888         `88b    d88'  8       `888       888     |";
+echo "|o888o         `Y8bood8P'  o8o        `8      o888o    |";
+echo "+------------------------------------------------------+";    
 
 # FONY — Web3 Music Player & Free Internet Radio
 
