@@ -12,7 +12,8 @@
     "If you don't have exact data, provide useful general info or interesting facts about similar artists, genres, or music history.",
     "Always provide helpful, concise output. Use real links when relevant.",
     "Avoid empty or placeholder answers.",
-    "Add emojis if its appropriate."
+    "Add emojis if its appropriate.",
+    "Respond only to requests related to the operation of the application and information about music."
   ],
   "footer": ""
 }

@@ -38,6 +38,7 @@ html, body {
     opacity: 1;
     transition: opacity 0.5s ease;
   }
+
   #preloader.fade-out-background {
     opacity: 0;
   }
@@ -636,6 +637,7 @@ html, body {
     color: #ffffff;
     font-size: 1.2rem;
   }
+
   .genre-select {
     padding: 8px 0;
     font-size: 1.2rem;
@@ -681,7 +683,6 @@ html, body {
     margin-left: auto;
     margin-right: 0rem;
   }
-  
 
   .playlist-area {
     flex: 1;
@@ -712,8 +713,6 @@ html, body {
     0% { transform: translate(-50%, -50%) rotate(0deg); }
     100% { transform: translate(-50%, -50%) rotate(360deg); }
   }
-
-
 
   #playlist {
     list-style: none;

@@ -16,17 +16,33 @@ html, body {
   color: #ddd;
 }
 
-/* Заголовок с шрифтом Fony */
 header {
   font-family: 'Fony', monospace;
   font-weight: normal;
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: #00F2B8;
   text-align: center;
   padding: 1rem 2rem;
   user-select: none;
   letter-spacing: 6px;
+  font-weight: 100;
 }
+
+html::-webkit-scrollbar {
+    width: 12px;
+  }
+  html::-webkit-scrollbar-track {
+    background: #171C2B;
+  }
+  html::-webkit-scrollbar-thumb {
+    background-color: #00F2B8;
+    border-radius: 6px;
+    border: 3px solid #171C2B;
+  }
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: #00F2B8 #171C2B;
+  }
 
 a.back-link, a.listen-btn {
   color: #00F2B8;
