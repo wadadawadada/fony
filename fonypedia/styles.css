@@ -38,6 +38,10 @@ a.back-link, a.listen-btn {
   transition: color 0.3s ease, background-color 0.3s ease;
 }
 
+a.back-link {
+  font-size: 2rem;
+}
+
 a.back-link:hover, a.listen-btn:hover {
   text-decoration: underline;
   background-color: transparent;
