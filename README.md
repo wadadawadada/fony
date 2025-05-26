@@ -1,3 +1,11 @@
+oooooooooooo   .oooooo.   ooooo      ooo oooooo   oooo
+`888'     `8  d8P'  `Y8b  `888b.     `8'  `888.   .8' 
+ 888         888      888  8 `88b.    8    `888. .8'  
+ 888oooo8    888      888  8   `88b.  8     `888.8'   
+ 888    "    888      888  8     `88b.8      `888'    
+ 888         `88b    d88'  8       `888       888     
+o888o         `Y8bood8P'  o8o        `8      o888o       
+
 # FONY — Web3 Music Player & Free Internet Radio
 
 🎵 **FONY** is a next-gen music player combining internet radio streaming and Web3 NFT audio content in one app.  
