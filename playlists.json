@@ -16,6 +16,7 @@
   { "file": "genres/hip_hop.m3u",        "name": "Hip Hop" },
   { "file": "genres/house.m3u",          "name": "House" },
   { "file": "genres/industrial.m3u",     "name": "Industrial" },
+  { "file": "genres/japan.m3u",           "name": "Japan" },
   { "file": "genres/jazz.m3u",           "name": "Jazz" },
   { "file": "genres/jungle.m3u",         "name": "Jungle" },
   { "file": "genres/lounge.m3u",         "name": "Lounge" },
