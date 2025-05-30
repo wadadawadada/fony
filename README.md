@@ -1,12 +1,4 @@
-echo "+------------------------------------------------------+";
-echo "|oooooooooooo   .oooooo.   ooooo      ooo oooooo   oooo|";
-echo "|`888'     `8  d8P'  `Y8b  `888b.     `8'  `888.   .8' |";
-echo "| 888         888      888  8 `88b.    8    `888. .8'  |";
-echo "| 888oooo8    888      888  8   `88b.  8     `888.8'   |";
-echo "| 888    "    888      888  8     `88b.8      `888'    |";
-echo "| 888         `88b    d88'  8       `888       888     |";
-echo "|o888o         `Y8bood8P'  o8o        `8      o888o    |";
-echo "+------------------------------------------------------+";    
+![fony](https://github.com/user-attachments/assets/784dc586-efe7-4ad8-9081-64487d794e3a)
 
 # FONY — Web3 Music Player & Free Internet Radio
 
@@ -26,11 +18,4 @@ Dive into a world of free global music streaming, unique NFT audio collectibles,
 - 🔗 Easy sharing and copying of station links  
 - 💬 Interactive chat console for music exploration and tips  
 
----
 
-## 🚀 Quick Start
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/wadadawadada/fony.git
-   cd fony
