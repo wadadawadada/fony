@@ -654,31 +654,37 @@ export function initChat() {
   chatUsernameContainer.style.cursor = "pointer";
 
   chatUsernameContainer.addEventListener("click", () => {
-    chatContainer.style.display = "none";
+    const chatContainer = document.getElementById("chat");
+    if (chatContainer) chatContainer.style.display = "none";
     toggleButton.style.display = "block";
     const playerControls = document.querySelector('.player-controls');
     if (playerControls) playerControls.classList.add('chat-collapsed');
   });
 
   chatUsernameContainer.addEventListener("mouseenter", () => {
-    chatInput.placeholder = "close console";
+    const chatInput = document.getElementById("chatInput");
+    if (chatInput) chatInput.placeholder = "close console";
   });
   chatUsernameContainer.addEventListener("mouseleave", () => {
-    chatInput.placeholder = "Enter message...";
+    const chatInput = document.getElementById("chatInput");
+    if (chatInput) chatInput.placeholder = "Enter message...";
   });
 
   toggleButton.addEventListener("click", () => {
-    chatContainer.style.display = "flex";
+    const chatContainer = document.getElementById("chat");
+    if (chatContainer) chatContainer.style.display = "flex";
     toggleButton.style.display = "none";
     const playerControls = document.querySelector('.player-controls');
     if (playerControls) playerControls.classList.remove('chat-collapsed');
   });
 
   toggleButton.addEventListener("mouseenter", () => {
-    chatInput.placeholder = "Collapse console";
+    const chatInput = document.getElementById("chatInput");
+    if (chatInput) chatInput.placeholder = "Collapse console";
   });
   toggleButton.addEventListener("mouseleave", () => {
-    chatInput.placeholder = "Enter message...";
+    const chatInput = document.getElementById("chatInput");
+    if (chatInput) chatInput.placeholder = "Enter message...";
   });
 
   const walletBtn = document.getElementById("connectWalletBtn");
@@ -687,12 +693,189 @@ export function initChat() {
       await connectWalletAndInitChat();
     });
   }
+
+  const chatSendBtn = document.getElementById("chatSendBtn");
+  const chatInput = document.getElementById("chatInput");
+
   chatSendBtn.addEventListener("click", sendMessage);
   chatInput.addEventListener("keypress", e => {
     if (e.key === "Enter") sendMessage();
   });
+
   if (window.ethereum && window.ethereum.selectedAddress) {
     walletAddress = ethers.utils.getAddress(window.ethereum.selectedAddress);
-    chatContainer.style.display = "flex";
+    const chatContainer = document.getElementById("chat");
+    if (chatContainer) chatContainer.style.display = "flex";
+  }
+
+  const mobileChatToggleBtn = document.getElementById('mobileChatToggleBtn');
+
+  let mobileChatInitialized = false;
+
+  mobileChatToggleBtn.addEventListener('click', () => {
+    if (!mobileChatInitialized) {
+      initMobileChat();
+      mobileChatInitialized = true;
+    }
+    const mobileChatContainer = document.getElementById('mobileChatContainer');
+    mobileChatContainer.style.display = 'flex';
+    mobileChatToggleBtn.style.display = 'none';
+  });
+
+  function initMobileChat() {
+    const mobileChatContainer = document.getElementById('mobileChatContainer');
+    const mobileChatCloseBtn = document.getElementById('mobileChatCloseBtn');
+    const mobileChatSendBtn = document.getElementById('mobileChatSendBtn');
+    const mobileChatInput = document.getElementById('mobileChatInput');
+    const mobileChatMessagesElem = document.getElementById('mobileChatMessages');
+    const mobileChatGenreElem = document.getElementById('mobileChatGenre');
+
+    let mobileWelcomeShown = false;
+
+    function onDocumentClick(e) {
+      if (!mobileChatContainer.contains(e.target) && e.target !== mobileChatToggleBtn) {
+        mobileChatContainer.style.display = 'none';
+        mobileChatToggleBtn.style.display = 'block';
+        document.removeEventListener('click', onDocumentClick);
+      }
+    }
+
+    if (mobileChatGenreElem && chatGenreElem) {
+      mobileChatGenreElem.innerHTML = chatGenreElem.innerHTML;
+    }
+
+    renderMobileQuickLinks();
+    if (!mobileWelcomeShown) {
+      sendWelcomeMessageMobile();
+      mobileWelcomeShown = true;
+    }
+
+    setTimeout(() => {
+      document.addEventListener('click', onDocumentClick);
+    }, 0);
+
+    mobileChatCloseBtn.addEventListener('click', () => {
+      mobileChatContainer.style.display = 'none';
+      mobileChatToggleBtn.style.display = 'block';
+      document.removeEventListener('click', onDocumentClick);
+    });
+
+    mobileChatSendBtn.addEventListener('click', async () => {
+      const text = mobileChatInput.value.trim();
+      if (!text) return;
+      addMobileMessage("user", escapeHtml(text));
+      mobileChatInput.value = "";
+      conversationHistory.push({ role: "user", content: text });
+
+      const typingIndicator = document.createElement("div");
+      typingIndicator.classList.add("chat-message", "bot-message", "typing-indicator");
+      typingIndicator.innerHTML = `<span class="dot-flash"></span>`;
+      mobileChatMessagesElem.appendChild(typingIndicator);
+      mobileChatMessagesElem.scrollTop = mobileChatMessagesElem.scrollHeight;
+
+      mobileChatSendBtn.disabled = true;
+      const botReply = await getChatBotResponse(conversationHistory, text);
+      mobileChatSendBtn.disabled = false;
+      if (typingIndicator && typingIndicator.parentElement) typingIndicator.remove();
+
+      if (botReply) {
+        if (typeof botReply === "object") {
+          if (botReply.type === "image" || botReply.type === "discogs") {
+            addMobileMessage("bot", botReply.content);
+            conversationHistory.push({ role: "assistant", content: botReply.content });
+          } else {
+            const content = botReply.content || "";
+            addMobileMessage("bot", formatBotResponse(content));
+            conversationHistory.push({ role: "assistant", content });
+          }
+        } else {
+          addMobileMessage("bot", formatBotResponse(botReply));
+          conversationHistory.push({ role: "assistant", content: botReply });
+        }
+      }
+      renderMobileQuickLinks();
+    });
+
+    mobileChatInput.addEventListener("keypress", e => {
+      if (e.key === "Enter") {
+        mobileChatSendBtn.click();
+      }
+    });
+
+    function addMobileMessage(role, htmlContent) {
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("chat-message", role === "user" ? "user-message" : "bot-message");
+      msgDiv.innerHTML = `
+        <strong style="display:block; font-weight:800; margin-bottom:6px;">${role === "user" ? "You" : ">_FONY:"}</strong>
+        <div class="message-content">${htmlContent}</div>
+      `;
+      mobileChatMessagesElem.appendChild(msgDiv);
+      setTimeout(() => {
+        msgDiv.classList.add("show");
+        mobileChatMessagesElem.scrollTop = mobileChatMessagesElem.scrollHeight;
+      }, 10);
+    }
+
+    function renderMobileQuickLinks() {
+      if (!mobileChatGenreElem) return;
+      mobileChatGenreElem.innerHTML = "";
+      const nowPlayingText = getNowPlayingText();
+      const commands = [
+        { text: "/similar", description: "Recommend 3 tracks similar to the current track", command: () => nowPlayingText ? `Recommend 3 tracks similar to "${nowPlayingText}"` : "Recommend 3 similar tracks to the current track" },
+        { text: "/new", description: "Suggest 3 new tracks in a similar genre", command: () => nowPlayingText ? `Suggest 3 new tracks in a similar genre to "${nowPlayingText}"` : "Suggest 3 new tracks in a similar genre" },
+        { text: "/facts", description: "List facts about the current track or artist", command: () => nowPlayingText ? `List facts about "${nowPlayingText}"` : "List facts about the current track or artist" },
+        { text: "/info", description: "Show technical metadata about the current track", command: () => nowPlayingText ? `/info ${nowPlayingText}` : "/info" },
+        { text: "/img", description: "Show album cover of the playing track", command: () => "/img" },
+        { text: "/discogs", description: "Get detailed info from Discogs about a track", command: () => "/discogs " },
+        { text: "[fony tips]", description: "Useful tips about FONY" }
+      ];
+      commands.forEach(cmd => {
+        const a = document.createElement("a");
+        a.href = "#";
+        a.textContent = cmd.text;
+        a.style.color = "#00F2B8";
+        a.style.marginRight = "12px";
+        a.style.cursor = "pointer";
+        a.addEventListener("click", e => {
+          e.preventDefault();
+          const commandToSend = typeof cmd.command === "function" ? cmd.command() : cmd.text;
+          mobileChatInput.value = commandToSend;
+          setTimeout(() => mobileChatSendBtn.click(), 10);
+        });
+        a.addEventListener("mouseenter", () => { mobileChatInput.placeholder = `${cmd.text} - ${cmd.description}`; });
+        a.addEventListener("mouseleave", () => { mobileChatInput.placeholder = "Enter message..."; });
+        mobileChatGenreElem.appendChild(a);
+      });
+    }
+
+    function sendWelcomeMessageMobile() {
+      if (!mobileChatMessagesElem) return;
+      const welcomeText = `
+        <strong>&gt;_FONY:</strong><br>
+        Welcome to the FONY console!<br>
+        Here you can dive deeper into exploring music.<br><br>
+        You can use the chat to explore music or try the quick commands below.<br>
+        <a href="#" onclick="event.preventDefault(); mobileChatInput.value='Recommend 3 tracks similar to the current track'; mobileChatSendBtn.click();">Similar Tracks</a>,&nbsp;
+        <a href="#" onclick="event.preventDefault(); mobileChatInput.value='List facts about the current track or artist'; mobileChatSendBtn.click();">Facts</a>,&nbsp;
+        <a href="#" onclick="event.preventDefault(); mobileChatInput.value='Suggest 3 new tracks in a similar genre'; mobileChatSendBtn.click();">New in Genre</a>,&nbsp;
+        <a href="#" onclick="event.preventDefault(); mobileChatInput.value='Show technical metadata about the current track'; mobileChatSendBtn.click();">Get Track Info</a>,&nbsp;
+        <a href="#" onclick="event.preventDefault(); mobileChatInput.value='[fony tips]'; mobileChatSendBtn.click();">[fony tips]</a>
+      `;
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("chat-message", "bot-message", "fony-tips-message");
+      msgDiv.innerHTML = welcomeText;
+      mobileChatMessagesElem.appendChild(msgDiv);
+      setTimeout(() => {
+        msgDiv.classList.add("show");
+        mobileChatMessagesElem.scrollTop = mobileChatMessagesElem.scrollHeight;
+      }, 10);
+      conversationHistory.push({ role: "assistant", content: welcomeText });
+    }
   }
 }
+
+
+
+
+
+

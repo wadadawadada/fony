@@ -23,13 +23,14 @@
   { "file": "genres/meditation.m3u",     "name": "Meditation" },
   { "file": "genres/metal.m3u",          "name": "Metal" },
   { "file": "genres/new_age.m3u",        "name": "New Age" },
-  { "file": "genres/news1.m3u",        "name": "News" },
-  { "file": "genres/oriental.m3u",        "name": "Oriental" },
-  { "file": "genres/spiritual.m3u",           "name": "Spiritual" },
+  { "file": "genres/news1.m3u",          "name": "News" },
+  { "file": "genres/oriental.m3u",       "name": "Oriental" },
+  { "file": "genres/spiritual.m3u",      "name": "Spiritual" },
   { "file": "genres/punk.m3u",           "name": "Punk" },
   { "file": "genres/rap.m3u",            "name": "Rap" },
   { "file": "genres/reggae.m3u",         "name": "Reggae" },
   { "file": "genres/rnb.m3u",            "name": "RnB" },
+  { "file": "genres/southeast_asia.m3u", "name": "Southeast Asia" },
   { "file": "genres/techno.m3u",         "name": "Techno" },
   { "file": "genres/world.m3u",          "name": "World" }
 ]

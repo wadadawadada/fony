@@ -110,6 +110,23 @@
         </div>
       </div>
       <audio id="audioPlayer" volume="1"></audio>
+      
+<button id="mobileChatToggleBtn" aria-label="Toggle Chat">>_</button>
+<div class="chat-container mobile-chat-container" id="mobileChatContainer" style="display:none;">
+  <div id="mobileChatHeader" class="chat-header">
+    <span id="mobileChatGenre"></span>
+    <button id="mobileChatCloseBtn" aria-label="Close Chat">>_</button>
+  </div>
+  <div id="mobileChatMessages" class="chat-messages"></div>
+  <div id="mobileChatInputContainer" class="chat-input-box">
+    <input type="text" id="mobileChatInput" placeholder="Enter message...">
+    <button id="mobileChatSendBtn" class="chat-send-btn">
+      <img src="/img/send.svg" alt="Send">
+    </button>
+  </div>
+</div>
+
+
       <div class="chat-container" id="chat">
         <div id="chatHeader" class="chat-header">
           <span id="chatGenre"></span>
