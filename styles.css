@@ -593,7 +593,7 @@ border: none;
 
 .mobile-chat-container .chat-messages {
   flex: 1;
-  padding: 8px 8px 8px 16px;
+  /* padding: 8px 8px 8px 16px; */
   overflow-y: auto;
   color: #fff;
   font-size: 1rem;
@@ -601,6 +601,10 @@ border: none;
   -webkit-overflow-scrolling: touch;
   user-select: text;
   font-family: monospace, monospace;
+}
+
+.chat-message {
+  margin-bottom: 2rem;
 }
 
 .mobile-chat-container .chat-input-box {
@@ -640,18 +644,14 @@ border: none;
 .mobile-chat-container .chat-send-btn {
   background: none;
   border: none;
-  margin-left: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
   user-select: none;
 }
 
 .mobile-chat-container .chat-send-btn img {
-  height: 80%;
-  width: 80%;
   transition: transform 0.2s ease-in-out;
   user-select: none;
 }
@@ -661,8 +661,6 @@ border: none;
   transform: scale(1.05);
   outline: none;
 }
-
-
 
 #gitbookModal {
   display: none;
