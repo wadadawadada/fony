@@ -733,6 +733,25 @@ export function initChat() {
 
     let mobileWelcomeShown = false;
 
+    function sendWelcomeMessageMobile() {
+      if (!mobileChatMessagesElem) return;
+      const welcomeText = `
+        <strong>&gt;_FONY:</strong><br>
+        Welcome to the FONY console!<br>
+        Here you can dive deeper into exploring music.<br><br>
+        You can use prompts to explore music or try the quick commands above.<br>
+      `;
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("chat-message", "bot-message", "fony-tips-message");
+      msgDiv.innerHTML = welcomeText;
+      mobileChatMessagesElem.appendChild(msgDiv);
+      setTimeout(() => {
+        msgDiv.classList.add("show");
+        mobileChatMessagesElem.scrollTop = mobileChatMessagesElem.scrollHeight;
+      }, 10);
+      conversationHistory.push({ role: "assistant", content: welcomeText });
+    }
+
     function onDocumentClick(e) {
       if (!mobileChatContainer.contains(e.target) && e.target !== mobileChatToggleBtn) {
         mobileChatContainer.style.display = 'none';
@@ -780,7 +799,9 @@ export function initChat() {
       mobileChatSendBtn.disabled = false;
       if (typingIndicator && typingIndicator.parentElement) typingIndicator.remove();
 
-      if (botReply) {
+      if (botReply === null && fonyTipsState.mode === 'list') {
+        sendFonyTipsIntroMobile();
+      } else if (botReply) {
         if (typeof botReply === "object") {
           if (botReply.type === "image" || botReply.type === "discogs") {
             addMobileMessage("bot", botReply.content);
@@ -850,26 +871,51 @@ export function initChat() {
       });
     }
 
-    function sendWelcomeMessageMobile() {
-      if (!mobileChatMessagesElem) return;
-      const welcomeText = `
-        <strong>&gt;_FONY:</strong><br>
-        Welcome to the FONY console!<br>
-        Here you can dive deeper into exploring music.<br><br>
-        You can use promts to explore music or try the quick commands above.<br>
-      `;
-      const msgDiv = document.createElement("div");
-      msgDiv.classList.add("chat-message", "bot-message", "fony-tips-message");
-      msgDiv.innerHTML = welcomeText;
-      mobileChatMessagesElem.appendChild(msgDiv);
+    async function sendFonyTipsIntroMobile() {
+      const tipsData = await loadFonyTips();
+      if (!tipsData) {
+        addMobileMessage("bot", "Sorry, tips data is unavailable now.");
+        return;
+      }
+      fonyTipsState.mode = 'list';
+      fonyTipsState.remainingFeatures = [...tipsData.features];
+      fonyTipsState.history = [];
+      const introText = `Welcome to FONY tips! ${tipsData.description}<br>I will show you features in groups of ${fonyTipsState.shownFeaturesCount}. Choose one to learn more.`;
+      addMobileMessage("bot", introText);
+      showFeatureChoicesMobile();
+    }
+
+    function showFeatureChoicesMobile() {
+      if (fonyTipsState.remainingFeatures.length === 0) {
+        addMobileMessage("bot", "You've seen all features! To repeat, type [fony tips].");
+        fonyTipsState.mode = null;
+        return;
+      }
+      const chunk = fonyTipsState.remainingFeatures.slice(0, fonyTipsState.shownFeaturesCount);
+      const htmlLinks = chunk.map((f, idx) => `<a href="#" class="fony-tip-feature-mobile" data-index="${idx}">${escapeHtml(f.name)}</a>`).join(" | ");
+      addMobileMessage("bot", `Select a feature to learn more:<br>${htmlLinks}`);
+
       setTimeout(() => {
-        msgDiv.classList.add("show");
-        mobileChatMessagesElem.scrollTop = mobileChatMessagesElem.scrollHeight;
-      }, 10);
-      conversationHistory.push({ role: "assistant", content: welcomeText });
+        document.querySelectorAll(".fony-tip-feature-mobile").forEach(link => {
+          link.addEventListener("click", e => {
+            e.preventDefault();
+            showFeatureDetailsMobile(parseInt(e.target.dataset.index, 10));
+          });
+        });
+      }, 100);
+    }
+
+    function showFeatureDetailsMobile(idx) {
+      const f = fonyTipsState.remainingFeatures[idx];
+      if (!f) return;
+      addMobileMessage("bot", `<strong>${escapeHtml(f.name)}</strong><br>${escapeHtml(f.description)}`);
+      fonyTipsState.history.push(f);
+      fonyTipsState.remainingFeatures.splice(idx, 1);
+      showFeatureChoicesMobile();
     }
   }
 }
+
 
 
 
