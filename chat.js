@@ -724,6 +724,7 @@ export function initChat() {
 
   function initMobileChat() {
     const mobileChatContainer = document.getElementById('mobileChatContainer');
+    const mobileChatToggleBtn = document.getElementById('mobileChatToggleBtn');
     const mobileChatCloseBtn = document.getElementById('mobileChatCloseBtn');
     const mobileChatSendBtn = document.getElementById('mobileChatSendBtn');
     const mobileChatInput = document.getElementById('mobileChatInput');
@@ -745,6 +746,7 @@ export function initChat() {
     }
 
     renderMobileQuickLinks();
+
     if (!mobileWelcomeShown) {
       sendWelcomeMessageMobile();
       mobileWelcomeShown = true;
@@ -854,12 +856,7 @@ export function initChat() {
         <strong>&gt;_FONY:</strong><br>
         Welcome to the FONY console!<br>
         Here you can dive deeper into exploring music.<br><br>
-        You can use the chat to explore music or try the quick commands below.<br>
-        <a href="#" onclick="event.preventDefault(); mobileChatInput.value='Recommend 3 tracks similar to the current track'; mobileChatSendBtn.click();">Similar Tracks</a>,&nbsp;
-        <a href="#" onclick="event.preventDefault(); mobileChatInput.value='List facts about the current track or artist'; mobileChatSendBtn.click();">Facts</a>,&nbsp;
-        <a href="#" onclick="event.preventDefault(); mobileChatInput.value='Suggest 3 new tracks in a similar genre'; mobileChatSendBtn.click();">New in Genre</a>,&nbsp;
-        <a href="#" onclick="event.preventDefault(); mobileChatInput.value='Show technical metadata about the current track'; mobileChatSendBtn.click();">Get Track Info</a>,&nbsp;
-        <a href="#" onclick="event.preventDefault(); mobileChatInput.value='[fony tips]'; mobileChatSendBtn.click();">[fony tips]</a>
+        You can use promts to explore music or try the quick commands above.<br>
       `;
       const msgDiv = document.createElement("div");
       msgDiv.classList.add("chat-message", "bot-message", "fony-tips-message");
@@ -873,6 +870,7 @@ export function initChat() {
     }
   }
 }
+
 
 
 

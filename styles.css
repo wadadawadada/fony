@@ -505,14 +505,14 @@ html, body {
   z-index: 1500;
   background-color: #00F2B8;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 8px 14px;
   font-weight: bold;
   font-family: 'Ruda', sans-serif;
   color: #171C2B;
   cursor: pointer;
   display: none;
-  box-shadow: rgba(0, 0, 0, 0.25) 0px 5px 10px;
+  box-shadow: rgba(0, 0, 0, 0.45) 0px 5px 10px;
   user-select: none;
 }
 
@@ -563,21 +563,21 @@ border: none;
   font-weight: 900;
   color: #ffffff;
   cursor: pointer;
-  padding: 0 10px;
-  line-height: 1;
+  /* padding: 0 10px; */
+  /* line-height: 1; */
   user-select: none;
- font-family: 'Ruda', sans-serif;
+  font-family: 'Ruda', sans-serif;
 }
 
 #mobileChatGenre {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   padding: 6px 0;
   max-height: 4rem;
   overflow-y: auto;
   font-size: 0.9rem;
-  color: #00F2B8;
+  /* color: #00F2B8; */
   user-select: none;
 }
 
