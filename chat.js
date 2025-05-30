@@ -641,7 +641,7 @@ export function initChat() {
 
   const tooltip = document.createElement("span");
   tooltip.className = "tooltip-text";
-  tooltip.textContent = "open fony console";
+  tooltip.textContent = "Open FONY console";
   toggleButton.appendChild(tooltip);
 
   if (leftPanel) {
