@@ -325,8 +325,8 @@ html, body {
     display: none;
   }
   .chat-container {
-    margin-top: 60px;
-    margin-bottom: 10px;
+    margin-top: 30px;
+    /* margin-bottom: 10px; */
     background-color: #171C2B;
     border-radius: 7px;
     border: 2px solid #00F2B8;
@@ -603,9 +603,14 @@ border: none;
   font-family: monospace, monospace;
 }
 
-.chat-message {
+.mobile-chat-container .chat-message {
   margin-bottom: 2rem;
 }
+
+.mobile-chat-container .chat-message:last-child {
+  margin-bottom: 0;
+}
+
 
 .mobile-chat-container .chat-input-box {
   display: flex;
