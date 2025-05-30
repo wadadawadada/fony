@@ -35,5 +35,6 @@
   { "file": "genres/rnb.m3u",            "name": "RnB" },
   { "file": "genres/southeast_asia.m3u", "name": "Southeast Asia" },
   { "file": "genres/techno.m3u",         "name": "Techno" },
+  { "file": "genres/turk.m3u",         "name": "Turk" },
   { "file": "genres/world.m3u",          "name": "World" }
 ]
