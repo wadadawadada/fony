@@ -18,11 +18,4 @@ Dive into a world of free global music streaming, unique NFT audio collectibles,
 - 🔗 Easy sharing and copying of station links  
 - 💬 Interactive chat console for music exploration and tips  
 
----
 
-## 🚀 Quick Start
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/wadadawadada/fony.git
-   cd fony
