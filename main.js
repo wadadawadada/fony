@@ -23,6 +23,7 @@ let playCheckTimer = null
 let preloaderInterval = null
 let lastChatUpdate = 0
 let lastMetadataUpdate = 0
+let userPaused = false;
 const chatUpdateInterval = 15000
 const metadataUpdateInterval = 20000
 
@@ -676,6 +677,7 @@ function setRadioListeners() {
 }
 
 audioPlayer.addEventListener("play", async () => {
+  userPaused = false;
   if (window.audioContext && window.audioContext.state === 'suspended') {
     try {
       await window.audioContext.resume();
@@ -754,11 +756,17 @@ playlistElement.addEventListener("click", e => {
 
 if (playPauseBtn) {
   playPauseBtn.addEventListener("click", () => {
-    if (audioPlayer.paused) audioPlayer.play().catch(() => {})
-    else audioPlayer.pause()
-    updatePlayPauseButton(audioPlayer, playPauseBtn)
-  })
+    if (audioPlayer.paused) {
+      userPaused = false;
+      audioPlayer.play().catch(() => {});
+    } else {
+      userPaused = true;
+      audioPlayer.pause();
+    }
+    updatePlayPauseButton(audioPlayer, playPauseBtn);
+  });
 }
+
 
 if (rrBtn) {
   rrBtn.addEventListener("click", () => {
@@ -1023,6 +1031,7 @@ function switchToNextStation() {
 }
 
 function tryRestartRadio() {
+  if (userPaused) return;
   if (!audioPlayer.src || !currentPlaylist[currentTrackIndex]) return;
 
   if (audioPlayer.paused && audioPlayer.currentTime > 0) {
@@ -1045,6 +1054,7 @@ function tryRestartRadio() {
 
 function checkRadioStatus() {
   if (!audioPlayer.src) return;
+  if (userPaused) return;
 
   if (audioPlayer.paused && audioPlayer.currentTime > 0) {
     noProgressCounter = 0;
@@ -1072,6 +1082,7 @@ function checkRadioStatus() {
     silenceCounter = 0;
   }
 }
+
 
 audioPlayer.addEventListener("play", resetRetryState);
 audioPlayer.addEventListener("ended", resetRetryState);
