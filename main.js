@@ -988,3 +988,103 @@ document.addEventListener('mouseup', () => {
   document.body.style.cursor = '';
   document.body.style.userSelect = '';
 });
+
+
+let radioRetryCount = 0;
+const RADIO_MAX_RETRY = 1; 
+const RADIO_CHECK_INTERVAL = 5000; 
+let lastCurrentTime = 0;
+let noProgressCounter = 0;
+let silenceCounter = 0;
+
+function resetRetryState() {
+  radioRetryCount = 0;
+  noProgressCounter = 0;
+  silenceCounter = 0;
+  lastCurrentTime = 0;
+}
+
+function hasSound() {
+  if (!window.equalizerAnalyser) return true;
+  const analyser = window.equalizerAnalyser;
+  const data = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(data);
+  const avg = data.reduce((a, b) => a + b, 0) / data.length;
+  return avg > 2;
+}
+
+function switchToNextStation() {
+  resetRetryState();
+  let nextIndex = currentTrackIndex + 1;
+  if (nextIndex >= currentPlaylist.length) nextIndex = 0;
+  if (currentPlaylist.length) {
+    onStationSelect(nextIndex);
+  }
+}
+
+function tryRestartRadio() {
+  if (!audioPlayer.src || !currentPlaylist[currentTrackIndex]) return;
+
+  if (audioPlayer.paused && audioPlayer.currentTime > 0) {
+    if (radioRetryCount < RADIO_MAX_RETRY) {
+      radioRetryCount++;
+      onStationSelect(currentTrackIndex);
+    } else {
+      switchToNextStation();
+    }
+    return;
+  }
+
+  if (radioRetryCount < RADIO_MAX_RETRY) {
+    radioRetryCount++;
+    onStationSelect(currentTrackIndex);
+  } else {
+    switchToNextStation();
+  }
+}
+
+function checkRadioStatus() {
+  if (!audioPlayer.src) return;
+
+  if (audioPlayer.paused && audioPlayer.currentTime > 0) {
+    noProgressCounter = 0;
+    silenceCounter = 0;
+    tryRestartRadio();
+    return;
+  }
+
+  if (audioPlayer.currentTime === lastCurrentTime) {
+    noProgressCounter++;
+  } else {
+    noProgressCounter = 0;
+    lastCurrentTime = audioPlayer.currentTime;
+  }
+
+  if (!audioPlayer.paused && !hasSound()) {
+    silenceCounter++;
+  } else {
+    silenceCounter = 0;
+  }
+
+  if (noProgressCounter >= 3 || silenceCounter >= 3) {
+    tryRestartRadio();
+    noProgressCounter = 0;
+    silenceCounter = 0;
+  }
+}
+
+audioPlayer.addEventListener("play", resetRetryState);
+audioPlayer.addEventListener("ended", resetRetryState);
+audioPlayer.addEventListener("error", () => {
+  resetRetryState();
+  switchToNextStation();
+});
+
+const originalOnStationSelect = window.onStationSelect;
+window.onStationSelect = function(i) {
+  resetRetryState();
+  originalOnStationSelect(i);
+};
+
+setInterval(checkRadioStatus, RADIO_CHECK_INTERVAL);
+
