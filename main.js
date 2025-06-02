@@ -516,32 +516,35 @@ function onStationSelect(i) {
     updateMediaSessionMetadata(st)
   } else {
     if (isIOS()) {
-      audioPlayer.src = secureUrl(st.url)
-      if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
-      if (window.playTimerInterval) clearInterval(window.playTimerInterval)
-      const pt = document.getElementById("playTimer")
-      if (pt) pt.textContent = formatTime(0)
-      if (li) li.classList.add("active")
-      audioPlayer.muted = false
-      audioPlayer.volume = defaultVolume.value
-      audioPlayer.play().then(() => {
-        appInitialized = true
-        if (!window.equalizerInitialized) {
-          initEqualizer()
-          window.equalizerInitialized = true
-        }
-      }).catch(() => {})
-      fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
-      updatePlayPauseButton(audioPlayer, playPauseBtn)
-      if (playCheckTimer) clearTimeout(playCheckTimer)
-      if (appInitialized) {
-        playCheckTimer = setTimeout(() => {
-          if (audioPlayer.paused) markStationAsHidden(i)
-        }, 15000)
+  audioPlayer.src = secureUrl(st.url)
+  if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
+  if (window.playTimerInterval) clearInterval(window.playTimerInterval)
+  const pt = document.getElementById("playTimer")
+  if (pt) pt.textContent = formatTime(0)
+  if (li) li.classList.add("active")
+  audioPlayer.muted = false
+  audioPlayer.volume = defaultVolume.value
+  setTimeout(() => {
+    audioPlayer.play().then(() => {
+      appInitialized = true
+      if (!window.equalizerInitialized) {
+        initEqualizer()
+        window.equalizerInitialized = true
       }
-      if (!st.nft) updateStreamMetadata(st.originalUrl || st.url)
-      updateMediaSessionMetadata(st)
-    } else {
+    }).catch(() => {})
+  }, 300)
+  fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
+  updatePlayPauseButton(audioPlayer, playPauseBtn)
+  if (playCheckTimer) clearTimeout(playCheckTimer)
+  if (appInitialized) {
+    playCheckTimer = setTimeout(() => {
+      if (audioPlayer.paused) markStationAsHidden(i)
+    }, 15000)
+  }
+  if (!st.nft) updateStreamMetadata(st.originalUrl || st.url)
+  updateMediaSessionMetadata(st)
+}
+ else {
       audioPlayer.src = secureUrl(st.url)
 
       if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
