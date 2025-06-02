@@ -726,9 +726,11 @@ audioPlayer.addEventListener("pause", () => {
 
 if ("mediaSession" in navigator) {
   navigator.mediaSession.setActionHandler("play", async () => {
+    userPaused = false;
     try { await audioPlayer.play() } catch(e){}
   })
   navigator.mediaSession.setActionHandler("pause", () => {
+    userPaused = true;
     audioPlayer.pause()
   })
   navigator.mediaSession.setActionHandler("previoustrack", () => rrBtn.click())
