@@ -126,15 +126,15 @@ async function showDiscogsInfo() {
 
     discogsContainer.innerHTML = `
       <div style="text-align: center; max-width: 100%; margin: 0 auto;">
-        <div style="display: flex; justify-content: space-around; margin-bottom: 8px; font-weight: 600;">
+        <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 8px; font-weight: 600;">
           <div>🎵 Album: ${album}</div>
           <div>📅 Year: ${year}</div>
           <div>🌍 Country: ${country}</div>
         </div>
-        <div style="display: flex; justify-content: space-around; margin-bottom: 12px; font-weight: 600;">
+        <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 12px; font-weight: 600;">
           <div>🏷️ Label: ${label}</div>
           <div>🎶 Genre: ${genre}</div>
-        </div>
+        </div><br>
         <div style="display: flex; justify-content: center; gap: 20px; font-weight: 500; font-size: 0.9rem;">
           <a href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">YouTube</a>
           <a href="https://open.spotify.com/search/${query}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Spotify</a>

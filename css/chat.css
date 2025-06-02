@@ -347,7 +347,6 @@ border: none;
   text-align: center;
 }
 
-
 .center-circle {
   position: relative;
   width: 200px;
@@ -379,8 +378,6 @@ border: none;
   opacity: 1;
   animation-play-state: running;
 }
-
-
 
 .play-ellipse {
   position: absolute;
