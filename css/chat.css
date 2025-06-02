@@ -333,3 +333,61 @@ border: none;
   transform: scale(1.05);
   outline: none;
 }
+
+ .discogs-container {
+  padding: 12px;
+  font-family: monospace, monospace;
+  font-size: 1rem;
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 100px;
+  box-sizing: border-box;
+  user-select: text;
+  color: inherit;
+  text-align: center;
+}
+
+
+.center-circle {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.album-cover-bg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.75);
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 1s ease;
+  animation: spin 5s linear infinite;
+  animation-play-state: paused;
+}
+
+.album-cover-bg.visible {
+  opacity: 1;
+  animation-play-state: running;
+}
+
+
+
+.play-ellipse {
+  position: absolute;
+  top: 0; left: 0;
+  width: 200px;
+  height: 200px;
+  z-index: 0;
+  border-radius: 50%;
+}
+

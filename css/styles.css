@@ -284,6 +284,27 @@ html, body {
   color: #00F2B8;             /* A slightly different shade on hover */
 }
 
+@keyframes dots {
+  0%   { content: '|'; }
+  25%  { content: '/'; }
+  50%  { content: '—'; }
+  75%  { content: '\\'; }
+  100% { content: '|'; }
+}
+
+.scrolling-text.loading::after {
+  content: '|';
+  display: inline-block;
+  margin-left: 6px;
+  font-weight: bold;
+  animation: dots 1s steps(4, end) infinite;
+  font-family: monospace, monospace;
+  user-select: none;
+}
+
+
+
+
   .play-timer {
     font-size: 2rem;
     color: #fff;

@@ -470,7 +470,7 @@ function onStationSelect(i) {
       rg.innerHTML = `
         <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
         <span id="currentTrack" class="track-name">
-          <span class="scrolling-text">Loading...</span>
+          <span class="scrolling-text loading"></span>
         </span>
       `
       checkMarquee(rg)

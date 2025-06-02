@@ -202,63 +202,7 @@
   <script type="module" src="equalizer.js"></script>
   <script type="module" src="settings.js"></script>
   <script type="module" src="gitbook.js"></script>
+  <script type="module" src="nowplaying.js"></script>
 
-  <!-- <script>
-    function attachSettingsListener() {
-      const settingsIcon = document.getElementById("settingsIcon");
-      if (settingsIcon) {
-        settingsIcon.addEventListener("click", handleSettingsClick);
-      }
-    }
-    function handleSettingsClick(e) {
-      e.preventDefault();
-      const modal = document.getElementById("manifestoModal");
-      const modalContent = modal.querySelector(".manifesto-content");
-      const defaultModalContent = modalContent.innerHTML;
-      modalContent.innerHTML = '<h1 style="color:#00F2B8; text-align: center;">SETTINGS</h1><div style="padding: 20px;"><label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;"><input type="checkbox" id="httpStationsCheckbox">Show http stations (not safe)</label></div><button id="saveSettingsBtn" class="save-settings-btn">Save Settings</button><button class="manifesto-close">&times;</button>';
-      const checkbox = document.getElementById("httpStationsCheckbox");
-      checkbox.checked = (localStorage.getItem("useOnlyHttps") === "false");
-      document.getElementById("saveSettingsBtn").addEventListener("click", function() {
-        const newValue = checkbox.checked ? "false" : "true";
-        localStorage.setItem("useOnlyHttps", newValue);
-        if (window.updateUseOnlyHttpsSetting) {
-          window.updateUseOnlyHttpsSetting(checkbox.checked ? false : true);
-        }
-        var select = document.getElementById("playlistSelect");
-        if (select) {
-          select.dispatchEvent(new Event("change"));
-        }
-        modalContent.innerHTML = defaultModalContent;
-        attachSettingsListener();
-        modal.style.display = "none";
-      });
-      modalContent.querySelector(".manifesto-close").addEventListener("click", function() {
-        modal.style.display = "none";
-        modalContent.innerHTML = defaultModalContent;
-        attachSettingsListener();
-      });
-      modal.style.display = "block";
-    }
-    document.getElementById('manifestoBtn').addEventListener('click', function() {
-      document.getElementById('manifestoModal').style.display = 'block';
-    });
-    document.getElementById('manifestoModal').addEventListener('click', function(e) {
-  if (e.target.classList.contains('manifesto-close')) {
-    this.style.display = 'none';
-  }
-});
-
-    window.addEventListener('click', function(e) {
-      if (e.target.id === 'manifestoModal') {
-        document.getElementById('manifestoModal').style.display = 'none';
-      }
-    });
-    document.addEventListener("DOMContentLoaded", function() {
-      attachSettingsListener();
-    });
-  </script> -->
-  <!-- <div class="wadada">
-    <a href="https://blockarkstudios.com" target="_blank">created by Block Ark Studios</a>
-  </div> -->
 </body>
 </html>
