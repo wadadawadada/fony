@@ -33,7 +33,7 @@ function setAlbumCoverBackground(imageUrl) {
   if (!bg) return;
   if (imageUrl) {
     bg.style.backgroundImage = `url('${imageUrl}')`;
-    void bg.offsetWidth;
+    void bg.offsetWidth; // триггер перерендера
   } else {
     bg.style.backgroundImage = '';
     bg.classList.remove('visible');
@@ -78,13 +78,19 @@ function extractCoverFromDiscogsHtml(html) {
   return null;
 }
 
-async function showDiscogsInfo() {
+export async function showDiscogsInfo() {
   const nowPlaying = getNowPlayingText();
+
+  const discogsContainer = document.getElementById("discogsInfoContainer");
+  if (!discogsContainer) return;
+
+  // СБРОС: очищаем текст и скрываем обложку до загрузки новых данных
+  discogsContainer.innerHTML = "";
+  setAlbumCoverBackground(null);
+  updateAlbumCoverAnimation();
+
   if (!nowPlaying) {
-    clearDiscogsInfo();
-    setAlbumCoverBackground(null);
-    updateAlbumCoverAnimation();
-    return;
+    return; // если нет текста, не запрашиваем
   }
 
   let artist = "", track = "";
@@ -98,10 +104,6 @@ async function showDiscogsInfo() {
   artist = artist.trim();
   track = track.trim();
 
-  const discogsContainer = document.getElementById("discogsInfoContainer");
-  if (!discogsContainer) return;
-  discogsContainer.innerHTML = "<i>Loading...</i>";
-
   try {
     const infoHtml = await fetchDiscogsTrackInfo(artist, track);
 
@@ -114,7 +116,7 @@ async function showDiscogsInfo() {
 
     const text = tempDiv.textContent;
 
-    // Album and Year together to avoid duplication
+    // Извлечение Album и Year вместе
     const albumYearLineMatch = text.match(/🎵 Album:\s*(.*?)\s*📅 Year:\s*(\d{4})/i);
     let album = "Unknown";
     let year = "Unknown";
@@ -141,11 +143,7 @@ async function showDiscogsInfo() {
     const fields = [album, year, country, label, genre];
 
     if (fields.some(f => f.toLowerCase() === "unknown")) {
-      discogsContainer.innerHTML = `
-        <div style="text-align:center; font-style: italic; color: #999; margin-top: 20px;">
-          No track data
-        </div>
-      `;
+      // Если много unknown, скрываем данные
       setAlbumCoverBackground(null);
       updateAlbumCoverAnimation();
       return;
@@ -182,8 +180,7 @@ async function showDiscogsInfo() {
   }
 }
 
-
-function clearDiscogsInfo() {
+export function clearDiscogsInfo() {
   const discogsContainer = document.getElementById("discogsInfoContainer");
   if (discogsContainer) {
     discogsContainer.innerHTML = "";

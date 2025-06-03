@@ -5,6 +5,7 @@ import { initChat} from './chat.js'
 import { getStreamMetadata, secureUrl } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
 import { connectWallet, getNFTContractList, connectAndLoadWalletNFTs } from './web3.js'
+import { clearDiscogsInfo } from './nowplaying.js';
 
 let currentMode = "radio"
 let currentParsingUrl = ""
@@ -433,6 +434,7 @@ function updateStreamMetadata(u) {
 }
 
 function onStationSelect(i) {
+  clearDiscogsInfo();
   currentParsingUrl = ""
   ensureVisible(i)
   const st = currentPlaylist[i]
