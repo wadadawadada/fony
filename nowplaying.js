@@ -100,7 +100,7 @@ async function showDiscogsInfo() {
 
   const discogsContainer = document.getElementById("discogsInfoContainer");
   if (!discogsContainer) return;
-  discogsContainer.innerHTML = "<i>Loading track info...</i>";
+  discogsContainer.innerHTML = "<i>Loading...</i>";
 
   try {
     const infoHtml = await fetchDiscogsTrackInfo(artist, track);
@@ -114,7 +114,7 @@ async function showDiscogsInfo() {
 
     const text = tempDiv.textContent;
 
-    // Search for Album and Year in one line to avoid duplicate year
+    // Album and Year together to avoid duplication
     const albumYearLineMatch = text.match(/🎵 Album:\s*(.*?)\s*📅 Year:\s*(\d{4})/i);
     let album = "Unknown";
     let year = "Unknown";
@@ -137,6 +137,19 @@ async function showDiscogsInfo() {
     const country = countryMatch ? countryMatch[1].trim() : "Unknown";
     const label = labelMatch ? labelMatch[1].trim() : "Unknown";
     const genre = genreMatch ? genreMatch[1].trim() : "Unknown";
+
+    const fields = [album, year, country, label, genre];
+
+    if (fields.some(f => f.toLowerCase() === "unknown")) {
+      discogsContainer.innerHTML = `
+        <div style="text-align:center; font-style: italic; color: #999; margin-top: 20px;">
+          No track data
+        </div>
+      `;
+      setAlbumCoverBackground(null);
+      updateAlbumCoverAnimation();
+      return;
+    }
 
     const query = encodeURIComponent(`${artist} ${track}`);
 
@@ -168,6 +181,7 @@ async function showDiscogsInfo() {
     updateAlbumCoverAnimation();
   }
 }
+
 
 function clearDiscogsInfo() {
   const discogsContainer = document.getElementById("discogsInfoContainer");
