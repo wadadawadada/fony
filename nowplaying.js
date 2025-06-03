@@ -17,7 +17,18 @@ function ensureAlbumCoverBg() {
   return bg;
 }
 
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
 function setAlbumCoverBackground(imageUrl) {
+  if (isMobile()) {
+    const bg = ensureAlbumCoverBg();
+    if (!bg) return;
+    bg.style.backgroundImage = '';
+    bg.classList.remove('visible');
+    return;
+  }
   const bg = ensureAlbumCoverBg();
   if (!bg) return;
   if (imageUrl) {
@@ -30,6 +41,11 @@ function setAlbumCoverBackground(imageUrl) {
 }
 
 function updateAlbumCoverAnimation() {
+  if (isMobile()) {
+    const bg = ensureAlbumCoverBg();
+    if (bg) bg.classList.remove('visible');
+    return;
+  }
   const audioPlayer = document.getElementById('audioPlayer');
   const bg = ensureAlbumCoverBg();
   const chatContainer = document.getElementById('chat');
@@ -98,7 +114,7 @@ async function showDiscogsInfo() {
 
     const text = tempDiv.textContent;
 
-    // Ищем строку с Album и Year вместе
+    // Search for Album and Year in one line to avoid duplicate year
     const albumYearLineMatch = text.match(/🎵 Album:\s*(.*?)\s*📅 Year:\s*(\d{4})/i);
     let album = "Unknown";
     let year = "Unknown";
@@ -131,10 +147,10 @@ async function showDiscogsInfo() {
           <div>📅 Year: ${year}</div>
           <div>🌍 Country: ${country}</div>
         </div>
-        <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 12px; font-weight: 600;">
+        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 12px; font-weight: 600;">
           <div>🏷️ Label: ${label}</div>
           <div>🎶 Genre: ${genre}</div>
-        </div><br>
+        </div>
         <div style="display: flex; justify-content: center; gap: 20px; font-weight: 500; font-size: 0.9rem;">
           <a href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">YouTube</a>
           <a href="https://open.spotify.com/search/${query}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Spotify</a>
