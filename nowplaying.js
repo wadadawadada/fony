@@ -162,6 +162,7 @@ export async function showDiscogsInfo() {
           <div>🏷️ Label: ${label}</div>
           <div>🎶 Genre: ${genre}</div>
         </div>
+        <br><br>
         <div style="display: flex; justify-content: center; gap: 20px; font-weight: 500; font-size: 0.9rem;">
           <a href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">YouTube</a>
           <a href="https://open.spotify.com/search/${query}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Spotify</a>
