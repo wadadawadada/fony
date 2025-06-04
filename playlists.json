@@ -4,6 +4,7 @@
   { "file": "genres/asian.m3u",          "name": "Asian" },
   { "file": "genres/balkans.m3u",          "name": "Balkans" },
   { "file": "genres/blues.m3u",          "name": "Blues" },
+  { "file": "genres/caribbean.m3u",          "name": "Caribbean" },
   { "file": "genres/chillout.m3u",       "name": "Chillout" },
   { "file": "genres/chinese.m3u",       "name": "China" },
   { "file": "genres/chiptune.m3u",       "name": "Chiptune" },
