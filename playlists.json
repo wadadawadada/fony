@@ -34,6 +34,7 @@
   { "file": "genres/rap.m3u",            "name": "Rap" },
   { "file": "genres/reggae.m3u",         "name": "Reggae" },
   { "file": "genres/rnb.m3u",            "name": "RnB" },
+  { "file": "genres/russian.m3u",        "name": "Russian" },
   { "file": "genres/southeast_asia.m3u", "name": "Southeast Asia" },
   { "file": "genres/techno.m3u",         "name": "Techno" },
   { "file": "genres/turk.m3u",           "name": "Turk" },
