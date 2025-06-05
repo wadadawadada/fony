@@ -1,5 +1,6 @@
 import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js";
 import { fetchDiscogsTrackInfo } from './discogs.js';
+import { handleSkinsCommand, reapplySkin } from './skins.js';
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const TIPS_JSON_URL = "/fony_tips.json";
@@ -343,6 +344,11 @@ async function getChatBotResponse(history, userInput) {
     isContinuation = false;
   }
 
+  if (userInput.trim().toLowerCase() === "/skins") {
+    await handleSkinsCommand(addMessage);
+    return null;
+  }
+
   if (userInput.trim().toLowerCase().startsWith("/discogs")) {
     let queryText = userInput.trim().slice(8).trim();
     if (!queryText) {
@@ -574,9 +580,15 @@ function renderQuickLinks() {
       command: () => "/discogs "
     },
     {
+  text: "/skins",
+  description: "Generate a new AI-powered background for the app",
+  command: () => "/skins"
+  },
+    {
       text: "[fony tips]",
       description: "Useful tips about FONY"
     }
+
   ];
   commands.forEach(cmd => {
     const a = document.createElement("a");
@@ -916,6 +928,9 @@ export function initChat() {
   }
 }
 
+document.addEventListener("themeChanged", () => {
+  reapplySkin();
+});
 
 
 
