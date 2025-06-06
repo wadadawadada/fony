@@ -60,7 +60,7 @@ function generateGradientColors(isDark, panel) {
   }
 }
 
-function createWaveGrid(isDark, width, height, waveScale = 1, amplitude = 20, smoothness = 1) {
+function createSeamlessWaveGrid(isDark, width, height, waveScale = 1, amplitude = 20, smoothness = 1) {
   const linesCountBase = 15;
   const pointsCountBase = 60;
   const strokeColor = isDark ? "rgba(0,255,255,0.15)" : "rgba(0,150,255,0.12)";
@@ -78,15 +78,27 @@ function createWaveGrid(isDark, width, height, waveScale = 1, amplitude = 20, sm
     for (let i = 0; i < pointsCount; i++) {
       offsets.push(randomBetween(-amplitude, amplitude));
     }
+    offsets[pointsCount - 1] = offsets[0];
     return offsets;
   }
 
   let paths = [];
 
+  let firstLineOffsets = null;
+
   for (let i = 0; i < linesCount; i++) {
     let pathPoints = [];
     const baseYOffset = (scaledHeight / (linesCount - 1)) * i;
     const waveOffsets = generateWaveOffsets();
+
+    if (i === 0) {
+      firstLineOffsets = waveOffsets;
+    } else if (i === linesCount - 1 && firstLineOffsets) {
+      for (let k = 0; k < pointsCount; k++) {
+        waveOffsets[k] = firstLineOffsets[k];
+      }
+    }
+
     for (let j = 0; j < pointsCount; j++) {
       const x = (width / (pointsCount - 1)) * j * horizontalScale;
       const baseY = baseYOffset;
@@ -124,7 +136,7 @@ function createWaveGrid(isDark, width, height, waveScale = 1, amplitude = 20, sm
   `;
 }
 
-function createSvgPattern(isDark, panel) {
+function createSeamlessSvgPattern(isDark, panel) {
   const shapes = [];
   const colorsLight = [
     "rgba(0,242,184,0.12)",
@@ -157,19 +169,36 @@ function createSvgPattern(isDark, panel) {
     const waveScale = randomBetween(1, 7);
     const amplitude = randomBetween(10, 40);
     const smoothness = randomBetween(0, 1);
-    const svgGrid = createWaveGrid(isDark, width, height, waveScale, amplitude, smoothness);
+    const svgGrid = createSeamlessWaveGrid(isDark, width, height, waveScale, amplitude, smoothness);
     return encodeURIComponent(svgGrid).replace(/'/g, "%27").replace(/"/g, "%22");
   } else if (pixelMode) {
     for (let i = 0; i < Math.floor(randomBetween(50, 120)); i++) {
-      const x = randomBetween(0, width);
-      const y = randomBetween(0, height);
+      let x = randomBetween(0, width);
+      let y = randomBetween(0, height);
       const pixelSize = bigShapes ? randomBetween(8, 36) : randomBetween(2, 9);
       const pixelColor = randomChoice(colors);
-      if (Math.random() < 0.6) {
-        shapes.push(`<rect x="${x}" y="${y}" width="${pixelSize}" height="${pixelSize}" fill="${pixelColor}" rx="1" ry="1"/>`);
-      } else {
-        shapes.push(`<circle cx="${x}" cy="${y}" r="${pixelSize / 2}" fill="${pixelColor}"/>`);
-      }
+
+      const duplicates = [
+        { dx: 0, dy: 0 },
+        { dx: -width, dy: 0 },
+        { dx: width, dy: 0 },
+        { dx: 0, dy: -height },
+        { dx: 0, dy: height },
+        { dx: -width, dy: -height },
+        { dx: width, dy: -height },
+        { dx: -width, dy: height },
+        { dx: width, dy: height },
+      ];
+
+      duplicates.forEach(({ dx, dy }) => {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (Math.random() < 0.6) {
+          shapes.push(`<rect x="${nx}" y="${ny}" width="${pixelSize}" height="${pixelSize}" fill="${pixelColor}" rx="1" ry="1"/>`);
+        } else {
+          shapes.push(`<circle cx="${nx + pixelSize / 2}" cy="${ny + pixelSize / 2}" r="${pixelSize / 2}" fill="${pixelColor}"/>`);
+        }
+      });
     }
   } else {
     for (let i = 0; i < numShapes; i++) {
@@ -180,39 +209,55 @@ function createSvgPattern(isDark, panel) {
       const cy = randomBetween(20, height - 20);
       const size = bigShapes ? randomBetween(50, 300) : randomBetween(10, 60);
 
-      let shape = "";
+      const duplicates = [
+        { dx: 0, dy: 0 },
+        { dx: -width, dy: 0 },
+        { dx: width, dy: 0 },
+        { dx: 0, dy: -height },
+        { dx: 0, dy: height },
+        { dx: -width, dy: -height },
+        { dx: width, dy: -height },
+        { dx: -width, dy: height },
+        { dx: width, dy: height },
+      ];
 
-      switch (shapeType) {
-        case "circle":
-          shape = `<circle cx="${cx}" cy="${cy}" r="${size / 2}" stroke="${color}" stroke-width="${strokeWidth}" fill="none"/>`;
-          break;
-        case "cross":
-          const offset = size / 2;
-          shape = `
-            <line x1="${cx - offset}" y1="${cy - offset}" x2="${cx + offset}" y2="${cy + offset}" stroke="${color}" stroke-width="${strokeWidth}" />
-            <line x1="${cx - offset}" y1="${cy + offset}" x2="${cx + offset}" y2="${cy - offset}" stroke="${color}" stroke-width="${strokeWidth}" />
-          `;
-          break;
-        case "square":
-          const half = size / 2;
-          shape = `<rect x="${cx - half}" y="${cy - half}" width="${size}" height="${size}" stroke="${color}" stroke-width="${strokeWidth}" fill="none" />`;
-          break;
-        case "triangle":
-          const heightTri = size * Math.sqrt(3) / 2;
-          const points = [
-            `${cx},${cy - (2 / 3) * heightTri}`,
-            `${cx - size / 2},${cy + heightTri / 3}`,
-            `${cx + size / 2},${cy + heightTri / 3}`
-          ].join(" ");
-          shape = `<polygon points="${points}" stroke="${color}" stroke-width="${strokeWidth}" fill="none" />`;
-          break;
-      }
-      shapes.push(shape);
+      duplicates.forEach(({ dx, dy }) => {
+        const nx = cx + dx;
+        const ny = cy + dy;
+        let shape = "";
+
+        switch (shapeType) {
+          case "circle":
+            shape = `<circle cx="${nx}" cy="${ny}" r="${size / 2}" stroke="${color}" stroke-width="${strokeWidth}" fill="none"/>`;
+            break;
+          case "cross":
+            const offset = size / 2;
+            shape = `
+              <line x1="${nx - offset}" y1="${ny - offset}" x2="${nx + offset}" y2="${ny + offset}" stroke="${color}" stroke-width="${strokeWidth}" />
+              <line x1="${nx - offset}" y1="${ny + offset}" x2="${nx + offset}" y2="${ny - offset}" stroke="${color}" stroke-width="${strokeWidth}" />
+            `;
+            break;
+          case "square":
+            const half = size / 2;
+            shape = `<rect x="${nx - half}" y="${ny - half}" width="${size}" height="${size}" stroke="${color}" stroke-width="${strokeWidth}" fill="none" />`;
+            break;
+          case "triangle":
+            const heightTri = size * Math.sqrt(3) / 2;
+            const points = [
+              `${nx},${ny - (2 / 3) * heightTri}`,
+              `${nx - size / 2},${ny + heightTri / 3}`,
+              `${nx + size / 2},${ny + heightTri / 3}`
+            ].join(" ");
+            shape = `<polygon points="${points}" stroke="${color}" stroke-width="${strokeWidth}" fill="none" />`;
+            break;
+        }
+        shapes.push(shape);
+      });
     }
   }
 
   const svg = `
-    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" fill="none" preserveAspectRatio="xMidYMid meet">
+    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" fill="none" preserveAspectRatio="xMidYMid meet" >
       ${shapes.join("\n")}
     </svg>`;
 
@@ -222,7 +267,7 @@ function createSvgPattern(isDark, panel) {
 function generateLeftPanelStyle(isDark) {
   const [c1, c2] = generateGradientColors(isDark, 'left');
   const angle = 180;
-  const patternDataUrl = `url("data:image/svg+xml,${createSvgPattern(isDark, 'left')}")`;
+  const patternDataUrl = `url("data:image/svg+xml,${createSeamlessSvgPattern(isDark, 'left')}")`;
   return `
     linear-gradient(${angle}deg, ${c1}, ${c2}),
     radial-gradient(circle at 22% 28%, rgba(0, 242, 184, ${isDark ? 0.12 : 0.09}), transparent 74%),
