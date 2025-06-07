@@ -42,7 +42,7 @@ function handleSettingsClick(e) {
     '<button class="manifesto-close" style="position: absolute; top: 15px; right: 20px; font-size: 24px; background: none; border: none; color: #00F2B8; cursor: pointer;">&times;</button>' +
     '<div style="padding: 20px;">' +
       '<label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;">' +
-        '<input type="checkbox" id="httpStationsCheckbox">Show http stations (not safe)' +
+        '<input type="checkbox" id="httpStationsCheckbox">Hide http stations' +
       '</label>' +
       '<label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;">' +
         '<input type="checkbox" id="leftHandedCheckbox">Left Handed' +

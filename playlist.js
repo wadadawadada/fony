@@ -1,6 +1,6 @@
 import { secureUrl } from './parsing.js';
 
-export let USE_ONLY_HTTPS = localStorage.getItem("useOnlyHttps") === "false" ? false : true;
+export let USE_ONLY_HTTPS = localStorage.getItem("useOnlyHttps") === "true" ? true : false;
 export function updateUseOnlyHttpsSetting(newValue) {
   USE_ONLY_HTTPS = newValue;
 }
