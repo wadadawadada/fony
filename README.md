@@ -1,4 +1,5 @@
-![fony](https://github.com/user-attachments/assets/784dc586-efe7-4ad8-9081-64487d794e3a)
+
+![Untitled-1](https://github.com/user-attachments/assets/c11d64c3-9355-4d07-9be4-3cc3aa3841fe)
 
 # FONY — Web3 Music Player & Free Internet Radio
 
@@ -28,6 +29,8 @@ A real-time assistant that helps you discover similar tracks, explore metadata, 
 FONY goes beyond playlists. It’s a canvas for listening, discovery, and collection — combining modern tech with timeless listening principles.
 
 🔗 Learn more at https://fony.space
+
+
 ![f1](https://github.com/user-attachments/assets/1444d154-c293-46f2-b4ce-c945867c2df5)
 
 
