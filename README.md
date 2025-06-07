@@ -1,4 +1,3 @@
-
 ![Untitled-1](https://github.com/user-attachments/assets/c11d64c3-9355-4d07-9be4-3cc3aa3841fe)
 
 # FONY — Web3 Music Player & Free Internet Radio
@@ -33,4 +32,8 @@ FONY goes beyond playlists. It’s a canvas for listening, discovery, and collec
 
 ![f1](https://github.com/user-attachments/assets/1444d154-c293-46f2-b4ce-c945867c2df5)
 
+---
 
+© 2025 Block Ark Studios  
+Licensed under AGPL-3.0. See LICENSE for details.  
+"FONY" is a trademark of Block Ark Studios. See TRADEMARK.md for usage guidelines.
