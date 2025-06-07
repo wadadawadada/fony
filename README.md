@@ -17,5 +17,6 @@ Dive into a world of free global music streaming, unique NFT audio collectibles,
 - 🛠 Customizable interface with light and dark modes  
 - 🔗 Easy sharing and copying of station links  
 - 💬 Interactive chat console for music exploration and tips  
+![f1](https://github.com/user-attachments/assets/1444d154-c293-46f2-b4ce-c945867c2df5)
 
 
