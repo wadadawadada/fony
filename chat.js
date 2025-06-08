@@ -642,7 +642,7 @@ export function initChat() {
   toggleButton.style.right = "20px";
   toggleButton.style.backgroundColor = "#00F2B8";
   toggleButton.style.border = "none";
-  toggleButton.style.borderRadius = "8px";
+  toggleButton.style.borderRadius = "4px";
   toggleButton.style.padding = "8px 12px";
   toggleButton.style.cursor = "pointer";
   toggleButton.style.fontWeight = "bold";
@@ -650,6 +650,17 @@ export function initChat() {
   toggleButton.style.color = "#171C2B";
   toggleButton.style.zIndex = "1000";
   toggleButton.style.display = "none";
+  toggleButton.style.transition = "background-color 0.3s ease, color 0.3s ease";
+  
+  toggleButton.addEventListener("mouseenter", () => {
+  toggleButton.style.backgroundColor = "#171C2B";
+  toggleButton.style.color = "#00F2B8";
+});
+
+toggleButton.addEventListener("mouseleave", () => {
+  toggleButton.style.backgroundColor = "#00F2B8";
+  toggleButton.style.color = "#171C2B";
+});
 
   const tooltip = document.createElement("span");
   tooltip.className = "tooltip-text";

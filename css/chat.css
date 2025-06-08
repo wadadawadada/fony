@@ -388,3 +388,8 @@ border: none;
   border-radius: 50%;
 }
 
+#toggleButton:hover {
+  background-color: #171C2B;
+  color: #00F2B8;
+  cursor: pointer;
+}

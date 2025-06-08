@@ -471,13 +471,11 @@ html, body {
     outline: none;
     cursor: pointer;
   }
-
   .genre-select option {
     font-size: 1rem;
     padding: 10px 12px;
     cursor: pointer;
   }
-
   .genre-search {
     border-radius: 50px;
     padding: 3px;
@@ -487,6 +485,7 @@ html, body {
     padding-left: 0.3rem;
     background-color: rgba(20, 255, 200, 0);
     margin-left: 1rem;
+    width: 100%;
   }
   .genre-search::placeholder {
     color: rgba(255, 255, 255, 0.5);

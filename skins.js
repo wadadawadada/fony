@@ -58,10 +58,10 @@ function generateGradientColors(isDark, panel) {
   }
 }
 
-function createSeamlessWaveGrid(isDark, width, height, waveScale = 1, amplitude = 20, smoothness = 1) {
+function createSeamlessWaveGrid(isDark, width, height, waveScale = 1, amplitude = 20, smoothness = 21) {
   const linesCountBase = 15;
   const pointsCountBase = 60;
-  const strokeColor = isDark ? "rgba(0,255,255,0.15)" : "rgba(0,150,255,0.12)";
+  const strokeColor = isDark ? "rgba(0,255,255,0.25)" : "rgba(0,150,255,0.22)";
   const strokeWidth = 1;
   const horizontalScale = waveScale;
   const verticalSpacingScale = waveScale;
@@ -144,16 +144,16 @@ function createSeamlessSvgPattern(isDark, panel) {
     "rgba(85,203,216,0.13)"
   ];
   const colors = isDark ? colorsDark : colorsLight;
-  const width = 300;
-  const height = 300;
+  const width = 320;
+  const height = 320;
   const bigShapes = Math.random() < 0.4;
   const numShapes = bigShapes ? Math.floor(randomBetween(4, 8)) : Math.floor(randomBetween(16, 28));
   const pixelMode = Math.random() < 0.25;
   const lineGridMode = Math.random() < 0.3;
   if (lineGridMode) {
     const waveScale = randomBetween(1, 7);
-    const amplitude = randomBetween(10, 40);
-    const smoothness = randomBetween(0, 1);
+    const amplitude = randomBetween(3, 10);
+    const smoothness = randomBetween(0, 441);
     const svgGrid = createSeamlessWaveGrid(isDark, width, height, waveScale, amplitude, smoothness);
     return encodeURIComponent(svgGrid).replace(/'/g, "%27").replace(/"/g, "%22");
   } else if (pixelMode) {
