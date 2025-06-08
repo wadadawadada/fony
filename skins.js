@@ -19,14 +19,12 @@ function generateGradientColors(isDark, panel) {
     "rgba(85,203,216,1)",
     "rgba(255,255,255,1)"
   ];
-
   function pickTwoColors(arr) {
     const copy = [...arr];
     const first = copy.splice(Math.floor(Math.random() * copy.length), 1)[0];
     const second = copy[Math.floor(Math.random() * copy.length)];
     return [first, second];
   }
-
   if (isDark) {
     if (panel === 'right') {
       const rightPanelColorsDark = [
@@ -65,14 +63,11 @@ function createSeamlessWaveGrid(isDark, width, height, waveScale = 1, amplitude 
   const pointsCountBase = 60;
   const strokeColor = isDark ? "rgba(0,255,255,0.15)" : "rgba(0,150,255,0.12)";
   const strokeWidth = 1;
-
   const horizontalScale = waveScale;
   const verticalSpacingScale = waveScale;
-
   const linesCount = linesCountBase;
   const pointsCount = pointsCountBase;
   const scaledHeight = height * verticalSpacingScale;
-
   function generateWaveOffsets() {
     let offsets = [];
     for (let i = 0; i < pointsCount; i++) {
@@ -81,16 +76,12 @@ function createSeamlessWaveGrid(isDark, width, height, waveScale = 1, amplitude 
     offsets[pointsCount - 1] = offsets[0];
     return offsets;
   }
-
   let paths = [];
-
   let firstLineOffsets = null;
-
   for (let i = 0; i < linesCount; i++) {
     let pathPoints = [];
     const baseYOffset = (scaledHeight / (linesCount - 1)) * i;
     const waveOffsets = generateWaveOffsets();
-
     if (i === 0) {
       firstLineOffsets = waveOffsets;
     } else if (i === linesCount - 1 && firstLineOffsets) {
@@ -98,11 +89,9 @@ function createSeamlessWaveGrid(isDark, width, height, waveScale = 1, amplitude 
         waveOffsets[k] = firstLineOffsets[k];
       }
     }
-
     for (let j = 0; j < pointsCount; j++) {
       const x = (width / (pointsCount - 1)) * j * horizontalScale;
       const baseY = baseYOffset;
-
       let offset;
       if (smoothness >= 1) {
         if (j === pointsCount - 1) {
@@ -122,13 +111,11 @@ function createSeamlessWaveGrid(isDark, width, height, waveScale = 1, amplitude 
           offset = interp * smoothness + waveOffsets[j] * (1 - smoothness);
         }
       }
-
       const y = baseY + offset * waveScale;
       pathPoints.push(`${x.toFixed(2)},${y.toFixed(2)}`);
     }
     paths.push(`<polyline points="${pathPoints.join(" ")}" fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>`);
   }
-
   return `
     <svg width="${width}" height="${height}" viewBox="0 0 ${width * horizontalScale} ${scaledHeight}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
       ${paths.join("\n")}
@@ -159,12 +146,10 @@ function createSeamlessSvgPattern(isDark, panel) {
   const colors = isDark ? colorsDark : colorsLight;
   const width = 300;
   const height = 300;
-
   const bigShapes = Math.random() < 0.4;
   const numShapes = bigShapes ? Math.floor(randomBetween(4, 8)) : Math.floor(randomBetween(16, 28));
   const pixelMode = Math.random() < 0.25;
   const lineGridMode = Math.random() < 0.3;
-
   if (lineGridMode) {
     const waveScale = randomBetween(1, 7);
     const amplitude = randomBetween(10, 40);
@@ -177,7 +162,6 @@ function createSeamlessSvgPattern(isDark, panel) {
       let y = randomBetween(0, height);
       const pixelSize = bigShapes ? randomBetween(8, 36) : randomBetween(2, 9);
       const pixelColor = randomChoice(colors);
-
       const duplicates = [
         { dx: 0, dy: 0 },
         { dx: -width, dy: 0 },
@@ -189,7 +173,6 @@ function createSeamlessSvgPattern(isDark, panel) {
         { dx: -width, dy: height },
         { dx: width, dy: height },
       ];
-
       duplicates.forEach(({ dx, dy }) => {
         const nx = x + dx;
         const ny = y + dy;
@@ -208,7 +191,6 @@ function createSeamlessSvgPattern(isDark, panel) {
       const cx = randomBetween(20, width - 20);
       const cy = randomBetween(20, height - 20);
       const size = bigShapes ? randomBetween(50, 300) : randomBetween(10, 60);
-
       const duplicates = [
         { dx: 0, dy: 0 },
         { dx: -width, dy: 0 },
@@ -220,12 +202,10 @@ function createSeamlessSvgPattern(isDark, panel) {
         { dx: -width, dy: height },
         { dx: width, dy: height },
       ];
-
       duplicates.forEach(({ dx, dy }) => {
         const nx = cx + dx;
         const ny = cy + dy;
         let shape = "";
-
         switch (shapeType) {
           case "circle":
             shape = `<circle cx="${nx}" cy="${ny}" r="${size / 2}" stroke="${color}" stroke-width="${strokeWidth}" fill="none"/>`;
@@ -255,12 +235,10 @@ function createSeamlessSvgPattern(isDark, panel) {
       });
     }
   }
-
   const svg = `
     <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" fill="none" preserveAspectRatio="xMidYMid meet" >
       ${shapes.join("\n")}
     </svg>`;
-
   return encodeURIComponent(svg).replace(/'/g, "%27").replace(/"/g, "%22");
 }
 
@@ -290,32 +268,137 @@ function applySkinStyles(leftStyle, rightStyle, isDark) {
   const leftPanel = document.querySelector(".left-panel");
   const rightPanel = document.querySelector(".right-panel");
   if (!leftPanel || !rightPanel) return;
-
   leftPanel.style.background = leftStyle.trim();
   leftPanel.style.color = isDark ? "#eee" : "#222";
   leftPanel.style.transition = "background 1s ease";
   leftPanel.style.backgroundColor = isDark ? "#171C2B" : "#fff";
-
   rightPanel.style.background = rightStyle.trim();
   rightPanel.style.color = isDark ? "#eee" : "#222";
   rightPanel.style.transition = "background 1s ease";
   rightPanel.style.backgroundColor = isDark ? "#232840" : "#f2f2f2";
-
   currentSkin.left = leftStyle;
   currentSkin.right = rightStyle;
 }
 
+function saveSkinToStorage() {
+  localStorage.setItem("savedSkin", JSON.stringify(currentSkin));
+  localStorage.setItem("skinTheme", document.body.classList.contains('dark') ? "dark" : "light");
+}
+
+function loadSkinFromStorage() {
+  try {
+    const saved = localStorage.getItem("savedSkin");
+    if (!saved) return null;
+    return JSON.parse(saved);
+  } catch {
+    return null;
+  }
+}
+
+function clearSavedSkin() {
+  localStorage.removeItem("savedSkin");
+  localStorage.removeItem("skinTheme");
+}
+
+function applyDefaultThemePanels() {
+  const leftPanel = document.querySelector(".left-panel");
+  const rightPanel = document.querySelector(".right-panel");
+  const container = document.querySelector(".container");
+  if (!leftPanel || !rightPanel || !container) return;
+  const isDark = document.body.classList.contains("dark");
+  if (isDark) {
+    leftPanel.style.backgroundColor = "#171C2B";
+    rightPanel.style.background = "linear-gradient(135deg, hsl(165, 94%, 30%) 0%, hsl(165, 94%, 49%) 50%, hsl(165, 94%, 70%) 100%)";
+    leftPanel.style.color = "#eee";
+    rightPanel.style.color = "#eee";
+  } else {
+    leftPanel.style.backgroundColor = "#f2f2f2";
+    rightPanel.style.background = "linear-gradient(135deg, #5587e4 0%, #d68255 20%, #ec7b2a 40%, #4b85ea 60%, #C36C8B 80%, #55cbd8 100%)";
+    leftPanel.style.color = "#222";
+    rightPanel.style.color = "#222";
+  }
+  container.style.background = "";
+  currentSkin = { left: null, right: null };
+  saveSkinToStorage();
+}
+
 export async function handleSkinsCommand(addMessage) {
-  addMessage("bot", "🎨 Generating new complex backgrounds...");
   const isDark = document.body.classList.contains("dark");
   const leftStyle = generateLeftPanelStyle(isDark);
   const rightStyle = generateRightPanelStyle(isDark);
   applySkinStyles(leftStyle, rightStyle, isDark);
-  addMessage("bot", "✅ Background updated with lines, shapes and gradients.");
+  const existingBtn = document.getElementById("saveSkinBtn");
+  if (existingBtn) existingBtn.remove();
+  const saveButton = `<button id="saveSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">save current skin</button>`;
+  addMessage("bot", "Skin updated.<br><br>" + saveButton);
+  setTimeout(() => {
+    const saveEl = document.getElementById("saveSkinBtn");
+    if (saveEl) {
+      saveEl.onclick = (e) => {
+        e.preventDefault();
+        saveSkinToStorage();
+        addMessage("bot", "Skin saved!");
+      };
+    }
+  }, 100);
 }
 
 export function reapplySkin() {
-  if (!currentSkin.left || !currentSkin.right) return;
-  const isDark = document.body.classList.contains("dark");
-  applySkinStyles(currentSkin.left, currentSkin.right, isDark);
+  const skin = loadSkinFromStorage();
+  if (skin && skin.left && skin.right) {
+    const isDark = document.body.classList.contains("dark");
+    applySkinStyles(skin.left, skin.right, isDark);
+  }
 }
+
+export function loadSkinAndThemeFromStorage() {
+  try {
+    const skin = localStorage.getItem("savedSkin");
+    const theme = localStorage.getItem("skinTheme");
+    if (!skin || !theme) return null;
+    return { skin: JSON.parse(skin), theme };
+  } catch {
+    return null;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const skin = loadSkinFromStorage();
+  if (skin && skin.left && skin.right) {
+    const isDark = document.body.classList.contains("dark");
+    applySkinStyles(skin.left, skin.right, isDark);
+  }
+});
+
+document.addEventListener("themeChanged", () => {
+  const skin = loadSkinFromStorage();
+  if (skin && skin.left && skin.right) {
+    const isDark = document.body.classList.contains("dark");
+    applySkinStyles(skin.left, skin.right, isDark);
+  } else {
+    applyDefaultThemePanels();
+  }
+});
+
+function clearSkinStyles() {
+  const leftPanel = document.querySelector(".left-panel");
+  const rightPanel = document.querySelector(".right-panel");
+  if (leftPanel) {
+    leftPanel.style.background = "";
+    leftPanel.style.backgroundColor = "";
+    leftPanel.style.color = "";
+    leftPanel.style.transition = "";
+  }
+  if (rightPanel) {
+    rightPanel.style.background = "";
+    rightPanel.style.backgroundColor = "";
+    rightPanel.style.color = "";
+    rightPanel.style.transition = "";
+  }
+  localStorage.removeItem("savedSkin");
+  localStorage.removeItem("skinTheme");
+  currentSkin.left = null;
+  currentSkin.right = null;
+}
+
+export { clearSkinStyles };

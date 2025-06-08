@@ -581,7 +581,7 @@ function renderQuickLinks() {
     },
     {
   text: "/skins",
-  description: "Generate a new AI-powered background for the app",
+  description: "Generate a new background",
   command: () => "/skins"
   },
     {
@@ -862,6 +862,7 @@ export function initChat() {
         { text: "/info", description: "Show technical metadata about the current track", command: () => nowPlayingText ? `/info ${nowPlayingText}` : "/info" },
         { text: "/img", description: "Show album cover of the playing track", command: () => "/img" },
         { text: "/discogs", description: "Get detailed info from Discogs about a track", command: () => "/discogs " },
+        { text: "/skins", description: "Generate a new background", command: () => "/skins"},
         { text: "[fony tips]", description: "Useful tips about FONY" }
       ];
       commands.forEach(cmd => {
