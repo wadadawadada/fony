@@ -13,4 +13,4 @@ You may refer to the project as “based on FONY” or “fork of FONY” — at
 
 © 2025 Block Ark Studios  
 Website: [https://fony.space](https://fony.space)  
-Contact: contact@fony.space
+Contact: wadada@keemail.me
