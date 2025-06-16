@@ -66,8 +66,12 @@
           "description": "Retrieve rich album and track info from Discogs database, including artwork, label info, and country of release."
         },
         {
-          "command": "/donate",
-          "description": "Find out how to support the ongoing development of FONY through cryptocurrency donations."
+        "command": "/skins",
+        "description": "Generate a new dynamic background skin for the player interface. Refreshes the visual style without changing any playback settings."
+        },
+        {
+        "command": "/collection",
+        "description": "Manage your personal track collection. Use subcommands like `/collection recommendations` to get AI-powered playlist suggestions based on your saved favorite tracks."
         },
         {
           "command": "[fony tips]",

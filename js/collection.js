@@ -189,31 +189,31 @@ export function setupMobileCollectionHandlers(addMobileMessage, getChatBotRespon
     });
 
     container.querySelectorAll(".collect-recommend").forEach(a => {
-      a.addEventListener("click", async e => {
-        e.preventDefault();
-        const collection = getCollection();
-        if (!collection.length) {
-          addMobileMessage("bot", "Collection is empty.<br><br>");
-          return;
-        }
-        let prompt = "Based on this list of tracks, suggest a playlist with recommended tracks. List only the artist and track:\n";
-        collection.forEach((t, i) => {
-          prompt += `${i + 1}. ${t.artist} - ${t.track}\n`;
-        });
+  a.addEventListener("click", async e => {
+    e.preventDefault();
+    const collection = getCollection();
+    if (!collection.length) {
+      addMobileMessage("bot", "Collection is empty.<br><br>");
+      return;
+    }
+    let prompt = "Based on this list of tracks, provide a brief summary of the overall mood and main musical styles. Then suggest a playlist with no more than 5 recommended rare tracks that fit this mood and style. List only the artist and track, one per line:\n";
+  collection.forEach((t, i) => {
+    prompt += `${i + 1}. ${t.artist} - ${t.track}\n`;
+  });
 
-        const mobileChatMessagesElem = document.getElementById('mobileChatMessages');
-        const typingIndicator = document.createElement("div");
-        typingIndicator.classList.add("chat-message", "bot-message", "typing-indicator");
-        typingIndicator.innerHTML = `<span class="dot-flash"></span>`;
-        mobileChatMessagesElem.appendChild(typingIndicator);
-        mobileChatMessagesElem.scrollTop = mobileChatMessagesElem.scrollHeight;
+    const mobileChatMessagesElem = document.getElementById('mobileChatMessages');
+    const typingIndicator = document.createElement("div");
+    typingIndicator.classList.add("chat-message", "bot-message", "typing-indicator");
+    typingIndicator.innerHTML = `<span class="dot-flash"></span>`;
+    mobileChatMessagesElem.appendChild(typingIndicator);
+    mobileChatMessagesElem.scrollTop = mobileChatMessagesElem.scrollHeight;
 
-        const response = await getChatBotResponse([], prompt);
+    const response = await getChatBotResponse([], prompt);
 
-        typingIndicator.remove();
+    typingIndicator.remove();
 
-        if (response && response.content) addMobileMessage("bot", formatBotResponse(response.content));
-      });
-    });
+    if (response && response.content) addMobileMessage("bot", formatBotResponse(response.content));
+  });
+});
   }, 100);
 }

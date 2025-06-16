@@ -347,6 +347,19 @@ async function getChatBotResponse(history, userInput) {
     isContinuation = false;
   }
 
+  if (userInput.trim().toLowerCase() === "/donate") {
+  const donateMessage = `
+    Support the FONY project and contribute to its continued development:<br><br>
+    ERC-20 Tokens (ETH, USDT, Polygon):<br>
+    0xaA01e4F453d5ae9903EebeABA803f3388D20d024<br><br>
+    Bitcoin:<br>
+    bc1qhahnrra9q4jc0k6vr8tf9vs8wtmgf746jxnsfe<br><br>
+    Thank you for your support!
+  `;
+  return { type: "text", content: donateMessage };
+}
+
+
   if (userInput.trim().toLowerCase() === "/skins") {
     await handleSkinsCommand(addMessage);
     return null;
@@ -645,13 +658,19 @@ function renderQuickLinks() {
 
 function sendWelcomeMessage() {
   const welcomeText = `
-    Welcome to the FONY console!<br> Here you can dive deeper into exploring music.<br><br>
-    You can use the chat to explore music or try the quick commands below.<br>
-    <a href="#" onclick="event.preventDefault(); chatInput.value='Recommend 3 tracks similar to the current track'; chatSendBtn.click();">Similar Tracks</a>,&nbsp;
-    <a href="#" onclick="event.preventDefault(); chatInput.value='List facts about the current track or artist'; chatSendBtn.click();">Facts</a>,&nbsp;
-    <a href="#" onclick="event.preventDefault(); chatInput.value='Suggest 3 new tracks in a similar genre'; chatSendBtn.click();">New in Genre</a>,&nbsp;
-    <a href="#" onclick="event.preventDefault(); chatInput.value='Show technical metadata about the current track'; chatSendBtn.click();">Get Track Info</a>,&nbsp;
-    <a href="#" onclick="event.preventDefault(); chatInput.value='[fony tips]'; chatSendBtn.click();">[fony tips]</a>
+    <div style="line-height: 1.6;">
+      Welcome to the FONY console!<br> Here you can dive deeper into exploring music.<br><br>
+      You can use the chat to explore music or try the quick commands below.<br>
+      <span style="white-space: nowrap;">🎵&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Recommend 3 tracks similar to the current track'; chatSendBtn.click();">Similar Tracks</a></span>,&nbsp;
+      <span style="white-space: nowrap;">📚&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='List facts about the current track or artist'; chatSendBtn.click();">Facts</a></span>,&nbsp;
+      <span style="white-space: nowrap;">🆕&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Suggest 3 new tracks in a similar genre'; chatSendBtn.click();">New in Genre</a></span>,&nbsp;
+      <span style="white-space: nowrap;">ℹ️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Show technical metadata about the current track'; chatSendBtn.click();">Get Track Info</a></span>,&nbsp;
+      <span style="white-space: nowrap;">📀&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/discogs'; chatSendBtn.click();">Discogs Info</a></span>,&nbsp;
+      <span style="white-space: nowrap;">🎨&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/skins'; chatSendBtn.click();">Generate Skin</a></span>,&nbsp;
+      <span style="white-space: nowrap;">📂&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/collection recommendations'; chatSendBtn.click();">Collection Recommendations</a></span>,&nbsp;
+      <span style="white-space: nowrap;">💖&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/donate'; chatSendBtn.click();">Donate</a></span>,&nbsp;
+      <span style="white-space: nowrap;">💡&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='[fony tips]'; chatSendBtn.click();">FONY tips</a></span>
+    </div>
   `;
   addMessage("bot", welcomeText);
   conversationHistory.push({ role: "assistant", content: welcomeText });
