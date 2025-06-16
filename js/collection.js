@@ -68,7 +68,7 @@ export function setupCollectionMenuHandlers(addMessage, getChatBotResponse, form
         track = track.trim();
 
         addTrackToCollection(artist, track);
-        addMessage("bot", `Track added to collection: ${artist} – ${track}`);
+        addMessage("bot", `Track added to collection: ${artist} – ${track}<br><br>`);
       });
     });
 
@@ -80,7 +80,7 @@ export function setupCollectionMenuHandlers(addMessage, getChatBotResponse, form
           addMessage("bot", "Collection is empty.<br><br>");
           return;
         }
-        let html = "<b>Your collection:</b><br><ul style='padding-left:18px;'>";
+        let html = "<b>Your collection:</b><ul style='padding-left:18px;'>";
         collection.forEach((t) => {
           const query = encodeURIComponent(`${t.artist} ${t.track}`);
           const googleSearchUrl = `https://www.google.com/search?q=${query}`;
@@ -107,7 +107,7 @@ export function setupCollectionMenuHandlers(addMessage, getChatBotResponse, form
           addMessage("bot", "Collection is empty.<br><br>");
           return;
         }
-        let prompt = "Based on this list of tracks, suggest a playlist with recommended tracks. List only the artist and track:\n";
+        let prompt = "Based on this list of tracks, provide a brief (not more than 20 words) summary of the overall mood and main musical styles. Then suggest a playlist with no more than 5 recommended rare tracks that fit this mood and style. List only the artist and track, one per line:\n";
         collection.forEach((t, i) => {
           prompt += `${i + 1}. ${t.artist} - ${t.track}\n`;
         });
@@ -157,7 +157,7 @@ export function setupMobileCollectionHandlers(addMobileMessage, getChatBotRespon
         track = track.trim();
 
         addTrackToCollection(artist, track);
-        addMobileMessage("bot", `Track added to collection: ${artist} – ${track}`);
+        addMobileMessage("bot", `Track added to collection: ${artist} – ${track}<br><br>`);
       });
     });
 
@@ -169,7 +169,7 @@ export function setupMobileCollectionHandlers(addMobileMessage, getChatBotRespon
           addMobileMessage("bot", "Collection is empty.<br><br>");
           return;
         }
-        let html = "<b>Your collection:</b><br><ul style='padding-left:18px;'>";
+        let html = "<b>Your collection:</b><ul style='padding-left:18px;'>";
         collection.forEach((t) => {
           const query = encodeURIComponent(`${t.artist} ${t.track}`);
           const googleSearchUrl = `https://www.google.com/search?q=${query}`;
@@ -196,7 +196,7 @@ export function setupMobileCollectionHandlers(addMobileMessage, getChatBotRespon
       addMobileMessage("bot", "Collection is empty.<br><br>");
       return;
     }
-    let prompt = "Based on this list of tracks, provide a brief summary of the overall mood and main musical styles. Then suggest a playlist with no more than 5 recommended rare tracks that fit this mood and style. List only the artist and track, one per line:\n";
+    let prompt = "Based on this list of tracks, provide (not more than 20 words) a brief summary of the overall mood and main musical styles. Then suggest a playlist with no more than 5 recommended rare tracks that fit this mood and style. List only the artist and track, one per line:\n";
   collection.forEach((t, i) => {
     prompt += `${i + 1}. ${t.artist} - ${t.track}\n`;
   });
