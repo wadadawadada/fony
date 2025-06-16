@@ -1,6 +1,11 @@
 import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js";
 import { fetchDiscogsTrackInfo } from './discogs.js';
 import { handleSkinsCommand, reapplySkin } from './skins.js';
+import {
+  addTrackToCollection,
+  createMainCollectMenuHtml,
+  setupCollectionMenuHandlers
+} from './collection.js';
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const TIPS_JSON_URL = "../json/fony_tips.json";
@@ -188,7 +193,6 @@ function showFeatureChoices() {
   }, 100);
 }
 
-
 function showFeatureDetails(idx) {
   const f = fonyTipsState.remainingFeatures[idx];
   if (!f) return;
@@ -197,7 +201,6 @@ function showFeatureDetails(idx) {
   fonyTipsState.remainingFeatures.splice(idx, 1);
   showFeatureChoices();
 }
-
 
 async function fetchOpenAIKey() {
   if (openAiApiKey) return;
@@ -370,7 +373,6 @@ async function getChatBotResponse(history, userInput) {
     artist = artist.trim();
     track = track.trim();
     const discogsInfo = await fetchDiscogsTrackInfo(artist, track);
-    // Возвращаем особый тип для корректного рендера HTML
     return { type: "discogs", content: discogsInfo };
   }
 
@@ -393,6 +395,13 @@ async function getChatBotResponse(history, userInput) {
       return { type: "text", content: "Cover art not found." };
     }
   }
+
+if (userInput.trim().toLowerCase() === "/collection") {
+  const menuHtml = createMainCollectMenuHtml();
+  setupCollectionMenuHandlers(addMessage, getChatBotResponse, formatBotResponse);
+  return { type: "html", content: menuHtml };
+}
+
 
   if (userInput.trim().toLowerCase() === "[fony tips]") {
     fonyTipsState.mode = 'list';
@@ -514,22 +523,39 @@ async function sendMessage() {
   chatSendBtn.disabled = false;
   if (typingIndicator && typingIndicator.parentElement) typingIndicator.remove();
   if (botReply) {
-    if (typeof botReply === "object") {
-      if (botReply.type === "image" || botReply.type === "discogs") {
-        // Для изображений и discogs вставляем без экранирования, как HTML
-        addMessage("bot", botReply.content);
-        conversationHistory.push({ role: "assistant", content: botReply.content });
-      } else {
-        const content = botReply.content || "";
-        addMessage("bot", formatBotResponse(content));
-        conversationHistory.push({ role: "assistant", content });
-      }
+  if (typeof botReply === "object") {
+    if (botReply.type === "image" || botReply.type === "discogs") {
+      addMessage("bot", botReply.content);
+      conversationHistory.push({ role: "assistant", content: botReply.content });
+    } else if (botReply.type === "html") {
+      addRawHtmlMessage("bot", botReply.content);
+      conversationHistory.push({ role: "assistant", content: botReply.content });
     } else {
-      addMessage("bot", formatBotResponse(botReply));
-      conversationHistory.push({ role: "assistant", content: botReply });
+      const content = botReply.content || "";
+      addMessage("bot", formatBotResponse(content));
+      conversationHistory.push({ role: "assistant", content });
     }
+  } else {
+    addMessage("bot", formatBotResponse(botReply));
+    conversationHistory.push({ role: "assistant", content: botReply });
   }
+ }
 }
+
+function addRawHtmlMessage(role, htmlContent) {
+  const msgDiv = document.createElement("div");
+  msgDiv.classList.add("chat-message", role === "user" ? "user-message" : "bot-message");
+  msgDiv.innerHTML = `
+    <strong style="display:block; font-weight:800; margin-bottom:6px;">${role === "user" ? "You" : ">_FONY:"}</strong>
+    <div class="message-content">${htmlContent}</div>
+  `;
+  chatMessagesElem.appendChild(msgDiv);
+  requestAnimationFrame(() => {
+    msgDiv.classList.add("show");
+    scrollToCenter(msgDiv);
+  });
+}
+
 
 async function connectWalletAndInitChat() {
   if (!window.ethereum) {
@@ -580,15 +606,19 @@ function renderQuickLinks() {
       command: () => "/discogs "
     },
     {
-  text: "/skins",
-  description: "Generate a new background",
-  command: () => "/skins"
-  },
+      text: "/skins",
+      description: "Generate a new background",
+      command: () => "/skins"
+    },
+    {
+      text: "/collection",
+      description: "Your tracks collection",
+      command: () => "/collection"
+    },
     {
       text: "[fony tips]",
       description: "Useful tips about FONY"
     }
-
   ];
   commands.forEach(cmd => {
     const a = document.createElement("a");
@@ -653,14 +683,14 @@ export function initChat() {
   toggleButton.style.transition = "background-color 0.3s ease, color 0.3s ease";
   
   toggleButton.addEventListener("mouseenter", () => {
-  toggleButton.style.backgroundColor = "#171C2B";
-  toggleButton.style.color = "#00F2B8";
-});
+    toggleButton.style.backgroundColor = "#171C2B";
+    toggleButton.style.color = "#00F2B8";
+  });
 
-toggleButton.addEventListener("mouseleave", () => {
-  toggleButton.style.backgroundColor = "#00F2B8";
-  toggleButton.style.color = "#171C2B";
-});
+  toggleButton.addEventListener("mouseleave", () => {
+    toggleButton.style.backgroundColor = "#00F2B8";
+    toggleButton.style.color = "#171C2B";
+  });
 
   const tooltip = document.createElement("span");
   tooltip.className = "tooltip-text";
@@ -840,6 +870,7 @@ toggleButton.addEventListener("mouseleave", () => {
         }
       }
       renderMobileQuickLinks();
+      setupMobileCollectionHandlers(addMobileMessage, getChatBotResponse, formatBotResponse);
     });
 
     mobileChatInput.addEventListener("keypress", e => {
@@ -943,10 +974,3 @@ toggleButton.addEventListener("mouseleave", () => {
 document.addEventListener("themeChanged", () => {
   reapplySkin();
 });
-
-
-
-
-
-
-
