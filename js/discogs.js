@@ -9,7 +9,7 @@ function sanitizeQuery(str) {
 async function getConfig() {
   let config = {};
   try {
-    const res = await fetch("/config.json");
+    const res = await fetch("../json/config.json");
     if (res.ok) {
       config = await res.json();
     }

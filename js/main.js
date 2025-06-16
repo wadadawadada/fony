@@ -892,7 +892,7 @@ function playRandomGenreAndStation() {
   });
 }
 
-fetch("playlists.json")
+fetch("../json/playlists.json")
   .then(r => r.json())
   .then(pl => {
     allPlaylists = pl;

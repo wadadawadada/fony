@@ -3,7 +3,7 @@ const CONTENT_ID = 'gitbookContent';
 
 async function fetchGitbookJson() {
   try {
-    const response = await fetch('/gitbook.json');
+    const response = await fetch('../json/gitbook.json');
     if (!response.ok) throw new Error('Failed to fetch gitbook.json');
     return await response.json();
   } catch (error) {

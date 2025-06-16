@@ -3,7 +3,7 @@ import { fetchDiscogsTrackInfo } from './discogs.js';
 import { handleSkinsCommand, reapplySkin } from './skins.js';
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-const TIPS_JSON_URL = "/fony_tips.json";
+const TIPS_JSON_URL = "../json/fony_tips.json";
 
 let walletAddress = null;
 let openAiApiKey = null;
@@ -29,7 +29,7 @@ let isContinuation = false;
 
 async function loadChatConfig() {
   if (chatConfig) return chatConfig;
-  const res = await fetch("/chat_config.json");
+  const res = await fetch("../json/chat_config.json");
   if (!res.ok) throw new Error("Failed to load chat_config.json");
   chatConfig = await res.json();
   return chatConfig;
@@ -202,7 +202,7 @@ function showFeatureDetails(idx) {
 async function fetchOpenAIKey() {
   if (openAiApiKey) return;
   try {
-    const res = await fetch("/config.json");
+    const res = await fetch("../json/config.json");
     if (res.ok) {
       const data = await res.json();
       if (data.OPENAI_API_KEY) {
