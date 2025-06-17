@@ -800,19 +800,19 @@ if (ffBtn) {
   });
 }
 
-if (favBtn) {
-  favBtn.addEventListener("click", () => {
-    if (!currentPlaylist.length) return
-    const c = currentPlaylist[currentTrackIndex]
-    let fv = JSON.parse(localStorage.getItem("favorites") || "[]")
-    if (!fv.includes(c.url)) {
-      fv.push(c.url)
-      localStorage.setItem("favorites", JSON.stringify(fv))
-    }
-    currentPlaylist = allStations.slice()
-    resetVisibleStations()
-  })
-}
+// if (favBtn) {
+//   favBtn.addEventListener("click", () => {
+//     if (!currentPlaylist.length) return
+//     const c = currentPlaylist[currentTrackIndex]
+//     let fv = JSON.parse(localStorage.getItem("favorites") || "[]")
+//     if (!fv.includes(c.url)) {
+//       fv.push(c.url)
+//       localStorage.setItem("favorites", JSON.stringify(fv))
+//     }
+//     currentPlaylist = allStations.slice()
+//     resetVisibleStations()
+//   })
+// }
 
 if (shuffleBtn) {
   shuffleBtn.addEventListener("click", () => {
