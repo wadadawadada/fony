@@ -3,9 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const playlistElement = document.getElementById("playlist");
   if (!favBtn || !playlistElement) return;
 
-  function getPrefix() {
-    return localStorage.getItem("theme") === "dark" ? "/img/dark/" : "/img/";
-  }
   function getFavorites() {
     return JSON.parse(localStorage.getItem("favorites") || "[]");
   }
@@ -13,43 +10,9 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("favorites", JSON.stringify(favs));
   }
   function updateFavBtnIcon(url) {
-    const prefix = getPrefix();
+    const prefix = localStorage.getItem("theme") === "dark" ? "/img/dark/" : "/img/";
     const favs = getFavorites();
     favBtn.src = favs.includes(url) ? prefix + "fav_active.svg" : prefix + "fav.svg";
-  }
-  function updatePlaylistHearts() {
-    const favs = getFavorites();
-    const lis = playlistElement.querySelectorAll("li");
-    lis.forEach(li => {
-      const index = parseInt(li.dataset.index);
-      if (isNaN(index)) return;
-      if (!window.currentPlaylist || !window.currentPlaylist[index]) return;
-      const station = window.currentPlaylist[index];
-      let heart = li.querySelector("img.favorite-heart");
-      const isFav = favs.includes(station.url);
-      if (isFav) {
-        if (!heart) {
-          heart = document.createElement("img");
-          heart.classList.add("favorite-heart", "active");
-          heart.src = "/img/heart.svg";
-          heart.alt = "Favorite";
-          heart.loading = "lazy";
-          heart.style.animation = "heartBounce 0.5s ease-out";
-          heart.style.cursor = "pointer";
-          heart.addEventListener("click", e => {
-            e.stopPropagation();
-            toggleFavorite(station.url);
-          });
-          li.appendChild(heart);
-        } else {
-          heart.classList.add("active");
-        }
-      } else {
-        if (heart) {
-          heart.classList.remove("active");
-        }
-      }
-    });
   }
   function toggleFavorite(url) {
     if (!url) return;
@@ -63,6 +26,36 @@ document.addEventListener("DOMContentLoaded", () => {
     updateFavBtnIcon(url);
     updatePlaylistHearts();
   }
+  // function updatePlaylistHearts() {
+  //   const favs = getFavorites();
+  //   const lis = playlistElement.querySelectorAll("li");
+  //   lis.forEach(li => {
+  //     const index = parseInt(li.dataset.index);
+  //     if (isNaN(index)) return;
+  //     if (!window.currentPlaylist || !window.currentPlaylist[index]) return;
+  //     const station = window.currentPlaylist[index];
+  //     let heart = li.querySelector("img.favorite-heart");
+  //     const isFav = favs.includes(station.url);
+  //     if (isFav && !heart) {
+  //       heart = document.createElement("img");
+  //       heart.classList.add("favorite-heart", "active");
+  //       heart.src = "/img/heart.svg";
+  //       heart.alt = "Favorite";
+  //       heart.loading = "lazy";
+  //       heart.style.animation = "heartBounce 0.5s ease-out";
+  //       heart.style.cursor = "pointer";
+  //       heart.addEventListener("click", e => {
+  //         e.stopPropagation();
+  //         toggleFavorite(station.url);
+  //       });
+  //       li.appendChild(heart);
+  //     }
+  //     if (!isFav && heart) {
+  //       heart.remove();
+  //     }
+  //   });
+  // }
+
   favBtn.addEventListener("click", () => {
     if (!window.currentStationUrl) return;
     toggleFavorite(window.currentStationUrl);
