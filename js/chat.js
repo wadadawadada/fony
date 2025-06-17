@@ -629,6 +629,11 @@ function renderQuickLinks() {
       command: () => "/collection"
     },
     {
+      text: "/equalizer",
+      description: "Apply equalizer settings to the current genre",
+      command: () => "/equalizer"
+    },
+    {
       text: "[fony tips]",
       description: "Useful tips about FONY"
     }
@@ -668,6 +673,7 @@ function sendWelcomeMessage() {
       <span style="white-space: nowrap;">📀&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/discogs'; chatSendBtn.click();">Discogs Info</a></span>,&nbsp;
       <span style="white-space: nowrap;">🎨&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/skins'; chatSendBtn.click();">Generate Skin</a></span>,&nbsp;
       <span style="white-space: nowrap;">📂&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/collection recommendations'; chatSendBtn.click();">Collection Recommendations</a></span>,&nbsp;
+      <span style="white-space: nowrap;">🎛️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/equalizer'; chatSendBtn.click();">Equalizer</a></span>,&nbsp;
       <span style="white-space: nowrap;">💖&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/donate'; chatSendBtn.click();">Donate</a></span>,&nbsp;
       <span style="white-space: nowrap;">💡&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='[fony tips]'; chatSendBtn.click();">FONY tips</a></span>
     </div>

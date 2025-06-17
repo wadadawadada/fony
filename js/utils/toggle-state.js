@@ -2,7 +2,7 @@ function applyChatState() {
   const chatContainer = document.getElementById("chat");
   const chatToggleBtn = document.getElementById("chatToggleBtn");
   const chatUsernameContainer = document.getElementById("chatUsernameContainer");
-  const discogsContainer = document.getElementById("discogsInfoContainer"); // контейнер метаданных
+  const discogsContainer = document.getElementById("discogsInfoContainer"); 
 
   if (!chatContainer || !chatToggleBtn || !chatUsernameContainer) {
     console.warn("Chat elements not found for patches.js");
@@ -19,7 +19,7 @@ function applyChatState() {
     chatToggleBtn.style.display = "block";
 
     if (discogsContainer) {
-      discogsContainer.style.display = "block";  // Показываем метаданные, если чат свернут
+      discogsContainer.style.display = "block"; 
     }
 
     const playerControls = document.querySelector('.player-controls');
@@ -29,7 +29,7 @@ function applyChatState() {
     chatToggleBtn.style.display = "none";
 
     if (discogsContainer) {
-      discogsContainer.style.display = "none";  // Скрываем метаданные, если чат открыт
+      discogsContainer.style.display = "none"; 
     }
 
     const playerControls = document.querySelector('.player-controls');
