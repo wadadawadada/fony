@@ -69,7 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   let lastStationUrl = null;
-
   function updateForStationChange(url) {
     if (url && url !== lastStationUrl) {
       lastStationUrl = url;
@@ -78,13 +77,11 @@ document.addEventListener("DOMContentLoaded", () => {
       updatePlaylistHearts();
     }
   }
-
   document.addEventListener("stationChanged", e => {
     if (e.detail && e.detail.url) {
       updateForStationChange(e.detail.url);
     }
   });
-
   const observer = new MutationObserver(() => {
     const activeLi = playlistElement.querySelector("li.active");
     if (!activeLi) return;
@@ -99,27 +96,33 @@ document.addEventListener("DOMContentLoaded", () => {
     subtree: true,
     attributeFilter: ["class"],
   });
-
   setInterval(() => {
     if (window.currentStationUrl) {
       updateForStationChange(window.currentStationUrl);
     }
   }, 1000);
-
   function initFavoritesState() {
     if (window.currentStationUrl) {
       updateFavBtnIcon(window.currentStationUrl);
     }
     updatePlaylistHearts();
   }
-
   const plObserver = new MutationObserver(() => {
     if (playlistElement.children.length > 0 && window.currentPlaylist && window.currentStationUrl) {
       initFavoritesState();
       plObserver.disconnect();
     }
   });
-
   plObserver.observe(playlistElement, { childList: true, subtree: true });
   setTimeout(initFavoritesState, 2000);
+
+  document.addEventListener("themeChanged", () => {
+    setTimeout(() => {
+      if (!favBtn) return;
+      const prefix = localStorage.getItem("theme") === "dark" ? "/img/dark/" : "/img/";
+      const favs = getFavorites();
+      const url = window.currentStationUrl || "";
+      favBtn.src = favs.includes(url) ? prefix + "fav_active.svg" : prefix + "fav.svg";
+    }, 0);
+  });
 });
