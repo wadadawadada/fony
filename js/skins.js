@@ -8,6 +8,52 @@ function randomChoice(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+const asciiArtVariants = [
+  `_.~"(_.~"(_.~"(_.~"(_.~"(`,
+  `(^_^) [o_o] (^.^)  (".") ($.$)`,
+  `_.~"~._.~"~._.~"~._.~"~._`,
+  `*~*~*~*~*~*~*~*~*~*~*~*~*
+  *~*~*~*~*~*~*~*~*~*~*~*~*`,
+  `-=- -=- -=- -=- -=- -=- -=- -=-`,
+  `-=-=-=- -=-=-=- -=-=-=- -=-=-=-`,
+  `<$><$><$><$><$><$><$><$><$><$>`,
+  `₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ `
+];
+
+function createAsciiArtSvgPattern() {
+  const art = randomChoice(asciiArtVariants);
+  const repeats = 8; 
+  const repeatedArt = art.repeat(repeats);
+  const fontSize = 14 + Math.floor(randomBetween(0, 4));
+  const color = randomChoice([
+    "#00F2B8", "#5587e4", "#d68255", "#ec7b2a", "#C36C8B", "#55cbd8", "#eee", "#171C2B"
+  ]);
+  const charWidth = fontSize * 0.6; // приблизительная ширина символа в px, зависит от шрифта
+  const svgWidth = repeatedArt.length * charWidth;
+  const svgHeight = fontSize * 1.2;
+  const svg = `
+<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <foreignObject width="100%" height="100%">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="
+      font-family: monospace;
+      font-size: ${fontSize}px;
+      color: ${color};
+      white-space: nowrap;
+      line-height: 1;
+      opacity: 0.25;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    ">
+      <pre style="margin:0; padding:0;">${repeatedArt}</pre>
+    </div>
+  </foreignObject>
+</svg>
+`;
+  return encodeURIComponent(svg).replace(/'/g, "%27").replace(/"/g, "%22");
+}
+
+
 function generateGradientColors(isDark, panel) {
   const brandColors = [
     "rgba(0,242,184,1)",
@@ -242,10 +288,25 @@ function createSeamlessSvgPattern(isDark, panel) {
   return encodeURIComponent(svg).replace(/'/g, "%27").replace(/"/g, "%22");
 }
 
+function createRandomPattern(isDark) {
+  const rnd = Math.random();
+  if (rnd < 0.33) {
+    const waveScale = randomBetween(1, 7);
+    const amplitude = randomBetween(3, 10);
+    const smoothness = randomBetween(0, 441);
+    const svgGrid = createSeamlessWaveGrid(isDark, 320, 320, waveScale, amplitude, smoothness);
+    return encodeURIComponent(svgGrid).replace(/'/g, "%27").replace(/"/g, "%22");
+  } else if (rnd < 0.66) {
+    return createSeamlessSvgPattern(isDark, 'left');
+  } else {
+    return createAsciiArtSvgPattern();
+  }
+}
+
 function generateLeftPanelStyle(isDark) {
   const [c1, c2] = generateGradientColors(isDark, 'left');
   const angle = 180;
-  const patternDataUrl = `url("data:image/svg+xml,${createSeamlessSvgPattern(isDark, 'left')}")`;
+  const patternDataUrl = `url("data:image/svg+xml,${createRandomPattern(isDark)}")`;
   return `
     linear-gradient(${angle}deg, ${c1}, ${c2}),
     radial-gradient(circle at 22% 28%, rgba(0, 242, 184, ${isDark ? 0.12 : 0.09}), transparent 74%),
