@@ -106,8 +106,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 1000);
 
-  if (window.currentStationUrl) {
-    updateForStationChange(window.currentStationUrl);
+  function initFavoritesState() {
+    if (window.currentStationUrl) {
+      updateFavBtnIcon(window.currentStationUrl);
+    }
+    updatePlaylistHearts();
   }
-  updatePlaylistHearts();
+
+  const plObserver = new MutationObserver(() => {
+    if (playlistElement.children.length > 0 && window.currentPlaylist && window.currentStationUrl) {
+      initFavoritesState();
+      plObserver.disconnect();
+    }
+  });
+
+  plObserver.observe(playlistElement, { childList: true, subtree: true });
+  setTimeout(initFavoritesState, 2000);
 });
