@@ -10,10 +10,9 @@ function randomChoice(arr) {
 
 const asciiArtVariants = [
   `_.~"(_.~"(_.~"(_.~"(_.~"(`,
-  `(^_^) [o_o] (^.^)  (".") ($.$)`,
+  `(^_^) [o_o] (^.^) (".") ($.$) `,
   `_.~"~._.~"~._.~"~._.~"~._`,
-  `*~*~*~*~*~*~*~*~*~*~*~*~*
-  *~*~*~*~*~*~*~*~*~*~*~*~*`,
+  `*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~`,
   `-=- -=- -=- -=- -=- -=- -=- -=-`,
   `-=-=-=- -=-=-=- -=-=-=- -=-=-=-`,
   `<$><$><$><$><$><$><$><$><$><$>`,
@@ -24,13 +23,13 @@ function createAsciiArtSvgPattern() {
   const art = randomChoice(asciiArtVariants);
   const repeats = 8; 
   const repeatedArt = art.repeat(repeats);
-  const fontSize = 14 + Math.floor(randomBetween(0, 4));
+  const fontSize = 14 + Math.floor(randomBetween(0, 14));
   const color = randomChoice([
     "#00F2B8", "#5587e4", "#d68255", "#ec7b2a", "#C36C8B", "#55cbd8", "#eee", "#171C2B"
   ]);
-  const charWidth = fontSize * 0.6; // приблизительная ширина символа в px, зависит от шрифта
+  const charWidth = fontSize * 1; 
   const svgWidth = repeatedArt.length * charWidth;
-  const svgHeight = fontSize * 1.2;
+  const svgHeight = fontSize * 1.5;
   const svg = `
 <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
   <foreignObject width="100%" height="100%">
@@ -52,7 +51,6 @@ function createAsciiArtSvgPattern() {
 `;
   return encodeURIComponent(svg).replace(/'/g, "%27").replace(/"/g, "%22");
 }
-
 
 function generateGradientColors(isDark, panel) {
   const brandColors = [

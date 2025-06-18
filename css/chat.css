@@ -31,6 +31,10 @@
   text-decoration: underline;
 }
 
+.chat-username-box:hover {
+  color: #058f6c;
+}
+
   .chat-username-box input {
     border: 0px solid #ffffff;
     color: #07F2B8;
