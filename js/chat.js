@@ -347,16 +347,32 @@ async function getChatBotResponse(history, userInput) {
     isContinuation = false;
   }
 
-  if (userInput.trim().toLowerCase() === "/donate") {
+if (userInput.trim().toLowerCase() === "/donate") {
   const donateMessage = `
     Support the FONY project and contribute to its continued development:<br><br>
     ERC-20 Tokens (ETH, USDT, Polygon):<br>
-    0xaA01e4F453d5ae9903EebeABA803f3388D20d024<br><br>
+    <span id="erc20">0xaA01e4F453d5ae9903EebeABA803f3388D20d024</span>
+    <a href="#" style="color: white; margin-left: 8px;" onclick="event.preventDefault(); navigator.clipboard.writeText(document.getElementById('erc20').innerText).then(() => { 
+      const el = document.createElement('span'); 
+      el.textContent = ' copied!'; 
+      el.style.marginLeft = '6px'; 
+      el.style.color = '#00F2B8'; 
+      this.insertAdjacentElement('afterend', el); 
+      setTimeout(() => el.remove(), 2000); 
+    });">[copy]</a><br><br>
     Bitcoin:<br>
-    bc1qhahnrra9q4jc0k6vr8tf9vs8wtmgf746jxnsfe<br><br>
+    <span id="btc">bc1qhahnrra9q4jc0k6vr8tf9vs8wtmgf746jxnsfe</span>
+    <a href="#" style="color: white; margin-left: 8px;" onclick="event.preventDefault(); navigator.clipboard.writeText(document.getElementById('btc').innerText).then(() => { 
+      const el = document.createElement('span'); 
+      el.textContent = ' copied!'; 
+      el.style.marginLeft = '6px'; 
+      el.style.color = '#00F2B8'; 
+      this.insertAdjacentElement('afterend', el); 
+      setTimeout(() => el.remove(), 2000); 
+    });">[copy]</a><br><br>
     Thank you for your support!
   `;
-  return { type: "text", content: donateMessage };
+  return { type: "html", content: donateMessage };
 }
 
 
