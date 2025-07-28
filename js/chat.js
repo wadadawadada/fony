@@ -32,6 +32,11 @@ let fonyTipsState = {
 
 let isContinuation = false;
 
+
+let lastFonyUpdateCheck = 0;
+let fonyUpdateCache = "";
+const FONY_UPDATE_INTERVAL = 30 * 60 * 1000;
+
 async function loadChatConfig() {
   if (chatConfig) return chatConfig;
   const res = await fetch("../json/chat_config.json");
@@ -39,6 +44,26 @@ async function loadChatConfig() {
   chatConfig = await res.json();
   return chatConfig;
 }
+
+async function loadFonyUpdateFromGist() {
+  const now = Date.now();
+  if (fonyUpdateCache && (now - lastFonyUpdateCheck < FONY_UPDATE_INTERVAL)) {
+    return fonyUpdateCache;
+  }
+
+  const gistUrl = 'https://gist.githubusercontent.com/wadadawadada/ae325357525ba9674bf31c498b129c91/raw/fonyupdate.txt';
+  try {
+    const res = await fetch(gistUrl);
+    if (!res.ok) throw new Error('Failed to load');
+    const text = await res.text();
+    fonyUpdateCache = text;
+    lastFonyUpdateCheck = now;
+    return text;
+  } catch {
+    return fonyUpdateCache || '⚠️ Failed to load update log.';
+  }
+}
+
 
 async function buildSystemPrompt(nowPlayingText) {
   const config = await loadChatConfig();
@@ -678,25 +703,31 @@ function renderQuickLinks() {
 }
 
 function sendWelcomeMessage() {
-  const welcomeText = `
-    <div style="line-height: 1.6;">
-      Welcome to the FONY console!<br> Here you can dive deeper into exploring music.<br><br>
-      You can use the chat to explore music or try the quick commands below.<br>
-      <span style="white-space: nowrap;">🎵&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Recommend 3 tracks similar to the current track'; chatSendBtn.click();">Similar Tracks</a></span>,&nbsp;
-      <span style="white-space: nowrap;">📚&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='List facts about the current track or artist'; chatSendBtn.click();">Facts</a></span>,&nbsp;
-      <span style="white-space: nowrap;">🆕&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Suggest 3 new tracks in a similar genre'; chatSendBtn.click();">New in Genre</a></span>,&nbsp;
-      <span style="white-space: nowrap;">ℹ️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Show technical metadata about the current track'; chatSendBtn.click();">Get Track Info</a></span>,&nbsp;
-      <span style="white-space: nowrap;">📀&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/discogs'; chatSendBtn.click();">Discogs Info</a></span>,&nbsp;
-      <span style="white-space: nowrap;">🎨&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/skins'; chatSendBtn.click();">Generate Skin</a></span>,&nbsp;
-      <span style="white-space: nowrap;">📂&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/collection recommendations'; chatSendBtn.click();">Collection Recommendations</a></span>,&nbsp;
-      <span style="white-space: nowrap;">🎛️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/equalizer'; chatSendBtn.click();">Equalizer</a></span>,&nbsp;
-      <span style="white-space: nowrap;">💖&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/donate'; chatSendBtn.click();">Donate</a></span>,&nbsp;
-      <span style="white-space: nowrap;">💡&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='[fony tips]'; chatSendBtn.click();">FONY tips</a></span>
-    </div>
-  `;
-  addMessage("bot", welcomeText);
-  conversationHistory.push({ role: "assistant", content: welcomeText });
+  loadFonyUpdateFromGist().then(text => {
+    const updateBlock = `<br><div style="margin-top:12px; font-size: 12px; color: #ffffffff; white-space: pre-line;">${escapeHtml(text)}</div>`;
+
+    const welcomeText = `
+      <div style="line-height: 1.6;">
+        Welcome to the FONY console!<br> Here you can dive deeper into exploring music.<br><br>
+        You can use the chat to explore music or try the quick commands below.<br>
+        <span style="white-space: nowrap;">🎵&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Recommend 3 tracks similar to the current track'; chatSendBtn.click();">Similar Tracks</a></span>,&nbsp;
+        <span style="white-space: nowrap;">📚&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='List facts about the current track or artist'; chatSendBtn.click();">Facts</a></span>,&nbsp;
+        <span style="white-space: nowrap;">🆕&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Suggest 3 new tracks in a similar genre'; chatSendBtn.click();">New in Genre</a></span>,&nbsp;
+        <span style="white-space: nowrap;">ℹ️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Show technical metadata about the current track'; chatSendBtn.click();">Get Track Info</a></span>,&nbsp;
+        <span style="white-space: nowrap;">📀&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/discogs'; chatSendBtn.click();">Discogs Info</a></span>,&nbsp;
+        <span style="white-space: nowrap;">🎨&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/skins'; chatSendBtn.click();">Generate Skin</a></span>,&nbsp;
+        <span style="white-space: nowrap;">📂&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/collection recommendations'; chatSendBtn.click();">Collection Recommendations</a></span>,&nbsp;
+        <span style="white-space: nowrap;">🎛️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/equalizer'; chatSendBtn.click();">Equalizer</a></span>,&nbsp;
+        <span style="white-space: nowrap;">💖&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/donate'; chatSendBtn.click();">Donate</a></span>,&nbsp;
+        <span style="white-space: nowrap;">💡&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='[fony tips]'; chatSendBtn.click();">FONY tips</a></span>
+        ${updateBlock}
+      </div>
+    `;
+    addMessage("bot", welcomeText);
+    conversationHistory.push({ role: "assistant", content: welcomeText });
+  });
 }
+
 
 export function initChat() {
   renderQuickLinks();
