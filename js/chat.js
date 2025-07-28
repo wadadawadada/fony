@@ -708,7 +708,7 @@ function sendWelcomeMessage() {
 
     const welcomeText = `
       <div style="line-height: 1.6;">
-        Welcome to the FONY console!<br> Here you can dive deeper into exploring music.<br><br>
+        Welcome to the FONY console!<br><br>
         You can use the chat to explore music or try the quick commands below.<br>
         <span style="white-space: nowrap;">🎵&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Recommend 3 tracks similar to the current track'; chatSendBtn.click();">Similar Tracks</a></span>,&nbsp;
         <span style="white-space: nowrap;">📚&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='List facts about the current track or artist'; chatSendBtn.click();">Facts</a></span>,&nbsp;
