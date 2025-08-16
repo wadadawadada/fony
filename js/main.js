@@ -637,11 +637,29 @@ function setRadioListeners() {
   }
 
   if (fBtn) {
-    fBtn.addEventListener("click", async () => {
-      if (fBtn.disabled) return;
-      fBtn.disabled = true;
+  fBtn.addEventListener("click", async () => {
+    if (fBtn.disabled) return;
+    fBtn.disabled = true;
 
-      const genreLabel = document.querySelector("label[for='playlistSelect']");
+    const genreLabel = document.querySelector("label[for='playlistSelect']");
+
+    playlistElement.classList.add("hidden");
+    playlistLoader.classList.remove("hidden");
+    playlistLoader.style.fontFamily = "Ruda";
+    playlistLoader.style.textAlign = "center";
+
+    let dotCount = 0;
+    const maxDots = 3;
+    playlistLoader.textContent = "";
+
+    const interval = setInterval(() => {
+      dotCount = (dotCount + 1) % (maxDots + 1);
+      const left = ":".repeat(dotCount);
+      const right = ":".repeat(dotCount);
+      playlistLoader.textContent = left + right;
+    }, 300);
+
+    try {
       if (fBtn.classList.contains("active")) {
         fBtn.classList.remove("active");
         if (pSel) pSel.style.display = "";
@@ -649,12 +667,12 @@ function setRadioListeners() {
         if (genreLabel) genreLabel.textContent = "Genre:";
         currentPlaylist = allStations.slice();
         resetVisibleStations();
-        fBtn.disabled = false;
       } else {
         fBtn.classList.add("active");
         if (pSel) pSel.style.display = "none";
         if (sIn) sIn.style.display = "none";
         if (genreLabel) genreLabel.textContent = "Favorites";
+
         const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
         let list = [];
         for (let pl of allPlaylists) {
@@ -664,11 +682,21 @@ function setRadioListeners() {
         }
         const uniqueStations = Array.from(new Map(list.map(o => [o.url, o])).values());
         currentPlaylist = uniqueStations;
+        if (!currentPlaylist.length) {
+          playlistElement.innerHTML = `<li style="pointer-events:none;opacity:.7">No favorites yet</li>`;
+        }
         resetVisibleStations();
-        fBtn.disabled = false;
       }
-    });
-  }
+    } finally {
+      clearInterval(interval);
+      playlistLoader.classList.add("hidden");
+      playlistLoader.textContent = "";
+      playlistElement.classList.remove("hidden");
+      fBtn.disabled = false;
+    }
+  });
+}
+
 
   if (wBtn) {
     wBtn.addEventListener("click", async () => {

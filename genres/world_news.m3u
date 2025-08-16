@@ -1,0 +1,72 @@
+#EXTM3U
+#EXTINF:-1,UNITED STATES
+#
+#EXTINF:-1,NPR Program Stream – National – United States
+https://npr-ice.streamguys1.com/live.mp3
+
+#EXTINF:-1,AUSTRALIA
+#
+#EXTINF:-1,ABC NewsRadio – National – Australia
+http://abc.net.au/res/streaming/audio/mp3/news_radio.pls
+
+#EXTINF:-1,FRANCE
+#
+#EXTINF:-1,France Info – National – France
+https://icecast.radiofrance.fr/franceinfo-midfi.mp3?id=openapi
+#EXTINF:-1,France Inter – National – France
+https://icecast.radiofrance.fr/franceinter-midfi.mp3?id=openapi
+#EXTINF:-1,France Culture – National – France
+https://icecast.radiofrance.fr/franceculture-lofi.mp3?id=openapi
+
+#EXTINF:-1,GERMANY
+#
+#EXTINF:-1,Deutschlandfunk – National – Germany
+https://st01.sslstream.dlf.de/dlf/01/128/mp3/stream.mp3?aggregator=web
+#EXTINF:-1,Deutschlandfunk Kultur – Germany
+https://st02.sslstream.dlf.de/dlf/02/128/mp3/stream.mp3?aggregator=web
+#EXTINF:-1,Deutschlandfunk Nova – Germany
+https://st03.sslstream.dlf.de/dlf/03/128/mp3/stream.mp3?aggregator=web
+#EXTINF:-1,NDR Info – Germany
+https://www.ndr.de/resources/metadaten/audio/aac/ndrinfo.m3u
+#EXTINF:-1,Deutsche Welle English – International – Germany
+https://stream.zeno.fm/559kz4atuy8uv
+
+#EXTINF:-1,UNITED KINGDOM
+#
+#EXTINF:-1,BBC Radio 4 – United Kingdom
+http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_fourfm.m3u8
+#EXTINF:-1,BBC Radio 4 Extra – United Kingdom
+http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_four_extra.m3u8
+#EXTINF:-1,BBC Radio 5 Live – United Kingdom
+http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/uk/sbr_high/ak/bbc_radio_five_live.m3u8
+#EXTINF:-1,BBC World Service – International – United Kingdom
+http://stream.live.vc.bbcmedia.co.uk/bbc_world_service
+
+#EXTINF:-1,CANADA
+#
+#EXTINF:-1,CBC Radio One Whitehorse – Yukon – Canada
+https://playerservices.streamtheworld.com/pls/CFWH_CBC.pls?n=486f167e16f2066016af
+#EXTINF:-1,CBC Radio 1 Toronto – 99.1 FM – Canada
+https://cbcradiolive.akamaized.net/hls/live/2041036/ES_R1ETR/adaptive_128/chunklist_ao.m3u8?n=36049a385babaee8829e
+
+#EXTINF:-1,RUSSIA
+#
+#EXTINF:-1,Vesti FM – Russia
+http://icecast.vgtrk.cdnvideo.ru/vestifm_mp3_192kbps?n=55842f5807f9020f905f
+#EXTINF:-1,Radio Mayak – Russia
+https://icecast-vgtrk.cdnvideo.ru/mayakfm?n=51ffd5710cd15c1bb6d5
+
+#EXTINF:-1,CHINA
+#
+#EXTINF:-1,CNR World Service (English) – China
+https://stream.zeno.fm/yvbjgk0tj5iuv?n=109236795cb6c2f78849
+
+#EXTINF:-1,ITALY
+#
+#EXTINF:-1,Rai Radio 1 – Italy
+http://icestreaming.rai.it/1.mp3?n=6eb70f29c7f4942c17af
+
+#EXTINF:-1,SPAIN
+#
+#EXTINF:-1,RNE Radio 5 Todo Noticias – Madrid – Spain
+https://radio5.rtveradio.cires21.com/radio5_hc.mp3

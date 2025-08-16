@@ -517,22 +517,15 @@ html, body {
   }
 
   #playlistLoader {
-    position: absolute;
-    /* width: 100%; */
-    /* background-color: #07F2B8; */
-    border-radius: 50px;
-    border: 1px solid #fff;
-    top: 20%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 0.5rem;
-    /* width: 0;
-    height: 0;
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
-    animation: spin 1s linear infinite; */
-    z-index: 999;
-  }
+  position: absolute;
+  border-radius: 50px;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0.5rem;
+  z-index: 999;
+}
+
   @keyframes spin {
     0% { transform: translate(-50%, -50%) rotate(0deg); }
     100% { transform: translate(-50%, -50%) rotate(360deg); }
