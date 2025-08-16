@@ -48,10 +48,11 @@ function handleSettingsClick(e) {
         '<input type="checkbox" id="leftHandedCheckbox">Left Handed' +
       '</label>' +
     '</div>' +
-    '<button id="resetAppBtn" style="background-color: red; color: white; border: none; border-radius: 25px; padding: 7px 13px; font-family: \'Ruda\', sans-serif; font-size: 12px; cursor: pointer; margin-top: 10px;">Reset App</button>' +
+    '<button id="resetAppBtn" style="background-color: red; color: white; border: none; border-radius: 25px; padding: 7px 13px; font-family: \'Ruda\', sans-serif; font-size: 12px; cursor: pointer; margin-top: 10px;">Reset App</button> ' +
+    '<button id="backupAppBtn" style="background-color: #00F2B8; color: #171C2B; border: none; border-radius: 25px; padding: 7px 13px; font-family: \'Ruda\', sans-serif; font-size: 12px; cursor: pointer; margin-top: 10px;">Backup App</button> ' +
+    '<button id="restoreAppBtn" style="background-color: #00F2B8; color: #171C2B; border: none; border-radius: 25px; padding: 7px 13px; font-family: \'Ruda\', sans-serif; font-size: 12px; cursor: pointer; margin-top: 10px;">Restore App</button>' +
     '<button id="saveSettingsBtn" class="save-settings-btn" style="margin-top:10px;">Save Settings</button>';
 
-  // Добавляем проверку сохранённых значений для чекбоксов
   document.getElementById("httpStationsCheckbox").checked = (localStorage.getItem("useOnlyHttps") === "false");
   document.getElementById("leftHandedCheckbox").checked = (localStorage.getItem("leftHanded") === "true");
 
@@ -73,10 +74,48 @@ function handleSettingsClick(e) {
     attachSettingsListener();
     modal.style.display = "none";
   });
+
   document.getElementById("resetAppBtn").addEventListener("click", function() {
     localStorage.clear();
     location.reload();
   });
+
+  document.getElementById("backupAppBtn").addEventListener("click", function() {
+    const data = JSON.stringify(localStorage, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "fony_backup.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("restoreAppBtn").addEventListener("click", function() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json";
+    input.onchange = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          localStorage.clear();
+          for (const key in data) {
+            localStorage.setItem(key, data[key]);
+          }
+          location.reload();
+        } catch (err) {
+          alert("Invalid backup file");
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  });
+
   modal.style.display = "block";
 }
 
