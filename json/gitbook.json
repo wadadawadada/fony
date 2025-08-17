@@ -43,7 +43,7 @@
     },
     {
       "id": "chat-commands",
-      "title": "Chat Commands for Enhanced Music Exploration",
+      "title": "Chat Commands",
       "commands": [
         {
           "command": "/similar",
@@ -81,7 +81,7 @@
     },
     {
       "id": "usage-tips",
-      "title": "Tips for Using FONY Efficiently",
+      "title": "Tips for Using FONY",
       "tips": [
         "Shuffle Mode: Use the shuffle button to randomly cycle through stations in the selected genre for musical discovery.",
         "Favorites: Mark stations with the heart icon to easily find your preferred streams anytime.",
