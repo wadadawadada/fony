@@ -48,11 +48,12 @@
   let ctx, source, low, mid, high;
   let noiseSource, noiseGain;
   let noiseEnabled = false;
+  let userFxRequested = false;
   let hp, lp, compressor, radioGain, eqGain;
 
   function keepAudioContextAlive() {
     if (!ctx) return;
-    if (ctx.state === "suspended") ctx.resume().catch(() => { });
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
     setTimeout(keepAudioContextAlive, 10000);
   }
 
@@ -60,20 +61,16 @@
     low = ctx.createBiquadFilter();
     mid = ctx.createBiquadFilter();
     high = ctx.createBiquadFilter();
-
     low.type = "lowshelf";
     low.frequency.value = 120;
     low.gain.value = 0;
-
     mid.type = "peaking";
     mid.frequency.value = 1000;
     mid.Q.value = 1;
     mid.gain.value = 0;
-
     high.type = "highshelf";
     high.frequency.value = 3000;
     high.gain.value = 0;
-
     window.lowFilter = low;
     window.midFilter = mid;
     window.highFilter = high;
@@ -84,32 +81,26 @@
     radioGain = ctx.createGain();
     eqGain.gain.value = 1;
     radioGain.gain.value = 0;
-
     low.connect(mid);
     mid.connect(high);
     high.connect(eqGain);
     eqGain.connect(ctx.destination);
-
     hp = ctx.createBiquadFilter();
     hp.type = "highpass";
     hp.frequency.value = 150;
-
     lp = ctx.createBiquadFilter();
     lp.type = "lowpass";
     lp.frequency.value = 5000;
-
     compressor = ctx.createDynamicsCompressor();
     compressor.threshold.value = -24;
     compressor.knee.value = 30;
     compressor.ratio.value = 12;
     compressor.attack.value = 0.003;
     compressor.release.value = 0.25;
-
     hp.connect(lp);
     lp.connect(compressor);
     compressor.connect(radioGain);
     radioGain.connect(ctx.destination);
-
     source.connect(low);
     source.connect(hp);
   }
@@ -131,19 +122,25 @@
     noiseSource.start();
   }
 
+  function enableRadioFx() {
+    if (!ctx || noiseEnabled) return;
+    noiseEnabled = true;
+    eqGain.gain.value = 0;
+    radioGain.gain.value = 1.5;
+    createRadioNoise();
+  }
+
+  function disableRadioFx() {
+    if (!ctx || !noiseEnabled) return;
+    if (noiseSource) try { noiseSource.stop(); } catch (e) {}
+    noiseEnabled = false;
+    eqGain.gain.value = 1;
+    radioGain.gain.value = 0;
+  }
+
   function toggleRadioNoise() {
     if (!ctx) return;
-    if (noiseEnabled) {
-      if (noiseSource) try { noiseSource.stop(); } catch (e) { }
-      noiseEnabled = false;
-      eqGain.gain.value = 1;
-      radioGain.gain.value = 0;
-    } else {
-      noiseEnabled = true;
-      eqGain.gain.value = 0;
-      radioGain.gain.value = 1.5;
-      createRadioNoise();
-    }
+    if (noiseEnabled) disableRadioFx(); else enableRadioFx();
   }
 
   function initEq() {
@@ -161,6 +158,10 @@
     }
     createEqFilters();
     createChains();
+    noiseEnabled = false;
+    userFxRequested = false;
+    eqGain.gain.value = 1;
+    radioGain.gain.value = 0;
     keepAudioContextAlive();
   }
 
@@ -229,33 +230,28 @@
       span.style.alignItems = "center";
       span.style.gap = "6px";
       span.style.color = "white";
-
       const minus = document.createElement("a");
       minus.href = "#";
       minus.textContent = "-";
       minus.style.color = "white";
       minus.style.textDecoration = "none";
       minus.style.cursor = "pointer";
-
       const valSpan = document.createElement("span");
       valSpan.style.textAlign = "center";
       valSpan.style.display = "inline-block";
       valSpan.style.color = "white";
-
       const plus = document.createElement("a");
       plus.href = "#";
       plus.textContent = "+";
       plus.style.color = "white";
       plus.style.textDecoration = "none";
       plus.style.cursor = "pointer";
-
       span.appendChild(document.createTextNode(label + " "));
       span.appendChild(minus);
       span.appendChild(document.createTextNode(" [ "));
       span.appendChild(valSpan);
       span.appendChild(document.createTextNode(" ] "));
       span.appendChild(plus);
-
       return { span, minus, plus, valSpan };
     }
 
@@ -273,15 +269,17 @@
 
     const fxToggle = document.createElement("a");
     fxToggle.href = "#";
-    fxToggle.textContent = noiseEnabled ? "[Radio FX: ON]" : "[Radio FX: OFF]";
+    fxToggle.textContent = noiseEnabled ? "[Analog FX: ON]" : "[Analog FX: OFF]";
     fxToggle.style.marginLeft = "20px";
     fxToggle.style.color = "#00F2B8";
     fxToggle.style.cursor = "pointer";
 
     fxToggle.onclick = e => {
       e.preventDefault();
+      const willEnable = !noiseEnabled;
       toggleRadioNoise();
-      fxToggle.textContent = noiseEnabled ? "[Radio FX: ON]" : "[Radio FX: OFF]";
+      userFxRequested = willEnable;
+      fxToggle.textContent = noiseEnabled ? "[Analog FX: ON]" : "[Analog FX: OFF]";
     };
 
     controlsDiv.appendChild(fxToggle);
@@ -345,13 +343,13 @@
         msg.innerHTML =
           `<br><strong>>_FONY:</strong><div class="message-content">🎚️ Equalizer preset <b>${genre}</b> applied. <a href="#" class="eq-reset-link" style="margin-left:12px;color:#00F2B8;cursor:pointer;">[Reset]</a></div><br>`;
       }
+      const reset = msg.querySelector(".eq-reset-link");
       chat.appendChild(msg);
       setTimeout(() => {
         msg.classList.add("show");
         chat.scrollTop = chat.scrollHeight;
         createManualAdjustControls(msg.querySelector(".message-content"));
       }, 20);
-      const reset = msg.querySelector(".eq-reset-link");
       if (reset) {
         reset.onclick = e => {
           e.preventDefault();
@@ -386,8 +384,23 @@
     });
   }
 
+  function bindRadioFxToPlayer() {
+    const audio = document.getElementById("audioPlayer");
+    if (!audio) return;
+    audio.addEventListener("play", () => {
+      if (userFxRequested && !noiseEnabled) enableRadioFx();
+    });
+    audio.addEventListener("pause", () => {
+      if (userFxRequested && noiseEnabled) disableRadioFx();
+    });
+    audio.addEventListener("ended", () => {
+      if (userFxRequested && noiseEnabled) disableRadioFx();
+    });
+  }
+
   window.addEventListener("DOMContentLoaded", () => {
     interceptEqCommand();
     initEq();
+    bindRadioFxToPlayer();
   });
 })();
