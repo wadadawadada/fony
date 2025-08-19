@@ -16,7 +16,9 @@ const asciiArtVariants = [
   `-=- -=- -=- -=- -=- -=- -=- -=-`,
   `-=-=-=- -=-=-=- -=-=-=- -=-=-=-`,
   `<$><$><$><$><$><$><$><$><$><$>`,
-  `₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ `
+  `₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ ₿ `,
+  `FONY FONY FONY FONY FONY FONY FONY FONY `,
+  `* * * * * * * * * * * * * * * `,
 ];
 
 function createAsciiArtSvgPattern() {

@@ -33,7 +33,7 @@ function setAlbumCoverBackground(imageUrl) {
   if (!bg) return;
   if (imageUrl) {
     bg.style.backgroundImage = `url('${imageUrl}')`;
-    void bg.offsetWidth; // триггер перерендера
+    void bg.offsetWidth; 
   } else {
     bg.style.backgroundImage = '';
     bg.classList.remove('visible');
@@ -84,13 +84,12 @@ export async function showDiscogsInfo() {
   const discogsContainer = document.getElementById("discogsInfoContainer");
   if (!discogsContainer) return;
 
-  // СБРОС: очищаем текст и скрываем обложку до загрузки новых данных
   discogsContainer.innerHTML = "";
   setAlbumCoverBackground(null);
   updateAlbumCoverAnimation();
 
   if (!nowPlaying) {
-    return; // если нет текста, не запрашиваем
+    return;
   }
 
   let artist = "", track = "";
