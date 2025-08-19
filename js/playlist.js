@@ -91,13 +91,25 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         removeBtn.style.color = "#00F2B8";
         removeBtn.style.fontSize = "18px";
         removeBtn.style.cursor = "pointer";
-        removeBtn.addEventListener("click", (event) => {
-          event.stopPropagation();
-          if (typeof window.markStationAsHidden === "function") {
-            window.markStationAsHidden(parseInt(li.dataset.index, 10));
-          }
-        });
-        li.appendChild(removeBtn);
+
+const titleSpan = span; 
+const originalText = titleSpan.textContent;
+
+removeBtn.addEventListener("mouseenter", () => {
+  titleSpan.textContent = "Delete station?";
+});
+removeBtn.addEventListener("mouseleave", () => {
+  titleSpan.textContent = originalText;
+});
+
+removeBtn.addEventListener("click", (event) => {
+  event.stopPropagation();
+  if (typeof window.markStationAsHidden === "function") {
+    window.markStationAsHidden(parseInt(li.dataset.index, 10));
+  }
+});
+li.appendChild(removeBtn);
+
       }
     }
     if (isFavorite(station)) {
