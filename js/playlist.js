@@ -76,7 +76,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
                 setTimeout(() => { copiedSpan.style.display = "none"; }, 2000);
               });
             })
-            .catch(err => console.error("Ошибка копирования", err));
+            .catch(err => console.error("Error", err));
         });
         li.appendChild(shareIcon);
         li.appendChild(copiedSpan);
@@ -97,10 +97,16 @@ const originalText = titleSpan.textContent;
 
 removeBtn.addEventListener("mouseenter", () => {
   titleSpan.textContent = "Delete station?";
+  titleSpan.style.color = "#fff";
+  li.style.backgroundColor = "#ff0505ff";
 });
+
 removeBtn.addEventListener("mouseleave", () => {
   titleSpan.textContent = originalText;
+  titleSpan.style.color = "";
+  li.style.backgroundColor = "";
 });
+
 
 removeBtn.addEventListener("click", (event) => {
   event.stopPropagation();

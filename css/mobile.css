@@ -162,9 +162,20 @@
     flex-wrap: wrap;
     justify-content: flex-start;
   }
-  .genre-search {
-    width: 6ch;
+  
+   .genre-search {
+    width: 100%;
+    border: 2px solid #fff;
+    border-radius: 50px;
+    background-color: transparent;
+    color: #fff;
+    font-family: 'Ruda', sans-serif;
+    padding: 4px 22px 4px 8px;
+    margin-left: 0;
+    box-sizing: border-box;
+    -webkit-appearance: none; 
   }
+
   #connectWalletBtn {
     display: none !important;
   }

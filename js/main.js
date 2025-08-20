@@ -628,13 +628,35 @@ function setRadioListeners() {
     pSel.addEventListener("change", () => onGenreChange(false));
   }
 
-  if (sIn) {
-    sIn.addEventListener("input", debounce(() => {
-      const q = sIn.value.toLowerCase();
-      currentPlaylist = allStations.filter(x => x.title.toLowerCase().includes(q));
-      resetVisibleStations();
-    }, 300));
+if (sIn) {
+  const clearBtn = document.getElementById("clearSearch");
+
+  function updateClearBtn() {
+    if (!clearBtn) return;
+    clearBtn.style.display = sIn.value.length > 0 ? "block" : "none";
   }
+
+  sIn.addEventListener("input", debounce(() => {
+    const q = sIn.value.toLowerCase();
+    currentPlaylist = allStations.filter(x => x.title.toLowerCase().includes(q));
+    resetVisibleStations();
+    updateClearBtn();
+  }, 300));
+
+  sIn.addEventListener("change", updateClearBtn);
+  sIn.addEventListener("keyup", updateClearBtn);
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      sIn.value = "";
+      currentPlaylist = allStations.slice();
+      resetVisibleStations();
+      updateClearBtn();
+    });
+  }
+
+  updateClearBtn();
+}
 
   if (fBtn) {
   fBtn.addEventListener("click", async () => {
