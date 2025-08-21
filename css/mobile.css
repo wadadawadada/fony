@@ -152,15 +152,22 @@
   }
   .chat-container {
     display: none;
-    margin-bottom: 2rem;
-    max-height: 51%;
+    bottom: 2rem;
+    max-height: 50%;
+    max-width: 92%;
     border-radius: 30px;
+    position: fixed !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    padding: 0.5rem;
   }
 
   .genre-box,
   .genre-select {
     font-size: 1rem;
+    max-width: 90%;
   }
+
   .genre-box {
     flex-wrap: wrap;
     justify-content: flex-start;
