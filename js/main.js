@@ -1150,7 +1150,6 @@ setInterval(checkRadioStatus, RADIO_CHECK_INTERVAL);
 
 ////iOS playback fix
 
-// --- iOS Safari playback keep-alive patch ---
 function isIOSMobile() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
@@ -1167,12 +1166,11 @@ if (isIOSMobile()) {
           audioPlayer.currentTime = ct + 0.001;
           audioPlayer.currentTime = ct;
         } catch (e) {}
-
         if (window.audioContext && window.audioContext.state === "suspended") {
           window.audioContext.resume().catch(() => {});
         }
       }
-    }, 55000);
+    }, 30000);
   }
 
   function stopIOSKeepAlive() {
@@ -1186,3 +1184,4 @@ if (isIOSMobile()) {
   audioPlayer.addEventListener("pause", stopIOSKeepAlive);
   audioPlayer.addEventListener("ended", stopIOSKeepAlive);
 }
+
