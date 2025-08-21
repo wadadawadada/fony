@@ -274,57 +274,189 @@ window.addEventListener("DOMContentLoaded", () => {
 
 ///// CD PATCH
 
+// (() => {
+//   const NO_DATA_IMG = "/img/cd.svg";
+//   const isNoDataText = t => {
+//     if (!t) return false;
+//     const s = t.trim().toLowerCase();
+//     return s === "no data" || s === "no track data" || s === "no metadata";
+//   };
+//   const isChatOpen = () => {
+//     const chat = document.getElementById("chat");
+//     return chat && window.getComputedStyle(chat).display !== "none";
+//   };
+//   const hasRealCover = () => {
+//     const bg = document.querySelector(".center-circle .album-cover-bg");
+//     const bi = bg ? (bg.style.backgroundImage || "") : "";
+//     return bi && !bi.includes("cd.svg");
+//   };
+//   const showPlaceholder = () => {
+//     try { if (!isChatOpen()) { setAlbumCoverBackground(NO_DATA_IMG); updateAlbumCoverAnimation(); } } catch(e) {}
+//   };
+//   function applyState() {
+//     if (isChatOpen()) return;
+//     const el = document.querySelector("#currentTrack .scrolling-text");
+//     if (!el) return;
+//     const txt = el.textContent || "";
+//     const box = document.getElementById("discogsInfoContainer");
+//     if (isNoDataText(txt)) {
+//       showPlaceholder();
+//       if (box) { box.style.display = "none"; box.innerHTML = ""; }
+//       return;
+//     }
+//     if (txt.trim()) {
+//       if (!hasRealCover()) showPlaceholder();
+//       if (box && box.style.display === "none") box.style.display = "";
+//     }
+//   }
+//   const origSetBg = (window.setAlbumCoverBackground || window.setAlbumCoverBackground === null) ? window.setAlbumCoverBackground : (typeof setAlbumCoverBackground !== "undefined" ? setAlbumCoverBackground : null);
+//   if (origSetBg) {
+//     window.setAlbumCoverBackground = function(u){ if (isChatOpen()) return; origSetBg(u); };
+//   }
+//   function onChatVisibilityChange() {
+//     const bg = document.querySelector(".center-circle .album-cover-bg");
+//     if (!bg) return;
+//     if (isChatOpen()) { bg.style.backgroundImage = ""; bg.classList.remove("visible"); }
+//     else { applyState(); }
+//   }
+//   const chat = document.getElementById("chat");
+//   if (chat) {
+//     const obs = new MutationObserver(onChatVisibilityChange);
+//     obs.observe(chat, { attributes: true, attributeFilter: ["style", "class"] });
+//   }
+//   document.addEventListener("DOMContentLoaded", applyState);
+//   setInterval(applyState, 500);
+// })();
+
+
+// (() => {
+//   const CD="/img/cd.svg", VINYL="/img/vinyl.svg", PREF="coverPlaceholderPref";
+//   const isNoDataText=t=>{if(!t)return false;const s=t.trim().toLowerCase();return s==="no data"||s==="no track data"||s==="no metadata"};
+//   const isChatOpen=()=>{const c=document.getElementById("chat");return c&&window.getComputedStyle(c).display!=="none"};
+//   const getBg=()=>document.querySelector(".center-circle .album-cover-bg");
+//   const hasRealCover=()=>{const bg=getBg();const bi=bg?(bg.style.backgroundImage||""):"";return bi&&!(bi.includes("cd.svg")||bi.includes("vinyl.svg"))};
+//   const getPref=()=>localStorage.getItem(PREF)||"cd";
+//   const setPref=v=>localStorage.setItem(PREF,v);
+//   const selUrl=()=>getPref()==="vinyl"?VINYL:CD;
+//   const setCover=u=>{try{if(!isChatOpen()){setAlbumCoverBackground(u);updateAlbumCoverAnimation&&updateAlbumCoverAnimation()}}catch(e){}};
+//   const showPlaceholder=()=>setCover(selUrl());
+
+//   function applyState(){
+//     if(isChatOpen())return;
+//     const el=document.querySelector("#currentTrack .scrolling-text");if(!el)return;
+//     const txt=el.textContent||"";const box=document.getElementById("discogsInfoContainer");
+//     if(isNoDataText(txt)){showPlaceholder();if(box){box.style.display="none";box.innerHTML=""}return}
+//     if(txt.trim()){if(!hasRealCover())showPlaceholder();if(box&&box.style.display==="none")box.style.display=""}
+//   }
+
+//   const origSetBg=typeof window.setAlbumCoverBackground==="function"?window.setAlbumCoverBackground:null;
+//   if(origSetBg){
+//     window.setAlbumCoverBackground=function(u){
+//       if(isChatOpen())return;
+//       if(!u&&!hasRealCover())return;
+//       if(typeof u==="string"&&(u.includes("cd.svg")||u.includes("vinyl.svg"))) u=selUrl();
+//       origSetBg(u);
+//     };
+//   }
+
+//   function onChatVisibilityChange(){
+//     const bg=getBg();if(!bg)return;
+//     if(isChatOpen()){bg.style.backgroundImage="";bg.classList.remove("visible")}
+//     else{applyState()}
+//   }
+
+//   function pointInRect(x,y,r){return r&&x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom}
+
+//   function tryToggleByClick(e){
+//     if(isChatOpen())return;
+//     const circle=document.querySelector(".center-circle");const bg=getBg();
+//     if(!circle||!bg)return;
+//     const rc=circle.getBoundingClientRect(), cx=rc.left+rc.width/2, cy=rc.top+rc.height/2;
+//     const dx=e.clientX-cx, dy=e.clientY-cy, R=Math.min(rc.width,rc.height)/2;
+//     if(dx*dx+dy*dy>R*R)return;
+//     const btnIds=["playPauseBtn","ffBtn","rrBtn","shuffleBtn","favBtn","randomBtn"];
+//     for(const id of btnIds){const b=document.getElementById(id);if(b){const rb=b.getBoundingClientRect();if(pointInRect(e.clientX,e.clientY,rb))return}}
+//     if(hasRealCover())return;
+//     setPref(getPref()==="vinyl"?"cd":"vinyl");
+//     showPlaceholder();
+//   }
+
+//   const chat=document.getElementById("chat");
+//   if(chat){const obs=new MutationObserver(onChatVisibilityChange);obs.observe(chat,{attributes:true,attributeFilter:["style","class"]})}
+
+//   if(!localStorage.getItem(PREF))setPref("cd");
+
+//   document.addEventListener("click",tryToggleByClick,true);
+//   document.addEventListener("keydown",e=>{if(e.code==="KeyV"&&!e.repeat){setPref(getPref()==="vinyl"?"cd":"vinyl");if(!hasRealCover())showPlaceholder()}});
+
+//   document.addEventListener("DOMContentLoaded",applyState);
+//   setInterval(applyState,500);
+// })();
+
 (() => {
-  const NO_DATA_IMG = "/img/cd.svg";
-  const isNoDataText = t => {
-    if (!t) return false;
-    const s = t.trim().toLowerCase();
-    return s === "no data" || s === "no track data" || s === "no metadata";
-  };
-  const isChatOpen = () => {
-    const chat = document.getElementById("chat");
-    return chat && window.getComputedStyle(chat).display !== "none";
-  };
-  const hasRealCover = () => {
-    const bg = document.querySelector(".center-circle .album-cover-bg");
-    const bi = bg ? (bg.style.backgroundImage || "") : "";
-    return bi && !bi.includes("cd.svg");
-  };
-  const showPlaceholder = () => {
-    try { if (!isChatOpen()) { setAlbumCoverBackground(NO_DATA_IMG); updateAlbumCoverAnimation(); } } catch(e) {}
-  };
-  function applyState() {
-    if (isChatOpen()) return;
-    const el = document.querySelector("#currentTrack .scrolling-text");
-    if (!el) return;
-    const txt = el.textContent || "";
-    const box = document.getElementById("discogsInfoContainer");
-    if (isNoDataText(txt)) {
-      showPlaceholder();
-      if (box) { box.style.display = "none"; box.innerHTML = ""; }
-      return;
-    }
-    if (txt.trim()) {
-      if (!hasRealCover()) showPlaceholder();
-      if (box && box.style.display === "none") box.style.display = "";
-    }
+  const CD="/img/cd.svg", VINYL="/img/vinyl.svg", PREF="coverPlaceholderPref";
+  const isNoDataText=t=>{if(!t)return false;const s=t.trim().toLowerCase();return s==="no data"||s==="no track data"||s==="no metadata"};
+  const isChatOpen=()=>{const c=document.getElementById("chat");return c&&window.getComputedStyle(c).display!=="none"};
+  const getBg=()=>document.querySelector(".center-circle .album-cover-bg");
+  const hasRealCover=()=>{const bg=getBg();const bi=bg?(bg.style.backgroundImage||""):"";return bi&&!(bi.includes("cd.svg")||bi.includes("vinyl.svg"))};
+  const getPref=()=>localStorage.getItem(PREF)||"cd";
+  const setPref=v=>localStorage.setItem(PREF,v);
+  const selUrl=()=>getPref()==="vinyl"?VINYL:CD;
+  const setCover=u=>{try{if(!isChatOpen()){setAlbumCoverBackground(u);updateAlbumCoverAnimation&&updateAlbumCoverAnimation()}}catch(e){}};
+  const showPlaceholder=()=>setCover(selUrl());
+
+  function applyState(){
+    if(isChatOpen())return;
+    const el=document.querySelector("#currentTrack .scrolling-text");if(!el)return;
+    const txt=el.textContent||"";const box=document.getElementById("discogsInfoContainer");
+    const isMobile=window.innerWidth<=768;
+    if(box && isMobile){ box.style.display="none"; box.innerHTML=""; return; }
+
+    if(isNoDataText(txt)){showPlaceholder();if(box){box.style.display="none";box.innerHTML=""}return}
+    if(txt.trim()){if(!hasRealCover())showPlaceholder();if(box&&box.style.display==="none")box.style.display=""}
   }
-  const origSetBg = (window.setAlbumCoverBackground || window.setAlbumCoverBackground === null) ? window.setAlbumCoverBackground : (typeof setAlbumCoverBackground !== "undefined" ? setAlbumCoverBackground : null);
-  if (origSetBg) {
-    window.setAlbumCoverBackground = function(u){ if (isChatOpen()) return; origSetBg(u); };
+
+  const origSetBg=typeof window.setAlbumCoverBackground==="function"?window.setAlbumCoverBackground:null;
+  if(origSetBg){
+    window.setAlbumCoverBackground=function(u){
+      if(isChatOpen())return;
+      if(!u&&!hasRealCover())return;
+      if(typeof u==="string"&&(u.includes("cd.svg")||u.includes("vinyl.svg"))) u=selUrl();
+      origSetBg(u);
+    };
   }
-  function onChatVisibilityChange() {
-    const bg = document.querySelector(".center-circle .album-cover-bg");
-    if (!bg) return;
-    if (isChatOpen()) { bg.style.backgroundImage = ""; bg.classList.remove("visible"); }
-    else { applyState(); }
+
+  function onChatVisibilityChange(){
+    const bg=getBg();if(!bg)return;
+    if(isChatOpen()){bg.style.backgroundImage="";bg.classList.remove("visible")}
+    else{applyState()}
   }
-  const chat = document.getElementById("chat");
-  if (chat) {
-    const obs = new MutationObserver(onChatVisibilityChange);
-    obs.observe(chat, { attributes: true, attributeFilter: ["style", "class"] });
+
+  function pointInRect(x,y,r){return r&&x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom}
+
+  function tryToggleByClick(e){
+    if(isChatOpen())return;
+    const circle=document.querySelector(".center-circle");const bg=getBg();
+    if(!circle||!bg)return;
+    const rc=circle.getBoundingClientRect(), cx=rc.left+rc.width/2, cy=rc.top+rc.height/2;
+    const dx=e.clientX-cx, dy=e.clientY-cy, R=Math.min(rc.width,rc.height)/2;
+    if(dx*dx+dy*dy>R*R)return;
+    const btnIds=["playPauseBtn","ffBtn","rrBtn","shuffleBtn","favBtn","randomBtn"];
+    for(const id of btnIds){const b=document.getElementById(id);if(b){const rb=b.getBoundingClientRect();if(pointInRect(e.clientX,e.clientY,rb))return}}
+    if(hasRealCover())return;
+    setPref(getPref()==="vinyl"?"cd":"vinyl");
+    showPlaceholder();
   }
-  document.addEventListener("DOMContentLoaded", applyState);
-  setInterval(applyState, 500);
+
+  const chat=document.getElementById("chat");
+  if(chat){const obs=new MutationObserver(onChatVisibilityChange);obs.observe(chat,{attributes:true,attributeFilter:["style","class"]})}
+
+  if(!localStorage.getItem(PREF))setPref("cd");
+
+  document.addEventListener("click",tryToggleByClick,true);
+  document.addEventListener("keydown",e=>{if(e.code==="KeyV"&&!e.repeat){setPref(getPref()==="vinyl"?"cd":"vinyl");if(!hasRealCover())showPlaceholder()}});
+
+  document.addEventListener("DOMContentLoaded",applyState);
+  setInterval(applyState,500);
 })();
 

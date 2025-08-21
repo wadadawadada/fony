@@ -1,0 +1,83 @@
+<svg width="640" height="640" viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg">
+  <g clip-path="url(#clip0)">
+    <foreignObject x="0" y="0" width="640" height="640">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="
+        position: relative;
+        width:100%;
+        height:100%;
+        border-radius:50%;
+        overflow: hidden;
+      ">
+        <div style="
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  animation: spin 2s linear infinite;
+  background:
+    repeating-radial-gradient(circle at 50% 50%,
+      rgba(255,255,255,0.05) 0px,
+      rgba(0,0,0,0.15) 1px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,0) 4px
+    ),
+    conic-gradient(
+      from 90deg,
+      #111 0deg,
+      #222 30deg,
+      #333 60deg,
+      #1c1c1c 90deg,
+      #2e2e2e 120deg,
+      #2b2b2b 150deg,
+      #1d1d1d 180deg,
+      #3a3a3a 210deg,
+      #2c2c2c 240deg,
+      #1f1f1f 270deg,
+      #2e2e2e 300deg,
+      #222 330deg,
+      #111 360deg
+    );
+"></div>
+
+<div style="
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  background:conic-gradient(
+    from 90deg,
+    rgba(0,0,0,0.5) 0deg,
+    rgba(0,0,0,0) 30deg,
+    rgba(0,0,0,0.5) 60deg,
+    rgba(0,0,0,0) 90deg,
+    rgba(0,0,0,0.5) 120deg,
+    rgba(0,0,0,0) 150deg,
+    rgba(0,0,0,0.5) 180deg,
+    rgba(0,0,0,0) 210deg,
+    rgba(0,0,0,0.5) 240deg,
+    rgba(0,0,0,0) 270deg,
+    rgba(0,0,0,0.5) 300deg,
+    rgba(0,0,0,0) 330deg,
+    rgba(0,0,0,0.5) 360deg
+  );
+  pointer-events:none;
+"></div>
+
+      </div>
+    </foreignObject>
+  </g>
+
+  <style>
+    @keyframes spin {
+      from { transform: rotate(0deg); transform-origin: 50% 50%; }
+      to   { transform: rotate(360deg); transform-origin: 50% 50%; }
+    }
+  </style>
+
+  <defs>
+    <clipPath id="clip0">
+      <rect width="640" height="640" fill="white"></rect>
+    </clipPath>
+  </defs>
+</svg>
