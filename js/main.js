@@ -1047,106 +1047,106 @@ document.addEventListener('mouseup', () => {
 });
 
 
-let radioRetryCount = 0;
-const RADIO_MAX_RETRY = 1; 
-const RADIO_CHECK_INTERVAL = 5000; 
-let lastCurrentTime = 0;
-let noProgressCounter = 0;
-let silenceCounter = 0;
+// let radioRetryCount = 0;
+// const RADIO_MAX_RETRY = 1; 
+// const RADIO_CHECK_INTERVAL = 5000; 
+// let lastCurrentTime = 0;
+// let noProgressCounter = 0;
+// let silenceCounter = 0;
 
-function resetRetryState() {
-  radioRetryCount = 0;
-  noProgressCounter = 0;
-  silenceCounter = 0;
-  lastCurrentTime = 0;
-}
+// function resetRetryState() {
+//   radioRetryCount = 0;
+//   noProgressCounter = 0;
+//   silenceCounter = 0;
+//   lastCurrentTime = 0;
+// }
 
-function hasSound() {
-  if (!window.equalizerAnalyser) return true;
-  const analyser = window.equalizerAnalyser;
-  const data = new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(data);
-  const avg = data.reduce((a, b) => a + b, 0) / data.length;
-  return avg > 2;
-}
+// function hasSound() {
+//   if (!window.equalizerAnalyser) return true;
+//   const analyser = window.equalizerAnalyser;
+//   const data = new Uint8Array(analyser.frequencyBinCount);
+//   analyser.getByteFrequencyData(data);
+//   const avg = data.reduce((a, b) => a + b, 0) / data.length;
+//   return avg > 2;
+// }
 
-function switchToNextStation() {
-  resetRetryState();
-  let nextIndex = currentTrackIndex + 1;
-  if (nextIndex >= currentPlaylist.length) nextIndex = 0;
-  if (currentPlaylist.length) {
-    onStationSelect(nextIndex);
-  }
-}
+// function switchToNextStation() {
+//   resetRetryState();
+//   let nextIndex = currentTrackIndex + 1;
+//   if (nextIndex >= currentPlaylist.length) nextIndex = 0;
+//   if (currentPlaylist.length) {
+//     onStationSelect(nextIndex);
+//   }
+// }
 
-function tryRestartRadio() {
-  if (userPaused) return;
-  if (!audioPlayer.src || !currentPlaylist[currentTrackIndex]) return;
+// function tryRestartRadio() {
+//   if (userPaused) return;
+//   if (!audioPlayer.src || !currentPlaylist[currentTrackIndex]) return;
 
-  if (audioPlayer.paused && audioPlayer.currentTime > 0) {
-    if (radioRetryCount < RADIO_MAX_RETRY) {
-      radioRetryCount++;
-      onStationSelect(currentTrackIndex);
-    } else {
-      switchToNextStation();
-    }
-    return;
-  }
+//   if (audioPlayer.paused && audioPlayer.currentTime > 0) {
+//     if (radioRetryCount < RADIO_MAX_RETRY) {
+//       radioRetryCount++;
+//       onStationSelect(currentTrackIndex);
+//     } else {
+//       switchToNextStation();
+//     }
+//     return;
+//   }
 
-  if (radioRetryCount < RADIO_MAX_RETRY) {
-    radioRetryCount++;
-    onStationSelect(currentTrackIndex);
-  } else {
-    switchToNextStation();
-  }
-}
+//   if (radioRetryCount < RADIO_MAX_RETRY) {
+//     radioRetryCount++;
+//     onStationSelect(currentTrackIndex);
+//   } else {
+//     switchToNextStation();
+//   }
+// }
 
-function checkRadioStatus() {
-  if (!audioPlayer.src) return;
-  if (userPaused) return;
+// function checkRadioStatus() {
+//   if (!audioPlayer.src) return;
+//   if (userPaused) return;
 
-  if (audioPlayer.paused && audioPlayer.currentTime > 0) {
-    noProgressCounter = 0;
-    silenceCounter = 0;
-    tryRestartRadio();
-    return;
-  }
+//   if (audioPlayer.paused && audioPlayer.currentTime > 0) {
+//     noProgressCounter = 0;
+//     silenceCounter = 0;
+//     tryRestartRadio();
+//     return;
+//   }
 
-  if (audioPlayer.currentTime === lastCurrentTime) {
-    noProgressCounter++;
-  } else {
-    noProgressCounter = 0;
-    lastCurrentTime = audioPlayer.currentTime;
-  }
+//   if (audioPlayer.currentTime === lastCurrentTime) {
+//     noProgressCounter++;
+//   } else {
+//     noProgressCounter = 0;
+//     lastCurrentTime = audioPlayer.currentTime;
+//   }
 
-  if (!audioPlayer.paused && !hasSound()) {
-    silenceCounter++;
-  } else {
-    silenceCounter = 0;
-  }
+//   if (!audioPlayer.paused && !hasSound()) {
+//     silenceCounter++;
+//   } else {
+//     silenceCounter = 0;
+//   }
 
-  if (noProgressCounter >= 3 || silenceCounter >= 3) {
-    tryRestartRadio();
-    noProgressCounter = 0;
-    silenceCounter = 0;
-  }
-}
+//   if (noProgressCounter >= 3 || silenceCounter >= 3) {
+//     tryRestartRadio();
+//     noProgressCounter = 0;
+//     silenceCounter = 0;
+//   }
+// }
 
 
-audioPlayer.addEventListener("play", resetRetryState);
-audioPlayer.addEventListener("ended", resetRetryState);
-audioPlayer.addEventListener("error", () => {
-  resetRetryState();
-  switchToNextStation();
-});
+// audioPlayer.addEventListener("play", resetRetryState);
+// audioPlayer.addEventListener("ended", resetRetryState);
+// audioPlayer.addEventListener("error", () => {
+//   resetRetryState();
+//   switchToNextStation();
+// });
 
-const originalOnStationSelect = window.onStationSelect;
-window.onStationSelect = function(i) {
-  resetRetryState();
-  originalOnStationSelect(i);
-};
+// const originalOnStationSelect = window.onStationSelect;
+// window.onStationSelect = function(i) {
+//   resetRetryState();
+//   originalOnStationSelect(i);
+// };
 
-setInterval(checkRadioStatus, RADIO_CHECK_INTERVAL);
+// setInterval(checkRadioStatus, RADIO_CHECK_INTERVAL);
 
 ////iOS playback fix
 
@@ -1154,27 +1154,125 @@ function isIOSMobile() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
-function getStreamUrlForPlayback(originalUrl, stationId) {
-  if (isIOSMobile()) {
-    const base = "https://fony-ios-fix-server.onrender.com";
-    // запускаем трансляцию (сервер сам держит ffmpeg)
-    fetch(`${base}/start?id=${encodeURIComponent(stationId)}&url=${encodeURIComponent(originalUrl)}`)
-      .catch(() => {});
-    return `${base}/hls/${encodeURIComponent(stationId)}/playlist.m3u8`;
-  }
-  return originalUrl;
-}
+if (!isIOSMobile()) {
+  let radioRetryCount = 0;
+  const RADIO_MAX_RETRY = 1;
+  const RADIO_CHECK_INTERVAL = 5000;
+  let lastCurrentTime = 0;
+  let noProgressCounter = 0;
+  let silenceCounter = 0;
 
-const __origOnStationSelect = window.onStationSelect || onStationSelect;
-window.onStationSelect = function(i) {
-  if (window.currentPlaylist && window.currentPlaylist[i]) {
-    const st = window.currentPlaylist[i];
-    if (st && st.originalUrl) {
-      const id = "st" + i; // уникальный id для станции
-      st.url = getStreamUrlForPlayback(st.originalUrl, id);
+  function resetRetryState() {
+    radioRetryCount = 0;
+    noProgressCounter = 0;
+    silenceCounter = 0;
+    lastCurrentTime = 0;
+  }
+
+  function hasSound() {
+    if (!window.equalizerAnalyser) return true;
+    const analyser = window.equalizerAnalyser;
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    const avg = data.reduce((a, b) => a + b, 0) / data.length;
+    return avg > 2;
+  }
+
+  function switchToNextStation() {
+    resetRetryState();
+    let nextIndex = currentTrackIndex + 1;
+    if (nextIndex >= currentPlaylist.length) nextIndex = 0;
+    if (currentPlaylist.length) {
+      onStationSelect(nextIndex);
     }
   }
-  __origOnStationSelect(i);
+
+  function tryRestartRadio() {
+    if (userPaused) return;
+    if (!audioPlayer.src || !currentPlaylist[currentTrackIndex]) return;
+
+    if (audioPlayer.paused && audioPlayer.currentTime > 0) {
+      if (radioRetryCount < RADIO_MAX_RETRY) {
+        radioRetryCount++;
+        onStationSelect(currentTrackIndex);
+      } else {
+        switchToNextStation();
+      }
+      return;
+    }
+
+    if (radioRetryCount < RADIO_MAX_RETRY) {
+      radioRetryCount++;
+      onStationSelect(currentTrackIndex);
+    } else {
+      switchToNextStation();
+    }
+  }
+
+  function checkRadioStatus() {
+    if (!audioPlayer.src) return;
+    if (userPaused) return;
+
+    if (audioPlayer.paused && audioPlayer.currentTime > 0) {
+      noProgressCounter = 0;
+      silenceCounter = 0;
+      tryRestartRadio();
+      return;
+    }
+
+    if (audioPlayer.currentTime === lastCurrentTime) {
+      noProgressCounter++;
+    } else {
+      noProgressCounter = 0;
+      lastCurrentTime = audioPlayer.currentTime;
+    }
+
+    if (!audioPlayer.paused && !hasSound()) {
+      silenceCounter++;
+    } else {
+      silenceCounter = 0;
+    }
+
+    if (noProgressCounter >= 3 || silenceCounter >= 3) {
+      tryRestartRadio();
+      noProgressCounter = 0;
+      silenceCounter = 0;
+    }
+  }
+
+  audioPlayer.addEventListener("play", resetRetryState);
+  audioPlayer.addEventListener("ended", resetRetryState);
+  audioPlayer.addEventListener("error", () => {
+    resetRetryState();
+    switchToNextStation();
+  });
+
+  const originalOnStationSelect = window.onStationSelect;
+  window.onStationSelect = function(i) {
+    resetRetryState();
+    originalOnStationSelect(i);
+  };
+
+  setInterval(checkRadioStatus, RADIO_CHECK_INTERVAL);
+}
+
+
+function getStreamUrlForPlayback(originalUrl, stationId) {
+  const base = "https://fony-ios-fix-server.onrender.com";
+  fetch(`${base}/start?id=${encodeURIComponent(stationId)}&url=${encodeURIComponent(originalUrl)}`).catch(() => {});
+  return `${base}/hls/${encodeURIComponent(stationId)}/playlist.m3u8`;
+}
+
+const __wrapIOS_OnStationSelect = window.onStationSelect || onStationSelect;
+window.onStationSelect = function(i) {
+  if (isIOSMobile() && window.currentPlaylist && window.currentPlaylist[i]) {
+    const st = window.currentPlaylist[i];
+    if (st) {
+      const id = "st" + i;
+      st.url = getStreamUrlForPlayback(st.originalUrl || st.url, id);
+    }
+  }
+  __wrapIOS_OnStationSelect(i);
 };
 
 
