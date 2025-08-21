@@ -270,3 +270,61 @@ window.addEventListener("DOMContentLoaded", () => {
 
   setInterval(checkNowPlayingChange, 5000);
 });
+
+
+///// CD PATCH
+
+(() => {
+  const NO_DATA_IMG = "/img/cd.svg";
+  const isNoDataText = t => {
+    if (!t) return false;
+    const s = t.trim().toLowerCase();
+    return s === "no data" || s === "no track data" || s === "no metadata";
+  };
+  const isChatOpen = () => {
+    const chat = document.getElementById("chat");
+    return chat && window.getComputedStyle(chat).display !== "none";
+  };
+  const hasRealCover = () => {
+    const bg = document.querySelector(".center-circle .album-cover-bg");
+    const bi = bg ? (bg.style.backgroundImage || "") : "";
+    return bi && !bi.includes("cd.svg");
+  };
+  const showPlaceholder = () => {
+    try { if (!isChatOpen()) { setAlbumCoverBackground(NO_DATA_IMG); updateAlbumCoverAnimation(); } } catch(e) {}
+  };
+  function applyState() {
+    if (isChatOpen()) return;
+    const el = document.querySelector("#currentTrack .scrolling-text");
+    if (!el) return;
+    const txt = el.textContent || "";
+    const box = document.getElementById("discogsInfoContainer");
+    if (isNoDataText(txt)) {
+      showPlaceholder();
+      if (box) { box.style.display = "none"; box.innerHTML = ""; }
+      return;
+    }
+    if (txt.trim()) {
+      if (!hasRealCover()) showPlaceholder();
+      if (box && box.style.display === "none") box.style.display = "";
+    }
+  }
+  const origSetBg = (window.setAlbumCoverBackground || window.setAlbumCoverBackground === null) ? window.setAlbumCoverBackground : (typeof setAlbumCoverBackground !== "undefined" ? setAlbumCoverBackground : null);
+  if (origSetBg) {
+    window.setAlbumCoverBackground = function(u){ if (isChatOpen()) return; origSetBg(u); };
+  }
+  function onChatVisibilityChange() {
+    const bg = document.querySelector(".center-circle .album-cover-bg");
+    if (!bg) return;
+    if (isChatOpen()) { bg.style.backgroundImage = ""; bg.classList.remove("visible"); }
+    else { applyState(); }
+  }
+  const chat = document.getElementById("chat");
+  if (chat) {
+    const obs = new MutationObserver(onChatVisibilityChange);
+    obs.observe(chat, { attributes: true, attributeFilter: ["style", "class"] });
+  }
+  document.addEventListener("DOMContentLoaded", applyState);
+  setInterval(applyState, 500);
+})();
+
