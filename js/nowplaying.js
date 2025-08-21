@@ -329,70 +329,6 @@ window.addEventListener("DOMContentLoaded", () => {
 // })();
 
 
-// (() => {
-//   const CD="/img/cd.svg", VINYL="/img/vinyl.svg", PREF="coverPlaceholderPref";
-//   const isNoDataText=t=>{if(!t)return false;const s=t.trim().toLowerCase();return s==="no data"||s==="no track data"||s==="no metadata"};
-//   const isChatOpen=()=>{const c=document.getElementById("chat");return c&&window.getComputedStyle(c).display!=="none"};
-//   const getBg=()=>document.querySelector(".center-circle .album-cover-bg");
-//   const hasRealCover=()=>{const bg=getBg();const bi=bg?(bg.style.backgroundImage||""):"";return bi&&!(bi.includes("cd.svg")||bi.includes("vinyl.svg"))};
-//   const getPref=()=>localStorage.getItem(PREF)||"cd";
-//   const setPref=v=>localStorage.setItem(PREF,v);
-//   const selUrl=()=>getPref()==="vinyl"?VINYL:CD;
-//   const setCover=u=>{try{if(!isChatOpen()){setAlbumCoverBackground(u);updateAlbumCoverAnimation&&updateAlbumCoverAnimation()}}catch(e){}};
-//   const showPlaceholder=()=>setCover(selUrl());
-
-//   function applyState(){
-//     if(isChatOpen())return;
-//     const el=document.querySelector("#currentTrack .scrolling-text");if(!el)return;
-//     const txt=el.textContent||"";const box=document.getElementById("discogsInfoContainer");
-//     if(isNoDataText(txt)){showPlaceholder();if(box){box.style.display="none";box.innerHTML=""}return}
-//     if(txt.trim()){if(!hasRealCover())showPlaceholder();if(box&&box.style.display==="none")box.style.display=""}
-//   }
-
-//   const origSetBg=typeof window.setAlbumCoverBackground==="function"?window.setAlbumCoverBackground:null;
-//   if(origSetBg){
-//     window.setAlbumCoverBackground=function(u){
-//       if(isChatOpen())return;
-//       if(!u&&!hasRealCover())return;
-//       if(typeof u==="string"&&(u.includes("cd.svg")||u.includes("vinyl.svg"))) u=selUrl();
-//       origSetBg(u);
-//     };
-//   }
-
-//   function onChatVisibilityChange(){
-//     const bg=getBg();if(!bg)return;
-//     if(isChatOpen()){bg.style.backgroundImage="";bg.classList.remove("visible")}
-//     else{applyState()}
-//   }
-
-//   function pointInRect(x,y,r){return r&&x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom}
-
-//   function tryToggleByClick(e){
-//     if(isChatOpen())return;
-//     const circle=document.querySelector(".center-circle");const bg=getBg();
-//     if(!circle||!bg)return;
-//     const rc=circle.getBoundingClientRect(), cx=rc.left+rc.width/2, cy=rc.top+rc.height/2;
-//     const dx=e.clientX-cx, dy=e.clientY-cy, R=Math.min(rc.width,rc.height)/2;
-//     if(dx*dx+dy*dy>R*R)return;
-//     const btnIds=["playPauseBtn","ffBtn","rrBtn","shuffleBtn","favBtn","randomBtn"];
-//     for(const id of btnIds){const b=document.getElementById(id);if(b){const rb=b.getBoundingClientRect();if(pointInRect(e.clientX,e.clientY,rb))return}}
-//     if(hasRealCover())return;
-//     setPref(getPref()==="vinyl"?"cd":"vinyl");
-//     showPlaceholder();
-//   }
-
-//   const chat=document.getElementById("chat");
-//   if(chat){const obs=new MutationObserver(onChatVisibilityChange);obs.observe(chat,{attributes:true,attributeFilter:["style","class"]})}
-
-//   if(!localStorage.getItem(PREF))setPref("cd");
-
-//   document.addEventListener("click",tryToggleByClick,true);
-//   document.addEventListener("keydown",e=>{if(e.code==="KeyV"&&!e.repeat){setPref(getPref()==="vinyl"?"cd":"vinyl");if(!hasRealCover())showPlaceholder()}});
-
-//   document.addEventListener("DOMContentLoaded",applyState);
-//   setInterval(applyState,500);
-// })();
-
 (() => {
   const CD="/img/cd.svg", VINYL="/img/vinyl.svg", PREF="coverPlaceholderPref";
   const isNoDataText=t=>{if(!t)return false;const s=t.trim().toLowerCase();return s==="no data"||s==="no track data"||s==="no metadata"};
@@ -409,9 +345,6 @@ window.addEventListener("DOMContentLoaded", () => {
     if(isChatOpen())return;
     const el=document.querySelector("#currentTrack .scrolling-text");if(!el)return;
     const txt=el.textContent||"";const box=document.getElementById("discogsInfoContainer");
-    const isMobile=window.innerWidth<=768;
-    if(box && isMobile){ box.style.display="none"; box.innerHTML=""; return; }
-
     if(isNoDataText(txt)){showPlaceholder();if(box){box.style.display="none";box.innerHTML=""}return}
     if(txt.trim()){if(!hasRealCover())showPlaceholder();if(box&&box.style.display==="none")box.style.display=""}
   }
@@ -460,3 +393,89 @@ window.addEventListener("DOMContentLoaded", () => {
   setInterval(applyState,500);
 })();
 
+
+///// Mobile discogs collapse patch
+
+(() => {
+  const isMobile = () => window.innerWidth <= 768;
+
+  function isVis(el){
+    if(!el) return false;
+    const cs = getComputedStyle(el);
+    return cs.display !== "none" && cs.visibility !== "hidden" && cs.opacity !== "0";
+  }
+
+  function hasVisibleChildren(el){
+    if(!el) return false;
+    for (const ch of el.children) {
+      if (isVis(ch) && ch.offsetParent !== null && ch.offsetHeight > 0 && ch !== document.getElementById("discogsInfoContainer")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function collapseIfEmpty(el){
+    if(!el) return;
+    if(!hasVisibleChildren(el)) {
+      el.dataset.__prePatchDisplay = el.style.display || "";
+      el.style.display = "none";
+      el.style.margin = "0";
+      el.style.padding = "0";
+    }
+  }
+
+  function uncollapse(el){
+    if(!el) return;
+    if(el.dataset.__prePatchDisplay !== undefined){
+      el.style.display = el.dataset.__prePatchDisplay;
+      delete el.dataset.__prePatchDisplay;
+    }
+  }
+
+  function applyMobileDiscogsCollapse(){
+    const box = document.getElementById("discogsInfoContainer");
+    if (!box) return;
+
+    if (isMobile()) {
+      box.style.display = "none";
+      box.style.height = "0";
+      box.style.margin = "0";
+      box.style.padding = "0";
+      box.style.overflow = "hidden";
+      box.innerHTML = "";
+
+      // схлопываем до 3 предков, если внутри больше ничего видимого нет
+      let p = box.parentElement;
+      for (let i = 0; i < 3 && p; i++) {
+        collapseIfEmpty(p);
+        p = p.parentElement;
+      }
+    } else {
+      // возвращаем отображение предков при выходе из мобилы
+      let p = box.parentElement;
+      for (let i = 0; i < 3 && p; i++) {
+        uncollapse(p);
+        p = p.parentElement;
+      }
+      // сам блок пусть управляется твоей логикой
+      box.style.height = "";
+      box.style.margin = "";
+      box.style.padding = "";
+      box.style.overflow = "";
+    }
+  }
+
+  // первичное применение + реакция на ресайз/изменение чата
+  document.addEventListener("DOMContentLoaded", applyMobileDiscogsCollapse);
+  window.addEventListener("resize", applyMobileDiscogsCollapse);
+
+  const chat = document.getElementById("chat");
+  if (chat) {
+    const obs = new MutationObserver(applyMobileDiscogsCollapse);
+    obs.observe(chat, { attributes: true, attributeFilter: ["style", "class"] });
+  }
+
+  // подстраховка от поздней подгрузки DOM
+  setInterval(applyMobileDiscogsCollapse, 700);
+})();
