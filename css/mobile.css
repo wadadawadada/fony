@@ -153,7 +153,8 @@
   .chat-container {
     display: none;
     margin-bottom: 2rem;
-    max-height: 50%;
+    max-height: 51%;
+    border-radius: 30px;
   }
 
   .genre-box,
