@@ -1172,7 +1172,7 @@ if (isIOSMobile()) {
           window.audioContext.resume().catch(() => {});
         }
       }
-    }, 5000);
+    }, 55000);
   }
 
   function stopIOSKeepAlive() {
