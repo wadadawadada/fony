@@ -1154,29 +1154,23 @@ function isIOSMobile() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
-if (isIOSMobile()) {
-  const audio = document.getElementById("audioPlayer");
-  if (audio) {
-    let ctx = window.audioContext || new (window.AudioContext || window.webkitAudioContext)();
-    window.audioContext = ctx;
-
-    const gain = ctx.createGain();
-    gain.gain.value = 0.0;
-    const osc = ctx.createOscillator();
-    osc.frequency.value = 0.5;
-    osc.connect(gain).connect(ctx.destination);
-    try { osc.start(); } catch(e) {}
-
-    async function wake() {
-      try { if (ctx.state === "suspended") await ctx.resume(); } catch(e) {}
-    }
-
-    audio.addEventListener("play", wake);
-    audio.addEventListener("timeupdate", wake);
-    audio.addEventListener("stalled", wake);
-    audio.addEventListener("waiting", wake);
-    setInterval(wake, 60000);
+function proxifyIfIOS(url) {
+  if (isIOSMobile()) {
+    return "https://fony-ios-fix-server.onrender.com/proxy?url=" + encodeURIComponent(url);
   }
+  return url;
 }
+
+// оборачиваем onStationSelect
+const __origOnStationSelect = window.onStationSelect || onStationSelect;
+window.onStationSelect = function(i) {
+  if (window.currentPlaylist && window.currentPlaylist[i]) {
+    const st = window.currentPlaylist[i];
+    if (st && st.url) {
+      st.url = proxifyIfIOS(st.originalUrl || st.url);
+    }
+  }
+  __origOnStationSelect(i);
+};
 
 
