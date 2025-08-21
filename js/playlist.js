@@ -61,6 +61,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         shareIcon.style.zIndex = "10";
         const copiedSpan = document.createElement("span");
         copiedSpan.textContent = "copied!";
+        copiedSpan.style.fontSize = "12px";
         copiedSpan.style.color = "#fff";
         copiedSpan.style.marginLeft = "5px";
         copiedSpan.style.display = "none";
