@@ -1154,23 +1154,28 @@ function isIOSMobile() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
-function proxifyIfIOS(url) {
+function getStreamUrlForPlayback(originalUrl, stationId) {
   if (isIOSMobile()) {
-    return "https://fony-ios-fix-server.onrender.com/proxy?url=" + encodeURIComponent(url);
+    const base = "https://fony-ios-fix-server.onrender.com";
+    // запускаем трансляцию (сервер сам держит ffmpeg)
+    fetch(`${base}/start?id=${encodeURIComponent(stationId)}&url=${encodeURIComponent(originalUrl)}`)
+      .catch(() => {});
+    return `${base}/hls/${encodeURIComponent(stationId)}/playlist.m3u8`;
   }
-  return url;
+  return originalUrl;
 }
 
-// оборачиваем onStationSelect
 const __origOnStationSelect = window.onStationSelect || onStationSelect;
 window.onStationSelect = function(i) {
   if (window.currentPlaylist && window.currentPlaylist[i]) {
     const st = window.currentPlaylist[i];
-    if (st && st.url) {
-      st.url = proxifyIfIOS(st.originalUrl || st.url);
+    if (st && st.originalUrl) {
+      const id = "st" + i; // уникальный id для станции
+      st.url = getStreamUrlForPlayback(st.originalUrl, id);
     }
   }
   __origOnStationSelect(i);
 };
+
 
 
