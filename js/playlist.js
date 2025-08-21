@@ -64,7 +64,51 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         copiedSpan.style.color = "#fff";
         copiedSpan.style.marginLeft = "5px";
         copiedSpan.style.display = "none";
+        let shareTooltip = null;
+        function showShareTooltip() {
+  if (shareTooltip) return;
+  if (window.innerWidth <= 768) return;
+
+  shareTooltip = document.createElement("div");
+  shareTooltip.textContent = "share station";
+  shareTooltip.style.position = "absolute";
+  shareTooltip.style.fontFamily = "'Ruda', sans-serif";
+  shareTooltip.style.fontSize = "12px";
+  shareTooltip.style.color = "#ffffffff";
+  shareTooltip.style.pointerEvents = "none";
+  shareTooltip.style.whiteSpace = "nowrap";
+  shareTooltip.style.opacity = "0";
+  shareTooltip.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+  document.body.appendChild(shareTooltip);
+
+  const rect = shareIcon.getBoundingClientRect();
+  const tipRect = shareTooltip.getBoundingClientRect();
+  const top = rect.top + (rect.height - tipRect.height) / 2;
+  const left = rect.right + 16;
+  shareTooltip.style.top = top + "px";
+  shareTooltip.style.left = left + "px";
+
+  requestAnimationFrame(() => {
+    shareTooltip.style.opacity = "1";
+    shareTooltip.style.transform = "translateY(0)";
+  });
+}
+
+        function hideShareTooltip() {
+          if (shareTooltip) {
+            shareTooltip.style.opacity = "0";
+            setTimeout(() => {
+              if (shareTooltip && shareTooltip.parentNode) {
+                shareTooltip.parentNode.removeChild(shareTooltip);
+              }
+              shareTooltip = null;
+            }, 200);
+          }
+        }
+        shareIcon.addEventListener("mouseenter", showShareTooltip);
+        shareIcon.addEventListener("mouseleave", hideShareTooltip);
         shareIcon.addEventListener("click", (event) => {
+          hideShareTooltip();
           event.stopPropagation();
           const hash = generateStationHash(station.url);
           const genre = window.currentGenre || (localStorage.getItem("lastStation") && JSON.parse(localStorage.getItem("lastStation")).genre) || "";
@@ -92,31 +136,25 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         removeBtn.style.color = "#00F2B8";
         removeBtn.style.fontSize = "18px";
         removeBtn.style.cursor = "pointer";
-
-const titleSpan = span; 
-const originalText = titleSpan.textContent;
-
-removeBtn.addEventListener("mouseenter", () => {
-  titleSpan.textContent = "Delete station?";
-  titleSpan.style.color = "#fff";
-  li.style.backgroundColor = "#ff0505ff";
-});
-
-removeBtn.addEventListener("mouseleave", () => {
-  titleSpan.textContent = originalText;
-  titleSpan.style.color = "";
-  li.style.backgroundColor = "";
-});
-
-
-removeBtn.addEventListener("click", (event) => {
-  event.stopPropagation();
-  if (typeof window.markStationAsHidden === "function") {
-    window.markStationAsHidden(parseInt(li.dataset.index, 10));
-  }
-});
-li.appendChild(removeBtn);
-
+        const titleSpan = span;
+        const originalText = titleSpan.textContent;
+        removeBtn.addEventListener("mouseenter", () => {
+          titleSpan.textContent = "Delete station?";
+          titleSpan.style.color = "#fff";
+          li.style.backgroundColor = "#ff0505ff";
+        });
+        removeBtn.addEventListener("mouseleave", () => {
+          titleSpan.textContent = originalText;
+          titleSpan.style.color = "";
+          li.style.backgroundColor = "";
+        });
+        removeBtn.addEventListener("click", (event) => {
+          event.stopPropagation();
+          if (typeof window.markStationAsHidden === "function") {
+            window.markStationAsHidden(parseInt(li.dataset.index, 10));
+          }
+        });
+        li.appendChild(removeBtn);
       }
     }
     if (isFavorite(station)) {
