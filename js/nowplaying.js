@@ -332,14 +332,15 @@ window.addEventListener("DOMContentLoaded", () => {
 ////Cd & Vinyl Toggle Patch
 
 (() => {
-  const CD="/img/cd.svg", VINYL="/img/vinyl.svg", PREF="coverPlaceholderPref";
+  const CD="/img/cd.svg", VINYL="/img/vinyl.svg", REEL="/img/reel.svg", PREF="coverPlaceholderPref";
   const isNoDataText=t=>{if(!t)return false;const s=t.trim().toLowerCase();return s==="no data"||s==="no track data"||s==="no metadata"};
   const isChatOpen=()=>{const c=document.getElementById("chat");return c&&window.getComputedStyle(c).display!=="none"};
   const getBg=()=>document.querySelector(".center-circle .album-cover-bg");
-  const hasRealCover=()=>{const bg=getBg();const bi=bg?(bg.style.backgroundImage||""):"";return bi&&!(bi.includes("cd.svg")||bi.includes("vinyl.svg"))};
+  const hasRealCover=()=>{const bg=getBg();const bi=bg?(bg.style.backgroundImage||""):"";return bi&&!(bi.includes("cd.svg")||bi.includes("vinyl.svg")||bi.includes("reel.svg"))};
+  const cycle=["cd","vinyl","reel"];
   const getPref=()=>localStorage.getItem(PREF)||"cd";
   const setPref=v=>localStorage.setItem(PREF,v);
-  const selUrl=()=>getPref()==="vinyl"?VINYL:CD;
+  const selUrl=()=>{const p=getPref();return p==="vinyl"?VINYL:p==="reel"?REEL:CD};
   const setCover=u=>{try{if(!isChatOpen()){setAlbumCoverBackground(u);updateAlbumCoverAnimation&&updateAlbumCoverAnimation()}}catch(e){}};
   const showPlaceholder=()=>setCover(selUrl());
 
@@ -356,7 +357,7 @@ window.addEventListener("DOMContentLoaded", () => {
     window.setAlbumCoverBackground=function(u){
       if(isChatOpen())return;
       if(!u&&!hasRealCover())return;
-      if(typeof u==="string"&&(u.includes("cd.svg")||u.includes("vinyl.svg"))) u=selUrl();
+      if(typeof u==="string"&&(u.includes("cd.svg")||u.includes("vinyl.svg")||u.includes("reel.svg"))) u=selUrl();
       origSetBg(u);
     };
   }
@@ -379,7 +380,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const btnIds=["playPauseBtn","ffBtn","rrBtn","shuffleBtn","favBtn","randomBtn"];
     for(const id of btnIds){const b=document.getElementById(id);if(b){const rb=b.getBoundingClientRect();if(pointInRect(e.clientX,e.clientY,rb))return}}
     if(hasRealCover())return;
-    setPref(getPref()==="vinyl"?"cd":"vinyl");
+    const cur=getPref();const idx=cycle.indexOf(cur);const next=cycle[(idx+1)%cycle.length];
+    setPref(next);
     showPlaceholder();
   }
 
@@ -389,11 +391,18 @@ window.addEventListener("DOMContentLoaded", () => {
   if(!localStorage.getItem(PREF))setPref("cd");
 
   document.addEventListener("click",tryToggleByClick,true);
-  document.addEventListener("keydown",e=>{if(e.code==="KeyV"&&!e.repeat){setPref(getPref()==="vinyl"?"cd":"vinyl");if(!hasRealCover())showPlaceholder()}});
+  document.addEventListener("keydown",e=>{
+    if(e.code==="KeyV"&&!e.repeat){
+      const cur=getPref();const idx=cycle.indexOf(cur);const next=cycle[(idx+1)%cycle.length];
+      setPref(next);
+      if(!hasRealCover())showPlaceholder();
+    }
+  });
 
   document.addEventListener("DOMContentLoaded",applyState);
   setInterval(applyState,500);
 })();
+
 
 
 ///// Mobile discogs collapse patch

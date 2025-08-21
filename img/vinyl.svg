@@ -16,26 +16,21 @@
   background:
     repeating-radial-gradient(circle at 50% 50%,
       rgba(255,255,255,0.05) 0px,
-      rgba(0,0,0,0.15) 1px,
-      rgba(0,0,0,0) 2px,
-      rgba(0,0,0,0) 4px
+      rgba(0,0,0,0.15) 6px,
+      rgba(0,0,0,0) 12px,
+      rgba(0,0,0,0) 24px
     ),
-    conic-gradient(
-      from 90deg,
-      #111 0deg,
-      #222 30deg,
-      #333 60deg,
-      #1c1c1c 90deg,
-      #2e2e2e 120deg,
-      #2b2b2b 150deg,
-      #1d1d1d 180deg,
-      #3a3a3a 210deg,
-      #2c2c2c 240deg,
-      #1f1f1f 270deg,
-      #2e2e2e 300deg,
-      #222 330deg,
-      #111 360deg
-    );
+  conic-gradient(
+  from 90deg,
+  #222 0deg,
+  #444 60deg,
+  #2d2d2d 120deg,
+  #4a4a4a 180deg,
+  #3c3c3c 240deg,
+  #333 300deg,
+  #222 360deg
+  );
+
 "></div>
 
 <div style="
@@ -48,19 +43,14 @@
   background:conic-gradient(
     from 90deg,
     rgba(0,0,0,0.5) 0deg,
-    rgba(0,0,0,0) 30deg,
-    rgba(0,0,0,0.5) 60deg,
-    rgba(0,0,0,0) 90deg,
-    rgba(0,0,0,0.5) 120deg,
-    rgba(0,0,0,0) 150deg,
-    rgba(0,0,0,0.5) 180deg,
-    rgba(0,0,0,0) 210deg,
+    rgba(0,0,0,0) 60deg,
+    rgba(151, 151, 151, 0.5) 120deg,
+    rgba(0,0,0,0) 180deg,
     rgba(0,0,0,0.5) 240deg,
-    rgba(0,0,0,0) 270deg,
-    rgba(0,0,0,0.5) 300deg,
-    rgba(0,0,0,0) 330deg,
+    rgba(0,0,0,0) 300deg,
     rgba(0,0,0,0.5) 360deg
-  );
+);
+
   pointer-events:none;
 "></div>
 
