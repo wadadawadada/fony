@@ -1155,33 +1155,28 @@ function isIOSMobile() {
 }
 
 if (isIOSMobile()) {
-  let iosKeepAliveTimer = null;
+  const audio = document.getElementById("audioPlayer");
+  if (audio) {
+    let ctx = window.audioContext || new (window.AudioContext || window.webkitAudioContext)();
+    window.audioContext = ctx;
 
-  function startIOSKeepAlive() {
-    if (iosKeepAliveTimer) return;
-    iosKeepAliveTimer = setInterval(() => {
-      if (!audioPlayer.paused && !userPaused) {
-        try {
-          const ct = audioPlayer.currentTime;
-          audioPlayer.currentTime = ct + 0.001;
-          audioPlayer.currentTime = ct;
-        } catch (e) {}
-        if (window.audioContext && window.audioContext.state === "suspended") {
-          window.audioContext.resume().catch(() => {});
-        }
-      }
-    }, 30000);
-  }
+    const gain = ctx.createGain();
+    gain.gain.value = 0.0;
+    const osc = ctx.createOscillator();
+    osc.frequency.value = 0.5;
+    osc.connect(gain).connect(ctx.destination);
+    try { osc.start(); } catch(e) {}
 
-  function stopIOSKeepAlive() {
-    if (iosKeepAliveTimer) {
-      clearInterval(iosKeepAliveTimer);
-      iosKeepAliveTimer = null;
+    async function wake() {
+      try { if (ctx.state === "suspended") await ctx.resume(); } catch(e) {}
     }
-  }
 
-  audioPlayer.addEventListener("play", startIOSKeepAlive);
-  audioPlayer.addEventListener("pause", stopIOSKeepAlive);
-  audioPlayer.addEventListener("ended", stopIOSKeepAlive);
+    audio.addEventListener("play", wake);
+    audio.addEventListener("timeupdate", wake);
+    audio.addEventListener("stalled", wake);
+    audio.addEventListener("waiting", wake);
+    setInterval(wake, 60000);
+  }
 }
+
 
