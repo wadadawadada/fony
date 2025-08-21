@@ -1148,3 +1148,41 @@ window.onStationSelect = function(i) {
 
 setInterval(checkRadioStatus, RADIO_CHECK_INTERVAL);
 
+////iOS playback fix
+
+// --- iOS Safari playback keep-alive patch ---
+function isIOSMobile() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+if (isIOSMobile()) {
+  let iosKeepAliveTimer = null;
+
+  function startIOSKeepAlive() {
+    if (iosKeepAliveTimer) return;
+    iosKeepAliveTimer = setInterval(() => {
+      if (!audioPlayer.paused && !userPaused) {
+        try {
+          const ct = audioPlayer.currentTime;
+          audioPlayer.currentTime = ct + 0.001;
+          audioPlayer.currentTime = ct;
+        } catch (e) {}
+
+        if (window.audioContext && window.audioContext.state === "suspended") {
+          window.audioContext.resume().catch(() => {});
+        }
+      }
+    }, 5000);
+  }
+
+  function stopIOSKeepAlive() {
+    if (iosKeepAliveTimer) {
+      clearInterval(iosKeepAliveTimer);
+      iosKeepAliveTimer = null;
+    }
+  }
+
+  audioPlayer.addEventListener("play", startIOSKeepAlive);
+  audioPlayer.addEventListener("pause", stopIOSKeepAlive);
+  audioPlayer.addEventListener("ended", stopIOSKeepAlive);
+}

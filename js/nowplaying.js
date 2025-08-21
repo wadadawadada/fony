@@ -329,6 +329,8 @@ window.addEventListener("DOMContentLoaded", () => {
 // })();
 
 
+////Cd & Vinyl Toggle Patch
+
 (() => {
   const CD="/img/cd.svg", VINYL="/img/vinyl.svg", PREF="coverPlaceholderPref";
   const isNoDataText=t=>{if(!t)return false;const s=t.trim().toLowerCase();return s==="no data"||s==="no track data"||s==="no metadata"};
@@ -445,20 +447,19 @@ window.addEventListener("DOMContentLoaded", () => {
       box.style.overflow = "hidden";
       box.innerHTML = "";
 
-      // схлопываем до 3 предков, если внутри больше ничего видимого нет
       let p = box.parentElement;
       for (let i = 0; i < 3 && p; i++) {
         collapseIfEmpty(p);
         p = p.parentElement;
       }
     } else {
-      // возвращаем отображение предков при выходе из мобилы
+
       let p = box.parentElement;
       for (let i = 0; i < 3 && p; i++) {
         uncollapse(p);
         p = p.parentElement;
       }
-      // сам блок пусть управляется твоей логикой
+
       box.style.height = "";
       box.style.margin = "";
       box.style.padding = "";
@@ -466,7 +467,6 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // первичное применение + реакция на ресайз/изменение чата
   document.addEventListener("DOMContentLoaded", applyMobileDiscogsCollapse);
   window.addEventListener("resize", applyMobileDiscogsCollapse);
 
@@ -476,6 +476,5 @@ window.addEventListener("DOMContentLoaded", () => {
     obs.observe(chat, { attributes: true, attributeFilter: ["style", "class"] });
   }
 
-  // подстраховка от поздней подгрузки DOM
   setInterval(applyMobileDiscogsCollapse, 700);
 })();
