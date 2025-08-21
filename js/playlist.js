@@ -85,7 +85,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
   const rect = shareIcon.getBoundingClientRect();
   const tipRect = shareTooltip.getBoundingClientRect();
   const top = rect.top + (rect.height - tipRect.height) / 2;
-  const left = rect.right + 16;
+  const left = rect.right + 46;
   shareTooltip.style.top = top + "px";
   shareTooltip.style.left = left + "px";
 
