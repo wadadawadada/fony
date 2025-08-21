@@ -152,7 +152,7 @@
   }
   .chat-container {
     display: none;
-    bottom: 2rem;
+    bottom: 1rem;
     max-height: 50%;
     max-width: 92%;
     border-radius: 30px;
