@@ -40,6 +40,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     }
     const displayName = station.nft ? station.playlistTitle : station.title;
     const span = document.createElement("span");
+    span.className = "title-ellipsis";
     span.textContent = displayName + (station.bitrate ? ` (${station.bitrate})` : "");
     li.appendChild(span);
     if (!USE_ONLY_HTTPS && station.originalUrl && station.originalUrl.startsWith("http://")) {
