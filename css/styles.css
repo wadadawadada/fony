@@ -739,3 +739,14 @@ html, body {
     transition: transform 0.3s ease;
   }
   
+#manifestoBtn img {
+  transition: opacity 0.2s ease-in-out;
+}
+
+body:not(.dark) #manifestoBtn img:hover {
+  content: url('/img/about_icon_hover.svg');
+}
+
+body.dark #manifestoBtn img:hover {
+  content: url('/img/dark/about_icon_hover.svg');
+}
