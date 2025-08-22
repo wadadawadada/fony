@@ -13,6 +13,7 @@ function generateStationHash(url) {
   return Math.abs(hash).toString(16);
 }
 export function renderPlaylist(playlistElement, stations, startIndex = 0, endIndex = null) {
+  window.currentPlaylist = stations;
   if (endIndex === null) {
     endIndex = stations.length;
   }
@@ -48,53 +49,59 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       httpLabel.style.fontSize = "0.9em";
       li.appendChild(httpLabel);
     }
+    const favSlot = document.createElement("span");
+    favSlot.className = "fav-slot";
+    favSlot.style.display = "inline-flex";
+    favSlot.style.alignItems = "center";
+    favSlot.style.width = "24px";
+    favSlot.style.height = "24px";
+    favSlot.style.marginLeft = "10px";
+    li.appendChild(favSlot);
     if (window.currentStationUrl && station.url === window.currentStationUrl) {
       li.classList.add("active");
       if (typeof currentMode === "undefined" || currentMode !== "web3") {
+        const shareWrapper = document.createElement("div");
+        shareWrapper.style.display = "inline-flex";
+        shareWrapper.style.alignItems = "center";
+        shareWrapper.style.marginLeft = "0px";
         const shareIcon = document.createElement("img");
         shareIcon.src = "/img/share_icon.svg";
         shareIcon.alt = "Share station";
         shareIcon.style.width = "14px";
         shareIcon.style.height = "14px";
         shareIcon.style.cursor = "pointer";
-        shareIcon.style.marginLeft = "10px";
-        shareIcon.style.zIndex = "10";
         const copiedSpan = document.createElement("span");
         copiedSpan.textContent = "copied!";
         copiedSpan.style.fontSize = "12px";
         copiedSpan.style.color = "#fff";
-        copiedSpan.style.marginLeft = "5px";
+        copiedSpan.style.marginLeft = "15px";
         copiedSpan.style.display = "none";
         let shareTooltip = null;
         function showShareTooltip() {
-  if (shareTooltip) return;
-  if (window.innerWidth <= 768) return;
-
-  shareTooltip = document.createElement("div");
-  shareTooltip.textContent = "share station";
-  shareTooltip.style.position = "absolute";
-  shareTooltip.style.fontFamily = "'Ruda', sans-serif";
-  shareTooltip.style.fontSize = "12px";
-  shareTooltip.style.color = "#ffffffff";
-  shareTooltip.style.pointerEvents = "none";
-  shareTooltip.style.whiteSpace = "nowrap";
-  shareTooltip.style.opacity = "0";
-  shareTooltip.style.transition = "opacity 0.2s ease, transform 0.2s ease";
-  document.body.appendChild(shareTooltip);
-
-  const rect = shareIcon.getBoundingClientRect();
-  const tipRect = shareTooltip.getBoundingClientRect();
-  const top = rect.top + (rect.height - tipRect.height) / 2;
-  const left = rect.right + 46;
-  shareTooltip.style.top = top + "px";
-  shareTooltip.style.left = left + "px";
-
-  requestAnimationFrame(() => {
-    shareTooltip.style.opacity = "1";
-    shareTooltip.style.transform = "translateY(0)";
-  });
-}
-
+          if (shareTooltip) return;
+          if (window.innerWidth <= 768) return;
+          shareTooltip = document.createElement("div");
+          shareTooltip.textContent = "share station";
+          shareTooltip.style.position = "absolute";
+          shareTooltip.style.fontFamily = "'Ruda', sans-serif";
+          shareTooltip.style.fontSize = "12px";
+          shareTooltip.style.color = "#ffffffff";
+          shareTooltip.style.pointerEvents = "none";
+          shareTooltip.style.whiteSpace = "nowrap";
+          shareTooltip.style.opacity = "0";
+          shareTooltip.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+          document.body.appendChild(shareTooltip);
+          const rect = shareIcon.getBoundingClientRect();
+          const tipRect = shareTooltip.getBoundingClientRect();
+          const top = rect.top + (rect.height - tipRect.height) / 2;
+          const left = rect.right + 15;
+          shareTooltip.style.top = top + "px";
+          shareTooltip.style.left = left + "px";
+          requestAnimationFrame(() => {
+            shareTooltip.style.opacity = "1";
+            shareTooltip.style.transform = "translateY(0)";
+          });
+        }
         function hideShareTooltip() {
           if (shareTooltip) {
             shareTooltip.style.opacity = "0";
@@ -122,10 +129,11 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
                 setTimeout(() => { copiedSpan.style.display = "none"; }, 2000);
               });
             })
-            .catch(err => console.error("Error", err));
+            .catch(() => {});
         });
-        li.appendChild(shareIcon);
-        li.appendChild(copiedSpan);
+        shareWrapper.appendChild(shareIcon);
+        shareWrapper.appendChild(copiedSpan);
+        li.appendChild(shareWrapper);
         const removeBtn = document.createElement("button");
         removeBtn.textContent = "×";
         removeBtn.style.position = "absolute";
@@ -165,12 +173,13 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       favHeart.alt = "Favorite";
       favHeart.loading = "lazy";
       favHeart.style.animation = "heartBounce 0.5s ease-out";
+      favHeart.style.verticalAlign = "middle";
       favHeart.addEventListener("click", (event) => {
         event.stopPropagation();
         removeFavorite(station);
-        renderPlaylist(playlistElement, stations, startIndex, maxEnd);
+        updatePlaylistHearts();
       });
-      li.appendChild(favHeart);
+      favSlot.appendChild(favHeart);
     }
     fragment.appendChild(li);
   }
@@ -254,4 +263,37 @@ export function loadPlaylist(url) {
       ).then(() => loadedStations);
     });
 }
+
+export function updatePlaylistHearts() {
+  const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+  const playlistElement = document.getElementById("playlist");
+  if (!playlistElement || !window.currentPlaylist) return;
+  const lis = playlistElement.querySelectorAll("li");
+  lis.forEach(li => {
+    const index = parseInt(li.dataset.index);
+    if (isNaN(index)) return;
+    const station = window.currentPlaylist[index];
+    if (!station) return;
+    const favSlot = li.querySelector(".fav-slot");
+    if (!favSlot) return;
+    favSlot.innerHTML = "";
+    if (favs.includes(station.url)) {
+      const favHeart = document.createElement("img");
+      favHeart.classList.add("favorite-heart", "active");
+      favHeart.src = "/img/heart.svg";
+      favHeart.alt = "Favorite";
+      favHeart.loading = "lazy";
+      favHeart.style.animation = "heartBounce 0.5s ease-out";
+      favHeart.style.verticalAlign = "middle";
+      favHeart.addEventListener("click", (event) => {
+        event.stopPropagation();
+        removeFavorite(station);
+        updatePlaylistHearts();
+      });
+      favSlot.appendChild(favHeart);
+    }
+  });
+}
+
 window.updateUseOnlyHttpsSetting = updateUseOnlyHttpsSetting;
+window.updatePlaylistHearts = updatePlaylistHearts;

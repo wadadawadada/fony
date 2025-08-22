@@ -362,3 +362,8 @@
   }
 }
 
+@media (max-width: 768px) {
+  li.active .title-ellipsis {
+    max-width: calc(100% - 160px);
+  }
+}
