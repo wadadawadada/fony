@@ -1046,3 +1046,99 @@ export function initChat() {
 document.addEventListener("themeChanged", () => {
   reapplySkin();
 });
+
+(() => {
+  if (window.__FONY_CHAT_MANUAL_PATCH__) return;
+  window.__FONY_CHAT_MANUAL_PATCH__ = true;
+
+  let state = { collapsed: null };
+  let manual = false;
+  let chat, toggle, controls, observer;
+
+  function q() {
+    chat = document.getElementById('chat');
+    toggle = document.getElementById('chatToggleBtn');
+    controls = document.querySelector('.player-controls');
+  }
+
+  function isCollapsed() {
+    return !chat || getComputedStyle(chat).display === 'none';
+  }
+
+  function apply(collapsed) {
+    if (!chat) return;
+    if (collapsed) {
+      chat.style.display = 'none';
+      if (toggle) toggle.style.display = 'block';
+      if (controls) controls.classList.add('chat-collapsed');
+    } else {
+      chat.style.display = 'flex';
+      if (toggle) toggle.style.display = 'none';
+      if (controls) controls.classList.remove('chat-collapsed');
+    }
+  }
+
+  function ensureObserver() {
+    if (!chat) return;
+    if (observer) observer.disconnect();
+    observer = new MutationObserver(() => {
+      if (manual) return;
+      const now = isCollapsed();
+      if (state.collapsed == null) state.collapsed = now;
+      if (now !== state.collapsed) {
+        const prev = manual;
+        manual = true;
+        apply(state.collapsed);
+        manual = prev;
+      }
+    });
+    observer.observe(chat, { attributes: true, attributeFilter: ['style','class'] });
+  }
+
+  function hookManualTriggers() {
+    const u = document.getElementById('chatUsernameContainer');
+    if (u) u.addEventListener('click', () => { manual = true; setTimeout(() => { state.collapsed = true; manual = false; }, 0); }, { capture: true });
+    if (toggle) toggle.addEventListener('click', () => { manual = true; setTimeout(() => { state.collapsed = false; manual = false; }, 0); }, { capture: true });
+
+    const mOpen = document.getElementById('mobileChatToggleBtn');
+    const mClose = document.getElementById('mobileChatCloseBtn');
+    if (mOpen) mOpen.addEventListener('click', () => { manual = true; setTimeout(() => { manual = false; }, 0); }, { capture: true });
+    if (mClose) mClose.addEventListener('click', () => { manual = true; setTimeout(() => { manual = false; }, 0); }, { capture: true });
+
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('#chatToggleBtn');
+      if (!btn) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      manual = true;
+      let n = 6;
+      const force = () => { q(); apply(false); if (--n > 0) requestAnimationFrame(force); else manual = false; };
+      force();
+    }, true);
+  }
+
+  function afterInit() {
+    q();
+    if (!chat) return;
+    if (state.collapsed == null) state.collapsed = isCollapsed();
+    apply(state.collapsed);
+    ensureObserver();
+    hookManualTriggers();
+  }
+
+  const orig = window.initChat || (typeof initChat === 'function' ? initChat : null);
+  if (orig) {
+    window.initChat = function(...args) {
+      const r = orig.apply(this, args);
+      queueMicrotask(afterInit);
+      setTimeout(afterInit, 0);
+      requestAnimationFrame(afterInit);
+      setTimeout(afterInit, 50);
+      return r;
+    };
+  } else {
+    document.addEventListener('DOMContentLoaded', afterInit);
+  }
+
+  setTimeout(afterInit, 100);
+})();
