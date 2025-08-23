@@ -21,7 +21,6 @@
   overflow: hidden;
 }
 
-
 .screen::after {
   content: "";
   position: absolute;
@@ -186,8 +185,8 @@
   cursor: pointer;
   transition: all 0.3s ease-in-out;
   filter:
-    drop-shadow(0px 16px 8px #00000031)
-    drop-shadow(0px 10px 4px #00000031);
+    drop-shadow(0px 14px 6px #00000031)
+    drop-shadow(0px 10px 3px #00000031);
 }
 .player-btn:hover {
   transition: all 0.3s ease-in-out;
@@ -199,19 +198,19 @@
 
 @keyframes bounce {
   0% {
-    transform: scale(1);
-  }
-  40% {
     transform: scale(0.95);
   }
+  40% {
+    transform: scale(0.89);
+  }
   60% {
-    transform: scale(1.05);
+    transform: scale(0.91);
   }
   80% {
-    transform: scale(0.98);
+    transform: scale(0.93);
   }
   100% {
-    transform: scale(1);
+    transform: scale(0.95);
   }
 }
 
