@@ -201,13 +201,13 @@
     transform: scale(0.95);
   }
   40% {
-    transform: scale(0.89);
+    transform: scale(0.92);
   }
   60% {
-    transform: scale(0.91);
+    transform: scale(0.93);
   }
   80% {
-    transform: scale(0.93);
+    transform: scale(0.94);
   }
   100% {
     transform: scale(0.95);
@@ -215,7 +215,7 @@
 }
 
 .player-btn:active {
-  animation: bounce 0.8s ease-in-out;
+  animation: bounce 0.4s ease-in-out;
 }
 
 #playPauseBtn {
