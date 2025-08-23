@@ -1066,17 +1066,23 @@ document.addEventListener("themeChanged", () => {
   }
 
   function apply(collapsed) {
-    if (!chat) return;
-    if (collapsed) {
-      chat.style.display = 'none';
-      if (toggle) toggle.style.display = 'block';
-      if (controls) controls.classList.add('chat-collapsed');
-    } else {
-      chat.style.display = 'flex';
-      if (toggle) toggle.style.display = 'none';
-      if (controls) controls.classList.remove('chat-collapsed');
+  if (!chat) return;
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+  if (collapsed) {
+    chat.style.display = 'none';
+    if (toggle) toggle.style.display = isMobile ? 'none' : 'block';
+    if (controls) {
+      if (!isMobile) controls.classList.add('chat-collapsed');
+      else controls.classList.remove('chat-collapsed');
     }
+  } else {
+    chat.style.display = 'flex';
+    if (toggle) toggle.style.display = 'none';
+    if (controls) controls.classList.remove('chat-collapsed');
   }
+}
+
 
   function ensureObserver() {
     if (!chat) return;
