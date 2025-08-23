@@ -374,3 +374,37 @@
     display: none !important;
   }
 }
+
+
+
+@media (max-width: 768px) {
+
+  #randomBtn,
+  #randomBtn:hover,
+  #randomBtn:active {
+    position: absolute;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    transition: none !important;
+  }
+
+  .player-btn:hover,
+  .player-btn:active {
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .play-btn:hover,
+  .play-btn:active {
+    transform: translate(-50%, -50%) scale(0.95) !important;
+  }
+
+  #playlist img[alt="Share station"] {
+    display: none !important;
+  }
+
+  .player-controls.chat-collapsed {
+    margin-top: 0 !important;
+    transform: none !important;
+  }
+}
