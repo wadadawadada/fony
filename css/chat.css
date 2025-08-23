@@ -4,6 +4,8 @@
     background-color: #171C2B;
     border-radius: 25px;
     border: 2px solid #00F2B8;
+    outline: 2px solid #00F2B8;
+    outline-offset: -3px;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -39,7 +41,7 @@
     border: 0px solid #ffffff;
     color: #07F2B8;
     padding: 5px 12px;
-    border-radius: 50px;
+    border-radius: 25px;
     outline: none;
     background-color: #171C2B;
     width: 100px;
@@ -112,7 +114,7 @@
     background-color: #054d3c00;
     border: 2px solid #07F2B8;
     color: #07F2B8;
-    border-radius: 50px;
+    border-radius: 17px;
     padding: 5px;
     padding-left: 8px;
     font-size: 0.8rem;
@@ -126,7 +128,7 @@
     border: none;
     background: none;
     cursor: pointer;
-    margin-left: 8px;
+    margin-left: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -297,7 +299,7 @@ border: none;
   background-color: transparent;
   border: 2px solid #07F2B8;
   color: #07F2B8;
-  border-radius: 50px;
+  border-radius: 25px;
   padding: 6px 14px;
   font-size: 1rem;
   outline: none;
