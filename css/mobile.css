@@ -57,6 +57,7 @@
     padding: unset;
     width: unset;
   }
+  
   .manifesto-modal {
     display: none;
     align-items: center;
@@ -201,13 +202,13 @@
     position: absolute;
     left: 50%;
     top: 145px;
-    transform: translateX(-50%);
+    transform: translateX(-50%)!important;
     width: 170px;
     height: 80px;
     z-index: 999;
   }
   #randomBtn:hover {
-    transform: translateX(-50%);
+    transform: translateX(-50%)!important;
   }
   #randomBtn:active {
     transform: translateX(-50%) !important;
@@ -368,3 +369,8 @@
   }
 }
 
+@media (max-width: 768px) {
+  #playlist img[alt="Share station"] {
+    display: none !important;
+  }
+}
