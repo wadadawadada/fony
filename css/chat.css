@@ -3,9 +3,9 @@
     /* margin-bottom: 10px; */
     background-color: #171C2B;
     border-radius: 25px;
-    border: 2px solid #00F2B8;
+    /* border: 2px solid #00F2B8; */
     outline: 2px solid #00F2B8;
-    outline-offset: -3px;
+    outline-offset: -1px;
     display: flex;
     flex-direction: column;
     height: 100%;

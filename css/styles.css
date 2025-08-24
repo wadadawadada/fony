@@ -412,7 +412,7 @@ body.dark .logo {
   transform: translateY(-50%) translateX(10px);
   background-color: #00F2B8;
   color: #171C2B;
-  padding: 4px 8px;
+  padding: 6px 10px;
   border-radius: 25px;
   white-space: nowrap;
   font-size: 0.9rem;
