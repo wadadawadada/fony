@@ -456,6 +456,21 @@ if (userInput.trim().toLowerCase() === "/collection") {
   return { type: "html", content: menuHtml };
 }
 
+// if (userInput.trim().toLowerCase() === "/game") {
+//   const gameContainerId = "game-container";
+//   let gameDiv = document.getElementById(gameContainerId);
+//   if (!gameDiv) {
+//     gameDiv = document.createElement("div");
+//     gameDiv.id = gameContainerId;
+//     document.getElementById("chatMessages").appendChild(gameDiv);
+//   }
+//   import("./game.js").then(mod => {
+//     mod.default(gameDiv, () => {
+//       gameDiv.remove();
+//     });
+//   });
+//   return { type: "html", content: `<div id="${gameContainerId}"></div>` };
+// }
 
   if (userInput.trim().toLowerCase() === "[fony tips]") {
     fonyTipsState.mode = 'list';
@@ -674,6 +689,11 @@ function renderQuickLinks() {
       description: "Apply equalizer settings to the current genre",
       command: () => "/equalizer"
     },
+    // {
+    //   text: "/game",
+    //   description: "Play the game",
+    //   command: () => "/game"
+    // },
     {
       text: "[fony tips]",
       description: "Useful tips about FONY"
