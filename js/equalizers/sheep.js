@@ -244,7 +244,7 @@ export default function Sheep({ container, analyser }) {
         mode = nextAction;
         actionTimer = 0;
         if (nextAction === "nod")        actionDuration = 18 + Math.random() * 4;   // кивание 8–12 сек
-        else if (nextAction === "graze") actionDuration = 12 + Math.random() * 6;  // ест траву 12–18 сек
+        else if (nextAction === "graze") actionDuration = 4 + Math.random() * 6;  // ест траву 12–18 сек
         else if (nextAction === "jump")  actionDuration = 15 + Math.random() * 3;   // прыжок 5–8 сек
         else                             actionDuration = 17 + Math.random() * 5;
       }
