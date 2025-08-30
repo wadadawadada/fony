@@ -1,7 +1,7 @@
 export default function Sheep({ container, analyser }) {
   const SHEEP_SVG_PATH = "/js/equalizers/img/sheep.svg";
   const CLOUD_SVG_PATH = "/js/equalizers/img/cloud.svg";
-  const SHEEP_WIDTH = 87, SHEEP_HEIGHT = 57;
+  const SHEEP_WIDTH = 87, CONTAINER_HEIGHT = 72;
   let raf = null, freq = new Uint8Array(128);
   let svgRoot, sheepGroup, head, frontL, frontR, rearL, rearR;
   let cloudsGroup, stonesGroup, grassBackGroup, grassFrontGroup;
@@ -13,22 +13,21 @@ export default function Sheep({ container, analyser }) {
   let nextAction = null;
   let prevLevel = 0;
   let actionDuration = 18;
-  const GROUND_Y = SHEEP_HEIGHT - 10;
+  const STONES_Y = CONTAINER_HEIGHT - 16; // выше передней травы (ниже = выше визуально)
+  const GROUND_Y = CONTAINER_HEIGHT - 16; // линия "земли" по центру камней и овцы
   let lastWidth = null;
   let cloudsInitialized = false;
 
   function getContainerWidth() {
     return container.clientWidth || SHEEP_WIDTH;
   }
-
   function updateViewBox() {
     if (!svgRoot) return;
     const width = getContainerWidth();
-    svgRoot.setAttribute("viewBox", `0 0 ${width} ${SHEEP_HEIGHT}`);
+    svgRoot.setAttribute("viewBox", `0 0 ${width} ${CONTAINER_HEIGHT}`);
     svgRoot.setAttribute("width", width);
-    svgRoot.setAttribute("height", SHEEP_HEIGHT);
+    svgRoot.setAttribute("height", CONTAINER_HEIGHT);
   }
-
   function makeGrass(x, y0, height, angle, strokeW, opacity) {
     const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
     p.setAttribute("d", `M${x},${y0} q${1.5+angle*2},${-height/1.3} ${3+angle*3},0`);
@@ -38,7 +37,6 @@ export default function Sheep({ container, analyser }) {
     p.setAttribute("opacity", opacity.toFixed(2));
     return p;
   }
-
   function makeStone(x, y, rx, ry, sw, op) {
     const e = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
     e.setAttribute("cx", x);
@@ -51,7 +49,6 @@ export default function Sheep({ container, analyser }) {
     e.setAttribute("opacity", op.toFixed(2));
     return e;
   }
-
   function ensureBackGrass(count) {
     const width = getContainerWidth();
     const margin = 30;
@@ -59,7 +56,7 @@ export default function Sheep({ container, analyser }) {
       let x = -margin;
       const step = (width + 2 * margin) / Math.max(1, count - 1);
       for (let i = 0; i < count; i++) {
-        const y0 = GROUND_Y + (Math.random() - 0.5) * 3;
+        const y0 = GROUND_Y - 16 + (Math.random() - 0.5) * 4;
         const h = 18 + Math.random() * 16;
         const a = (Math.random() - 0.5) * 1.2;
         const el = makeGrass(x, y0, h, a, 1.0 + Math.random() * 1.5, 0.70 + 0.27 * Math.random());
@@ -69,60 +66,55 @@ export default function Sheep({ container, analyser }) {
       }
     }
   }
-
   function ensureFrontGrass(count) {
-  const width = getContainerWidth();
-  const margin = 30;
-  if (grassFront.length === 0 && count > 0) {
-    let x = -margin;
-    const step = (width + 2 * margin) / Math.max(1, count - 1);
-    for (let i = 0; i < count; i++) {
-      const y0 = GROUND_Y + 11.5 + (Math.random() - 0.5) * 5;
-      const h = 18 + Math.random() * 18;
-      const a = (Math.random() - 0.5) * 1.2;
-      const el = makeGrass(x, y0, h, a, 1.2 + Math.random() * 1.8, 0.8 + 0.2 * Math.random());
-      grassFrontGroup.appendChild(el);
-      grassFront.push({ x, el });
-      x += step;
+    const width = getContainerWidth();
+    const margin = 15;
+    if (grassFront.length === 0 && count > 0) {
+      let x = -margin;
+      const step = (width + 2 * margin) / Math.max(1, count - 1);
+      for (let i = 0; i < count; i++) {
+        const y0 = CONTAINER_HEIGHT - 1;
+        const h = 19 + Math.random() * 22;
+        const a = (Math.random() - 0.5) * 1.2;
+        const el = makeGrass(x, y0, h, a, 1.3 + Math.random() * 1, 0.95 + 0.05 * Math.random());
+        grassFrontGroup.appendChild(el);
+        grassFront.push({ x, el });
+        x += step;
+      }
     }
   }
-}
-
   function ensureStones(count) {
-  const width = getContainerWidth();
-  const margin = 30;
-  if (stones.length === 0 && count > 0) {
-    let x = -margin;
-    const step = (width + 2 * margin) / Math.max(1, count - 1);
-    for (let i = 0; i < count; i++) {
-      const y = GROUND_Y + 0.5 + (Math.random() - 0.2) * 8;
-      const rx = 2.2 + Math.random() * 3.5;
-      const ry = 1.0 + Math.random() * 2.6;
-      const el = makeStone(x, y, rx, ry, 0.7 + Math.random() * 1.2, 0.45 + 0.33 * Math.random());
-      stonesGroup.appendChild(el);
-      stones.push({ x, el });
-      x += step;
+    const width = getContainerWidth();
+    const margin = 30;
+    if (stones.length === 0 && count > 0) {
+      let x = -margin;
+      const step = (width + 2 * margin) / Math.max(1, count - 1);
+      for (let i = 0; i < count; i++) {
+        const y = STONES_Y + (Math.random() - 0.2) * 3.5;
+        const rx = 2.2 + Math.random() * 3.5;
+        const ry = 1.0 + Math.random() * 2.6;
+        const el = makeStone(x, y, rx, ry, 0.8 + Math.random() * 1.2, 0.50 + 0.35 * Math.random());
+        stonesGroup.appendChild(el);
+        stones.push({ x, el });
+        x += step;
+      }
     }
   }
-}
-
   function layoutGroundPersistent() {
     const width = getContainerWidth();
     const grassBackN = Math.max(12, Math.floor(width / 10));
-    const grassFrontN = Math.max(6, Math.floor(width / 19));
-    const stoneN = Math.floor(width / 29);
+    const grassFrontN = Math.max(10, Math.floor(width / 10));
+    const stoneN = Math.floor(width / 25);
     ensureStones(stoneN);
     ensureBackGrass(grassBackN);
     ensureFrontGrass(grassFrontN);
   }
-
   function updateGroundOnResize() {
     const width = getContainerWidth();
     if (lastWidth === width) return;
     layoutGroundPersistent();
     lastWidth = width;
   }
-
   function initClouds() {
     if (cloudsInitialized) return;
     clouds = [];
@@ -141,7 +133,6 @@ export default function Sheep({ container, analyser }) {
     lastCloudEmit = performance.now();
     cloudsInitialized = true;
   }
-
   function tryEmitCloud(t) {
     const minDistance = 180;
     if (!clouds.length || clouds[0].x > minDistance) { emitCloud(); lastCloudEmit = t; return; }
@@ -149,7 +140,6 @@ export default function Sheep({ container, analyser }) {
       if (clouds.length === 0 || clouds[0].x > minDistance) { emitCloud(); lastCloudEmit = t; }
     }
   }
-
   function emitCloud() {
     const size = 18 + Math.random() * 32;
     clouds.unshift({
@@ -160,7 +150,6 @@ export default function Sheep({ container, analyser }) {
       opacity: 1
     });
   }
-
   function drawClouds() {
     if (!cloudsGroup || !cloudSVG) return;
     const width = getContainerWidth();
@@ -179,7 +168,6 @@ export default function Sheep({ container, analyser }) {
       return g;
     }));
   }
-
   function fetchAllSVGs(callback) {
     fetch(CLOUD_SVG_PATH).then(r => r.text()).then(svgText => {
       let cloudSvgContent = svgText.replace(/^<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "");
@@ -195,7 +183,6 @@ export default function Sheep({ container, analyser }) {
       callback();
     });
   }
-
   fetch(SHEEP_SVG_PATH)
     .then(r => r.text())
     .then(svgText => {
@@ -203,7 +190,7 @@ export default function Sheep({ container, analyser }) {
         container.innerHTML = svgText;
         svgRoot = container.querySelector("svg");
         svgRoot.setAttribute("width", "100%");
-        svgRoot.setAttribute("height", SHEEP_HEIGHT);
+        svgRoot.setAttribute("height", CONTAINER_HEIGHT);
 
         stonesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         stonesGroup.setAttribute("class", "fony-stones");
@@ -253,19 +240,16 @@ export default function Sheep({ container, analyser }) {
         initClouds();
       });
     });
-
   function handleResize() {
     updateViewBox();
     updateGroundOnResize();
     const minX = 8, maxX = getContainerWidth() - SHEEP_WIDTH - 8;
     sheepX = Math.max(minX, Math.min(sheepX, maxX));
   }
-
   function smoothLevel(newLevel) {
     prevLevel += (newLevel - prevLevel) * 0.2;
     return prevLevel;
   }
-
   function getLevel() {
     analyser.getByteFrequencyData(freq);
     let s = 0;
@@ -273,11 +257,9 @@ export default function Sheep({ container, analyser }) {
     const avg = (s / Math.max(1, freq.length)) / 255;
     return smoothLevel(avg);
   }
-
   function centerPos() {
     return (getContainerWidth() - SHEEP_WIDTH) / 2;
   }
-
   function pickNextAction() {
     const choices = [
       { mode: "nod", weight: 1.1 },
@@ -289,10 +271,8 @@ export default function Sheep({ container, analyser }) {
     for (let c of choices) { if (r < c.weight) return c.mode; r -= c.weight; }
     return "nod";
   }
-
   function animateSheep(level, t) {
     updateGroundOnResize();
-
     if (mode === "walk") {
       const speed = 0.06 + 0.04 * level;
       sheepX += sheepDir * speed;
@@ -316,17 +296,14 @@ export default function Sheep({ container, analyser }) {
       actionTimer += 1 / 60;
       if (actionTimer > (typeof actionDuration === "number" ? actionDuration : 10)) { mode = "walk"; modeTimer = 0; }
     }
-
     tryEmitCloud(t);
     drawClouds();
-
-    let yOffset = 0;
+    let yOffset = 8;
     if (mode === "jump") yOffset = -Math.abs(Math.sin(t * 0.004) * 12);
     const transform = (sheepDir === 1)
       ? `translate(${sheepX + SHEEP_WIDTH},${yOffset}) scale(-1,1)`
       : `translate(${sheepX},${yOffset})`;
     sheepGroup.setAttribute("transform", transform);
-
     if (head) {
       if (mode === "nod") {
         const base = 0, amp = 3 * level + 3, phase = t * 0.0037, y = base + Math.sin(phase) * amp;
@@ -344,7 +321,6 @@ export default function Sheep({ container, analyser }) {
         head.setAttribute("transform", `translate(0,${y.toFixed(2)})`);
       }
     }
-
     const step = t * 0.009;
     const legsAnim = (mode === "walk" || mode === "jump");
     if (frontL) frontL.setAttribute("transform", legsAnim ? `rotate(${Math.sin(step)*16*level},40,43)` : "");
@@ -352,14 +328,12 @@ export default function Sheep({ container, analyser }) {
     if (rearL)  rearL.setAttribute("transform", legsAnim ? `rotate(${Math.sin(step+1.2)*13*level},70,41)` : "");
     if (rearR)  rearR.setAttribute("transform", legsAnim ? `rotate(${-Math.sin(step+1.2)*13*level},63,43)` : "");
   }
-
   function loop() {
     raf = requestAnimationFrame(loop);
     const level = getLevel();
     const t = performance.now();
     animateSheep(level, t);
   }
-
   function start() {
     analyser.fftSize = 128;
     mode = "walk";
