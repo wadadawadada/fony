@@ -12,7 +12,7 @@ export default function Sheep({ container, analyser }) {
   let mode = "walk", modeTimer = 0, actionTimer = 0, pauseTimer = 0;
   let nextAction = null;
   let prevLevel = 0;
-  let actionDuration = 8;
+  let actionDuration = 28;
   const GROUND_Y = SHEEP_HEIGHT - 5;
 
   function getContainerWidth() {
@@ -27,21 +27,18 @@ export default function Sheep({ container, analyser }) {
     svgRoot.setAttribute("height", SHEEP_HEIGHT);
   }
 
-  function initClouds() {
+    function initClouds() {
     clouds = [];
     const width = getContainerWidth();
-    let total = 0;
-    const count = Math.max(3, Math.floor(width / 220));
+    const count = 1;
     for (let i = 0; i < count; ++i) {
-      const size = 30 + Math.random() * 44;
-      const gap = 20 + Math.random() * 50;
-      const x = total;
-      total += size + gap;
+      const size = 18 + Math.random() * 32;
       clouds.push({
-        x: x,
-        y: -15 + Math.random() * 28,
+        x: Math.random() * width * 0.7,
+        y: Math.random() * 12,
         size: size,
-        speed: 0.09 + Math.random() * 0.07
+        speed: 0.07 + Math.random() * 0.06,
+        opacity: 1
       });
     }
     lastCloudEmit = performance.now();
@@ -49,13 +46,13 @@ export default function Sheep({ container, analyser }) {
 
   function tryEmitCloud(t) {
     const width = getContainerWidth();
-    if (!clouds.length || clouds[0].x > 30) {
+    const minDistance = 180;
+    if (!clouds.length || clouds[0].x > minDistance) {
       emitCloud();
       lastCloudEmit = t;
       return;
     }
-    if (t - lastCloudEmit > 1900 + Math.random() * 1000) {
-      const minDistance = 60;
+    if (t - lastCloudEmit > 3500 + Math.random() * 1800) {
       if (clouds.length === 0 || clouds[0].x > minDistance) {
         emitCloud();
         lastCloudEmit = t;
@@ -64,20 +61,30 @@ export default function Sheep({ container, analyser }) {
   }
 
   function emitCloud() {
-    const size = 10 + Math.random() * 44;
+    const size = 18 + Math.random() * 32;
     clouds.unshift({
       x: -size - Math.random() * 16,
-      y: -25 + Math.random() * 8,
+      y: Math.random() * 12,
       size: size,
-      speed: 0.09 + Math.random() * 0.07
+      speed: 0.07 + Math.random() * 0.06,
+      opacity: 1
     });
   }
 
   function drawClouds() {
     if (!cloudsGroup || !cloudSVG) return;
     const width = getContainerWidth();
-    for (let cloud of clouds) cloud.x += cloud.speed;
-    while (clouds.length && clouds[clouds.length - 1].x > width + 70) {
+    for (let cloud of clouds) {
+      cloud.x += cloud.speed;
+      const fadeStart = width - cloud.size * 0.85;
+      const fadeEnd = width + cloud.size * 0.6;
+      if (cloud.x > fadeStart) {
+        cloud.opacity = Math.max(0, 1 - (cloud.x - fadeStart) / (fadeEnd - fadeStart));
+      } else {
+        cloud.opacity = 1;
+      }
+    }
+    while (clouds.length && clouds[clouds.length - 1].x > width + 60) {
       clouds.pop();
     }
     cloudsGroup.replaceChildren(...clouds.map(cloud => makeCloudSVG(cloud)));
@@ -88,6 +95,7 @@ export default function Sheep({ container, analyser }) {
     g.setAttribute("transform",
       `translate(${cloud.x},${cloud.y}) scale(${cloud.size / 100})`
     );
+    g.setAttribute("opacity", cloud.opacity.toFixed(2));
     g.innerHTML = cloudSVG;
     return g;
   }
@@ -230,21 +238,25 @@ export default function Sheep({ container, analyser }) {
         modeTimer = 0;
       }
     }
-    else if (mode === "pause") {
+        else if (mode === "pause") {
       pauseTimer += 1 / 60;
       if (pauseTimer > 1.3 + Math.random() * 2.0) {
         mode = nextAction;
         actionTimer = 0;
-        actionDuration = 5 + Math.random() * 5;
+        if (nextAction === "nod")        actionDuration = 18 + Math.random() * 4;   // кивание 8–12 сек
+        else if (nextAction === "graze") actionDuration = 12 + Math.random() * 6;  // ест траву 12–18 сек
+        else if (nextAction === "jump")  actionDuration = 15 + Math.random() * 3;   // прыжок 5–8 сек
+        else                             actionDuration = 17 + Math.random() * 5;
       }
     }
     else if (mode === "nod" || mode === "graze" || mode === "jump") {
       actionTimer += 1 / 60;
-      if (actionTimer > (typeof actionDuration === "number" ? actionDuration : 6)) {
+      if (actionTimer > (typeof actionDuration === "number" ? actionDuration : 10)) {
         mode = "walk";
         modeTimer = 0;
       }
     }
+
 
     tryEmitCloud(t);
     drawClouds();
@@ -263,9 +275,9 @@ export default function Sheep({ container, analyser }) {
 
     if (head) {
       if (mode === "nod") {
-        const base = 10;
-        const amp = 18 * level + 6;
-        const phase = t * 0.0037;
+        const base = 0;
+        const amp = 7 * level + 2;
+        const phase = t * 0.008;
         const y = base + Math.sin(phase) * amp;
         head.setAttribute("transform", `translate(0,${y.toFixed(2)})`);
       }
