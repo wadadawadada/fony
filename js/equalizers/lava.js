@@ -38,7 +38,7 @@ export default function Lava({ container, analyser }) {
   const freq = new Uint8Array(256);
   let raf = null, lastT = performance.now();
 
-  const R_MIN = 8, R_MAX = 45;
+  const R_MIN = 8, R_MAX = 35;
   const TAU = Math.PI * 2;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   function rnd(a, b) { return a + Math.random() * (b - a); }
@@ -100,6 +100,17 @@ export default function Lava({ container, analyser }) {
       });
     }
   }
+
+  let mouseActive = false;
+  let mouseX = 0, mouseY = 0;
+  svg.addEventListener('mouseenter', e => { mouseActive = true; });
+  svg.addEventListener('mouseleave', e => { mouseActive = false; });
+  svg.addEventListener('mousemove', e => {
+    const rect = svg.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+  });
+
   function update(dt) {
     const w = container.clientWidth || 320;
     const level = energyLevel();
@@ -115,6 +126,15 @@ export default function Lava({ container, analyser }) {
       const sp = (0.1 + level * 0.53) * b.speedFactor;
       b.vx = b.vx * viscosity + (swirlX + Math.sin(t * 0.23 + b.phaseX) * 0.05) * sp;
       b.vy = b.vy * viscosity + (swirlY + Math.cos(t * 0.19 + b.phaseY) * 0.04 + buoyancy) * sp;
+      if (mouseActive) {
+        const mx = mouseX, my = mouseY;
+        const dx = mx - b.x, dy = my - b.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        // Здесь делаем силу очень маленькой
+        const f = clamp(0.0033 * (1 - dist / 150), 0, 0.007); // супер-медленно!
+        b.vx += dx * f * dt;
+        b.vy += dy * f * dt;
+      }
       b.x += b.vx * dt;
       b.y += b.vy * dt;
       const left = -R_MAX, right = w + R_MAX;
