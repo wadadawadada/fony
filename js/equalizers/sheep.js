@@ -12,7 +12,7 @@ export default function Sheep({ container, analyser }) {
   let mode = "walk", modeTimer = 0, actionTimer = 0, pauseTimer = 0;
   let nextAction = null;
   let prevLevel = 0;
-  let actionDuration = 28;
+  let actionDuration = 8;
   const GROUND_Y = SHEEP_HEIGHT - 5;
 
   function getContainerWidth() {
@@ -27,7 +27,7 @@ export default function Sheep({ container, analyser }) {
     svgRoot.setAttribute("height", SHEEP_HEIGHT);
   }
 
-    function initClouds() {
+  function initClouds() {
     clouds = [];
     const width = getContainerWidth();
     const count = 1;
@@ -92,9 +92,7 @@ export default function Sheep({ container, analyser }) {
 
   function makeCloudSVG(cloud) {
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    g.setAttribute("transform",
-      `translate(${cloud.x},${cloud.y}) scale(${cloud.size / 100})`
-    );
+    g.setAttribute("transform", `translate(${cloud.x},${cloud.y}) scale(${cloud.size / 100})`);
     g.setAttribute("opacity", cloud.opacity.toFixed(2));
     g.innerHTML = cloudSVG;
     return g;
@@ -169,6 +167,22 @@ export default function Sheep({ container, analyser }) {
         rearR = svgRoot.getElementById("rear_r");
         sheepX = centerPos();
         drawGround(svgRoot);
+
+      function updateSheepTheme() {
+        const isLight = !document.body.classList.contains("dark");
+        const bodyPath = svgRoot.querySelector('#body path');
+        if (bodyPath) bodyPath.setAttribute("fill", isLight ? "#F2F2F2" : "#171D2C");
+        const headRect = svgRoot.querySelector('#head rect[id="Rectangle 56"]');
+        if (headRect) headRect.setAttribute("fill", "#171D2C");
+        const earL = svgRoot.querySelector('#ear_l');
+        const earR = svgRoot.querySelector('#ear_r');
+        if (earL) earL.setAttribute("fill", "#171D2C");
+        if (earR) earR.setAttribute("fill", "#171D2C");
+      }
+
+        updateSheepTheme();
+        document.addEventListener('themeChanged', updateSheepTheme);
+
         start();
         window.addEventListener("resize", handleResize);
       });
@@ -238,15 +252,15 @@ export default function Sheep({ container, analyser }) {
         modeTimer = 0;
       }
     }
-        else if (mode === "pause") {
+    else if (mode === "pause") {
       pauseTimer += 1 / 60;
       if (pauseTimer > 1.3 + Math.random() * 2.0) {
         mode = nextAction;
         actionTimer = 0;
-        if (nextAction === "nod")        actionDuration = 18 + Math.random() * 4;   // кивание 8–12 сек
-        else if (nextAction === "graze") actionDuration = 4 + Math.random() * 6;  // ест траву 12–18 сек
-        else if (nextAction === "jump")  actionDuration = 15 + Math.random() * 3;   // прыжок 5–8 сек
-        else                             actionDuration = 17 + Math.random() * 5;
+        if (nextAction === "nod")        actionDuration = 8 + Math.random() * 4;
+        else if (nextAction === "graze") actionDuration = 12 + Math.random() * 6;
+        else if (nextAction === "jump")  actionDuration = 5 + Math.random() * 3;
+        else                             actionDuration = 7 + Math.random() * 5;
       }
     }
     else if (mode === "nod" || mode === "graze" || mode === "jump") {
@@ -256,7 +270,6 @@ export default function Sheep({ container, analyser }) {
         modeTimer = 0;
       }
     }
-
 
     tryEmitCloud(t);
     drawClouds();
@@ -275,9 +288,9 @@ export default function Sheep({ container, analyser }) {
 
     if (head) {
       if (mode === "nod") {
-        const base = 0;
-        const amp = 7 * level + 2;
-        const phase = t * 0.008;
+        const base = 10;
+        const amp = 18 * level + 6;
+        const phase = t * 0.0037;
         const y = base + Math.sin(phase) * amp;
         head.setAttribute("transform", `translate(0,${y.toFixed(2)})`);
       }
