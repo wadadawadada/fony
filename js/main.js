@@ -1339,110 +1339,50 @@ window.onStationSelect = function(i) {
 // }
 
 
-// window.favoritesCache = null;
+window.favoritesCache = null;
 
-// async function getFavoritesMap() {
-//   if (window.favoritesCache) return window.favoritesCache;
-//   const favUrls = JSON.parse(localStorage.getItem("favorites") || "[]");
-//   const map = new Map();
-//   for (let pl of allPlaylists) {
-//     if (!favUrls.length) break;
-//     const st = await loadPlaylist(pl.file);
-//     for (let station of st) {
-//       if (favUrls.includes(station.url)) map.set(station.url, station);
-//     }
-//   }
-//   window.favoritesCache = map;
-//   return map;
-// }
-
-// document.addEventListener("appLoaded", () => {
-//   window.favoritesCache = null;
-// });
-// document.addEventListener("favoritesChanged", () => {
-//   window.favoritesCache = null;
-// });
-
-// window.usePreloadedFavorites = async function() {
-//   const map = await getFavoritesMap();
-//   const urls = JSON.parse(localStorage.getItem("favorites") || "[]");
-//   currentPlaylist = urls.map(url => map.get(url)).filter(Boolean);
-//   resetVisibleStations();
-//   return currentPlaylist.length > 0;
-// };
-
-// const oldSetRadioListeners = setRadioListeners;
-// setRadioListeners = function() {
-//   oldSetRadioListeners();
-//   const fBtn = document.getElementById("favoritesFilterBtn");
-//   if (fBtn && !fBtn._patched) {
-//     fBtn._patched = true;
-//     fBtn.addEventListener("click", async function(e) {
-//       setTimeout(async () => {
-//         if (fBtn.classList.contains("active")) {
-//           await window.usePreloadedFavorites();
-//         }
-//       }, 10);
-//     });
-//   }
-// };
-// const origToggleFavorite = window.toggleFavorite;
-// window.toggleFavorite = function(url) {
-//   if (typeof origToggleFavorite === "function") origToggleFavorite(url);
-//   document.dispatchEvent(new Event("favoritesChanged"));
-// };
-
-
-
-window.preloadedFavorites = null;
-async function preloadFavorites() {
+async function getFavoritesMap() {
+  if (window.favoritesCache) return window.favoritesCache;
   const favUrls = JSON.parse(localStorage.getItem("favorites") || "[]");
-  let favList = [];
-  if (!favUrls.length) {
-    window.preloadedFavorites = [];
-    return;
-  }
+  const map = new Map();
   for (let pl of allPlaylists) {
-    // грузим только если есть избранные
+    if (!favUrls.length) break;
     const st = await loadPlaylist(pl.file);
-    const matched = st.filter(x => favUrls.includes(x.url));
-    favList = favList.concat(matched);
+    for (let station of st) {
+      if (favUrls.includes(station.url)) map.set(station.url, station);
+    }
   }
-  // удаляем дубли по url
-  window.preloadedFavorites = Array.from(new Map(favList.map(o => [o.url, o])).values());
+  window.favoritesCache = map;
+  return map;
 }
+
 document.addEventListener("appLoaded", () => {
-  if (Array.isArray(allPlaylists) && allPlaylists.length) {
-    preloadFavorites();
-  }
+  window.favoritesCache = null;
 });
 document.addEventListener("favoritesChanged", () => {
-  if (Array.isArray(allPlaylists) && allPlaylists.length) {
-    preloadFavorites();
-  }
+  window.favoritesCache = null;
 });
-window.usePreloadedFavorites = function() {
-  if (window.preloadedFavorites) {
-    currentPlaylist = window.preloadedFavorites;
-    resetVisibleStations();
-    return true;
-  }
-  return false;
-}
+
+window.usePreloadedFavorites = async function() {
+  const map = await getFavoritesMap();
+  const urls = JSON.parse(localStorage.getItem("favorites") || "[]");
+  currentPlaylist = urls.map(url => map.get(url)).filter(Boolean);
+  resetVisibleStations();
+  return currentPlaylist.length > 0;
+};
+
 const oldSetRadioListeners = setRadioListeners;
 setRadioListeners = function() {
   oldSetRadioListeners();
   const fBtn = document.getElementById("favoritesFilterBtn");
   if (fBtn && !fBtn._patched) {
     fBtn._patched = true;
-    const origClick = fBtn.onclick || (()=>{});
-    fBtn.addEventListener("click", function patchFav(e) {
-      setTimeout(() => {
+    fBtn.addEventListener("click", async function(e) {
+      setTimeout(async () => {
         if (fBtn.classList.contains("active")) {
-          if (window.usePreloadedFavorites()) return;
+          await window.usePreloadedFavorites();
         }
       }, 10);
-      if (typeof origClick === "function") origClick.call(this, e);
     });
   }
 };
@@ -1451,3 +1391,6 @@ window.toggleFavorite = function(url) {
   if (typeof origToggleFavorite === "function") origToggleFavorite(url);
   document.dispatchEvent(new Event("favoritesChanged"));
 };
+
+
+
