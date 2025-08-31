@@ -164,7 +164,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         const originalText = titleSpan.textContent;
         removeBtn.addEventListener("mouseenter", () => {
           if (isFavoritesMode) {
-            titleSpan.textContent = "Delete from favorites?";
+            titleSpan.textContent = "Remove from favorites?";
           } else {
             titleSpan.textContent = "Delete station?";
           }

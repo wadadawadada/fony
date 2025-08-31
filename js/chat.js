@@ -1168,3 +1168,66 @@ document.addEventListener("themeChanged", () => {
 
   setTimeout(afterInit, 100);
 })();
+
+///chat collapse fix - end
+
+(() => {
+  const KEY = "chatVisible";
+  let tries = 0, max = 300;
+
+  function isCollapsed(chat) {
+    return !chat || getComputedStyle(chat).display === "none";
+  }
+
+  function init() {
+    const chat = document.getElementById("chat");
+    const toggle = document.getElementById("chatToggleBtn");
+    const user = document.getElementById("chatUsernameContainer");
+    if (!chat || !toggle || !user) return false;
+
+    function save(v) {
+      try { localStorage.setItem(KEY, v ? "true" : "false"); } catch(e){}
+    }
+    function desired() {
+      const v = localStorage.getItem(KEY);
+      if (v === "true") return true;
+      if (v === "false") return false;
+      return null;
+    }
+    function applyDesired() {
+      const d = desired();
+      if (d === null) return;
+      const col = isCollapsed(chat);
+      if (d && col) toggle.click();
+      else if (!d && !col) user.click();
+    }
+
+    user.addEventListener("click", () => save(false), { capture: true });
+    toggle.addEventListener("click", () => save(true), { capture: true });
+
+    const obs = new MutationObserver(() => {
+      const vis = !isCollapsed(chat);
+      const cur = localStorage.getItem(KEY);
+      const want = vis ? "true" : "false";
+      if (cur !== want) save(vis);
+    });
+    obs.observe(chat, { attributes: true, attributeFilter: ["style","class"] });
+
+    setTimeout(applyDesired, 0);
+    setTimeout(applyDesired, 100);
+    setTimeout(applyDesired, 500);
+    setTimeout(applyDesired, 1500);
+    return true;
+  }
+
+  function wait() {
+    if (init()) return;
+    if (tries++ < max) setTimeout(wait, 100);
+  }
+
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    setTimeout(wait, 0);
+  } else {
+    document.addEventListener("DOMContentLoaded", wait);
+  }
+})();
