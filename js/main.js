@@ -854,19 +854,7 @@ if (ffBtn) {
   });
 }
 
-// if (favBtn) {
-//   favBtn.addEventListener("click", () => {
-//     if (!currentPlaylist.length) return
-//     const c = currentPlaylist[currentTrackIndex]
-//     let fv = JSON.parse(localStorage.getItem("favorites") || "[]")
-//     if (!fv.includes(c.url)) {
-//       fv.push(c.url)
-//       localStorage.setItem("favorites", JSON.stringify(fv))
-//     }
-//     currentPlaylist = allStations.slice()
-//     resetVisibleStations()
-//   })
-// }
+
 
 if (shuffleBtn) {
   shuffleBtn.addEventListener("click", () => {
@@ -1017,7 +1005,7 @@ fetch("../json/playlists.json")
   });
 
 
-
+  
 document.dispatchEvent(new Event("appLoaded"))
 
 const container = document.querySelector('.container');
@@ -1056,106 +1044,7 @@ document.addEventListener('mouseup', () => {
 });
 
 
-// let radioRetryCount = 0;
-// const RADIO_MAX_RETRY = 1; 
-// const RADIO_CHECK_INTERVAL = 5000; 
-// let lastCurrentTime = 0;
-// let noProgressCounter = 0;
-// let silenceCounter = 0;
 
-// function resetRetryState() {
-//   radioRetryCount = 0;
-//   noProgressCounter = 0;
-//   silenceCounter = 0;
-//   lastCurrentTime = 0;
-// }
-
-// function hasSound() {
-//   if (!window.equalizerAnalyser) return true;
-//   const analyser = window.equalizerAnalyser;
-//   const data = new Uint8Array(analyser.frequencyBinCount);
-//   analyser.getByteFrequencyData(data);
-//   const avg = data.reduce((a, b) => a + b, 0) / data.length;
-//   return avg > 2;
-// }
-
-// function switchToNextStation() {
-//   resetRetryState();
-//   let nextIndex = currentTrackIndex + 1;
-//   if (nextIndex >= currentPlaylist.length) nextIndex = 0;
-//   if (currentPlaylist.length) {
-//     onStationSelect(nextIndex);
-//   }
-// }
-
-// function tryRestartRadio() {
-//   if (userPaused) return;
-//   if (!audioPlayer.src || !currentPlaylist[currentTrackIndex]) return;
-
-//   if (audioPlayer.paused && audioPlayer.currentTime > 0) {
-//     if (radioRetryCount < RADIO_MAX_RETRY) {
-//       radioRetryCount++;
-//       onStationSelect(currentTrackIndex);
-//     } else {
-//       switchToNextStation();
-//     }
-//     return;
-//   }
-
-//   if (radioRetryCount < RADIO_MAX_RETRY) {
-//     radioRetryCount++;
-//     onStationSelect(currentTrackIndex);
-//   } else {
-//     switchToNextStation();
-//   }
-// }
-
-// function checkRadioStatus() {
-//   if (!audioPlayer.src) return;
-//   if (userPaused) return;
-
-//   if (audioPlayer.paused && audioPlayer.currentTime > 0) {
-//     noProgressCounter = 0;
-//     silenceCounter = 0;
-//     tryRestartRadio();
-//     return;
-//   }
-
-//   if (audioPlayer.currentTime === lastCurrentTime) {
-//     noProgressCounter++;
-//   } else {
-//     noProgressCounter = 0;
-//     lastCurrentTime = audioPlayer.currentTime;
-//   }
-
-//   if (!audioPlayer.paused && !hasSound()) {
-//     silenceCounter++;
-//   } else {
-//     silenceCounter = 0;
-//   }
-
-//   if (noProgressCounter >= 3 || silenceCounter >= 3) {
-//     tryRestartRadio();
-//     noProgressCounter = 0;
-//     silenceCounter = 0;
-//   }
-// }
-
-
-// audioPlayer.addEventListener("play", resetRetryState);
-// audioPlayer.addEventListener("ended", resetRetryState);
-// audioPlayer.addEventListener("error", () => {
-//   resetRetryState();
-//   switchToNextStation();
-// });
-
-// const originalOnStationSelect = window.onStationSelect;
-// window.onStationSelect = function(i) {
-//   resetRetryState();
-//   originalOnStationSelect(i);
-// };
-
-// setInterval(checkRadioStatus, RADIO_CHECK_INTERVAL);
 
 ////iOS playback fix
 
@@ -1339,8 +1228,3 @@ window.toggleFavorite = function(url) {
   if (typeof origToggleFavorite === "function") origToggleFavorite(url);
   document.dispatchEvent(new Event("favoritesChanged"));
 }
-
-
-
-
-

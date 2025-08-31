@@ -1169,8 +1169,7 @@ document.addEventListener("themeChanged", () => {
   setTimeout(afterInit, 100);
 })();
 
-///chat collapse fix - end
-
+///chat collapse fixer - persist state in localStorage
 (() => {
   const KEY = "chatVisible";
   let tries = 0, max = 300;
