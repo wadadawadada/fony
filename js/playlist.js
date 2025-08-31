@@ -20,6 +20,12 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
   playlistElement.innerHTML = "";
   const fragment = document.createDocumentFragment();
   const maxEnd = Math.min(endIndex, stations.length);
+
+  let isFavoritesMode = false;
+  const genreLabel = document.querySelector("label[for='playlistSelect']");
+  if (genreLabel && genreLabel.textContent === "Favorites") isFavoritesMode = true;
+  else if (stations.length && stations[0].favGenre) isFavoritesMode = true;
+
   for (let i = startIndex; i < maxEnd; i++) {
     const station = stations[i];
     const li = document.createElement("li");
@@ -58,6 +64,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     favSlot.style.height = "24px";
     favSlot.style.marginLeft = "10px";
     li.appendChild(favSlot);
+
     if (window.currentStationUrl && station.url === window.currentStationUrl) {
       li.classList.add("active");
       if (typeof currentMode === "undefined" || currentMode !== "web3") {
@@ -141,6 +148,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         shareWrapper.appendChild(shareIcon);
         shareWrapper.appendChild(copiedSpan);
         li.appendChild(shareWrapper);
+
         const removeBtn = document.createElement("button");
         removeBtn.textContent = "×";
         removeBtn.style.position = "absolute";
@@ -155,7 +163,11 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         const titleSpan = span;
         const originalText = titleSpan.textContent;
         removeBtn.addEventListener("mouseenter", () => {
-          titleSpan.textContent = "Delete station?";
+          if (isFavoritesMode) {
+            titleSpan.textContent = "Delete from favorites?";
+          } else {
+            titleSpan.textContent = "Delete station?";
+          }
           titleSpan.style.color = "#fff";
           li.style.backgroundColor = "#ff0505ff";
         });
@@ -166,14 +178,25 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         });
         removeBtn.addEventListener("click", (event) => {
           event.stopPropagation();
-          if (typeof window.markStationAsHidden === "function") {
-            window.markStationAsHidden(parseInt(li.dataset.index, 10));
+          if (isFavoritesMode) {
+            const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+            const idx = favs.findIndex(f => f.url === station.url);
+            if (idx !== -1) {
+              favs.splice(idx, 1);
+              localStorage.setItem("favorites", JSON.stringify(favs));
+              li.remove();
+              if (typeof window.updatePlaylistHearts === "function") window.updatePlaylistHearts();
+            }
+          } else {
+            if (typeof window.markStationAsHidden === "function") {
+              window.markStationAsHidden(parseInt(li.dataset.index, 10));
+            }
           }
         });
         li.appendChild(removeBtn);
       }
     }
-    if (isFavorite(station)) {
+    if (!isFavoritesMode && isFavorite(station)) {
       const favHeart = document.createElement("img");
       favHeart.classList.add("favorite-heart", "active");
       favHeart.src = "/img/heart.svg";
