@@ -1342,12 +1342,10 @@ window.onStationSelect = function(i) {
 window.favoritesCache = null;
 
 async function getFavoritesMap() {
-  // кеш на одну сессию, сбрасывается при изменении
   if (window.favoritesCache) return window.favoritesCache;
   const favUrls = JSON.parse(localStorage.getItem("favorites") || "[]");
   const map = new Map();
   for (let pl of allPlaylists) {
-    // Можно заоптимизировать: если favUrls пуст — не грузить вообще
     if (!favUrls.length) break;
     const st = await loadPlaylist(pl.file);
     for (let station of st) {
@@ -1373,7 +1371,6 @@ window.usePreloadedFavorites = async function() {
   return currentPlaylist.length > 0;
 };
 
-// Патч для setRadioListeners (отдельно)
 const oldSetRadioListeners = setRadioListeners;
 setRadioListeners = function() {
   oldSetRadioListeners();
@@ -1389,8 +1386,6 @@ setRadioListeners = function() {
     });
   }
 };
-
-// Патч toggleFavorite (отдельно)
 const origToggleFavorite = window.toggleFavorite;
 window.toggleFavorite = function(url) {
   if (typeof origToggleFavorite === "function") origToggleFavorite(url);
