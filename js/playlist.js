@@ -119,8 +119,14 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         shareIcon.addEventListener("click", (event) => {
           hideShareTooltip();
           event.stopPropagation();
+          let favGenre = station.favGenre;
+          if (!favGenre) {
+            const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+            const favEntry = favs.find(f => f.url === station.url);
+            favGenre = favEntry ? favEntry.genre : (window.currentGenre || "");
+          }
           const hash = generateStationHash(station.url);
-          const genre = window.currentGenre || (localStorage.getItem("lastStation") && JSON.parse(localStorage.getItem("lastStation")).genre) || "";
+          const genre = favGenre || (window.currentGenre || "");
           const longLink = window.location.origin + window.location.pathname + "#" + encodeURIComponent(genre) + "/" + hash;
           fetch("https://tinyurl.com/api-create.php?url=" + encodeURIComponent(longLink))
             .then(response => response.text())
@@ -194,14 +200,12 @@ function saveFavorites(favs) {
 }
 function isFavorite(station) {
   const favs = getFavorites();
-  return favs.includes(station.url);
+  return favs.some(f => f.url === station.url);
 }
 function removeFavorite(station) {
   let favs = getFavorites();
-  if (favs.includes(station.url)) {
-    favs = favs.filter(url => url !== station.url);
-    saveFavorites(favs);
-  }
+  favs = favs.filter(f => f.url !== station.url);
+  saveFavorites(favs);
 }
 export function loadPlaylist(url) {
   return fetch(url)
@@ -266,7 +270,7 @@ export function loadPlaylist(url) {
 }
 
 export function updatePlaylistHearts() {
-  const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+  const favs = getFavorites();
   const playlistElement = document.getElementById("playlist");
   if (!playlistElement || !window.currentPlaylist) return;
   const lis = playlistElement.querySelectorAll("li");
@@ -278,7 +282,7 @@ export function updatePlaylistHearts() {
     const favSlot = li.querySelector(".fav-slot");
     if (!favSlot) return;
     favSlot.innerHTML = "";
-    if (favs.includes(station.url)) {
+    if (favs.some(f => f.url === station.url)) {
       const favHeart = document.createElement("img");
       favHeart.classList.add("favorite-heart", "active");
       favHeart.src = "/img/heart.svg";

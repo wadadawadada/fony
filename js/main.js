@@ -614,6 +614,22 @@ function onGenreChange(randomStation = false) {
   }, true);
 }
 
+async function createFavoritesPlaylist() {
+  const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+  let list = [];
+  for (let pl of allPlaylists) {
+    const st = await loadPlaylist(pl.file);
+    const matched = st.filter(x => favs.some(f => f.url === x.url));
+    matched.forEach(x => {
+      const favEntry = favs.find(f => f.url === x.url);
+      x.favGenre = favEntry ? favEntry.genre : pl.file;
+    });
+    list = list.concat(matched);
+  }
+  const uniqueStations = Array.from(new Map(list.map(o => [o.url, o])).values());
+  return uniqueStations;
+}
+
 
 function setRadioListeners() {
   const pSel = document.getElementById("playlistSelect");
@@ -690,15 +706,8 @@ if (sIn) {
         if (pSel) pSel.style.display = "none";
         if (sIn) sIn.style.display = "none";
         if (genreLabel) genreLabel.textContent = "Favorites";
-        const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
-        let list = [];
-        for (let pl of allPlaylists) {
-          const st = await loadPlaylist(pl.file);
-          const matched = st.filter(x => fav.includes(x.url));
-          list = list.concat(matched);
-        }
-        const uniqueStations = Array.from(new Map(list.map(o => [o.url, o])).values());
-        currentPlaylist = uniqueStations;
+        const favoritesList = await createFavoritesPlaylist();
+        currentPlaylist = favoritesList;
         if (!currentPlaylist.length) {
           playlistElement.innerHTML = `<li style="pointer-events:none;opacity:.7">No favorites yet</li>`;
         }

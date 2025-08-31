@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateFavBtnIcon(url) {
     const prefix = localStorage.getItem("theme") === "dark" ? "/img/dark/" : "/img/";
     const favs = getFavorites();
-    favBtn.src = favs.includes(url) ? prefix + "fav_active.svg" : prefix + "fav.svg";
+    favBtn.src = favs.some(f => f.url === url) ? prefix + "fav_active.svg" : prefix + "fav.svg";
   }
   function applyHeartToLiIndex(index) {
     if (isNaN(index)) return;
@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!favSlot) return;
     const url = window.currentPlaylist[index].url;
     const favs = getFavorites();
-    const isFav = favs.includes(url);
+    const isFav = favs.some(f => f.url === url);
     favSlot.innerHTML = "";
     if (isFav) {
       const heart = document.createElement("img");
@@ -52,10 +52,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function toggleFavorite(url) {
     if (!url) return;
     let favs = getFavorites();
-    if (favs.includes(url)) {
-      favs = favs.filter(u => u !== url);
+    const currentGenre = window.currentGenre || (localStorage.getItem("lastStation") && JSON.parse(localStorage.getItem("lastStation")).genre) || "";
+    const idx = favs.findIndex(f => f.url === url);
+    if (idx !== -1) {
+      favs.splice(idx, 1);
     } else {
-      favs.push(url);
+      favs.push({ url, genre: currentGenre });
     }
     saveFavorites(favs);
     updateFavBtnIcon(url);
@@ -116,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const prefix = localStorage.getItem("theme") === "dark" ? "/img/dark/" : "/img/";
       const favs = getFavorites();
       const url = window.currentStationUrl || "";
-      favBtn.src = favs.includes(url) ? prefix + "fav_active.svg" : prefix + "fav.svg";
+      favBtn.src = favs.some(f => f.url === url) ? prefix + "fav_active.svg" : prefix + "fav.svg";
     }, 0);
   });
 });
