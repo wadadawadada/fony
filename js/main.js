@@ -1329,4 +1329,42 @@ window.toggleFavorite = function(url) {
   document.dispatchEvent(new Event("favoritesChanged"));
 }
 
+///// FAVS SHARE PATCH
+
+const oldRenderPlaylist = window.renderPlaylist || renderPlaylist;
+window.renderPlaylist = function(playlistElement, stations, startIndex = 0, endIndex = null) {
+  oldRenderPlaylist(playlistElement, stations, startIndex, endIndex);
+  setTimeout(() => {
+    const lis = playlistElement.querySelectorAll("li");
+    lis.forEach((li, idx) => {
+      const shareIcon = li.querySelector('img[src="/img/share_icon.svg"]');
+      if (!shareIcon || shareIcon._fixed) return;
+      shareIcon._fixed = true;
+      shareIcon.onclick = function(event) {
+        event.stopPropagation();
+        const station = stations[idx];
+        if (!station) return;
+        let genre = "";
+        if (window.currentMode !== "web3") {
+          for (let pl of (window.allPlaylists || [])) {
+            if (station && station.url) {
+              if (Array.isArray(pl.stations)) {
+                if (pl.stations.some(x => x.url === station.url)) {
+                  genre = pl.file;
+                  break;
+                }
+              }
+            }
+          }
+        }
+        if (!genre) genre = window.currentGenre || "";
+        const hash = (window.generateStationHash || generateStationHash)(station.url);
+        const longLink = window.location.origin + window.location.pathname + "#" + encodeURIComponent(genre) + "/" + hash;
+        fetch("https://tinyurl.com/api-create.php?url=" + encodeURIComponent(longLink))
+          .then(response => response.text())
+          .then(shortUrl => navigator.clipboard.writeText(shortUrl));
+      };
+    });
+  }, 20);
+};
 
