@@ -117,3 +117,38 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
     updateVolumeScale(defaultVolume.value);
   });
 }
+
+///random button patch
+
+(function () {
+  const randomBtn = document.getElementById('randomBtn');
+  if (!randomBtn) return;
+  randomBtn.addEventListener("click", () => {
+    const favBtn = document.getElementById("favoritesFilterBtn");
+    if (favBtn && favBtn.classList.contains("active")) {
+      favBtn.classList.remove("active");
+      const pSel = document.getElementById("playlistSelect");
+      const sIn = document.getElementById("searchInput");
+      const genreLabel = document.querySelector("label[for='playlistSelect']");
+      if (pSel) pSel.style.display = "";
+      if (sIn) sIn.style.display = "";
+      if (genreLabel) genreLabel.textContent = "Genre:";
+    }
+    if (window.allStations && Array.isArray(window.allStations)) {
+      window.currentPlaylist = window.allStations.slice();
+      if (typeof window.resetVisibleStations === "function") window.resetVisibleStations();
+    }
+    if (window.fadeAudioOut && window.audioPlayer) {
+      window.fadeAudioOut(window.audioPlayer, 500, () => {
+        if (!window.allPlaylists || !window.allPlaylists.length) return;
+        const ri = Math.floor(Math.random() * window.allPlaylists.length);
+        const rg = window.allPlaylists[ri].file;
+        const pSel = document.getElementById("playlistSelect");
+        if (pSel) {
+          pSel.value = rg;
+          if (typeof window.onGenreChange === "function") window.onGenreChange(true);
+        }
+      });
+    }
+  }, true);
+})();
