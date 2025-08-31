@@ -60,6 +60,8 @@
     line-height: 1.1rem;
     font-weight: 100;
     font-family: monospace, monospace;
+    margin-left: 5px;
+    margin-right: 5px;
   }
 
   .chat-messages a {
