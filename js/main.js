@@ -1277,94 +1277,190 @@ window.onStationSelect = function(i) {
 
 ///// FAV PRELOADER PATCH
 
-window.preloadedFavorites = null;
-async function preloadFavorites() {
-  const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
-  let favList = [];
-  for (let pl of allPlaylists) {
-    const st = await loadPlaylist(pl.file);
-    const matched = st.filter(x => fav.includes(x.url));
-    favList = favList.concat(matched);
-  }
-  window.preloadedFavorites = Array.from(new Map(favList.map(o => [o.url, o])).values());
-}
-document.addEventListener("appLoaded", () => {
-  if (Array.isArray(allPlaylists) && allPlaylists.length) {
-    preloadFavorites();
-  }
-});
-document.addEventListener("favoritesChanged", () => {
-  if (Array.isArray(allPlaylists) && allPlaylists.length) {
-    preloadFavorites();
-  }
-});
-window.usePreloadedFavorites = function() {
-  if (window.preloadedFavorites) {
-    currentPlaylist = window.preloadedFavorites;
-    resetVisibleStations();
-    return true;
-  }
-  return false;
-}
-const oldSetRadioListeners = setRadioListeners;
-setRadioListeners = function() {
-  oldSetRadioListeners();
-  const fBtn = document.getElementById("favoritesFilterBtn");
-  if (fBtn && !fBtn._patched) {
-    fBtn._patched = true;
-    const origClick = fBtn.onclick || (()=>{});
-    fBtn.addEventListener("click", function patchFav(e) {
-      setTimeout(() => {
-        if (fBtn.classList.contains("active")) {
-          if (window.usePreloadedFavorites()) return;
-        }
-      }, 10);
-      if (typeof origClick === "function") origClick.call(this, e);
-    });
-  }
-};
-const origToggleFavorite = window.toggleFavorite;
-window.toggleFavorite = function(url) {
-  if (typeof origToggleFavorite === "function") origToggleFavorite(url);
-  document.dispatchEvent(new Event("favoritesChanged"));
-}
+// window.preloadedFavorites = null;
+// async function preloadFavorites() {
+//   const fav = JSON.parse(localStorage.getItem("favorites") || "[]");
+//   let favList = [];
+//   for (let pl of allPlaylists) {
+//     const st = await loadPlaylist(pl.file);
+//     const matched = st.filter(x => fav.includes(x.url));
+//     favList = favList.concat(matched);
+//   }
+//   window.preloadedFavorites = Array.from(new Map(favList.map(o => [o.url, o])).values());
+// }
+// document.addEventListener("appLoaded", () => {
+//   if (Array.isArray(allPlaylists) && allPlaylists.length) {
+//     preloadFavorites();
+//   }
+// });
+// document.addEventListener("favoritesChanged", () => {
+//   if (Array.isArray(allPlaylists) && allPlaylists.length) {
+//     preloadFavorites();
+//   }
+// });
+// window.usePreloadedFavorites = function() {
+//   if (window.preloadedFavorites) {
+//     currentPlaylist = window.preloadedFavorites;
+//     resetVisibleStations();
+//     return true;
+//   }
+//   return false;
+// }
+// const oldSetRadioListeners = setRadioListeners;
+// setRadioListeners = function() {
+//   oldSetRadioListeners();
+//   const fBtn = document.getElementById("favoritesFilterBtn");
+//   if (fBtn && !fBtn._patched) {
+//     fBtn._patched = true;
+//     const origClick = fBtn.onclick || (()=>{});
+//     fBtn.addEventListener("click", function patchFav(e) {
+//       setTimeout(() => {
+//         if (fBtn.classList.contains("active")) {
+//           if (window.usePreloadedFavorites()) return;
+//         }
+//       }, 10);
+//       if (typeof origClick === "function") origClick.call(this, e);
+//     });
+//   }
+// };
+// const origToggleFavorite = window.toggleFavorite;
+// window.toggleFavorite = function(url) {
+//   if (typeof origToggleFavorite === "function") origToggleFavorite(url);
+//   document.dispatchEvent(new Event("favoritesChanged"));
+// }
 
-///// FAVS SHARE PATCH
 
-const oldRenderPlaylist = window.renderPlaylist || renderPlaylist;
-window.renderPlaylist = function(playlistElement, stations, startIndex = 0, endIndex = null) {
-  oldRenderPlaylist(playlistElement, stations, startIndex, endIndex);
-  setTimeout(() => {
-    const lis = playlistElement.querySelectorAll("li");
-    lis.forEach((li, idx) => {
-      const shareIcon = li.querySelector('img[src="/img/share_icon.svg"]');
-      if (!shareIcon || shareIcon._fixed) return;
-      shareIcon._fixed = true;
-      shareIcon.onclick = function(event) {
-        event.stopPropagation();
-        const station = stations[idx];
-        if (!station) return;
-        let genre = "";
-        if (window.currentMode !== "web3") {
-          for (let pl of (window.allPlaylists || [])) {
-            if (station && station.url) {
-              if (Array.isArray(pl.stations)) {
-                if (pl.stations.some(x => x.url === station.url)) {
-                  genre = pl.file;
-                  break;
-                }
-              }
-            }
-          }
+
+(function(){
+  const plCache=new Map();
+  const plBuild=new Map();
+  function getFavArr(){
+    try{const a=JSON.parse(localStorage.getItem("favorites")||"[]");return Array.isArray(a)?a.slice().sort():[]}catch(_){return[]}
+  }
+  async function ensureStations(pl){
+    if(plCache.has(pl.file)) return plCache.get(pl.file);
+    if(plBuild.has(pl.file)) return plBuild.get(pl.file);
+    const p=loadPlaylist(pl.file).then(sts=>{pl.stations=sts;plCache.set(pl.file,sts);plBuild.delete(pl.file);return sts}).catch(e=>{plBuild.delete(pl.file);throw e});
+    plBuild.set(pl.file,p);
+    return p;
+  }
+  function uniqByUrl(list){const m=new Map();for(const x of list){if(x&&x.url&&!m.has(x.url))m.set(x.url,x)}return Array.from(m.values())}
+
+  const favState={version:"",list:[],building:null};
+  function computeVersion(){return JSON.stringify(getFavArr())}
+  async function buildPreloadedFavorites(){
+    const v=computeVersion();
+    if(favState.building) return favState.building;
+    if(favState.version===v && favState.list.length) return Promise.resolve(favState.list);
+    const task=(async()=>{
+      const fav=getFavArr();
+      if(!fav.length){favState.list=[];favState.version=v;return favState.list}
+      let acc=[];
+      for(const pl of (window.allPlaylists||[])){
+        const sts=pl.stations||await ensureStations(pl);
+        if(!sts||!sts.length) continue;
+        const matched=sts.filter(x=>fav.includes(x.url));
+        acc=acc.concat(matched);
+      }
+      favState.list=uniqByUrl(acc);
+      favState.version=v;
+      favState.building=null;
+      return favState.list;
+    })();
+    favState.building=task;
+    return task;
+  }
+  function getPreloadedFavoritesSync(){return favState.list&&favState.list.length?favState.list:null}
+
+  function showFavsFast(){
+    const list=getPreloadedFavoritesSync();
+    const playlistElement=document.getElementById("playlist");
+    if(list){window.currentPlaylist=list; if(playlistElement) playlistElement.classList.remove("hidden"); resetVisibleStations(); return true}
+    return false
+  }
+
+  function setFavUIActive(active){
+    const pSel=document.getElementById("playlistSelect");
+    const sIn=document.getElementById("searchInput");
+    const genreLabel=document.querySelector("label[for='playlistSelect']");
+    if(active){
+      if(pSel) pSel.style.display="none";
+      if(sIn) sIn.style.display="none";
+      if(genreLabel) genreLabel.textContent="Favorites";
+    }else{
+      if(pSel) pSel.style.display="";
+      if(sIn) sIn.style.display="";
+      if(genreLabel) genreLabel.textContent="Genre:";
+    }
+  }
+
+  function showMiniLoader(on){
+    const playlistElement=document.getElementById("playlist");
+    const playlistLoader=window.playlistLoader||document.getElementById("playlistLoader")||document.querySelector(".playlist-loader")||{classList:{add:()=>{},remove:()=>{}},style:{},textContent:""};
+    if(on){
+      if(playlistElement) playlistElement.classList.add("hidden");
+      playlistLoader.classList.remove("hidden");
+      playlistLoader.style.fontFamily="Ruda";
+      playlistLoader.style.textAlign="center";
+      playlistLoader.style.fontSize="28px";
+      let dot=0; const max=3;
+      playlistLoader.textContent="";
+      if(playlistLoader.__int) clearInterval(playlistLoader.__int);
+      playlistLoader.__int=setInterval(()=>{dot=(dot+1)%(max+1); const s=":".repeat(dot); playlistLoader.textContent=s+s;},300);
+    }else{
+      const playlistLoaderEl=window.playlistLoader||document.getElementById("playlistLoader")||document.querySelector(".playlist-loader");
+      const playlistEl=document.getElementById("playlist");
+      if(playlistLoaderEl){
+        if(playlistLoaderEl.__int) {clearInterval(playlistLoaderEl.__int); playlistLoaderEl.__int=null}
+        playlistLoaderEl.classList.add("hidden");
+        playlistLoaderEl.textContent="";
+        playlistLoaderEl.style.fontSize="";
+      }
+      if(playlistEl) playlistEl.classList.remove("hidden");
+    }
+  }
+
+  function hijackFavoritesButton(){
+    const fBtn=document.getElementById("favoritesFilterBtn");
+    if(!fBtn||fBtn.__favHijacked) return;
+    fBtn.__favHijacked=true;
+    fBtn.addEventListener("click",async (e)=>{
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      e.stopPropagation();
+      const goingToActivate=!fBtn.classList.contains("active");
+      if(goingToActivate){
+        fBtn.classList.add("active");
+        setFavUIActive(true);
+        if(!showFavsFast()){
+          showMiniLoader(true);
+          await buildPreloadedFavorites().catch(()=>{});
+          showMiniLoader(false);
+          showFavsFast();
         }
-        if (!genre) genre = window.currentGenre || "";
-        const hash = (window.generateStationHash || generateStationHash)(station.url);
-        const longLink = window.location.origin + window.location.pathname + "#" + encodeURIComponent(genre) + "/" + hash;
-        fetch("https://tinyurl.com/api-create.php?url=" + encodeURIComponent(longLink))
-          .then(response => response.text())
-          .then(shortUrl => navigator.clipboard.writeText(shortUrl));
-      };
-    });
-  }, 20);
-};
+      }else{
+        fBtn.classList.remove("active");
+        setFavUIActive(false);
+        window.currentPlaylist=(window.allStations||[]).slice();
+        resetVisibleStations();
+      }
+    },true);
+  }
+
+  document.addEventListener("appLoaded",()=>{
+    (async()=>{
+      for(const pl of (window.allPlaylists||[])){ if(!pl.stations) ensureStations(pl) }
+      buildPreloadedFavorites();
+    })();
+    hijackFavoritesButton();
+  });
+
+  window.addEventListener("storage",(e)=>{ if(e.key==="favorites"){ favState.version=""; buildPreloadedFavorites(); }});
+  document.addEventListener("favoritesChanged",()=>{ favState.version=""; buildPreloadedFavorites(); });
+
+  window.usePreloadedFavorites=function(){
+    return showFavsFast();
+  };
+})();
+
 
