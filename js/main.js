@@ -25,8 +25,8 @@ let preloaderInterval = null
 let lastChatUpdate = 0
 let lastMetadataUpdate = 0
 let userPaused = false;
-const chatUpdateInterval = 15000
-const metadataUpdateInterval = 20000
+// const chatUpdateInterval = 15000
+const metadataUpdateInterval = 7000
 
 const audioPlayer = document.getElementById('audioPlayer')
 audioPlayer.volume = defaultVolume.value
