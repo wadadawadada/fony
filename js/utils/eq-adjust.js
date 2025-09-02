@@ -208,6 +208,7 @@
     }
 
     let lowVal, midVal, highVal;
+    let resetBtnSlot;
 
     function updateValues() {
       if (lowVal) lowVal.textContent = padValue(window.lowFilter.gain.value);
@@ -266,6 +267,25 @@
     controlsDiv.appendChild(lowControl.span);
     controlsDiv.appendChild(midControl.span);
     controlsDiv.appendChild(highControl.span);
+
+    resetBtnSlot = document.createElement("span");
+    resetBtnSlot.className = "eq-reset-slot";
+    resetBtnSlot.style.marginLeft = "18px";
+    controlsDiv.appendChild(resetBtnSlot);
+
+    const resetBtn = document.createElement('a');
+    resetBtn.href = "#";
+    resetBtn.textContent = "[Reset]";
+    resetBtn.className = "eq-reset-link";
+    resetBtn.style.marginLeft = "0px";
+    resetBtn.style.color = "#00F2B8";
+    resetBtn.style.cursor = "pointer";
+    resetBtn.onclick = function(e) {
+      e.preventDefault();
+      setEqPreset(EQ_PRESETS.default);
+      updateValues();
+    };
+    resetBtnSlot.appendChild(resetBtn);
 
     const fxToggle = document.createElement("a");
     fxToggle.href = "#";
@@ -336,29 +356,17 @@
       if (exist) exist.remove();
       const msg = document.createElement("div");
       msg.className = "chat-message bot-message";
-      if (genre === "reset") {
-        msg.innerHTML =
-          `<br><strong>>_FONY:</strong><div class="message-content">🎚️ Equalizer reset to default.</div><br>`;
-      } else {
-        msg.innerHTML =
-          `<br><strong>>_FONY:</strong><div class="message-content">🎚️ Equalizer preset <b>${genre}</b> applied. <a href="#" class="eq-reset-link" style="margin-left:12px;color:#00F2B8;cursor:pointer;">[Reset]</a></div><br>`;
-      }
-      const reset = msg.querySelector(".eq-reset-link");
+      msg.innerHTML =
+        `<br><strong>>_FONY:</strong><br><div class="message-content">Equalizer preset <b>${genre}</b> applied.🎚️</div><br>`;
       chat.appendChild(msg);
       setTimeout(() => {
         msg.classList.add("show");
         chat.scrollTop = chat.scrollHeight;
         createManualAdjustControls(msg.querySelector(".message-content"));
       }, 20);
-      if (reset) {
-        reset.onclick = e => {
-          e.preventDefault();
-          setEqPreset(EQ_PRESETS.default);
-          reset.remove();
-          showMsg("reset");
-        };
-      }
     }
+
+    window.showMsg = showMsg;
 
     sendBtn.addEventListener("click", e => {
       const val = input.value.trim();

@@ -1,11 +1,11 @@
 import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js";
-import { fetchDiscogsTrackInfo } from './discogs.js';
-import { handleSkinsCommand, reapplySkin } from './skins.js';
+import { fetchDiscogsTrackInfo } from './utils/discogs.js';
+import { handleSkinsCommand, reapplySkin } from './utils/skins.js';
 import {
   addTrackToCollection,
   createMainCollectMenuHtml,
   setupCollectionMenuHandlers
-} from './collection.js';
+} from './utils/collection.js';
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const TIPS_JSON_URL = "../json/fony_tips.json";

@@ -1,4 +1,4 @@
-import { clearSkinStyles, loadSkinAndThemeFromStorage, reapplySkin } from "./skins.js";
+import { clearSkinStyles, loadSkinAndThemeFromStorage, reapplySkin } from "./utils/skins.js";
 
 document.addEventListener('DOMContentLoaded', () => {
   const themeToggleBtn = document.getElementById('themeToggle');

@@ -1,4 +1,4 @@
-import { fetchDiscogsTrackInfo } from './discogs.js';
+import { fetchDiscogsTrackInfo } from './utils/discogs.js';
 
 function ensureAlbumCoverBg() {
   const centerCircle = document.querySelector('.center-circle');
