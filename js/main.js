@@ -46,6 +46,9 @@ const randomBtn = document.getElementById('randomBtn')
 const walletBtn = document.getElementById('connectWalletBtn')
 const radioModeBtn = document.getElementById('radioModeBtn')
 
+speechSynthesis.cancel()
+
+
 function playRandomFromUrlGenre() {
   const pathGenre = (window.location.pathname !== "/" ? window.location.pathname.slice(1) : "") ||
                   (window.location.hash ? window.location.hash.slice(1) : "");
@@ -74,7 +77,6 @@ function playRandomFromUrlGenre() {
   setRadioListeners();
   return true;
 }
-
 
 function generateStationHash(url) {
   let h = 0

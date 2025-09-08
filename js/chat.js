@@ -1,11 +1,9 @@
 import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js";
 import { fetchDiscogsTrackInfo } from './utils/discogs.js';
 import { handleSkinsCommand, reapplySkin } from './utils/skins.js';
-import {
-  addTrackToCollection,
-  createMainCollectMenuHtml,
-  setupCollectionMenuHandlers
-} from './utils/collection.js';
+import { addTrackToCollection, createMainCollectMenuHtml, setupCollectionMenuHandlers } from './utils/collection.js';
+import { playPodcastOverRadio, fetchPodcastAudio, stopPodcast } from './utils/podcast.js';
+
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const TIPS_JSON_URL = "../json/fony_tips.json";
@@ -372,6 +370,41 @@ async function getChatBotResponse(history, userInput) {
     isContinuation = false;
   }
 
+if (window.__awaitingPodcastTopic) {
+  window.__awaitingPodcastTopic = false;
+
+   if (userInput.trim().startsWith("/")) {
+    return await getChatBotResponse(history, userInput.trim());
+  }
+
+  const typingIndicator = document.createElement("div");
+  typingIndicator.classList.add("chat-message", "bot-message", "typing-indicator");
+  typingIndicator.innerHTML = `<span class="dot-flash"></span>`;
+  chatMessagesElem.appendChild(typingIndicator);
+  chatMessagesElem.scrollTop = chatMessagesElem.scrollHeight;
+  speechSynthesis.cancel();
+  stopPodcast();
+
+  try {
+  const podcastBlobOrNull = await fetchPodcastAudio(userInput.trim(), { mode: window.__podcastMode || "ai" });
+  typingIndicator.remove();
+
+  if (window.__podcastMode === "robot") {
+    addMessage("bot", "🤖 Here’s your podcast script:<br><br>" + podcastBlobOrNull);
+    const utterance = new SpeechSynthesisUtterance(podcastBlobOrNull);
+    speechSynthesis.speak(utterance);
+  } else {
+    addMessage("bot", "🎙️ Podcast is playing!");
+    await playPodcastOverRadio(podcastBlobOrNull);
+  }
+} catch (e) {
+  typingIndicator.remove();
+  addMessage("bot", "Failed to fetch or play podcast: " + (e.message || e));
+}
+  return null;
+}
+/////////////////////////////
+
 if (userInput.trim().toLowerCase() === "/donate") {
   const donateMessage = `
     Support the FONY project and contribute to its continued development:<br><br>
@@ -430,25 +463,25 @@ if (userInput.trim().toLowerCase() === "/donate") {
     return { type: "discogs", content: discogsInfo };
   }
 
-  if (userInput.trim().toLowerCase() === "/img") {
-    const nowPlayingText = getNowPlayingText();
-    if (!nowPlayingText) {
-      return { type: "text", content: "Current track unknown." };
-    }
-    const parsed = parseArtistTrack(nowPlayingText);
-    if (!parsed) {
-      return { type: "text", content: "Failed to parse artist and track name." };
-    }
-    const cover = await fetchCoverArt(parsed.artist, parsed.track);
-    if (cover) {
-      return {
-        type: "image",
-        content: `<a href="${cover}" target="_blank" rel="noopener"><img src="${cover}" alt="Album Cover" style="max-width: 20%; border-radius: 4px;"></a>`
-      };
-    } else {
-      return { type: "text", content: "Cover art not found." };
-    }
-  }
+  // if (userInput.trim().toLowerCase() === "/img") {
+  //   const nowPlayingText = getNowPlayingText();
+  //   if (!nowPlayingText) {
+  //     return { type: "text", content: "Current track unknown." };
+  //   }
+  //   const parsed = parseArtistTrack(nowPlayingText);
+  //   if (!parsed) {
+  //     return { type: "text", content: "Failed to parse artist and track name." };
+  //   }
+  //   const cover = await fetchCoverArt(parsed.artist, parsed.track);
+  //   if (cover) {
+  //     return {
+  //       type: "image",
+  //       content: `<a href="${cover}" target="_blank" rel="noopener"><img src="${cover}" alt="Album Cover" style="max-width: 20%; border-radius: 4px;"></a>`
+  //     };
+  //   } else {
+  //     return { type: "text", content: "Cover art not found." };
+  //   }
+  // }
 
 if (userInput.trim().toLowerCase() === "/collection") {
   const menuHtml = createMainCollectMenuHtml();
@@ -456,21 +489,32 @@ if (userInput.trim().toLowerCase() === "/collection") {
   return { type: "html", content: menuHtml };
 }
 
-// if (userInput.trim().toLowerCase() === "/game") {
-//   const gameContainerId = "game-container";
-//   let gameDiv = document.getElementById(gameContainerId);
-//   if (!gameDiv) {
-//     gameDiv = document.createElement("div");
-//     gameDiv.id = gameContainerId;
-//     document.getElementById("chatMessages").appendChild(gameDiv);
-//   }
-//   import("./game.js").then(mod => {
-//     mod.default(gameDiv, () => {
-//       gameDiv.remove();
+//  if (userInput.trim().toLowerCase() === "/podcast") {
+//   addMessage(
+//     "bot",
+//     "Choose podcast mode:<br><a href='#' id='choose-ai'>AI</a> | <a href='#' id='choose-robot'>Robot</a>"
+//   );
+
+//   setTimeout(() => {
+//     document.getElementById("choose-ai")?.addEventListener("click", e => {
+//       e.preventDefault();
+//       window.__podcastMode = "ai";
+//       addMessage("bot", "Enter the topic for your AI podcast:");
+//       window.__awaitingPodcastTopic = true;
 //     });
-//   });
-//   return { type: "html", content: `<div id="${gameContainerId}"></div>` };
+
+//     document.getElementById("choose-robot")?.addEventListener("click", e => {
+//       e.preventDefault();
+//       window.__podcastMode = "robot";
+//       addMessage("bot", "Enter the topic for your Robot podcast:");
+//       window.__awaitingPodcastTopic = true;
+//     });
+//   }, 100);
+
+//   return null;
 // }
+
+
 
   if (userInput.trim().toLowerCase() === "[fony tips]") {
     fonyTipsState.mode = 'list';
@@ -649,26 +693,26 @@ function renderQuickLinks() {
       description: "Recommend 3 tracks similar to the current track",
       command: () => nowPlayingText ? `Recommend 3 tracks similar to "${nowPlayingText}"` : "Recommend 3 similar tracks to the current track"
     },
-    {
-      text: "/new",
-      description: "Suggest 3 new tracks in a similar genre",
-      command: () => nowPlayingText ? `Suggest 3 new tracks in a similar genre to "${nowPlayingText}"` : "Suggest 3 new tracks in a similar genre"
-    },
+    // {
+    //   text: "/new",
+    //   description: "Suggest 3 new tracks in a similar genre",
+    //   command: () => nowPlayingText ? `Suggest 3 new tracks in a similar genre to "${nowPlayingText}"` : "Suggest 3 new tracks in a similar genre"
+    // },
     {
       text: "/facts",
       description: "List facts about the current track or artist",
       command: () => nowPlayingText ? `List facts about "${nowPlayingText}"` : "List facts about the current track or artist"
     },
-    {
-      text: "/info",
-      description: "Show technical metadata about the current track",
-      command: () => nowPlayingText ? `/info ${nowPlayingText}` : "/info"
-    },
-    {
-      text: "/img",
-      description: "Show album cover of the playing track",
-      command: () => "/img"
-    },
+    // {
+    //   text: "/info",
+    //   description: "Show technical metadata about the current track",
+    //   command: () => nowPlayingText ? `/info ${nowPlayingText}` : "/info"
+    // },
+    // {
+    //   text: "/img",
+    //   description: "Show album cover of the playing track",
+    //   command: () => "/img"
+    // },
     {
       text: "/discogs",
       description: "Get detailed info from Discogs about a track",
@@ -690,9 +734,9 @@ function renderQuickLinks() {
       command: () => "/equalizer"
     },
     // {
-    //   text: "/game",
-    //   description: "Play the game",
-    //   command: () => "/game"
+    //   text: "/podcast",
+    //   description: "Generate a podcast and play it over radio",
+    //   command: () => "/podcast"
     // },
     {
       text: "[fony tips]",
@@ -991,10 +1035,10 @@ export function initChat() {
       const nowPlayingText = getNowPlayingText();
       const commands = [
         { text: "/similar", description: "Recommend 3 tracks similar to the current track", command: () => nowPlayingText ? `Recommend 3 tracks similar to "${nowPlayingText}"` : "Recommend 3 similar tracks to the current track" },
-        { text: "/new", description: "Suggest 3 new tracks in a similar genre", command: () => nowPlayingText ? `Suggest 3 new tracks in a similar genre to "${nowPlayingText}"` : "Suggest 3 new tracks in a similar genre" },
+        // { text: "/new", description: "Suggest 3 new tracks in a similar genre", command: () => nowPlayingText ? `Suggest 3 new tracks in a similar genre to "${nowPlayingText}"` : "Suggest 3 new tracks in a similar genre" },
         { text: "/facts", description: "List facts about the current track or artist", command: () => nowPlayingText ? `List facts about "${nowPlayingText}"` : "List facts about the current track or artist" },
-        { text: "/info", description: "Show technical metadata about the current track", command: () => nowPlayingText ? `/info ${nowPlayingText}` : "/info" },
-        { text: "/img", description: "Show album cover of the playing track", command: () => "/img" },
+        // { text: "/info", description: "Show technical metadata about the current track", command: () => nowPlayingText ? `/info ${nowPlayingText}` : "/info" },
+        // { text: "/img", description: "Show album cover of the playing track", command: () => "/img" },
         { text: "/discogs", description: "Get detailed info from Discogs about a track", command: () => "/discogs " },
         { text: "/skins", description: "Generate a new background", command: () => "/skins"},
         { text: "[fony tips]", description: "Useful tips about FONY" }

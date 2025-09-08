@@ -1,11 +1,12 @@
 // equalizer.js
 
 const VISUALIZERS = [
-  { name: 'Bars',   path: './equalizers/bars.js',   module: null },
-  { name: 'Line',   path: './equalizers/line.js',   module: null },
-  { name: 'Fish',   path: './equalizers/fish.js',   module: null },
-  { name: 'Lava',   path: './equalizers/lava.js',   module: null },
-  { name: 'Sheep',  path: './equalizers/sheep.js',  module: null }
+  { name: 'Bars',    path: './equalizers/bars.js',    module: null },
+  { name: 'Line',    path: './equalizers/line.js',    module: null },
+  // { name: 'Circles', path: './equalizers/circles.js', module: null },
+  { name: 'Fish',    path: './equalizers/fish.js',    module: null },
+  { name: 'Lava',    path: './equalizers/lava.js',    module: null },
+  { name: 'Sheep',   path: './equalizers/sheep.js',   module: null }
 ];
 
 export function initEqualizer() {
