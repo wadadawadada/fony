@@ -11,38 +11,77 @@
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  background-color: #171C2B;
-  border: 2px solid #00F2B8;
+  background: linear-gradient(135deg, rgba(23, 28, 43, 0.95) 0%, rgba(23, 28, 43, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(0, 242, 184, 0.6);
   border-radius: 50px;
   padding: 15px;
   width: 95%;
   margin-bottom: 10px;
-  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
+  box-shadow:
+    0 8px 32px rgba(0, 242, 184, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(0, 242, 184, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.screen:hover {
+  border-color: rgba(0, 242, 184, 0.8);
+  box-shadow:
+    0 12px 48px rgba(0, 242, 184, 0.3),
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(0, 242, 184, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
 }
 
 .screen::after {
   content: "";
   position: absolute;
   top: 0;
-  left: 100%;
+  left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
-  transform: skewX(25deg);
+  background: linear-gradient(120deg,
+    transparent 0%,
+    rgba(0, 242, 184, 0.2) 30%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(0, 242, 184, 0.2) 70%,
+    transparent 100%);
+  transform: skewX(-25deg);
   pointer-events: none;
+  animation: autoShine 8s ease-in-out infinite;
 }
 
 .screen:hover::after {
-  animation: shine 3s forwards;
+  animation: shine 1.5s ease-out forwards;
 }
 
 @keyframes shine {
   from {
-    left: 100%;
+    left: -100%;
   }
   to {
+    left: 200%;
+  }
+}
+
+@keyframes autoShine {
+  0%, 100% {
     left: -100%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  20% {
+    left: 200%;
+    opacity: 0;
+  }
+  80% {
+    left: -100%;
+    opacity: 0;
   }
 }
 
@@ -87,6 +126,7 @@
 .station-label .scrolling-text,
 .track-name .scrolling-text {
   display: inline-block;
+  transition: all 0.3s ease;
 }
 
 .station-label .scrolling-text.marquee {
@@ -98,17 +138,30 @@
 }
 
 @keyframes marquee {
-  0% { transform: translateX(50%); }
-  100% { transform: translateX(-100%); }
+  0% {
+    transform: translateX(50%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
 }
+
 .station-label {
   font-size: 1.2rem;
   font-weight: bold;
   color: #00F2B8;
+  text-shadow: 0 0 10px rgba(0, 242, 184, 0.5);
+  transition: all 0.3s ease;
 }
+
+.station-label:hover {
+  text-shadow: 0 0 20px rgba(0, 242, 184, 0.8);
+}
+
 .track-name {
   font-size: 1rem;
   color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 .diods-row {
   display: flex;
@@ -173,6 +226,23 @@
   width: 200px;
   height: 200px;
   transition: all 1.3s ease-in-out;
+  filter:
+    drop-shadow(0 0 20px rgba(0, 242, 184, 0.3))
+    drop-shadow(0 0 40px rgba(0, 242, 184, 0.2));
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    filter:
+      drop-shadow(0 0 20px rgba(0, 242, 184, 0.3))
+      drop-shadow(0 0 40px rgba(0, 242, 184, 0.2));
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 30px rgba(0, 242, 184, 0.5))
+      drop-shadow(0 0 60px rgba(0, 242, 184, 0.3));
+  }
 }
 
 .play-btn {
@@ -183,17 +253,20 @@
 }
 .player-btn {
   cursor: pointer;
-  transition: all 0.3s ease-in-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   filter:
-    drop-shadow(0px 14px 6px #00000031)
-    drop-shadow(0px 10px 3px #00000031);
+    drop-shadow(0px 14px 12px rgba(0, 0, 0, 0.25))
+    drop-shadow(0px 8px 6px rgba(0, 0, 0, 0.15))
+    drop-shadow(0 0 20px rgba(0, 242, 184, 0.2));
 }
 .player-btn:hover {
-  transition: all 0.3s ease-in-out;
-  transform: scale(0.95);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scale(0.95) translateY(-2px);
   filter:
-    drop-shadow(0px 12px 6px #00000047)
-    drop-shadow(0px 8px 3px #00000047);
+    drop-shadow(0px 16px 16px rgba(0, 0, 0, 0.3))
+    drop-shadow(0px 12px 8px rgba(0, 0, 0, 0.2))
+    drop-shadow(0 0 30px rgba(0, 242, 184, 0.4))
+    brightness(1.1);
 }
 
 @keyframes bounce {
@@ -241,10 +314,22 @@
   flex-direction: column;
   align-items: center;
   margin-top: -1.5rem;
+  transition: all 0.3s ease;
 }
+
+.volume-container:hover {
+  transform: translateY(-2px);
+}
+
 .volume-scale {
   margin-bottom: 5px;
+  transition: all 0.3s ease;
 }
+
+.volume-container:hover .volume-scale {
+  filter: drop-shadow(0 0 10px rgba(0, 242, 184, 0.4));
+}
+
 .volume-slider {
   position: relative;
   cursor: pointer;
@@ -253,6 +338,7 @@
 .volume-line {
   display: block;
   height: auto;
+  transition: all 0.3s ease;
 }
 .volume-knob {
   position: absolute;
@@ -262,13 +348,21 @@
   cursor: pointer;
   width: 55px;
   height: 55px;
-  transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  filter:
+    drop-shadow(0px 6px 4px rgba(0, 0, 0, 0.2))
+    drop-shadow(0 0 15px rgba(0, 242, 184, 0.2));
 }
 
 .volume-knob:hover {
-  transform: translate(-50%, -50%) scale(1.1);
+  transform: translate(-50%, -50%) scale(1.15);
   filter:
-    drop-shadow(0px 8px 4px rgba(50, 50, 93, 0.20))
-    drop-shadow(0px 6px 7px rgba(0, 0, 0, 0.27));
+    drop-shadow(0px 12px 8px rgba(0, 0, 0, 0.25))
+    drop-shadow(0 0 25px rgba(0, 242, 184, 0.5))
+    drop-shadow(0 0 40px rgba(0, 242, 184, 0.3));
+}
+
+.volume-knob:active {
+  transform: translate(-50%, -50%) scale(1.05);
 }
 

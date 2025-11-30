@@ -96,6 +96,7 @@
     border-radius: 0;
     box-sizing: border-box;
     border: none;
+    -webkit-overflow-scrolling: touch;
   }
 
   .playlist-area {
@@ -158,6 +159,11 @@
     left: 50% !important;
     transform: translateX(-50%) !important;
     padding: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    backdrop-filter: blur(20px);
+    box-shadow:
+      0 8px 32px rgba(0, 242, 184, 0.3),
+      0 4px 16px rgba(0, 0, 0, 0.4);
   }
 
   .genre-box,
