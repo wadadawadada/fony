@@ -202,6 +202,41 @@ function getGenreColor(genre) {
   return colors[genre] || "#00F2B8";
 }
 
+function updateFavoriteRowColors() {
+  const draggableItems = document.querySelectorAll(".draggable-favorite");
+  draggableItems.forEach(item => {
+    const stationUrl = item.dataset.stationUrl;
+    if (stationUrl && window.currentPlaylist) {
+      const station = window.currentPlaylist.find(s => s.url === stationUrl);
+      if (station) {
+        const genre = station.favGenre || station.genre || "World";
+        const color = getGenreColor(genre);
+        item.style.backgroundColor = color;
+      }
+    }
+  });
+}
+
+// Listen for theme changes and update colors
+const themeObserver = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+      if (mutation.target === document.body) {
+        updateFavoriteRowColors();
+      }
+    }
+  });
+});
+
+// Start observing when DOM is ready
+if (document.body) {
+  themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  });
+}
+
 function generateStationHash(url) {
   let hash = 0;
   for (let i = 0; i < url.length; i++) {
@@ -517,6 +552,9 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         draggableItems.forEach(i => i.style.borderTop = "");
       });
     });
+
+    // Ensure colors are set correctly for current theme
+    updateFavoriteRowColors();
   }
 }
 function getFavorites() {
