@@ -500,8 +500,11 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     draggableItems.forEach(item => {
       item.addEventListener("dragstart", (e) => {
         draggedElement = item;
-        item.style.opacity = "0.5";
+        item.style.opacity = "0.3";
+        item.style.transform = "scale(0.98)";
+        item.style.boxShadow = "0 8px 16px rgba(0, 242, 184, 0.4)";
         e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/html", item.innerHTML);
       });
 
       item.addEventListener("dragover", (e) => {
@@ -509,17 +512,20 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         e.dataTransfer.dropEffect = "move";
 
         if (item !== draggedElement) {
-          item.style.borderTop = "2px solid #00F2B8";
+          item.style.borderTop = "3px solid #00F2B8";
+          item.style.paddingTop = "8px";
         }
       });
 
       item.addEventListener("dragleave", (e) => {
         item.style.borderTop = "";
+        item.style.paddingTop = "";
       });
 
       item.addEventListener("drop", (e) => {
         e.preventDefault();
         item.style.borderTop = "";
+        item.style.paddingTop = "";
 
         if (item !== draggedElement) {
           // Reorder in DOM
@@ -529,59 +535,47 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
             item.parentNode.insertBefore(draggedElement, item.nextSibling);
           }
 
-          // Update favorites order in localStorage
+          // Rebuild favorites array based on new DOM order
+          const allItems = playlistElement.querySelectorAll(".draggable-favorite");
+          const newOrder = Array.from(allItems).map(el => el.dataset.stationUrl);
+
+          // Update favorites in localStorage to match new DOM order
           const favs = getFavorites();
-          const draggedUrl = draggedElement.dataset.stationUrl;
-          const targetUrl = item.dataset.stationUrl;
+          const newFavs = [];
+          for (const url of newOrder) {
+            const fav = favs.find(f => f.url === url);
+            if (fav) newFavs.push(fav);
+          }
+          saveFavorites(newFavs);
 
-          const draggedFav = favs.find(f => f.url === draggedUrl);
-          const draggedIndex = favs.findIndex(f => f.url === draggedUrl);
-          const targetIndex = favs.findIndex(f => f.url === targetUrl);
+          // Update indices for all items
+          allItems.forEach((item, idx) => {
+            item.dataset.index = idx;
+            item.style.transition = "all 0.3s ease";
+          });
 
-          if (draggedIndex !== -1 && targetIndex !== -1) {
-            favs.splice(draggedIndex, 1);
-
-            // Adjust target index if needed (when removing shifts indices)
-            if (draggedIndex < targetIndex) {
-              targetIndex--;
+          // Update window.currentPlaylist to match new order
+          if (window.currentPlaylist) {
+            const newPlaylist = [];
+            for (const url of newOrder) {
+              const station = window.currentPlaylist.find(s => s.url === url);
+              if (station) newPlaylist.push(station);
             }
-
-            favs.splice(targetIndex, 0, draggedFav);
-            saveFavorites(favs);
-
-            // Update indices for all items after reordering
-            const allItems = playlistElement.querySelectorAll(".draggable-favorite");
-            allItems.forEach((item, idx) => {
-              item.dataset.index = idx;
-            });
-
-            // Update window.currentPlaylist to match new order
-            if (window.currentPlaylist) {
-              const draggedStation = window.currentPlaylist.find(s => s.url === draggedUrl);
-              const draggedStationIndex = window.currentPlaylist.findIndex(s => s.url === draggedUrl);
-              let targetStationIndex = window.currentPlaylist.findIndex(s => s.url === targetUrl);
-
-              if (draggedStationIndex !== -1 && targetStationIndex !== -1 && draggedStation) {
-                // Remove dragged item
-                window.currentPlaylist.splice(draggedStationIndex, 1);
-
-                // Adjust target index if needed (when removing shifts indices)
-                if (draggedStationIndex < targetStationIndex) {
-                  targetStationIndex--;
-                }
-
-                // Insert at new position
-                window.currentPlaylist.splice(targetStationIndex, 0, draggedStation);
-              }
-            }
+            window.currentPlaylist.splice(0, window.currentPlaylist.length, ...newPlaylist);
           }
         }
       });
 
       item.addEventListener("dragend", (e) => {
         draggedElement.style.opacity = "1";
+        draggedElement.style.transform = "";
+        draggedElement.style.boxShadow = "";
         draggedElement.style.borderTop = "";
-        draggableItems.forEach(i => i.style.borderTop = "");
+        draggedElement.style.paddingTop = "";
+        draggableItems.forEach(i => {
+          i.style.borderTop = "";
+          i.style.paddingTop = "";
+        });
       });
     });
 
