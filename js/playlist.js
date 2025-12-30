@@ -50,49 +50,49 @@ const GENRE_EMOJI_MAP = {
   "World": "🌐"
 };
 
-// Genre to color mapping
+// Genre to color mapping - darker colors for better text contrast
 const GENRE_COLORS = {
-  "African": "#FF6B6B",
-  "Alternative": "#4ECDC4",
-  "Asian": "#45B7D1",
-  "Balkans": "#FFA07A",
-  "Blues": "#98D8C8",
-  "Caribbean": "#F7DC6F",
-  "Chillout": "#BB8FCE",
-  "China": "#85C1E2",
-  "Chiptune": "#F8B88B",
-  "Classical": "#52C8A8",
-  "Downtempo": "#A8E6CF",
-  "Drum & Bass": "#FF8B94",
-  "Dub": "#B19CD9",
-  "Electronic": "#74B9FF",
-  "Funk": "#FDB4B4",
-  "Goa": "#A8D8EA",
-  "Hardcore": "#FF6B9D",
-  "Hip Hop": "#C7CEEA",
-  "House": "#B4E7FF",
-  "Industrial": "#AA96DA",
-  "Italian": "#FCBAD3",
-  "Japan": "#A6D9FF",
-  "Jazz": "#FFFFB4",
-  "Jungle": "#B4ACFE",
-  "Lounge": "#D4C5F9",
-  "Meditation": "#C1FFD7",
-  "Metal": "#575366",
-  "Nature": "#90EE90",
-  "New Age": "#FFD1DC",
-  "News": "#87CEEB",
-  "Oriental": "#DDA0DD",
-  "Spiritual": "#98FB98",
-  "Punk": "#FF6347",
-  "Rap": "#20B2AA",
-  "Reggae": "#90EE90",
-  "RnB": "#FFB6C1",
-  "Russian": "#FFA500",
-  "Southeast Asia": "#9370DB",
-  "Techno": "#00CED1",
-  "Turk": "#FF69B4",
-  "World": "#00F2B8"
+  "African": "#C2185B",
+  "Alternative": "#00897B",
+  "Asian": "#1565C0",
+  "Balkans": "#D84315",
+  "Blues": "#00695C",
+  "Caribbean": "#F57F17",
+  "Chillout": "#6A1B9A",
+  "China": "#0277BD",
+  "Chiptune": "#E65100",
+  "Classical": "#00796B",
+  "Downtempo": "#2E7D32",
+  "Drum & Bass": "#D81B60",
+  "Dub": "#512DA8",
+  "Electronic": "#1976D2",
+  "Funk": "#C2185B",
+  "Goa": "#0288D1",
+  "Hardcore": "#AD1457",
+  "Hip Hop": "#3F51B5",
+  "House": "#0097A7",
+  "Industrial": "#4527A0",
+  "Italian": "#C2185B",
+  "Japan": "#1565C0",
+  "Jazz": "#F57F17",
+  "Jungle": "#6A1B9A",
+  "Lounge": "#512DA8",
+  "Meditation": "#1B5E20",
+  "Metal": "#212121",
+  "Nature": "#1B5E20",
+  "New Age": "#D81B60",
+  "News": "#01579B",
+  "Oriental": "#7B1FA2",
+  "Spiritual": "#2E7D32",
+  "Punk": "#D32F2F",
+  "Rap": "#004D40",
+  "Reggae": "#1B5E20",
+  "RnB": "#C2185B",
+  "Russian": "#E65100",
+  "Southeast Asia": "#512DA8",
+  "Techno": "#00838F",
+  "Turk": "#AD1457",
+  "World": "#00695C"
 };
 
 // App theme colors - cyan, blue, green shades
@@ -151,52 +151,18 @@ function getStationInitials(stationName) {
   return initials || stationName.charAt(0).toUpperCase();
 }
 
-// App style border color - thin and clean
-const APP_BORDER_COLOR = "#00F2B8";
-
 function getGenreColor(genre) {
   return GENRE_COLORS[genre] || "#00F2B8";
 }
 
-function generateAvatarPattern(stationName) {
+function getBorderColor(stationName) {
   let hash = 0;
   for (let i = 0; i < stationName.length; i++) {
     hash = ((hash << 5) - hash) + stationName.charCodeAt(i);
     hash = hash & hash;
   }
-
-  const patterns = [];
-
-  // Generate random geometric shapes - more visible
-  for (let i = 0; i < 4; i++) {
-    const rand = Math.sin(hash + i) * 10000 % 1;
-    const shapeType = Math.floor(rand * 4);
-    const x = (Math.sin(hash * (i + 1)) * 10000 % 1) * 56 + 4;
-    const y = (Math.sin(hash * (i + 2)) * 10000 % 1) * 56 + 4;
-    const size = (Math.sin(hash * (i + 3)) * 10000 % 1) * 16 + 8;
-    const opacity = (Math.sin(hash * (i + 4)) * 10000 % 1) * 0.4 + 0.3;
-
-    if (shapeType === 0) {
-      // Circle
-      patterns.push(`<circle cx="${x}" cy="${y}" r="${size}" fill="white" opacity="${opacity}" />`);
-    } else if (shapeType === 1) {
-      // Rectangle
-      patterns.push(`<rect x="${x - size/2}" y="${y - size/2}" width="${size}" height="${size}" fill="white" opacity="${opacity}" />`);
-    } else if (shapeType === 2) {
-      // Triangle
-      const h = size * 0.866;
-      patterns.push(`<polygon points="${x},${y - size},${x - size/2},${y + h/2},${x + size/2},${y + h/2}" fill="white" opacity="${opacity}" />`);
-    } else {
-      // Lines
-      patterns.push(`<line x1="${x - size/2}" y1="${y}" x2="${x + size/2}" y2="${y}" stroke="white" stroke-width="2" opacity="${opacity}" />`);
-    }
-  }
-
-  const svg = `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
-    ${patterns.join('')}
-  </svg>`;
-
-  return svg;
+  const index = Math.abs(hash) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[index];
 }
 function generateStationHash(url) {
   let hash = 0;
@@ -391,11 +357,11 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       }
     }
     if (isFavoritesMode) {
-      // In favorites mode, show colored avatar icon with geometric pattern
+      // In favorites mode, show colored avatar icon with initials
       const genre = station.favGenre || station.genre || "World";
       const color = getGenreColor(genre);
       const initials = getStationInitials(station.title);
-      const pattern = generateAvatarPattern(station.title);
+      const borderColor = getBorderColor(station.title);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
@@ -403,7 +369,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       iconContainer.style.alignItems = "center";
       iconContainer.style.marginRight = "12px";
 
-      // Colored avatar with initials, pattern and thin border
+      // Colored avatar with initials and variable border
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
       avatar.style.width = "32px";
@@ -418,25 +384,12 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       avatar.style.fontSize = "11px";
       avatar.style.fontFamily = "'Ruda', sans-serif";
       avatar.style.flexShrink = "0";
-      avatar.style.border = `1.5px solid ${APP_BORDER_COLOR}`;
+      avatar.style.border = `1.5px solid ${borderColor}`;
       avatar.style.position = "relative";
-      avatar.style.overflow = "hidden";
 
-      // Add pattern background
-      const patternBg = document.createElement("div");
-      patternBg.style.position = "absolute";
-      patternBg.style.top = "0";
-      patternBg.style.left = "0";
-      patternBg.style.width = "100%";
-      patternBg.style.height = "100%";
-      patternBg.innerHTML = pattern;
-      avatar.appendChild(patternBg);
-
-      // Add initials on top
+      // Add initials
       const textLayer = document.createElement("div");
       textLayer.textContent = initials;
-      textLayer.style.position = "relative";
-      textLayer.style.zIndex = "1";
       textLayer.style.textShadow = "0 0 2px rgba(0,0,0,0.3)";
       avatar.appendChild(textLayer);
 
@@ -560,7 +513,7 @@ export function updatePlaylistHearts() {
     if (!station) return;
 
     if (isFavoritesMode) {
-      // In favorites mode, update the avatar icon with geometric pattern
+      // In favorites mode, update the avatar icon with initials
       const existingIcon = li.querySelector(".station-favorite-icon");
       if (existingIcon) {
         existingIcon.remove();
@@ -569,7 +522,7 @@ export function updatePlaylistHearts() {
       const genre = station.favGenre || station.genre || "World";
       const color = getGenreColor(genre);
       const initials = getStationInitials(station.title);
-      const pattern = generateAvatarPattern(station.title);
+      const borderColor = getBorderColor(station.title);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
@@ -591,25 +544,12 @@ export function updatePlaylistHearts() {
       avatar.style.fontSize = "11px";
       avatar.style.fontFamily = "'Ruda', sans-serif";
       avatar.style.flexShrink = "0";
-      avatar.style.border = `1.5px solid ${APP_BORDER_COLOR}`;
+      avatar.style.border = `1.5px solid ${borderColor}`;
       avatar.style.position = "relative";
-      avatar.style.overflow = "hidden";
 
-      // Add pattern background
-      const patternBg = document.createElement("div");
-      patternBg.style.position = "absolute";
-      patternBg.style.top = "0";
-      patternBg.style.left = "0";
-      patternBg.style.width = "100%";
-      patternBg.style.height = "100%";
-      patternBg.innerHTML = pattern;
-      avatar.appendChild(patternBg);
-
-      // Add initials on top
+      // Add initials
       const textLayer = document.createElement("div");
       textLayer.textContent = initials;
-      textLayer.style.position = "relative";
-      textLayer.style.zIndex = "1";
       textLayer.style.textShadow = "0 0 2px rgba(0,0,0,0.3)";
       avatar.appendChild(textLayer);
 
