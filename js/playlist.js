@@ -299,7 +299,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     }
     if (isFavoritesMode) {
       // In favorites mode, show emoji + colored avatar icon
-      const genre = station.favGenre || window.currentGenre || "World";
+      const genre = station.favGenre || station.genre || window.currentGenre || "World";
       const emoji = getGenreEmoji(genre);
       const color = generateColorFromString(station.title);
       const initials = getStationInitials(station.title);
@@ -374,7 +374,7 @@ function removeFavorite(station) {
   favs = favs.filter(f => f.url !== station.url);
   saveFavorites(favs);
 }
-export function loadPlaylist(url) {
+export function loadPlaylist(url, genreName = null) {
   return fetch(url)
     .then(response => response.text())
     .then(text => {
@@ -411,7 +411,8 @@ export function loadPlaylist(url) {
           bitrate,
           url: secureUrl(streamUrl),
           originalUrl: streamUrl,
-          cover
+          cover,
+          genre: genreName
         });
       }
       const hiddenStations = JSON.parse(localStorage.getItem("hiddenStations") || "[]");
@@ -460,7 +461,7 @@ export function updatePlaylistHearts() {
         existingIcon.remove();
       }
 
-      const genre = station.favGenre || window.currentGenre || "World";
+      const genre = station.favGenre || station.genre || window.currentGenre || "World";
       const emoji = getGenreEmoji(genre);
       const color = generateColorFromString(station.title);
       const initials = getStationInitials(station.title);

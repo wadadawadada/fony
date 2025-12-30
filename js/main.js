@@ -64,14 +64,14 @@ function playRandomFromUrlGenre() {
   if (!genreEntry) return false;
 
   if (playlistSelect) playlistSelect.value = genreEntry.file;
-  window.currentGenre = genreEntry.file;
+  window.currentGenre = genreEntry.name;
   initChat();
-  loadAndRenderPlaylist(genreEntry.file, () => {
+  loadAndRenderPlaylist(genreEntry.file, genreEntry.name, () => {
     if (currentPlaylist.length) {
       const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length);
       onStationSelect(randomStationIndex);
-      localStorage.setItem("lastStation", JSON.stringify({ genre: genreEntry.file, trackIndex: randomStationIndex }));
-      updateChat(genreEntry.file);
+      localStorage.setItem("lastStation", JSON.stringify({ genre: genreEntry.name, trackIndex: randomStationIndex }));
+      updateChat(genreEntry.name);
     }
   });
   setRadioListeners();
@@ -241,13 +241,17 @@ function switchToRadio() {
   if (ls) {
     try {
       const { genre, trackIndex } = JSON.parse(ls);
+      // Find the playlist entry - genre might be either name or file path
+      const playlistEntry = allPlaylists.find(pl => pl.name === genre || pl.file === genre);
+      if (!playlistEntry) throw new Error("Genre not found");
+
       const pSel = document.getElementById("playlistSelect");
-      if (pSel) pSel.value = genre;
+      if (pSel) pSel.value = playlistEntry.file;
       initChat();
-      loadAndRenderPlaylist(genre, () => {
+      loadAndRenderPlaylist(playlistEntry.file, playlistEntry.name, () => {
         const i = trackIndex < currentPlaylist.length ? trackIndex : 0;
         onStationSelect(i);
-        updateChat(genre);
+        updateChat(playlistEntry.name);
       });
       return;
     } catch (e) {}
@@ -327,23 +331,30 @@ async function updateWalletUI(account) {
 
 function defaultPlaylist() {
   if (!allPlaylists.length) return
-  const firstGenre = allPlaylists[0].file
-  if (playlistSelect) playlistSelect.value = firstGenre
-  window.currentGenre = firstGenre
+  const firstPlaylist = allPlaylists[0];
+  if (playlistSelect) playlistSelect.value = firstPlaylist.file
+  window.currentGenre = firstPlaylist.name
   initChat()
-  loadAndRenderPlaylist(firstGenre, () => {
+  loadAndRenderPlaylist(firstPlaylist.file, firstPlaylist.name, () => {
     if (currentPlaylist.length) {
       const i = 0
       onStationSelect(i)
-      localStorage.setItem("lastStation", JSON.stringify({ genre: firstGenre, trackIndex: i }))
-      updateChat(firstGenre)
+      localStorage.setItem("lastStation", JSON.stringify({ genre: firstPlaylist.name, trackIndex: i }))
+      updateChat(firstPlaylist.name)
     }
   })
 }
 
-function loadAndRenderPlaylist(url, cb, scTop = false) {
+function loadAndRenderPlaylist(url, genreName = null, cb, scTop = false) {
+  // Handle old API where genreName was not passed
+  if (typeof genreName === 'function') {
+    scTop = cb;
+    cb = genreName;
+    genreName = null;
+  }
+
   playlistLoader.classList.remove("hidden")
-  loadPlaylist(url)
+  loadPlaylist(url, genreName)
     .then(s => {
       allStations = s
       currentPlaylist = s.slice()
@@ -593,8 +604,11 @@ function onGenreChange(randomStation = false) {
   const pSel = document.getElementById("playlistSelect");
   const sIn = document.getElementById("searchInput");
   if (!pSel) return;
-  const newGenre = pSel.value;
-  loadAndRenderPlaylist(newGenre, () => {
+  const newGenreFile = pSel.value;
+  const playlistEntry = allPlaylists.find(pl => pl.file === newGenreFile);
+  const genreName = playlistEntry ? playlistEntry.name : newGenreFile;
+  window.currentGenre = genreName;
+  loadAndRenderPlaylist(newGenreFile, genreName, () => {
     if (sIn) sIn.value = "";
     if (currentPlaylist.length) {
       let idx = 0;
@@ -620,7 +634,7 @@ async function createFavoritesPlaylist() {
   const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
   let list = [];
   for (let pl of allPlaylists) {
-    const st = await loadPlaylist(pl.file);
+    const st = await loadPlaylist(pl.file, pl.name);
     const matched = st.filter(x => favs.some(f => f.url === x.url));
     matched.forEach(x => {
       const favEntry = favs.find(f => f.url === x.url);
@@ -1257,7 +1271,7 @@ window.onStationSelect = function(i) {
       await Promise.all(
         (Array.isArray(allPlaylists) ? allPlaylists : []).map(async pl => {
           try {
-            cache.byGenre[pl.name] = await loadPlaylist(pl.file);
+            cache.byGenre[pl.name] = await loadPlaylist(pl.file, pl.name);
           } catch(e) {
             cache.byGenre[pl.name] = [];
           }
