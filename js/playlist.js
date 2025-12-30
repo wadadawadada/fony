@@ -127,6 +127,15 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
   if (genreLabel && genreLabel.textContent === "Favorites") isFavoritesMode = true;
   else if (stations.length && stations[0].favGenre) isFavoritesMode = true;
 
+  if (isFavoritesMode) {
+    console.log('Favorites mode detected. First station:', stations[0]);
+    console.log('Station properties:', {
+      favGenre: stations[0].favGenre,
+      genre: stations[0].genre,
+      title: stations[0].title
+    });
+  }
+
   for (let i = startIndex; i < maxEnd; i++) {
     const station = stations[i];
     const li = document.createElement("li");
@@ -301,6 +310,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       // In favorites mode, show emoji + colored avatar icon
       const genre = station.favGenre || station.genre || window.currentGenre || "World";
       const emoji = getGenreEmoji(genre);
+      console.log(`Station: ${station.title}, favGenre: ${station.favGenre}, genre: ${station.genre}, selected genre: ${genre}, emoji: ${emoji}`);
       const color = generateColorFromString(station.title);
       const initials = getStationInitials(station.title);
 

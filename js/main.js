@@ -632,17 +632,22 @@ function onGenreChange(randomStation = false) {
 
 async function createFavoritesPlaylist() {
   const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+  console.log('Creating favorites playlist, favorites count:', favs.length);
   let list = [];
   for (let pl of allPlaylists) {
     const st = await loadPlaylist(pl.file, pl.name);
+    console.log(`Loaded ${st.length} stations from ${pl.name}, with genre: ${st[0]?.genre}`);
     const matched = st.filter(x => favs.some(f => f.url === x.url));
+    console.log(`Matched ${matched.length} stations from ${pl.name}`);
     matched.forEach(x => {
       const favEntry = favs.find(f => f.url === x.url);
       x.favGenre = (favEntry && favEntry.genre) ? favEntry.genre : pl.name;
+      console.log(`Set favGenre for ${x.title}: ${x.favGenre}, original genre from loadPlaylist: ${x.genre}`);
     });
     list = list.concat(matched);
   }
   const uniqueStations = Array.from(new Map(list.map(o => [o.url, o])).values());
+  console.log('Final favorites list count:', uniqueStations.length);
   return uniqueStations;
 }
 
