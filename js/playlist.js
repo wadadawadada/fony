@@ -212,6 +212,18 @@ function updateFavoriteRowColors() {
         const genre = station.favGenre || station.genre || "World";
         const color = getGenreColor(genre);
         item.style.backgroundColor = color;
+
+        // Update emoji circle background color for theme change
+        const avatarElement = item.querySelector(".station-avatar");
+        if (avatarElement) {
+          const isDarkTheme = document.body.classList.contains('dark');
+          avatarElement.style.backgroundColor = isDarkTheme ? "#00F2B8" : "#171C2B";
+          // Update text color for contrast
+          const emojiElement = avatarElement.querySelector("div");
+          if (emojiElement) {
+            emojiElement.style.color = isDarkTheme ? "#000" : "#fff";
+          }
+        }
       }
     }
   });
@@ -447,15 +459,16 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       iconContainer.classList.add("station-favorite-icon");
       iconContainer.style.display = "inline-flex";
       iconContainer.style.alignItems = "center";
-      iconContainer.style.marginRight = "12px";
+      iconContainer.style.marginRight = "6px";
 
       // Dark avatar with emoji inside
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
-      avatar.style.width = "32px";
-      avatar.style.height = "32px";
+      avatar.style.width = "28px";
+      avatar.style.height = "28px";
       avatar.style.borderRadius = "50%";
-      avatar.style.backgroundColor = "#171C2B";
+      const isDarkTheme = document.body.classList.contains('dark');
+      avatar.style.backgroundColor = isDarkTheme ? "#00F2B8" : "#171C2B";
       avatar.style.display = "flex";
       avatar.style.alignItems = "center";
       avatar.style.justifyContent = "center";
@@ -465,7 +478,8 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       // Add emoji inside circle
       const emojiElement = document.createElement("div");
       emojiElement.textContent = emoji;
-      emojiElement.style.fontSize = "18px";
+      emojiElement.style.fontSize = "14px";
+      emojiElement.style.color = isDarkTheme ? "#000" : "#fff";
       avatar.appendChild(emojiElement);
 
       iconContainer.appendChild(avatar);
@@ -696,7 +710,7 @@ export function updatePlaylistHearts() {
       iconContainer.classList.add("station-favorite-icon");
       iconContainer.style.display = "inline-flex";
       iconContainer.style.alignItems = "center";
-      iconContainer.style.marginRight = "12px";
+      iconContainer.style.marginRight = "6px";
 
       // Dark avatar with emoji inside
       const avatar = document.createElement("div");
