@@ -5,7 +5,7 @@ export function updateUseOnlyHttpsSetting(newValue) {
   USE_ONLY_HTTPS = newValue;
 }
 
-// Genre to emoji mapping
+// Genre to emoji mapping and colors
 const GENRE_EMOJI_MAP = {
   "African": "🌍",
   "Alternative": "🎸",
@@ -48,6 +48,51 @@ const GENRE_EMOJI_MAP = {
   "Techno": "🤖",
   "Turk": "🎸",
   "World": "🌐"
+};
+
+// Genre to color mapping
+const GENRE_COLORS = {
+  "African": "#FF6B6B",
+  "Alternative": "#4ECDC4",
+  "Asian": "#45B7D1",
+  "Balkans": "#FFA07A",
+  "Blues": "#98D8C8",
+  "Caribbean": "#F7DC6F",
+  "Chillout": "#BB8FCE",
+  "China": "#85C1E2",
+  "Chiptune": "#F8B88B",
+  "Classical": "#52C8A8",
+  "Downtempo": "#A8E6CF",
+  "Drum & Bass": "#FF8B94",
+  "Dub": "#B19CD9",
+  "Electronic": "#74B9FF",
+  "Funk": "#FDB4B4",
+  "Goa": "#A8D8EA",
+  "Hardcore": "#FF6B9D",
+  "Hip Hop": "#C7CEEA",
+  "House": "#B4E7FF",
+  "Industrial": "#AA96DA",
+  "Italian": "#FCBAD3",
+  "Japan": "#A6D9FF",
+  "Jazz": "#FFFFB4",
+  "Jungle": "#B4ACFE",
+  "Lounge": "#D4C5F9",
+  "Meditation": "#C1FFD7",
+  "Metal": "#575366",
+  "Nature": "#90EE90",
+  "New Age": "#FFD1DC",
+  "News": "#87CEEB",
+  "Oriental": "#DDA0DD",
+  "Spiritual": "#98FB98",
+  "Punk": "#FF6347",
+  "Rap": "#20B2AA",
+  "Reggae": "#90EE90",
+  "RnB": "#FFB6C1",
+  "Russian": "#FFA500",
+  "Southeast Asia": "#9370DB",
+  "Techno": "#00CED1",
+  "Turk": "#FF69B4",
+  "World": "#00F2B8"
 };
 
 // App theme colors - cyan, blue, green shades
@@ -109,6 +154,10 @@ function getStationInitials(stationName) {
 // App style border color - thin and clean
 const APP_BORDER_COLOR = "#00F2B8";
 
+function getGenreColor(genre) {
+  return GENRE_COLORS[genre] || "#00F2B8";
+}
+
 function generateAvatarPattern(stationName) {
   let hash = 0;
   for (let i = 0; i < stationName.length; i++) {
@@ -116,34 +165,30 @@ function generateAvatarPattern(stationName) {
     hash = hash & hash;
   }
 
-  const random1 = Math.sin(hash) * 10000 % 1;
-  const random2 = Math.sin(hash + 1) * 10000 % 1;
-  const random3 = Math.sin(hash + 2) * 10000 % 1;
-
   const patterns = [];
 
-  // Generate random geometric shapes
-  for (let i = 0; i < 3; i++) {
+  // Generate random geometric shapes - more visible
+  for (let i = 0; i < 4; i++) {
     const rand = Math.sin(hash + i) * 10000 % 1;
     const shapeType = Math.floor(rand * 4);
-    const x = (Math.sin(hash * (i + 1)) * 10000 % 1) * 60 + 2;
-    const y = (Math.sin(hash * (i + 2)) * 10000 % 1) * 60 + 2;
-    const size = (Math.sin(hash * (i + 3)) * 10000 % 1) * 20 + 5;
-    const opacity = (Math.sin(hash * (i + 4)) * 10000 % 1) * 0.3 + 0.1;
+    const x = (Math.sin(hash * (i + 1)) * 10000 % 1) * 56 + 4;
+    const y = (Math.sin(hash * (i + 2)) * 10000 % 1) * 56 + 4;
+    const size = (Math.sin(hash * (i + 3)) * 10000 % 1) * 16 + 8;
+    const opacity = (Math.sin(hash * (i + 4)) * 10000 % 1) * 0.4 + 0.3;
 
     if (shapeType === 0) {
       // Circle
-      patterns.push(`<circle cx="${x}" cy="${y}" r="${size}" fill="currentColor" opacity="${opacity}" />`);
+      patterns.push(`<circle cx="${x}" cy="${y}" r="${size}" fill="white" opacity="${opacity}" />`);
     } else if (shapeType === 1) {
       // Rectangle
-      patterns.push(`<rect x="${x - size/2}" y="${y - size/2}" width="${size}" height="${size}" fill="currentColor" opacity="${opacity}" />`);
+      patterns.push(`<rect x="${x - size/2}" y="${y - size/2}" width="${size}" height="${size}" fill="white" opacity="${opacity}" />`);
     } else if (shapeType === 2) {
       // Triangle
       const h = size * 0.866;
-      patterns.push(`<polygon points="${x},${y - size},${x - size/2},${y + h/2},${x + size/2},${y + h/2}" fill="currentColor" opacity="${opacity}" />`);
+      patterns.push(`<polygon points="${x},${y - size},${x - size/2},${y + h/2},${x + size/2},${y + h/2}" fill="white" opacity="${opacity}" />`);
     } else {
-      // Line
-      patterns.push(`<line x1="${x}" y1="${y}" x2="${x + size}" y2="${y + size}" stroke="currentColor" stroke-width="1" opacity="${opacity}" />`);
+      // Lines
+      patterns.push(`<line x1="${x - size/2}" y1="${y}" x2="${x + size/2}" y2="${y}" stroke="white" stroke-width="2" opacity="${opacity}" />`);
     }
   }
 
@@ -347,7 +392,8 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     }
     if (isFavoritesMode) {
       // In favorites mode, show colored avatar icon with geometric pattern
-      const color = generateColorFromString(station.title);
+      const genre = station.favGenre || station.genre || "World";
+      const color = getGenreColor(genre);
       const initials = getStationInitials(station.title);
       const pattern = generateAvatarPattern(station.title);
 
@@ -383,7 +429,6 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       patternBg.style.left = "0";
       patternBg.style.width = "100%";
       patternBg.style.height = "100%";
-      patternBg.style.color = "rgba(255, 255, 255, 0.15)";
       patternBg.innerHTML = pattern;
       avatar.appendChild(patternBg);
 
@@ -392,6 +437,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       textLayer.textContent = initials;
       textLayer.style.position = "relative";
       textLayer.style.zIndex = "1";
+      textLayer.style.textShadow = "0 0 2px rgba(0,0,0,0.3)";
       avatar.appendChild(textLayer);
 
       iconContainer.appendChild(avatar);
@@ -520,7 +566,8 @@ export function updatePlaylistHearts() {
         existingIcon.remove();
       }
 
-      const color = generateColorFromString(station.title);
+      const genre = station.favGenre || station.genre || "World";
+      const color = getGenreColor(genre);
       const initials = getStationInitials(station.title);
       const pattern = generateAvatarPattern(station.title);
 
@@ -555,7 +602,6 @@ export function updatePlaylistHearts() {
       patternBg.style.left = "0";
       patternBg.style.width = "100%";
       patternBg.style.height = "100%";
-      patternBg.style.color = "rgba(255, 255, 255, 0.15)";
       patternBg.innerHTML = pattern;
       avatar.appendChild(patternBg);
 
@@ -564,6 +610,7 @@ export function updatePlaylistHearts() {
       textLayer.textContent = initials;
       textLayer.style.position = "relative";
       textLayer.style.zIndex = "1";
+      textLayer.style.textShadow = "0 0 2px rgba(0,0,0,0.3)";
       avatar.appendChild(textLayer);
 
       iconContainer.appendChild(avatar);
