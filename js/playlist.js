@@ -105,6 +105,24 @@ function getStationInitials(stationName) {
 
   return initials || stationName.charAt(0).toUpperCase();
 }
+
+// Border colors palette - different from background colors
+const BORDER_COLORS = [
+  "#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A",
+  "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E2",
+  "#F8B88B", "#52C8A8", "#A8E6CF", "#FF8B94",
+  "#B19CD9", "#74B9FF", "#FDB4B4", "#A8D8EA"
+];
+
+function getBorderColor(stationName) {
+  let hash = 0;
+  for (let i = 0; i < stationName.length; i++) {
+    hash = ((hash << 5) - hash) + stationName.charCodeAt(i);
+    hash = hash & hash;
+  }
+  const index = Math.abs(hash) % BORDER_COLORS.length;
+  return BORDER_COLORS[index];
+}
 function generateStationHash(url) {
   let hash = 0;
   for (let i = 0; i < url.length; i++) {
@@ -126,15 +144,6 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
   const genreLabel = document.querySelector("label[for='playlistSelect']");
   if (genreLabel && genreLabel.textContent === "Favorites") isFavoritesMode = true;
   else if (stations.length && stations[0].favGenre) isFavoritesMode = true;
-
-  if (isFavoritesMode) {
-    console.log('Favorites mode detected. First station:', stations[0]);
-    console.log('Station properties:', {
-      favGenre: stations[0].favGenre,
-      genre: stations[0].genre,
-      title: stations[0].title
-    });
-  }
 
   for (let i = startIndex; i < maxEnd; i++) {
     const station = stations[i];
@@ -307,32 +316,23 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       }
     }
     if (isFavoritesMode) {
-      // In favorites mode, show emoji + colored avatar icon
-      const genre = station.favGenre || station.genre || window.currentGenre || "World";
-      const emoji = getGenreEmoji(genre);
-      console.log(`Station: ${station.title}, favGenre: ${station.favGenre}, genre: ${station.genre}, selected genre: ${genre}, emoji: ${emoji}`);
+      // In favorites mode, show colored avatar icon with unique border
       const color = generateColorFromString(station.title);
+      const borderColor = getBorderColor(station.title);
       const initials = getStationInitials(station.title);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
       iconContainer.style.display = "inline-flex";
       iconContainer.style.alignItems = "center";
-      iconContainer.style.gap = "8px";
       iconContainer.style.marginRight = "12px";
 
-      // Emoji
-      const emojiSpan = document.createElement("span");
-      emojiSpan.textContent = emoji;
-      emojiSpan.style.fontSize = "18px";
-      emojiSpan.style.lineHeight = "1";
-
-      // Colored avatar with initials
+      // Colored avatar with initials and border
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
       avatar.textContent = initials;
-      avatar.style.width = "28px";
-      avatar.style.height = "28px";
+      avatar.style.width = "32px";
+      avatar.style.height = "32px";
       avatar.style.borderRadius = "50%";
       avatar.style.backgroundColor = color;
       avatar.style.display = "flex";
@@ -340,11 +340,12 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       avatar.style.justifyContent = "center";
       avatar.style.color = "#fff";
       avatar.style.fontWeight = "bold";
-      avatar.style.fontSize = "10px";
+      avatar.style.fontSize = "11px";
       avatar.style.fontFamily = "'Ruda', sans-serif";
       avatar.style.flexShrink = "0";
+      avatar.style.border = `3px solid ${borderColor}`;
+      avatar.style.boxShadow = `0 2px 8px ${borderColor}40`;
 
-      iconContainer.appendChild(emojiSpan);
       iconContainer.appendChild(avatar);
 
       // Insert at the beginning of li, before cover icon
@@ -465,34 +466,27 @@ export function updatePlaylistHearts() {
     if (!station) return;
 
     if (isFavoritesMode) {
-      // In favorites mode, update the emoji + avatar icon
+      // In favorites mode, update the avatar icon with unique border
       const existingIcon = li.querySelector(".station-favorite-icon");
       if (existingIcon) {
         existingIcon.remove();
       }
 
-      const genre = station.favGenre || station.genre || window.currentGenre || "World";
-      const emoji = getGenreEmoji(genre);
       const color = generateColorFromString(station.title);
+      const borderColor = getBorderColor(station.title);
       const initials = getStationInitials(station.title);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
       iconContainer.style.display = "inline-flex";
       iconContainer.style.alignItems = "center";
-      iconContainer.style.gap = "8px";
       iconContainer.style.marginRight = "12px";
-
-      const emojiSpan = document.createElement("span");
-      emojiSpan.textContent = emoji;
-      emojiSpan.style.fontSize = "18px";
-      emojiSpan.style.lineHeight = "1";
 
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
       avatar.textContent = initials;
-      avatar.style.width = "28px";
-      avatar.style.height = "28px";
+      avatar.style.width = "32px";
+      avatar.style.height = "32px";
       avatar.style.borderRadius = "50%";
       avatar.style.backgroundColor = color;
       avatar.style.display = "flex";
@@ -500,11 +494,12 @@ export function updatePlaylistHearts() {
       avatar.style.justifyContent = "center";
       avatar.style.color = "#fff";
       avatar.style.fontWeight = "bold";
-      avatar.style.fontSize = "10px";
+      avatar.style.fontSize = "11px";
       avatar.style.fontFamily = "'Ruda', sans-serif";
       avatar.style.flexShrink = "0";
+      avatar.style.border = `3px solid ${borderColor}`;
+      avatar.style.boxShadow = `0 2px 8px ${borderColor}40`;
 
-      iconContainer.appendChild(emojiSpan);
       iconContainer.appendChild(avatar);
       li.insertBefore(iconContainer, li.firstChild);
     } else {
