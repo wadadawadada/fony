@@ -230,7 +230,12 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     li.style.position = "relative";
     li.style.setProperty("--buffer-percent", "0%");
     li.dataset.index = i;
+    li.dataset.stationUrl = station.url;
     li.classList.add(window.currentMode === "web3" ? "web3-mode" : "radio-mode");
+    if (isFavoritesMode) {
+      li.draggable = true;
+      li.classList.add("draggable-favorite");
+    }
     const progressDiv = document.createElement("div");
     progressDiv.classList.add("progress");
     li.appendChild(progressDiv);
@@ -451,6 +456,68 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     fragment.appendChild(li);
   }
   playlistElement.appendChild(fragment);
+
+  // Add drag-and-drop functionality for favorites
+  if (isFavoritesMode) {
+    let draggedElement = null;
+    const draggableItems = playlistElement.querySelectorAll(".draggable-favorite");
+
+    draggableItems.forEach(item => {
+      item.addEventListener("dragstart", (e) => {
+        draggedElement = item;
+        item.style.opacity = "0.5";
+        e.dataTransfer.effectAllowed = "move";
+      });
+
+      item.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+
+        if (item !== draggedElement) {
+          item.style.borderTop = "2px solid #00F2B8";
+        }
+      });
+
+      item.addEventListener("dragleave", (e) => {
+        item.style.borderTop = "";
+      });
+
+      item.addEventListener("drop", (e) => {
+        e.preventDefault();
+        item.style.borderTop = "";
+
+        if (item !== draggedElement) {
+          // Reorder in DOM
+          if (draggedElement.compareDocumentPosition(item) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            item.parentNode.insertBefore(draggedElement, item);
+          } else {
+            item.parentNode.insertBefore(draggedElement, item.nextSibling);
+          }
+
+          // Update favorites order in localStorage
+          const favs = getFavorites();
+          const draggedUrl = draggedElement.dataset.stationUrl;
+          const targetUrl = item.dataset.stationUrl;
+
+          const draggedFav = favs.find(f => f.url === draggedUrl);
+          const draggedIndex = favs.findIndex(f => f.url === draggedUrl);
+          const targetIndex = favs.findIndex(f => f.url === targetUrl);
+
+          if (draggedIndex !== -1 && targetIndex !== -1) {
+            favs.splice(draggedIndex, 1);
+            favs.splice(targetIndex, 0, draggedFav);
+            saveFavorites(favs);
+          }
+        }
+      });
+
+      item.addEventListener("dragend", (e) => {
+        draggedElement.style.opacity = "1";
+        draggedElement.style.borderTop = "";
+        draggableItems.forEach(i => i.style.borderTop = "");
+      });
+    });
+  }
 }
 function getFavorites() {
   return JSON.parse(localStorage.getItem("favorites") || "[]");
