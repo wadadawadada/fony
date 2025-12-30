@@ -641,7 +641,21 @@ async function createFavoritesPlaylist() {
     console.log(`Matched ${matched.length} stations from ${pl.name}`);
     matched.forEach(x => {
       const favEntry = favs.find(f => f.url === x.url);
-      x.favGenre = (favEntry && favEntry.genre) ? favEntry.genre : pl.name;
+      let favGenre = pl.name;
+
+      // If favEntry has genre, use it (but convert file path to name if needed)
+      if (favEntry && favEntry.genre) {
+        if (favEntry.genre.startsWith('genres/')) {
+          // Old format: genres/downtempo.m3u -> find matching playlist name
+          const matchedPlaylist = allPlaylists.find(p => p.file === favEntry.genre);
+          favGenre = matchedPlaylist ? matchedPlaylist.name : pl.name;
+        } else {
+          // New format: already a genre name like "Downtempo"
+          favGenre = favEntry.genre;
+        }
+      }
+
+      x.favGenre = favGenre;
       console.log(`Set favGenre for ${x.title}: ${x.favGenre}, original genre from loadPlaylist: ${x.genre}`);
     });
     list = list.concat(matched);
@@ -1290,7 +1304,18 @@ window.onStationSelect = function(i) {
       for (const [genre, stations] of Object.entries(cache.byGenre)) {
         const st = stations && stations.find(s => s.url === fav.url);
         if(st) {
-          st.favGenre = (fav.genre && fav.genre.trim()) ? fav.genre : genre;
+          let favGenre = genre;
+          if (fav.genre && fav.genre.trim()) {
+            if (fav.genre.startsWith('genres/')) {
+              // Old format: genres/downtempo.m3u -> find matching playlist name
+              const matchedPlaylist = allPlaylists.find(p => p.file === fav.genre);
+              favGenre = matchedPlaylist ? matchedPlaylist.name : genre;
+            } else {
+              // New format: already a genre name
+              favGenre = fav.genre;
+            }
+          }
+          st.favGenre = favGenre;
           out.push(st);
           break;
         }
