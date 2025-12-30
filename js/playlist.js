@@ -540,6 +540,12 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
 
           if (draggedIndex !== -1 && targetIndex !== -1) {
             favs.splice(draggedIndex, 1);
+
+            // Adjust target index if needed (when removing shifts indices)
+            if (draggedIndex < targetIndex) {
+              targetIndex--;
+            }
+
             favs.splice(targetIndex, 0, draggedFav);
             saveFavorites(favs);
 
@@ -553,10 +559,18 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
             if (window.currentPlaylist) {
               const draggedStation = window.currentPlaylist.find(s => s.url === draggedUrl);
               const draggedStationIndex = window.currentPlaylist.findIndex(s => s.url === draggedUrl);
-              const targetStationIndex = window.currentPlaylist.findIndex(s => s.url === targetUrl);
+              let targetStationIndex = window.currentPlaylist.findIndex(s => s.url === targetUrl);
 
               if (draggedStationIndex !== -1 && targetStationIndex !== -1 && draggedStation) {
+                // Remove dragged item
                 window.currentPlaylist.splice(draggedStationIndex, 1);
+
+                // Adjust target index if needed (when removing shifts indices)
+                if (draggedStationIndex < targetStationIndex) {
+                  targetStationIndex--;
+                }
+
+                // Insert at new position
                 window.currentPlaylist.splice(targetStationIndex, 0, draggedStation);
               }
             }
