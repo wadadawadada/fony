@@ -106,22 +106,52 @@ function getStationInitials(stationName) {
   return initials || stationName.charAt(0).toUpperCase();
 }
 
-// Border colors palette - different from background colors
-const BORDER_COLORS = [
-  "#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A",
-  "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E2",
-  "#F8B88B", "#52C8A8", "#A8E6CF", "#FF8B94",
-  "#B19CD9", "#74B9FF", "#FDB4B4", "#A8D8EA"
-];
+// App style border color - thin and clean
+const APP_BORDER_COLOR = "#00F2B8";
 
-function getBorderColor(stationName) {
+function generateAvatarPattern(stationName) {
   let hash = 0;
   for (let i = 0; i < stationName.length; i++) {
     hash = ((hash << 5) - hash) + stationName.charCodeAt(i);
     hash = hash & hash;
   }
-  const index = Math.abs(hash) % BORDER_COLORS.length;
-  return BORDER_COLORS[index];
+
+  const random1 = Math.sin(hash) * 10000 % 1;
+  const random2 = Math.sin(hash + 1) * 10000 % 1;
+  const random3 = Math.sin(hash + 2) * 10000 % 1;
+
+  const patterns = [];
+
+  // Generate random geometric shapes
+  for (let i = 0; i < 3; i++) {
+    const rand = Math.sin(hash + i) * 10000 % 1;
+    const shapeType = Math.floor(rand * 4);
+    const x = (Math.sin(hash * (i + 1)) * 10000 % 1) * 60 + 2;
+    const y = (Math.sin(hash * (i + 2)) * 10000 % 1) * 60 + 2;
+    const size = (Math.sin(hash * (i + 3)) * 10000 % 1) * 20 + 5;
+    const opacity = (Math.sin(hash * (i + 4)) * 10000 % 1) * 0.3 + 0.1;
+
+    if (shapeType === 0) {
+      // Circle
+      patterns.push(`<circle cx="${x}" cy="${y}" r="${size}" fill="currentColor" opacity="${opacity}" />`);
+    } else if (shapeType === 1) {
+      // Rectangle
+      patterns.push(`<rect x="${x - size/2}" y="${y - size/2}" width="${size}" height="${size}" fill="currentColor" opacity="${opacity}" />`);
+    } else if (shapeType === 2) {
+      // Triangle
+      const h = size * 0.866;
+      patterns.push(`<polygon points="${x},${y - size},${x - size/2},${y + h/2},${x + size/2},${y + h/2}" fill="currentColor" opacity="${opacity}" />`);
+    } else {
+      // Line
+      patterns.push(`<line x1="${x}" y1="${y}" x2="${x + size}" y2="${y + size}" stroke="currentColor" stroke-width="1" opacity="${opacity}" />`);
+    }
+  }
+
+  const svg = `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+    ${patterns.join('')}
+  </svg>`;
+
+  return svg;
 }
 function generateStationHash(url) {
   let hash = 0;
@@ -316,10 +346,10 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       }
     }
     if (isFavoritesMode) {
-      // In favorites mode, show colored avatar icon with unique border
+      // In favorites mode, show colored avatar icon with geometric pattern
       const color = generateColorFromString(station.title);
-      const borderColor = getBorderColor(station.title);
       const initials = getStationInitials(station.title);
+      const pattern = generateAvatarPattern(station.title);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
@@ -327,10 +357,9 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       iconContainer.style.alignItems = "center";
       iconContainer.style.marginRight = "12px";
 
-      // Colored avatar with initials and border
+      // Colored avatar with initials, pattern and thin border
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
-      avatar.textContent = initials;
       avatar.style.width = "32px";
       avatar.style.height = "32px";
       avatar.style.borderRadius = "50%";
@@ -343,8 +372,27 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       avatar.style.fontSize = "11px";
       avatar.style.fontFamily = "'Ruda', sans-serif";
       avatar.style.flexShrink = "0";
-      avatar.style.border = `3px solid ${borderColor}`;
-      avatar.style.boxShadow = `0 2px 8px ${borderColor}40`;
+      avatar.style.border = `1.5px solid ${APP_BORDER_COLOR}`;
+      avatar.style.position = "relative";
+      avatar.style.overflow = "hidden";
+
+      // Add pattern background
+      const patternBg = document.createElement("div");
+      patternBg.style.position = "absolute";
+      patternBg.style.top = "0";
+      patternBg.style.left = "0";
+      patternBg.style.width = "100%";
+      patternBg.style.height = "100%";
+      patternBg.style.color = "rgba(255, 255, 255, 0.15)";
+      patternBg.innerHTML = pattern;
+      avatar.appendChild(patternBg);
+
+      // Add initials on top
+      const textLayer = document.createElement("div");
+      textLayer.textContent = initials;
+      textLayer.style.position = "relative";
+      textLayer.style.zIndex = "1";
+      avatar.appendChild(textLayer);
 
       iconContainer.appendChild(avatar);
 
@@ -466,15 +514,15 @@ export function updatePlaylistHearts() {
     if (!station) return;
 
     if (isFavoritesMode) {
-      // In favorites mode, update the avatar icon with unique border
+      // In favorites mode, update the avatar icon with geometric pattern
       const existingIcon = li.querySelector(".station-favorite-icon");
       if (existingIcon) {
         existingIcon.remove();
       }
 
       const color = generateColorFromString(station.title);
-      const borderColor = getBorderColor(station.title);
       const initials = getStationInitials(station.title);
+      const pattern = generateAvatarPattern(station.title);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
@@ -484,7 +532,6 @@ export function updatePlaylistHearts() {
 
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
-      avatar.textContent = initials;
       avatar.style.width = "32px";
       avatar.style.height = "32px";
       avatar.style.borderRadius = "50%";
@@ -497,8 +544,27 @@ export function updatePlaylistHearts() {
       avatar.style.fontSize = "11px";
       avatar.style.fontFamily = "'Ruda', sans-serif";
       avatar.style.flexShrink = "0";
-      avatar.style.border = `3px solid ${borderColor}`;
-      avatar.style.boxShadow = `0 2px 8px ${borderColor}40`;
+      avatar.style.border = `1.5px solid ${APP_BORDER_COLOR}`;
+      avatar.style.position = "relative";
+      avatar.style.overflow = "hidden";
+
+      // Add pattern background
+      const patternBg = document.createElement("div");
+      patternBg.style.position = "absolute";
+      patternBg.style.top = "0";
+      patternBg.style.left = "0";
+      patternBg.style.width = "100%";
+      patternBg.style.height = "100%";
+      patternBg.style.color = "rgba(255, 255, 255, 0.15)";
+      patternBg.innerHTML = pattern;
+      avatar.appendChild(patternBg);
+
+      // Add initials on top
+      const textLayer = document.createElement("div");
+      textLayer.textContent = initials;
+      textLayer.style.position = "relative";
+      textLayer.style.zIndex = "1";
+      avatar.appendChild(textLayer);
 
       iconContainer.appendChild(avatar);
       li.insertBefore(iconContainer, li.firstChild);
