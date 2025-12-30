@@ -624,7 +624,7 @@ async function createFavoritesPlaylist() {
     const matched = st.filter(x => favs.some(f => f.url === x.url));
     matched.forEach(x => {
       const favEntry = favs.find(f => f.url === x.url);
-      x.favGenre = favEntry ? favEntry.genre : pl.name;
+      x.favGenre = (favEntry && favEntry.genre) ? favEntry.genre : pl.name;
     });
     list = list.concat(matched);
   }
@@ -1271,7 +1271,7 @@ window.onStationSelect = function(i) {
       for (const [genre, stations] of Object.entries(cache.byGenre)) {
         const st = stations && stations.find(s => s.url === fav.url);
         if(st) {
-          st.favGenre = fav.genre || genre;
+          st.favGenre = (fav.genre && fav.genre.trim()) ? fav.genre : genre;
           out.push(st);
           break;
         }
