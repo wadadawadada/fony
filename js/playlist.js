@@ -95,49 +95,49 @@ const GENRE_COLORS_LIGHT = {
   "World": "#00C197"
 };
 
-// Genre colors for dark theme - app theme colors (cyan, blue, green)
+// Genre colors for dark theme - vibrant bright colors
 const GENRE_COLORS_DARK = {
-  "African": "#00F2B8",
-  "Alternative": "#0093FF",
-  "Asian": "#00E5FF",
-  "Balkans": "#1DB584",
-  "Blues": "#4A90E2",
-  "Caribbean": "#26B56B",
-  "Chillout": "#00D1E0",
-  "China": "#0080E0",
-  "Chiptune": "#3BBE5E",
-  "Classical": "#00AA8B",
-  "Downtempo": "#1DB584",
-  "Drum & Bass": "#0093FF",
-  "Dub": "#9B7CFF",
-  "Electronic": "#0070CC",
-  "Funk": "#26B56B",
-  "Goa": "#00E5FF",
-  "Hardcore": "#3F51B5",
-  "Hip Hop": "#7B9FB5",
-  "House": "#00F2B8",
-  "Industrial": "#0080E0",
-  "Italian": "#00D9A3",
-  "Japan": "#00E5FF",
-  "Jazz": "#009FB0",
-  "Jungle": "#1DB584",
-  "Lounge": "#00C197",
-  "Meditation": "#1DB584",
-  "Metal": "#2A6FBB",
-  "Nature": "#26B56B",
-  "New Age": "#00E5FF",
-  "News": "#3A5FBB",
-  "Oriental": "#00D1E0",
-  "Spiritual": "#1DB584",
-  "Punk": "#3F51B5",
-  "Rap": "#00BEC9",
-  "Reggae": "#1DB584",
-  "RnB": "#00E5FF",
-  "Russian": "#0080E0",
-  "Southeast Asia": "#00D9A3",
-  "Techno": "#3BBE5E",
-  "Turk": "#009FB0",
-  "World": "#00C197"
+  "African": "#00FFD1",
+  "Alternative": "#00D0FF",
+  "Asian": "#00FFFF",
+  "Balkans": "#00FF88",
+  "Blues": "#66D9FF",
+  "Caribbean": "#33FF66",
+  "Chillout": "#00FFDD",
+  "China": "#00DDFF",
+  "Chiptune": "#66FF33",
+  "Classical": "#00FFAA",
+  "Downtempo": "#33FF99",
+  "Drum & Bass": "#00D0FF",
+  "Dub": "#BB88FF",
+  "Electronic": "#0099FF",
+  "Funk": "#66FF77",
+  "Goa": "#00FFFF",
+  "Hardcore": "#6688FF",
+  "Hip Hop": "#99DDFF",
+  "House": "#00FFDD",
+  "Industrial": "#00CCFF",
+  "Italian": "#00FFBB",
+  "Japan": "#00FFFF",
+  "Jazz": "#00FFCC",
+  "Jungle": "#33FF88",
+  "Lounge": "#00FFAA",
+  "Meditation": "#33FFAA",
+  "Metal": "#5588FF",
+  "Nature": "#66FF88",
+  "New Age": "#00FFFF",
+  "News": "#5599FF",
+  "Oriental": "#00FFEE",
+  "Spiritual": "#33FF99",
+  "Punk": "#6699FF",
+  "Rap": "#00FFDD",
+  "Reggae": "#33FF99",
+  "RnB": "#00FFFF",
+  "Russian": "#00DDFF",
+  "Southeast Asia": "#00FFBB",
+  "Techno": "#66FF88",
+  "Turk": "#00FFCC",
+  "World": "#00FFAA"
 };
 
 // App theme colors - cyan, blue, green shades
@@ -548,6 +548,18 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
             allItems.forEach((item, idx) => {
               item.dataset.index = idx;
             });
+
+            // Update window.currentPlaylist to match new order
+            if (window.currentPlaylist) {
+              const draggedStation = window.currentPlaylist.find(s => s.url === draggedUrl);
+              const draggedStationIndex = window.currentPlaylist.findIndex(s => s.url === draggedUrl);
+              const targetStationIndex = window.currentPlaylist.findIndex(s => s.url === targetUrl);
+
+              if (draggedStationIndex !== -1 && targetStationIndex !== -1 && draggedStation) {
+                window.currentPlaylist.splice(draggedStationIndex, 1);
+                window.currentPlaylist.splice(targetStationIndex, 0, draggedStation);
+              }
+            }
           }
         }
       });
