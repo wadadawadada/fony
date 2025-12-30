@@ -50,7 +50,32 @@ const GENRE_EMOJI_MAP = {
   "World": "🌐"
 };
 
+// App theme colors - cyan, blue, green shades
+const AVATAR_COLORS = [
+  "#00F2B8", // Cyan (app primary)
+  "#00D9A3",
+  "#00C197",
+  "#00AA8B",
+  "#0093FF", // Blue
+  "#0080E0",
+  "#0070CC",
+  "#1E5FFF",
+  "#00E5FF", // Light cyan
+  "#00D1E0",
+  "#00BEC9",
+  "#009FB0",
+  "#1DB584", // Green
+  "#26B56B",
+  "#32B865",
+  "#3BBE5E",
+  "#2A6FBB", // Dark blue
+  "#3A5FBB",
+  "#4A4FBB",
+  "#5A3FBB"
+];
+
 function getGenreEmoji(genreName) {
+  if (!genreName) return "📻";
   return GENRE_EMOJI_MAP[genreName] || "📻";
 }
 
@@ -60,10 +85,25 @@ function generateColorFromString(str) {
     hash = ((hash << 5) - hash) + str.charCodeAt(i);
     hash = hash & hash; // Convert to 32bit integer
   }
-  const hue = Math.abs(hash) % 360;
-  const saturation = 65 + (Math.abs(hash) % 20);
-  const lightness = 45 + (Math.abs(hash) % 15);
-  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  const index = Math.abs(hash) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[index];
+}
+
+function getStationInitials(stationName) {
+  if (!stationName) return "?";
+  // Extract first letter of each word, or numbers at the start
+  const words = stationName.trim().split(/\s+/);
+  let initials = "";
+
+  for (const word of words) {
+    if (initials.length >= 3) break;
+    const firstChar = word.charAt(0);
+    if (firstChar && /[A-Z0-9]/.test(firstChar.toUpperCase())) {
+      initials += firstChar.toUpperCase();
+    }
+  }
+
+  return initials || stationName.charAt(0).toUpperCase();
 }
 function generateStationHash(url) {
   let hash = 0;
@@ -262,6 +302,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       const genre = station.favGenre || window.currentGenre || "World";
       const emoji = getGenreEmoji(genre);
       const color = generateColorFromString(station.title);
+      const initials = getStationInitials(station.title);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
@@ -276,10 +317,10 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       emojiSpan.style.fontSize = "18px";
       emojiSpan.style.lineHeight = "1";
 
-      // Colored avatar with first letter
+      // Colored avatar with initials
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
-      avatar.textContent = station.title.charAt(0).toUpperCase();
+      avatar.textContent = initials;
       avatar.style.width = "28px";
       avatar.style.height = "28px";
       avatar.style.borderRadius = "50%";
@@ -289,7 +330,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       avatar.style.justifyContent = "center";
       avatar.style.color = "#fff";
       avatar.style.fontWeight = "bold";
-      avatar.style.fontSize = "12px";
+      avatar.style.fontSize = "10px";
       avatar.style.fontFamily = "'Ruda', sans-serif";
       avatar.style.flexShrink = "0";
 
@@ -422,6 +463,7 @@ export function updatePlaylistHearts() {
       const genre = station.favGenre || window.currentGenre || "World";
       const emoji = getGenreEmoji(genre);
       const color = generateColorFromString(station.title);
+      const initials = getStationInitials(station.title);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
@@ -437,7 +479,7 @@ export function updatePlaylistHearts() {
 
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
-      avatar.textContent = station.title.charAt(0).toUpperCase();
+      avatar.textContent = initials;
       avatar.style.width = "28px";
       avatar.style.height = "28px";
       avatar.style.borderRadius = "50%";
@@ -447,7 +489,7 @@ export function updatePlaylistHearts() {
       avatar.style.justifyContent = "center";
       avatar.style.color = "#fff";
       avatar.style.fontWeight = "bold";
-      avatar.style.fontSize = "12px";
+      avatar.style.fontSize = "10px";
       avatar.style.fontFamily = "'Ruda', sans-serif";
       avatar.style.flexShrink = "0";
 

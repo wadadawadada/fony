@@ -1234,23 +1234,50 @@ window.onStationSelect = function(i) {
 (function(){
   const cache = { list: [], byGenre: {}, ready: false };
   function dedupe(list){ return Array.from(new Map(list.map(s=>[s.url,s])).values()); }
+
+  // Find genre name for a station URL
+  function findGenreForUrl(stationUrl, favEntry) {
+    if (favEntry && favEntry.genre) return favEntry.genre;
+
+    // Search through all loaded playlists
+    for (const [genre, stations] of Object.entries(cache.byGenre)) {
+      if (stations && stations.find(s => s.url === stationUrl)) {
+        return genre;
+      }
+    }
+    return "World";
+  }
+
   async function warm(force=false){
     const favs = JSON.parse(localStorage.getItem("favorites")||"[]");
     if(!Array.isArray(favs)||!favs.length){ cache.list=[]; cache.ready=true; window.preloadedFavorites=[]; return []; }
-    const need = Array.from(new Set(favs.map(f=>f.genre)));
-    await Promise.all(need.map(async g=>{
-      if(!cache.byGenre[g]||force){
-        const pl = Array.isArray(allPlaylists)?allPlaylists.find(p=>p.file===g):null;
-        if(!pl){ cache.byGenre[g]=[]; return; }
-        try{ cache.byGenre[g]=await loadPlaylist(pl.file); }catch(e){ cache.byGenre[g]=[]; }
-      }
-    }));
+
+    // Load all playlists to find stations
+    if(force || Object.keys(cache.byGenre).length === 0) {
+      await Promise.all(
+        (Array.isArray(allPlaylists) ? allPlaylists : []).map(async pl => {
+          try {
+            cache.byGenre[pl.name] = await loadPlaylist(pl.file);
+          } catch(e) {
+            cache.byGenre[pl.name] = [];
+          }
+        })
+      );
+    }
+
     const out=[];
     for(const fav of favs){
-      const arr = cache.byGenre[fav.genre]||[];
-      const st = arr.find(s=>s.url===fav.url);
-      if(st){ st.favGenre=fav.genre; out.push(st); }
+      // Search for station in all genres
+      for (const [genre, stations] of Object.entries(cache.byGenre)) {
+        const st = stations && stations.find(s => s.url === fav.url);
+        if(st) {
+          st.favGenre = fav.genre || genre;
+          out.push(st);
+          break;
+        }
+      }
     }
+
     cache.list = dedupe(out);
     cache.ready = true;
     window.preloadedFavorites = cache.list;
