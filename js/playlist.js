@@ -348,50 +348,40 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       }
     }
     if (isFavoritesMode) {
-      // In favorites mode, show colored avatar icon with initials and emoji
+      // In favorites mode, show dark avatar with genre emoji
       const genre = station.favGenre || station.genre || "World";
       const color = getGenreColor(genre);
-      const initials = getStationInitials(station.title);
       const emoji = getGenreEmoji(genre);
+
+      // Set background color of the list item to genre color
+      li.style.backgroundColor = color;
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
       iconContainer.style.display = "inline-flex";
       iconContainer.style.alignItems = "center";
       iconContainer.style.marginRight = "12px";
-      iconContainer.style.gap = "6px";
 
-      // Colored avatar with initials
+      // Dark avatar with emoji inside
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
       avatar.style.width = "32px";
       avatar.style.height = "32px";
       avatar.style.borderRadius = "50%";
-      avatar.style.backgroundColor = color;
+      avatar.style.backgroundColor = "#171C2B";
       avatar.style.display = "flex";
       avatar.style.alignItems = "center";
       avatar.style.justifyContent = "center";
-      avatar.style.color = "#fff";
-      avatar.style.fontWeight = "bold";
-      avatar.style.fontSize = "11px";
-      avatar.style.fontFamily = "'Ruda', sans-serif";
       avatar.style.flexShrink = "0";
       avatar.style.position = "relative";
 
-      // Add initials
-      const textLayer = document.createElement("div");
-      textLayer.textContent = initials;
-      textLayer.style.textShadow = "0 0 2px rgba(0,0,0,0.3)";
-      avatar.appendChild(textLayer);
+      // Add emoji inside circle
+      const emojiElement = document.createElement("div");
+      emojiElement.textContent = emoji;
+      emojiElement.style.fontSize = "18px";
+      avatar.appendChild(emojiElement);
 
       iconContainer.appendChild(avatar);
-
-      // Add emoji
-      const emojiSpan = document.createElement("span");
-      emojiSpan.textContent = emoji;
-      emojiSpan.style.fontSize = "16px";
-      emojiSpan.style.flexShrink = "0";
-      iconContainer.appendChild(emojiSpan);
 
       // Insert at the beginning of li, before cover icon
       li.insertBefore(iconContainer, li.firstChild);
@@ -511,7 +501,7 @@ export function updatePlaylistHearts() {
     if (!station) return;
 
     if (isFavoritesMode) {
-      // In favorites mode, update the avatar icon with initials and emoji
+      // In favorites mode, update the avatar icon with genre emoji
       const existingIcon = li.querySelector(".station-favorite-icon");
       if (existingIcon) {
         existingIcon.remove();
@@ -519,46 +509,37 @@ export function updatePlaylistHearts() {
 
       const genre = station.favGenre || station.genre || "World";
       const color = getGenreColor(genre);
-      const initials = getStationInitials(station.title);
       const emoji = getGenreEmoji(genre);
+
+      // Set background color of the list item to genre color
+      li.style.backgroundColor = color;
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
       iconContainer.style.display = "inline-flex";
       iconContainer.style.alignItems = "center";
       iconContainer.style.marginRight = "12px";
-      iconContainer.style.gap = "6px";
 
+      // Dark avatar with emoji inside
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
       avatar.style.width = "32px";
       avatar.style.height = "32px";
       avatar.style.borderRadius = "50%";
-      avatar.style.backgroundColor = color;
+      avatar.style.backgroundColor = "#171C2B";
       avatar.style.display = "flex";
       avatar.style.alignItems = "center";
       avatar.style.justifyContent = "center";
-      avatar.style.color = "#fff";
-      avatar.style.fontWeight = "bold";
-      avatar.style.fontSize = "11px";
-      avatar.style.fontFamily = "'Ruda', sans-serif";
       avatar.style.flexShrink = "0";
       avatar.style.position = "relative";
 
-      // Add initials
-      const textLayer = document.createElement("div");
-      textLayer.textContent = initials;
-      textLayer.style.textShadow = "0 0 2px rgba(0,0,0,0.3)";
-      avatar.appendChild(textLayer);
+      // Add emoji inside circle
+      const emojiElement = document.createElement("div");
+      emojiElement.textContent = emoji;
+      emojiElement.style.fontSize = "18px";
+      avatar.appendChild(emojiElement);
 
       iconContainer.appendChild(avatar);
-
-      // Add emoji
-      const emojiSpan = document.createElement("span");
-      emojiSpan.textContent = emoji;
-      emojiSpan.style.fontSize = "16px";
-      emojiSpan.style.flexShrink = "0";
-      iconContainer.appendChild(emojiSpan);
 
       li.insertBefore(iconContainer, li.firstChild);
     } else {
