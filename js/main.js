@@ -64,14 +64,14 @@ function playRandomFromUrlGenre() {
   if (!genreEntry) return false;
 
   if (playlistSelect) playlistSelect.value = genreEntry.file;
-  window.currentGenre = genreEntry.file;
+  window.currentGenre = genreEntry.name;
   initChat();
-  loadAndRenderPlaylist(genreEntry.file, () => {
+  loadAndRenderPlaylist(genreEntry.file, genreEntry.name, () => {
     if (currentPlaylist.length) {
       const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length);
       onStationSelect(randomStationIndex);
-      localStorage.setItem("lastStation", JSON.stringify({ genre: genreEntry.file, trackIndex: randomStationIndex }));
-      updateChat(genreEntry.file);
+      localStorage.setItem("lastStation", JSON.stringify({ genre: genreEntry.name, trackIndex: randomStationIndex }));
+      updateChat(genreEntry.name);
     }
   });
   setRadioListeners();
@@ -241,13 +241,17 @@ function switchToRadio() {
   if (ls) {
     try {
       const { genre, trackIndex } = JSON.parse(ls);
+      // Find the playlist entry - genre might be either name or file path
+      const playlistEntry = allPlaylists.find(pl => pl.name === genre || pl.file === genre);
+      if (!playlistEntry) throw new Error("Genre not found");
+
       const pSel = document.getElementById("playlistSelect");
-      if (pSel) pSel.value = genre;
+      if (pSel) pSel.value = playlistEntry.file;
       initChat();
-      loadAndRenderPlaylist(genre, () => {
+      loadAndRenderPlaylist(playlistEntry.file, playlistEntry.name, () => {
         const i = trackIndex < currentPlaylist.length ? trackIndex : 0;
         onStationSelect(i);
-        updateChat(genre);
+        updateChat(playlistEntry.name);
       });
       return;
     } catch (e) {}
@@ -327,23 +331,30 @@ async function updateWalletUI(account) {
 
 function defaultPlaylist() {
   if (!allPlaylists.length) return
-  const firstGenre = allPlaylists[0].file
-  if (playlistSelect) playlistSelect.value = firstGenre
-  window.currentGenre = firstGenre
+  const firstPlaylist = allPlaylists[0];
+  if (playlistSelect) playlistSelect.value = firstPlaylist.file
+  window.currentGenre = firstPlaylist.name
   initChat()
-  loadAndRenderPlaylist(firstGenre, () => {
+  loadAndRenderPlaylist(firstPlaylist.file, firstPlaylist.name, () => {
     if (currentPlaylist.length) {
       const i = 0
       onStationSelect(i)
-      localStorage.setItem("lastStation", JSON.stringify({ genre: firstGenre, trackIndex: i }))
-      updateChat(firstGenre)
+      localStorage.setItem("lastStation", JSON.stringify({ genre: firstPlaylist.name, trackIndex: i }))
+      updateChat(firstPlaylist.name)
     }
   })
 }
 
-function loadAndRenderPlaylist(url, cb, scTop = false) {
+function loadAndRenderPlaylist(url, genreName = null, cb, scTop = false) {
+  // Handle old API where genreName was not passed
+  if (typeof genreName === 'function') {
+    scTop = cb;
+    cb = genreName;
+    genreName = null;
+  }
+
   playlistLoader.classList.remove("hidden")
-  loadPlaylist(url)
+  loadPlaylist(url, genreName)
     .then(s => {
       allStations = s
       currentPlaylist = s.slice()
@@ -593,8 +604,11 @@ function onGenreChange(randomStation = false) {
   const pSel = document.getElementById("playlistSelect");
   const sIn = document.getElementById("searchInput");
   if (!pSel) return;
-  const newGenre = pSel.value;
-  loadAndRenderPlaylist(newGenre, () => {
+  const newGenreFile = pSel.value;
+  const playlistEntry = allPlaylists.find(pl => pl.file === newGenreFile);
+  const genreName = playlistEntry ? playlistEntry.name : newGenreFile;
+  window.currentGenre = genreName;
+  loadAndRenderPlaylist(newGenreFile, genreName, () => {
     if (sIn) sIn.value = "";
     if (currentPlaylist.length) {
       let idx = 0;
@@ -620,11 +634,25 @@ async function createFavoritesPlaylist() {
   const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
   let list = [];
   for (let pl of allPlaylists) {
-    const st = await loadPlaylist(pl.file);
+    const st = await loadPlaylist(pl.file, pl.name);
     const matched = st.filter(x => favs.some(f => f.url === x.url));
     matched.forEach(x => {
       const favEntry = favs.find(f => f.url === x.url);
-      x.favGenre = favEntry ? favEntry.genre : pl.file;
+      let favGenre = pl.name;
+
+      // If favEntry has genre, use it (but convert file path to name if needed)
+      if (favEntry && favEntry.genre) {
+        if (favEntry.genre.startsWith('genres/')) {
+          // Old format: genres/downtempo.m3u -> find matching playlist name
+          const matchedPlaylist = allPlaylists.find(p => p.file === favEntry.genre);
+          favGenre = matchedPlaylist ? matchedPlaylist.name : pl.name;
+        } else {
+          // New format: already a genre name like "Downtempo"
+          favGenre = favEntry.genre;
+        }
+      }
+
+      x.favGenre = favGenre;
     });
     list = list.concat(matched);
   }
@@ -1234,23 +1262,61 @@ window.onStationSelect = function(i) {
 (function(){
   const cache = { list: [], byGenre: {}, ready: false };
   function dedupe(list){ return Array.from(new Map(list.map(s=>[s.url,s])).values()); }
+
+  // Find genre name for a station URL
+  function findGenreForUrl(stationUrl, favEntry) {
+    if (favEntry && favEntry.genre) return favEntry.genre;
+
+    // Search through all loaded playlists
+    for (const [genre, stations] of Object.entries(cache.byGenre)) {
+      if (stations && stations.find(s => s.url === stationUrl)) {
+        return genre;
+      }
+    }
+    return "World";
+  }
+
   async function warm(force=false){
     const favs = JSON.parse(localStorage.getItem("favorites")||"[]");
     if(!Array.isArray(favs)||!favs.length){ cache.list=[]; cache.ready=true; window.preloadedFavorites=[]; return []; }
-    const need = Array.from(new Set(favs.map(f=>f.genre)));
-    await Promise.all(need.map(async g=>{
-      if(!cache.byGenre[g]||force){
-        const pl = Array.isArray(allPlaylists)?allPlaylists.find(p=>p.file===g):null;
-        if(!pl){ cache.byGenre[g]=[]; return; }
-        try{ cache.byGenre[g]=await loadPlaylist(pl.file); }catch(e){ cache.byGenre[g]=[]; }
-      }
-    }));
+
+    // Load all playlists to find stations
+    if(force || Object.keys(cache.byGenre).length === 0) {
+      await Promise.all(
+        (Array.isArray(allPlaylists) ? allPlaylists : []).map(async pl => {
+          try {
+            cache.byGenre[pl.name] = await loadPlaylist(pl.file, pl.name);
+          } catch(e) {
+            cache.byGenre[pl.name] = [];
+          }
+        })
+      );
+    }
+
     const out=[];
     for(const fav of favs){
-      const arr = cache.byGenre[fav.genre]||[];
-      const st = arr.find(s=>s.url===fav.url);
-      if(st){ st.favGenre=fav.genre; out.push(st); }
+      // Search for station in all genres
+      for (const [genre, stations] of Object.entries(cache.byGenre)) {
+        const st = stations && stations.find(s => s.url === fav.url);
+        if(st) {
+          let favGenre = genre;
+          if (fav.genre && fav.genre.trim()) {
+            if (fav.genre.startsWith('genres/')) {
+              // Old format: genres/downtempo.m3u -> find matching playlist name
+              const matchedPlaylist = allPlaylists.find(p => p.file === fav.genre);
+              favGenre = matchedPlaylist ? matchedPlaylist.name : genre;
+            } else {
+              // New format: already a genre name
+              favGenre = fav.genre;
+            }
+          }
+          st.favGenre = favGenre;
+          out.push(st);
+          break;
+        }
+      }
     }
+
     cache.list = dedupe(out);
     cache.ready = true;
     window.preloadedFavorites = cache.list;

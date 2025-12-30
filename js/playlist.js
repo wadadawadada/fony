@@ -4,6 +4,239 @@ export let USE_ONLY_HTTPS = localStorage.getItem("useOnlyHttps") === "true" ? tr
 export function updateUseOnlyHttpsSetting(newValue) {
   USE_ONLY_HTTPS = newValue;
 }
+
+// Genre to emoji mapping and colors
+const GENRE_EMOJI_MAP = {
+  "African": "🌍",
+  "Alternative": "🎸",
+  "Asian": "🏯",
+  "Balkans": "🎺",
+  "Blues": "🎹",
+  "Caribbean": "🏝️",
+  "Chillout": "😌",
+  "China": "🏮",
+  "Chiptune": "🎮",
+  "Classical": "🎻",
+  "Downtempo": "🍃",
+  "Drum & Bass": "🥁",
+  "Dub": "🎧",
+  "Electronic": "⚡",
+  "Funk": "💃",
+  "Goa": "🕉️",
+  "Hardcore": "🔥",
+  "Hip Hop": "🎤",
+  "House": "🏠",
+  "Industrial": "⚙️",
+  "Italian": "🍝",
+  "Japan": "🗾",
+  "Jazz": "🎷",
+  "Jungle": "🐆",
+  "Lounge": "🛋️",
+  "Meditation": "🧘",
+  "Metal": "🤘",
+  "Nature": "🌲",
+  "New Age": "✨",
+  "News": "📢",
+  "Oriental": "🎋",
+  "Spiritual": "☮️",
+  "Punk": "⚡",
+  "Rap": "🎙️",
+  "Reggae": "🌴",
+  "RnB": "💿",
+  "Russian": "🪶",
+  "Southeast Asia": "🎎",
+  "Techno": "🤖",
+  "Turk": "🎸",
+  "World": "🌐"
+};
+
+// Genre colors for light theme - muted warm and cool tones
+const GENRE_COLORS_LIGHT = {
+  "African": "#D4A574",
+  "Alternative": "#0093FF",
+  "Asian": "#00E5FF",
+  "Balkans": "#C17A6B",
+  "Blues": "#4A90E2",
+  "Caribbean": "#D4A76A",
+  "Chillout": "#7B9FB5",
+  "China": "#E8B17D",
+  "Chiptune": "#A8D68B",
+  "Classical": "#00AA8B",
+  "Downtempo": "#6DB584",
+  "Drum & Bass": "#D98B6B",
+  "Dub": "#7DA3C7",
+  "Electronic": "#0070CC",
+  "Funk": "#D4A055",
+  "Goa": "#B5A8E6",
+  "Hardcore": "#D97E7E",
+  "Hip Hop": "#7B9FB5",
+  "House": "#00F2B8",
+  "Industrial": "#6B8FA8",
+  "Italian": "#D4A574",
+  "Japan": "#00D9A3",
+  "Jazz": "#D4B574",
+  "Jungle": "#8BA56B",
+  "Lounge": "#00C197",
+  "Meditation": "#6DB584",
+  "Metal": "#757A8C",
+  "Nature": "#7FB584",
+  "New Age": "#B5D4E5",
+  "News": "#5B6B8B",
+  "Oriental": "#D4B591",
+  "Spiritual": "#8BA584",
+  "Punk": "#D97E7E",
+  "Rap": "#8BA5C7",
+  "Reggae": "#7FB584",
+  "RnB": "#D4A5B5",
+  "Russian": "#D4A574",
+  "Southeast Asia": "#00D9A3",
+  "Techno": "#A8A8D8",
+  "Turk": "#D4A591",
+  "World": "#00C197"
+};
+
+// Genre colors for dark theme - vibrant bright colors
+const GENRE_COLORS_DARK = {
+  "African": "#00FFD1",
+  "Alternative": "#00D0FF",
+  "Asian": "#00FFFF",
+  "Balkans": "#00FF88",
+  "Blues": "#66D9FF",
+  "Caribbean": "#33FF66",
+  "Chillout": "#00FFDD",
+  "China": "#00DDFF",
+  "Chiptune": "#66FF33",
+  "Classical": "#00FFAA",
+  "Downtempo": "#33FF99",
+  "Drum & Bass": "#00D0FF",
+  "Dub": "#BB88FF",
+  "Electronic": "#0099FF",
+  "Funk": "#66FF77",
+  "Goa": "#00FFFF",
+  "Hardcore": "#6688FF",
+  "Hip Hop": "#99DDFF",
+  "House": "#00FFDD",
+  "Industrial": "#00CCFF",
+  "Italian": "#00FFBB",
+  "Japan": "#00FFFF",
+  "Jazz": "#00FFCC",
+  "Jungle": "#33FF88",
+  "Lounge": "#00FFAA",
+  "Meditation": "#33FFAA",
+  "Metal": "#5588FF",
+  "Nature": "#66FF88",
+  "New Age": "#00FFFF",
+  "News": "#5599FF",
+  "Oriental": "#00FFEE",
+  "Spiritual": "#33FF99",
+  "Punk": "#6699FF",
+  "Rap": "#00FFDD",
+  "Reggae": "#33FF99",
+  "RnB": "#00FFFF",
+  "Russian": "#00DDFF",
+  "Southeast Asia": "#00FFBB",
+  "Techno": "#66FF88",
+  "Turk": "#00FFCC",
+  "World": "#00FFAA"
+};
+
+// App theme colors - cyan, blue, green shades
+const AVATAR_COLORS = [
+  "#00F2B8", // Cyan (app primary)
+  "#00D9A3",
+  "#00C197",
+  "#00AA8B",
+  "#0093FF", // Blue
+  "#0080E0",
+  "#0070CC",
+  "#1E5FFF",
+  "#00E5FF", // Light cyan
+  "#00D1E0",
+  "#00BEC9",
+  "#009FB0",
+  "#1DB584", // Green
+  "#26B56B",
+  "#32B865",
+  "#3BBE5E",
+  "#2A6FBB", // Dark blue
+  "#3A5FBB",
+  "#4A4FBB",
+  "#5A3FBB"
+];
+
+function getGenreEmoji(genreName) {
+  if (!genreName) return "📻";
+  return GENRE_EMOJI_MAP[genreName] || "📻";
+}
+
+function generateColorFromString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  const index = Math.abs(hash) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[index];
+}
+
+function getStationInitials(stationName) {
+  if (!stationName) return "?";
+  // Extract first letter of each word, or numbers at the start
+  const words = stationName.trim().split(/\s+/);
+  let initials = "";
+
+  for (const word of words) {
+    if (initials.length >= 3) break;
+    const firstChar = word.charAt(0);
+    if (firstChar && /[A-Z0-9]/.test(firstChar.toUpperCase())) {
+      initials += firstChar.toUpperCase();
+    }
+  }
+
+  return initials || stationName.charAt(0).toUpperCase();
+}
+
+function getGenreColor(genre) {
+  const isDarkTheme = document.body.classList.contains('dark');
+  const colors = isDarkTheme ? GENRE_COLORS_DARK : GENRE_COLORS_LIGHT;
+  return colors[genre] || "#00F2B8";
+}
+
+function updateFavoriteRowColors() {
+  const draggableItems = document.querySelectorAll(".draggable-favorite");
+  draggableItems.forEach(item => {
+    const stationUrl = item.dataset.stationUrl;
+    if (stationUrl && window.currentPlaylist) {
+      const station = window.currentPlaylist.find(s => s.url === stationUrl);
+      if (station) {
+        const genre = station.favGenre || station.genre || "World";
+        const color = getGenreColor(genre);
+        item.style.backgroundColor = color;
+      }
+    }
+  });
+}
+
+// Listen for theme changes and update colors
+const themeObserver = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+      if (mutation.target === document.body) {
+        updateFavoriteRowColors();
+      }
+    }
+  });
+});
+
+// Start observing when DOM is ready
+if (document.body) {
+  themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  });
+}
+
 function generateStationHash(url) {
   let hash = 0;
   for (let i = 0; i < url.length; i++) {
@@ -32,7 +265,12 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     li.style.position = "relative";
     li.style.setProperty("--buffer-percent", "0%");
     li.dataset.index = i;
+    li.dataset.stationUrl = station.url;
     li.classList.add(window.currentMode === "web3" ? "web3-mode" : "radio-mode");
+    if (isFavoritesMode) {
+      li.draggable = true;
+      li.classList.add("draggable-favorite");
+    }
     const progressDiv = document.createElement("div");
     progressDiv.classList.add("progress");
     li.appendChild(progressDiv);
@@ -196,7 +434,46 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         li.appendChild(removeBtn);
       }
     }
-    if (!isFavoritesMode && isFavorite(station)) {
+    if (isFavoritesMode) {
+      // In favorites mode, show dark avatar with genre emoji
+      const genre = station.favGenre || station.genre || "World";
+      const color = getGenreColor(genre);
+      const emoji = getGenreEmoji(genre);
+
+      // Set background color of the list item to genre color
+      li.style.backgroundColor = color;
+
+      const iconContainer = document.createElement("div");
+      iconContainer.classList.add("station-favorite-icon");
+      iconContainer.style.display = "inline-flex";
+      iconContainer.style.alignItems = "center";
+      iconContainer.style.marginRight = "12px";
+
+      // Dark avatar with emoji inside
+      const avatar = document.createElement("div");
+      avatar.classList.add("station-avatar");
+      avatar.style.width = "32px";
+      avatar.style.height = "32px";
+      avatar.style.borderRadius = "50%";
+      avatar.style.backgroundColor = "#171C2B";
+      avatar.style.display = "flex";
+      avatar.style.alignItems = "center";
+      avatar.style.justifyContent = "center";
+      avatar.style.flexShrink = "0";
+      avatar.style.position = "relative";
+
+      // Add emoji inside circle
+      const emojiElement = document.createElement("div");
+      emojiElement.textContent = emoji;
+      emojiElement.style.fontSize = "18px";
+      avatar.appendChild(emojiElement);
+
+      iconContainer.appendChild(avatar);
+
+      // Insert at the beginning of li, before cover icon
+      li.insertBefore(iconContainer, li.firstChild);
+
+    } else if (isFavorite(station)) {
       const favHeart = document.createElement("img");
       favHeart.classList.add("favorite-heart", "active");
       favHeart.src = "/img/heart.svg";
@@ -214,6 +491,97 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     fragment.appendChild(li);
   }
   playlistElement.appendChild(fragment);
+
+  // Add drag-and-drop functionality for favorites
+  if (isFavoritesMode) {
+    let draggedElement = null;
+    const draggableItems = playlistElement.querySelectorAll(".draggable-favorite");
+
+    draggableItems.forEach(item => {
+      item.addEventListener("dragstart", (e) => {
+        draggedElement = item;
+        item.style.opacity = "0.3";
+        item.style.transform = "scale(0.98)";
+        item.style.boxShadow = "0 8px 16px rgba(0, 242, 184, 0.4)";
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/html", item.innerHTML);
+      });
+
+      item.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+
+        if (item !== draggedElement) {
+          item.style.borderTop = "3px solid #00F2B8";
+          item.style.paddingTop = "8px";
+        }
+      });
+
+      item.addEventListener("dragleave", (e) => {
+        item.style.borderTop = "";
+        item.style.paddingTop = "";
+      });
+
+      item.addEventListener("drop", (e) => {
+        e.preventDefault();
+        item.style.borderTop = "";
+        item.style.paddingTop = "";
+
+        if (item !== draggedElement) {
+          // Reorder in DOM
+          if (draggedElement.compareDocumentPosition(item) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            item.parentNode.insertBefore(draggedElement, item);
+          } else {
+            item.parentNode.insertBefore(draggedElement, item.nextSibling);
+          }
+
+          // Rebuild favorites array based on new DOM order
+          const allItems = playlistElement.querySelectorAll(".draggable-favorite");
+          const newOrder = Array.from(allItems).map(el => el.dataset.stationUrl);
+
+          // Update favorites in localStorage to match new DOM order
+          const favs = getFavorites();
+          const newFavs = [];
+          for (const url of newOrder) {
+            const fav = favs.find(f => f.url === url);
+            if (fav) newFavs.push(fav);
+          }
+          saveFavorites(newFavs);
+
+          // Update indices for all items
+          allItems.forEach((item, idx) => {
+            item.dataset.index = idx;
+            item.style.transition = "all 0.3s ease";
+          });
+
+          // Update window.currentPlaylist to match new order
+          if (window.currentPlaylist) {
+            const newPlaylist = [];
+            for (const url of newOrder) {
+              const station = window.currentPlaylist.find(s => s.url === url);
+              if (station) newPlaylist.push(station);
+            }
+            window.currentPlaylist.splice(0, window.currentPlaylist.length, ...newPlaylist);
+          }
+        }
+      });
+
+      item.addEventListener("dragend", (e) => {
+        draggedElement.style.opacity = "1";
+        draggedElement.style.transform = "";
+        draggedElement.style.boxShadow = "";
+        draggedElement.style.borderTop = "";
+        draggedElement.style.paddingTop = "";
+        draggableItems.forEach(i => {
+          i.style.borderTop = "";
+          i.style.paddingTop = "";
+        });
+      });
+    });
+
+    // Ensure colors are set correctly for current theme
+    updateFavoriteRowColors();
+  }
 }
 function getFavorites() {
   return JSON.parse(localStorage.getItem("favorites") || "[]");
@@ -230,7 +598,7 @@ function removeFavorite(station) {
   favs = favs.filter(f => f.url !== station.url);
   saveFavorites(favs);
 }
-export function loadPlaylist(url) {
+export function loadPlaylist(url, genreName = null) {
   return fetch(url)
     .then(response => response.text())
     .then(text => {
@@ -267,7 +635,8 @@ export function loadPlaylist(url) {
           bitrate,
           url: secureUrl(streamUrl),
           originalUrl: streamUrl,
-          cover
+          cover,
+          genre: genreName
         });
       }
       const hiddenStations = JSON.parse(localStorage.getItem("hiddenStations") || "[]");
@@ -297,28 +666,80 @@ export function updatePlaylistHearts() {
   const playlistElement = document.getElementById("playlist");
   if (!playlistElement || !window.currentPlaylist) return;
   const lis = playlistElement.querySelectorAll("li");
+
+  let isFavoritesMode = false;
+  const genreLabel = document.querySelector("label[for='playlistSelect']");
+  if (genreLabel && genreLabel.textContent === "Favorites") isFavoritesMode = true;
+  else if (window.currentPlaylist.length && window.currentPlaylist[0].favGenre) isFavoritesMode = true;
+
   lis.forEach(li => {
     const index = parseInt(li.dataset.index);
     if (isNaN(index)) return;
     const station = window.currentPlaylist[index];
     if (!station) return;
-    const favSlot = li.querySelector(".fav-slot");
-    if (!favSlot) return;
-    favSlot.innerHTML = "";
-    if (favs.some(f => f.url === station.url)) {
-      const favHeart = document.createElement("img");
-      favHeart.classList.add("favorite-heart", "active");
-      favHeart.src = "/img/heart.svg";
-      favHeart.alt = "Favorite";
-      favHeart.loading = "lazy";
-      favHeart.style.animation = "heartBounce 0.5s ease-out";
-      favHeart.style.verticalAlign = "middle";
-      favHeart.addEventListener("click", (event) => {
-        event.stopPropagation();
-        removeFavorite(station);
-        updatePlaylistHearts();
-      });
-      favSlot.appendChild(favHeart);
+
+    if (isFavoritesMode) {
+      // In favorites mode, update the avatar icon with genre emoji
+      const existingIcon = li.querySelector(".station-favorite-icon");
+      if (existingIcon) {
+        existingIcon.remove();
+      }
+
+      const genre = station.favGenre || station.genre || "World";
+      const color = getGenreColor(genre);
+      const emoji = getGenreEmoji(genre);
+
+      // Set background color of the list item to genre color
+      li.style.backgroundColor = color;
+
+      const iconContainer = document.createElement("div");
+      iconContainer.classList.add("station-favorite-icon");
+      iconContainer.style.display = "inline-flex";
+      iconContainer.style.alignItems = "center";
+      iconContainer.style.marginRight = "12px";
+
+      // Dark avatar with emoji inside
+      const avatar = document.createElement("div");
+      avatar.classList.add("station-avatar");
+      avatar.style.width = "32px";
+      avatar.style.height = "32px";
+      avatar.style.borderRadius = "50%";
+      avatar.style.backgroundColor = "#171C2B";
+      avatar.style.display = "flex";
+      avatar.style.alignItems = "center";
+      avatar.style.justifyContent = "center";
+      avatar.style.flexShrink = "0";
+      avatar.style.position = "relative";
+
+      // Add emoji inside circle
+      const emojiElement = document.createElement("div");
+      emojiElement.textContent = emoji;
+      emojiElement.style.fontSize = "18px";
+      avatar.appendChild(emojiElement);
+
+      iconContainer.appendChild(avatar);
+
+      li.insertBefore(iconContainer, li.firstChild);
+    } else {
+      // In normal mode, update heart icon
+      const favSlot = li.querySelector(".fav-slot");
+      if (!favSlot) return;
+      favSlot.innerHTML = "";
+      if (favs.some(f => f.url === station.url)) {
+        const favHeart = document.createElement("img");
+        favHeart.classList.add("favorite-heart", "active");
+        favHeart.src = "/img/heart.svg";
+        favHeart.alt = "Favorite";
+        favHeart.loading = "lazy";
+        favHeart.style.animation = "heartBounce 0.5s ease-out";
+        favHeart.style.verticalAlign = "middle";
+        favHeart.addEventListener("click", (event) => {
+          event.stopPropagation();
+          removeFavorite(station);
+          updatePlaylistHearts();
+        });
+        favSlot.appendChild(favHeart);
+      }
     }
   });
 }
