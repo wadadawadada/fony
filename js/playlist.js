@@ -155,15 +155,6 @@ function getGenreColor(genre) {
   return GENRE_COLORS[genre] || "#00F2B8";
 }
 
-function getBorderColor(stationName) {
-  let hash = 0;
-  for (let i = 0; i < stationName.length; i++) {
-    hash = ((hash << 5) - hash) + stationName.charCodeAt(i);
-    hash = hash & hash;
-  }
-  const index = Math.abs(hash) % AVATAR_COLORS.length;
-  return AVATAR_COLORS[index];
-}
 function generateStationHash(url) {
   let hash = 0;
   for (let i = 0; i < url.length; i++) {
@@ -361,7 +352,6 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       const genre = station.favGenre || station.genre || "World";
       const color = getGenreColor(genre);
       const initials = getStationInitials(station.title);
-      const borderColor = getBorderColor(station.title);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
@@ -369,7 +359,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       iconContainer.style.alignItems = "center";
       iconContainer.style.marginRight = "12px";
 
-      // Colored avatar with initials and variable border
+      // Colored avatar with initials
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
       avatar.style.width = "32px";
@@ -384,7 +374,6 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       avatar.style.fontSize = "11px";
       avatar.style.fontFamily = "'Ruda', sans-serif";
       avatar.style.flexShrink = "0";
-      avatar.style.border = `1.5px solid ${borderColor}`;
       avatar.style.position = "relative";
 
       // Add initials
@@ -522,7 +511,6 @@ export function updatePlaylistHearts() {
       const genre = station.favGenre || station.genre || "World";
       const color = getGenreColor(genre);
       const initials = getStationInitials(station.title);
-      const borderColor = getBorderColor(station.title);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
@@ -544,7 +532,6 @@ export function updatePlaylistHearts() {
       avatar.style.fontSize = "11px";
       avatar.style.fontFamily = "'Ruda', sans-serif";
       avatar.style.flexShrink = "0";
-      avatar.style.border = `1.5px solid ${borderColor}`;
       avatar.style.position = "relative";
 
       // Add initials
