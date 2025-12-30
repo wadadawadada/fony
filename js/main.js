@@ -624,7 +624,7 @@ async function createFavoritesPlaylist() {
     const matched = st.filter(x => favs.some(f => f.url === x.url));
     matched.forEach(x => {
       const favEntry = favs.find(f => f.url === x.url);
-      x.favGenre = favEntry ? favEntry.genre : pl.file;
+      x.favGenre = favEntry ? favEntry.genre : pl.name;
     });
     list = list.concat(matched);
   }

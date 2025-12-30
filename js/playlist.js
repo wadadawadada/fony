@@ -4,6 +4,67 @@ export let USE_ONLY_HTTPS = localStorage.getItem("useOnlyHttps") === "true" ? tr
 export function updateUseOnlyHttpsSetting(newValue) {
   USE_ONLY_HTTPS = newValue;
 }
+
+// Genre to emoji mapping
+const GENRE_EMOJI_MAP = {
+  "African": "🌍",
+  "Alternative": "🎸",
+  "Asian": "🏯",
+  "Balkans": "🎺",
+  "Blues": "🎹",
+  "Caribbean": "🏝️",
+  "Chillout": "😌",
+  "China": "🏮",
+  "Chiptune": "🎮",
+  "Classical": "🎻",
+  "Downtempo": "🍃",
+  "Drum & Bass": "🥁",
+  "Dub": "🎧",
+  "Electronic": "⚡",
+  "Funk": "💃",
+  "Goa": "🕉️",
+  "Hardcore": "🔥",
+  "Hip Hop": "🎤",
+  "House": "🏠",
+  "Industrial": "⚙️",
+  "Italian": "🍝",
+  "Japan": "🗾",
+  "Jazz": "🎷",
+  "Jungle": "🐆",
+  "Lounge": "🛋️",
+  "Meditation": "🧘",
+  "Metal": "🤘",
+  "Nature": "🌲",
+  "New Age": "✨",
+  "News": "📢",
+  "Oriental": "🎋",
+  "Spiritual": "☮️",
+  "Punk": "⚡",
+  "Rap": "🎙️",
+  "Reggae": "🌴",
+  "RnB": "💿",
+  "Russian": "🪶",
+  "Southeast Asia": "🎎",
+  "Techno": "🤖",
+  "Turk": "🎸",
+  "World": "🌐"
+};
+
+function getGenreEmoji(genreName) {
+  return GENRE_EMOJI_MAP[genreName] || "📻";
+}
+
+function generateColorFromString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  const hue = Math.abs(hash) % 360;
+  const saturation = 65 + (Math.abs(hash) % 20);
+  const lightness = 45 + (Math.abs(hash) % 15);
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
 function generateStationHash(url) {
   let hash = 0;
   for (let i = 0; i < url.length; i++) {
@@ -196,7 +257,49 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         li.appendChild(removeBtn);
       }
     }
-    if (!isFavoritesMode && isFavorite(station)) {
+    if (isFavoritesMode) {
+      // In favorites mode, show emoji + colored avatar icon
+      const genre = station.favGenre || window.currentGenre || "World";
+      const emoji = getGenreEmoji(genre);
+      const color = generateColorFromString(station.title);
+
+      const iconContainer = document.createElement("div");
+      iconContainer.classList.add("station-favorite-icon");
+      iconContainer.style.display = "inline-flex";
+      iconContainer.style.alignItems = "center";
+      iconContainer.style.gap = "8px";
+      iconContainer.style.marginRight = "12px";
+
+      // Emoji
+      const emojiSpan = document.createElement("span");
+      emojiSpan.textContent = emoji;
+      emojiSpan.style.fontSize = "18px";
+      emojiSpan.style.lineHeight = "1";
+
+      // Colored avatar with first letter
+      const avatar = document.createElement("div");
+      avatar.classList.add("station-avatar");
+      avatar.textContent = station.title.charAt(0).toUpperCase();
+      avatar.style.width = "28px";
+      avatar.style.height = "28px";
+      avatar.style.borderRadius = "50%";
+      avatar.style.backgroundColor = color;
+      avatar.style.display = "flex";
+      avatar.style.alignItems = "center";
+      avatar.style.justifyContent = "center";
+      avatar.style.color = "#fff";
+      avatar.style.fontWeight = "bold";
+      avatar.style.fontSize = "12px";
+      avatar.style.fontFamily = "'Ruda', sans-serif";
+      avatar.style.flexShrink = "0";
+
+      iconContainer.appendChild(emojiSpan);
+      iconContainer.appendChild(avatar);
+
+      // Insert at the beginning of li, before cover icon
+      li.insertBefore(iconContainer, li.firstChild);
+
+    } else if (isFavorite(station)) {
       const favHeart = document.createElement("img");
       favHeart.classList.add("favorite-heart", "active");
       favHeart.src = "/img/heart.svg";
@@ -297,28 +400,80 @@ export function updatePlaylistHearts() {
   const playlistElement = document.getElementById("playlist");
   if (!playlistElement || !window.currentPlaylist) return;
   const lis = playlistElement.querySelectorAll("li");
+
+  let isFavoritesMode = false;
+  const genreLabel = document.querySelector("label[for='playlistSelect']");
+  if (genreLabel && genreLabel.textContent === "Favorites") isFavoritesMode = true;
+  else if (window.currentPlaylist.length && window.currentPlaylist[0].favGenre) isFavoritesMode = true;
+
   lis.forEach(li => {
     const index = parseInt(li.dataset.index);
     if (isNaN(index)) return;
     const station = window.currentPlaylist[index];
     if (!station) return;
-    const favSlot = li.querySelector(".fav-slot");
-    if (!favSlot) return;
-    favSlot.innerHTML = "";
-    if (favs.some(f => f.url === station.url)) {
-      const favHeart = document.createElement("img");
-      favHeart.classList.add("favorite-heart", "active");
-      favHeart.src = "/img/heart.svg";
-      favHeart.alt = "Favorite";
-      favHeart.loading = "lazy";
-      favHeart.style.animation = "heartBounce 0.5s ease-out";
-      favHeart.style.verticalAlign = "middle";
-      favHeart.addEventListener("click", (event) => {
-        event.stopPropagation();
-        removeFavorite(station);
-        updatePlaylistHearts();
-      });
-      favSlot.appendChild(favHeart);
+
+    if (isFavoritesMode) {
+      // In favorites mode, update the emoji + avatar icon
+      const existingIcon = li.querySelector(".station-favorite-icon");
+      if (existingIcon) {
+        existingIcon.remove();
+      }
+
+      const genre = station.favGenre || window.currentGenre || "World";
+      const emoji = getGenreEmoji(genre);
+      const color = generateColorFromString(station.title);
+
+      const iconContainer = document.createElement("div");
+      iconContainer.classList.add("station-favorite-icon");
+      iconContainer.style.display = "inline-flex";
+      iconContainer.style.alignItems = "center";
+      iconContainer.style.gap = "8px";
+      iconContainer.style.marginRight = "12px";
+
+      const emojiSpan = document.createElement("span");
+      emojiSpan.textContent = emoji;
+      emojiSpan.style.fontSize = "18px";
+      emojiSpan.style.lineHeight = "1";
+
+      const avatar = document.createElement("div");
+      avatar.classList.add("station-avatar");
+      avatar.textContent = station.title.charAt(0).toUpperCase();
+      avatar.style.width = "28px";
+      avatar.style.height = "28px";
+      avatar.style.borderRadius = "50%";
+      avatar.style.backgroundColor = color;
+      avatar.style.display = "flex";
+      avatar.style.alignItems = "center";
+      avatar.style.justifyContent = "center";
+      avatar.style.color = "#fff";
+      avatar.style.fontWeight = "bold";
+      avatar.style.fontSize = "12px";
+      avatar.style.fontFamily = "'Ruda', sans-serif";
+      avatar.style.flexShrink = "0";
+
+      iconContainer.appendChild(emojiSpan);
+      iconContainer.appendChild(avatar);
+      li.insertBefore(iconContainer, li.firstChild);
+    } else {
+      // In normal mode, update heart icon
+      const favSlot = li.querySelector(".fav-slot");
+      if (!favSlot) return;
+      favSlot.innerHTML = "";
+      if (favs.some(f => f.url === station.url)) {
+        const favHeart = document.createElement("img");
+        favHeart.classList.add("favorite-heart", "active");
+        favHeart.src = "/img/heart.svg";
+        favHeart.alt = "Favorite";
+        favHeart.loading = "lazy";
+        favHeart.style.animation = "heartBounce 0.5s ease-out";
+        favHeart.style.verticalAlign = "middle";
+        favHeart.addEventListener("click", (event) => {
+          event.stopPropagation();
+          removeFavorite(station);
+          updatePlaylistHearts();
+        });
+        favSlot.appendChild(favHeart);
+      }
     }
   });
 }
