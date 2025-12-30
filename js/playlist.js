@@ -50,48 +50,48 @@ const GENRE_EMOJI_MAP = {
   "World": "🌐"
 };
 
-// Genre to color mapping - app theme colors (cyan, blue, green shades)
+// Genre to color mapping - diverse palette with muted warm and cool tones
 const GENRE_COLORS = {
-  "African": "#00D9A3",
+  "African": "#D4A574",
   "Alternative": "#0093FF",
   "Asian": "#00E5FF",
-  "Balkans": "#1DB584",
-  "Blues": "#00BEC9",
-  "Caribbean": "#26B56B",
-  "Chillout": "#009FB0",
-  "China": "#0080E0",
-  "Chiptune": "#3BBE5E",
+  "Balkans": "#C17A6B",
+  "Blues": "#4A90E2",
+  "Caribbean": "#D4A76A",
+  "Chillout": "#7B9FB5",
+  "China": "#E8B17D",
+  "Chiptune": "#A8D68B",
   "Classical": "#00AA8B",
-  "Downtempo": "#1DB584",
-  "Drum & Bass": "#0093FF",
-  "Dub": "#00D1E0",
+  "Downtempo": "#6DB584",
+  "Drum & Bass": "#D98B6B",
+  "Dub": "#7DA3C7",
   "Electronic": "#0070CC",
-  "Funk": "#26B56B",
-  "Goa": "#00E5FF",
-  "Hardcore": "#0093FF",
-  "Hip Hop": "#1E5FFF",
+  "Funk": "#D4A055",
+  "Goa": "#B5A8E6",
+  "Hardcore": "#D97E7E",
+  "Hip Hop": "#7B9FB5",
   "House": "#00F2B8",
-  "Industrial": "#0080E0",
-  "Italian": "#32B865",
+  "Industrial": "#6B8FA8",
+  "Italian": "#D4A574",
   "Japan": "#00D9A3",
-  "Jazz": "#009FB0",
-  "Jungle": "#0070CC",
+  "Jazz": "#D4B574",
+  "Jungle": "#8BA56B",
   "Lounge": "#00C197",
-  "Meditation": "#1DB584",
-  "Metal": "#2A6FBB",
-  "Nature": "#26B56B",
-  "New Age": "#00E5FF",
-  "News": "#3A5FBB",
-  "Oriental": "#00D1E0",
-  "Spiritual": "#32B865",
-  "Punk": "#0093FF",
-  "Rap": "#00BEC9",
-  "Reggae": "#1DB584",
-  "RnB": "#00E5FF",
-  "Russian": "#0080E0",
+  "Meditation": "#6DB584",
+  "Metal": "#757A8C",
+  "Nature": "#7FB584",
+  "New Age": "#B5D4E5",
+  "News": "#5B6B8B",
+  "Oriental": "#D4B591",
+  "Spiritual": "#8BA584",
+  "Punk": "#D97E7E",
+  "Rap": "#8BA5C7",
+  "Reggae": "#7FB584",
+  "RnB": "#D4A5B5",
+  "Russian": "#D4A574",
   "Southeast Asia": "#00D9A3",
-  "Techno": "#3BBE5E",
-  "Turk": "#009FB0",
+  "Techno": "#A8A8D8",
+  "Turk": "#D4A591",
   "World": "#00C197"
 };
 
@@ -348,16 +348,18 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       }
     }
     if (isFavoritesMode) {
-      // In favorites mode, show colored avatar icon with initials
+      // In favorites mode, show colored avatar icon with initials and emoji
       const genre = station.favGenre || station.genre || "World";
       const color = getGenreColor(genre);
       const initials = getStationInitials(station.title);
+      const emoji = getGenreEmoji(genre);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
       iconContainer.style.display = "inline-flex";
       iconContainer.style.alignItems = "center";
       iconContainer.style.marginRight = "12px";
+      iconContainer.style.gap = "6px";
 
       // Colored avatar with initials
       const avatar = document.createElement("div");
@@ -383,6 +385,13 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       avatar.appendChild(textLayer);
 
       iconContainer.appendChild(avatar);
+
+      // Add emoji
+      const emojiSpan = document.createElement("span");
+      emojiSpan.textContent = emoji;
+      emojiSpan.style.fontSize = "16px";
+      emojiSpan.style.flexShrink = "0";
+      iconContainer.appendChild(emojiSpan);
 
       // Insert at the beginning of li, before cover icon
       li.insertBefore(iconContainer, li.firstChild);
@@ -502,7 +511,7 @@ export function updatePlaylistHearts() {
     if (!station) return;
 
     if (isFavoritesMode) {
-      // In favorites mode, update the avatar icon with initials
+      // In favorites mode, update the avatar icon with initials and emoji
       const existingIcon = li.querySelector(".station-favorite-icon");
       if (existingIcon) {
         existingIcon.remove();
@@ -511,12 +520,14 @@ export function updatePlaylistHearts() {
       const genre = station.favGenre || station.genre || "World";
       const color = getGenreColor(genre);
       const initials = getStationInitials(station.title);
+      const emoji = getGenreEmoji(genre);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
       iconContainer.style.display = "inline-flex";
       iconContainer.style.alignItems = "center";
       iconContainer.style.marginRight = "12px";
+      iconContainer.style.gap = "6px";
 
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
@@ -541,6 +552,14 @@ export function updatePlaylistHearts() {
       avatar.appendChild(textLayer);
 
       iconContainer.appendChild(avatar);
+
+      // Add emoji
+      const emojiSpan = document.createElement("span");
+      emojiSpan.textContent = emoji;
+      emojiSpan.style.fontSize = "16px";
+      emojiSpan.style.flexShrink = "0";
+      iconContainer.appendChild(emojiSpan);
+
       li.insertBefore(iconContainer, li.firstChild);
     } else {
       // In normal mode, update heart icon
