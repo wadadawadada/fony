@@ -50,8 +50,8 @@ const GENRE_EMOJI_MAP = {
   "World": "🌐"
 };
 
-// Genre to color mapping - diverse palette with muted warm and cool tones
-const GENRE_COLORS = {
+// Genre colors for light theme - muted warm and cool tones
+const GENRE_COLORS_LIGHT = {
   "African": "#D4A574",
   "Alternative": "#0093FF",
   "Asian": "#00E5FF",
@@ -93,6 +93,51 @@ const GENRE_COLORS = {
   "Techno": "#A8A8D8",
   "Turk": "#D4A591",
   "World": "#00C197"
+};
+
+// Genre colors for dark theme - vibrant and saturated
+const GENRE_COLORS_DARK = {
+  "African": "#E8B455",
+  "Alternative": "#00B8FF",
+  "Asian": "#00FFFF",
+  "Balkans": "#FF6B5B",
+  "Blues": "#5BA3FF",
+  "Caribbean": "#FFD455",
+  "Chillout": "#6BB3FF",
+  "China": "#FFC655",
+  "Chiptune": "#7BFF6B",
+  "Classical": "#00D9A0",
+  "Downtempo": "#5BFF7B",
+  "Drum & Bass": "#FF8B6B",
+  "Dub": "#9B7CFF",
+  "Electronic": "#00A0FF",
+  "Funk": "#FFB855",
+  "Goa": "#D9A0FF",
+  "Hardcore": "#FF6B7B",
+  "Hip Hop": "#9BA8FF",
+  "House": "#00FFCC",
+  "Industrial": "#7B9FD9",
+  "Italian": "#FF9B7B",
+  "Japan": "#00FFB8",
+  "Jazz": "#FFD455",
+  "Jungle": "#7BFF6B",
+  "Lounge": "#00FFAA",
+  "Meditation": "#5BFF8B",
+  "Metal": "#9BA8D9",
+  "Nature": "#7BFF8B",
+  "New Age": "#9BD9FF",
+  "News": "#7B9BFF",
+  "Oriental": "#FFD9A0",
+  "Spiritual": "#7BFF9B",
+  "Punk": "#FF7B8B",
+  "Rap": "#7BA8FF",
+  "Reggae": "#7BFF8B",
+  "RnB": "#FF99CC",
+  "Russian": "#FFAA55",
+  "Southeast Asia": "#00FFB8",
+  "Techno": "#9D9DFF",
+  "Turk": "#FFAA99",
+  "World": "#00FFAA"
 };
 
 // App theme colors - cyan, blue, green shades
@@ -152,7 +197,9 @@ function getStationInitials(stationName) {
 }
 
 function getGenreColor(genre) {
-  return GENRE_COLORS[genre] || "#00F2B8";
+  const isDarkTheme = document.body.classList.contains('dark');
+  const colors = isDarkTheme ? GENRE_COLORS_DARK : GENRE_COLORS_LIGHT;
+  return colors[genre] || "#00F2B8";
 }
 
 function generateStationHash(url) {
