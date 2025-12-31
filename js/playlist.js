@@ -416,6 +416,16 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     removeBtn.style.cursor = "pointer";
     const titleSpan = span;
     const originalText = titleSpan.textContent;
+
+    // Handle hover on station to change button color
+    li.addEventListener("mouseenter", () => {
+      removeBtn.style.color = "#171C2B";
+    });
+    li.addEventListener("mouseleave", () => {
+      removeBtn.style.color = "#00F2B8";
+    });
+
+    // Handle hover on button itself for text/background changes
     removeBtn.addEventListener("mouseenter", () => {
       if (isFavoritesMode) {
         titleSpan.textContent = "Remove from favorites?";
@@ -423,13 +433,11 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         titleSpan.textContent = "Delete station?";
       }
       titleSpan.style.color = "#fff";
-      removeBtn.style.color = "#171C2B";
       li.style.backgroundColor = "#ff0505ff";
     });
     removeBtn.addEventListener("mouseleave", () => {
       titleSpan.textContent = originalText;
       titleSpan.style.color = "";
-      removeBtn.style.color = "#00F2B8";
       li.style.backgroundColor = "";
     });
     removeBtn.addEventListener("click", (event) => {
