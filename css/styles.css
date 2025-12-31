@@ -639,6 +639,31 @@ body.dark .logo {
   color: #000;
 }
 
+/* Hide remove button by default, show on hover and for active station */
+#playlist li .remove-btn {
+  opacity: 0;
+  color: #00F2B8;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  pointer-events: none;
+}
+
+#playlist li:hover .remove-btn {
+  opacity: 1;
+  color: #171C2B;
+  pointer-events: auto;
+}
+
+#playlist li.active .remove-btn {
+  opacity: 1;
+  color: #00F2B8;
+  pointer-events: auto;
+}
+
+/* Keep button color #00F2B8 when hovering over active station */
+#playlist li.active:hover .remove-btn {
+  color: #00F2B8;
+}
+
 #playlist li img.station-icon {
   width: 40px;
   height: 40px;
