@@ -639,19 +639,6 @@ body.dark .logo {
   color: #000;
 }
 
-/* Hide remove button by default for favorites mode */
-#playlist li.draggable-favorite .remove-btn {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}
-
-/* Show remove button on hover for favorites mode */
-#playlist li.draggable-favorite:hover .remove-btn {
-  opacity: 1;
-  pointer-events: auto;
-}
-
 #playlist li img.station-icon {
   width: 40px;
   height: 40px;

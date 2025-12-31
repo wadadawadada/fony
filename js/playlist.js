@@ -401,38 +401,36 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       }
     }
 
-    // Create delete button for favorites and non-favorites modes
-    const removeBtn = document.createElement("button");
-    removeBtn.textContent = "×";
-    removeBtn.classList.add("remove-btn");
-    removeBtn.style.position = "absolute";
-    removeBtn.style.right = "10px";
-    removeBtn.style.top = "50%";
-    removeBtn.style.transform = "translateY(-50%)";
-    removeBtn.style.background = "transparent";
-    removeBtn.style.border = "none";
-    removeBtn.style.color = "#00F2B8";
-    removeBtn.style.fontSize = "18px";
-    removeBtn.style.cursor = "pointer";
-    const titleSpan = span;
-    const originalText = titleSpan.textContent;
-    removeBtn.addEventListener("mouseenter", () => {
-      if (isFavoritesMode) {
+    // Create delete button only for favorites mode
+    if (isFavoritesMode) {
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "×";
+      removeBtn.classList.add("remove-btn");
+      removeBtn.style.position = "absolute";
+      removeBtn.style.right = "10px";
+      removeBtn.style.top = "50%";
+      removeBtn.style.transform = "translateY(-50%)";
+      removeBtn.style.background = "transparent";
+      removeBtn.style.border = "none";
+      removeBtn.style.color = "#00F2B8";
+      removeBtn.style.fontSize = "18px";
+      removeBtn.style.cursor = "pointer";
+      const titleSpan = span;
+      const originalText = titleSpan.textContent;
+      removeBtn.addEventListener("mouseenter", () => {
         titleSpan.textContent = "Remove from favorites?";
-      } else {
-        titleSpan.textContent = "Delete station?";
-      }
-      titleSpan.style.color = "#fff";
-      li.style.backgroundColor = "#ff0505ff";
-    });
-    removeBtn.addEventListener("mouseleave", () => {
-      titleSpan.textContent = originalText;
-      titleSpan.style.color = "";
-      li.style.backgroundColor = "";
-    });
-    removeBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      if (isFavoritesMode) {
+        titleSpan.style.color = "#fff";
+        removeBtn.style.color = "#171C2B";
+        li.style.backgroundColor = "#ff0505ff";
+      });
+      removeBtn.addEventListener("mouseleave", () => {
+        titleSpan.textContent = originalText;
+        titleSpan.style.color = "";
+        removeBtn.style.color = "#00F2B8";
+        li.style.backgroundColor = "";
+      });
+      removeBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
         const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
         const idx = favs.findIndex(f => f.url === station.url);
         if (idx !== -1) {
@@ -441,13 +439,9 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
           li.remove();
           if (typeof window.updatePlaylistHearts === "function") window.updatePlaylistHearts();
         }
-      } else {
-        if (typeof window.markStationAsHidden === "function") {
-          window.markStationAsHidden(parseInt(li.dataset.index, 10));
-        }
-      }
-    });
-    li.appendChild(removeBtn);
+      });
+      li.appendChild(removeBtn);
+    }
     if (isFavoritesMode) {
       // In favorites mode, show dark avatar with genre emoji
       const genre = station.favGenre || station.genre || "World";
