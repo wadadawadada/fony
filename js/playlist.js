@@ -417,14 +417,6 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     const titleSpan = span;
     const originalText = titleSpan.textContent;
 
-    // Handle hover on station to change button color
-    li.addEventListener("mouseenter", () => {
-      removeBtn.style.color = "#171C2B";
-    });
-    li.addEventListener("mouseleave", () => {
-      removeBtn.style.color = "#00F2B8";
-    });
-
     // Handle hover on button itself for text/background changes
     removeBtn.addEventListener("mouseenter", () => {
       if (isFavoritesMode) {
