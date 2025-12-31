@@ -257,6 +257,37 @@ function generateStationHash(url) {
   }
   return Math.abs(hash).toString(16);
 }
+
+export function sortStations(stations, sortBy) {
+  const sorted = [...stations];
+
+  if (sortBy === "date-added") {
+    // Sort by date added (most recent first)
+    sorted.sort((a, b) => {
+      const dateA = a.dateAdded || 0;
+      const dateB = b.dateAdded || 0;
+      return dateB - dateA;
+    });
+  } else if (sortBy === "genre") {
+    // Sort by genre alphabetically, then by station name
+    sorted.sort((a, b) => {
+      const genreA = (a.favGenre || a.genre || "").toLowerCase();
+      const genreB = (b.favGenre || b.genre || "").toLowerCase();
+      if (genreA !== genreB) {
+        return genreA.localeCompare(genreB);
+      }
+      return (a.title || "").localeCompare(b.title || "");
+    });
+  } else if (sortBy === "alphabetical") {
+    // Sort by station name alphabetically
+    sorted.sort((a, b) => {
+      return (a.title || "").localeCompare(b.title || "");
+    });
+  }
+
+  return sorted;
+}
+
 export function renderPlaylist(playlistElement, stations, startIndex = 0, endIndex = null) {
   window.currentPlaylist = stations;
   if (endIndex === null) {

@@ -165,6 +165,14 @@
     <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
     <span id="clearSearch">×</span>
     </div>
+        <div class="sort-container" id="sortContainer" style="display: none;">
+          <span class="sort-label">Sort by:</span>
+          <select id="sortSelect" class="sort-select">
+            <option value="date-added">Date Added</option>
+            <option value="genre">Genre</option>
+            <option value="alphabetical">Alphabetical</option>
+          </select>
+        </div>
         <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
         <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
       </div>

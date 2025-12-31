@@ -751,3 +751,75 @@ body:not(.dark) #manifestoBtn img:hover {
 body.dark #manifestoBtn img:hover {
   content: url('/img/dark/about_icon_hover.svg');
 }
+
+/* Sort Dropdown Styles */
+.sort-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  margin-right: 10px;
+}
+
+.sort-label {
+  font-size: 1rem;
+  color: #fff;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.sort-select {
+  padding: 6px 12px;
+  font-size: 1rem;
+  border-radius: 20px;
+  border: 1px solid #00F2B8;
+  outline: none;
+  cursor: pointer;
+  background-color: rgba(0, 242, 184, 0.1);
+  color: #00F2B8;
+  font-family: 'Ruda', sans-serif;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.sort-select:hover {
+  background-color: rgba(0, 242, 184, 0.2);
+  box-shadow: 0 0 8px rgba(0, 242, 184, 0.3);
+}
+
+.sort-select:focus {
+  background-color: rgba(0, 242, 184, 0.15);
+  box-shadow: 0 0 12px rgba(0, 242, 184, 0.4);
+}
+
+.sort-select option {
+  font-size: 0.95rem;
+  padding: 10px 12px;
+  cursor: pointer;
+  background: #171C2B;
+  color: #fff;
+  font-family: 'Ruda', sans-serif;
+}
+
+.sort-select option:hover {
+  background: #1f2637;
+}
+
+.sort-select option:checked {
+  background: linear-gradient(#00F2B8, #00F2B8);
+  background-color: #00F2B8;
+  color: #171C2B;
+}
+
+.sort-select::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sort-select::-webkit-scrollbar-track {
+  background: #f2f2f200;
+}
+
+.sort-select::-webkit-scrollbar-thumb {
+  background-color: #00F2B8;
+  border-radius: 4px;
+}

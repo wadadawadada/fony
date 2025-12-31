@@ -4,7 +4,26 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!favBtn || !playlistElement) return;
 
   function getFavorites() {
-    return JSON.parse(localStorage.getItem("favorites") || "[]");
+    let favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+
+    // Backward compatibility: add dateAdded to favorites that don't have it
+    const now = Date.now();
+    let needsSave = false;
+    favs = favs.map((fav, index) => {
+      if (!fav.dateAdded) {
+        // Assign slightly older timestamps to existing favorites (to maintain order)
+        // Newer favorites get added with current time, older ones get earlier times
+        fav.dateAdded = now - (favs.length - index) * 1000;
+        needsSave = true;
+      }
+      return fav;
+    });
+
+    if (needsSave) {
+      saveFavorites(favs);
+    }
+
+    return favs;
   }
 
   function saveFavorites(favs) {
@@ -71,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (idx !== -1) {
       favs.splice(idx, 1);
     } else {
-      favs.push({ url, genre: currentGenre });
+      favs.push({ url, genre: currentGenre, dateAdded: Date.now() });
     }
     saveFavorites(favs);
     updateFavBtnIcon(url);

@@ -1,5 +1,5 @@
 import { fadeAudioOut, fadeAudioIn } from './player.js'
-import { renderPlaylist, loadPlaylist } from './playlist.js'
+import { renderPlaylist, loadPlaylist, sortStations } from './playlist.js'
 import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from './controls.js'
 import { initChat} from './chat.js'
 import { getStreamMetadata, secureUrl } from './parsing.js'
@@ -724,10 +724,15 @@ if (sIn) {
       playlistLoader.textContent = left + right;
     }, 300);
     try {
+      const sortContainer = document.getElementById("sortContainer");
+      const sortSelect = document.getElementById("sortSelect");
+
       if (fBtn.classList.contains("active")) {
         fBtn.classList.remove("active");
         if (pSel) pSel.style.display = "";
         if (sIn) sIn.style.display = "";
+        if (sortContainer) sortContainer.style.display = "none";
+        if (sortSelect) sortSelect.value = "date-added";
         if (genreLabel) genreLabel.textContent = "Genre:";
         currentPlaylist = allStations.slice();
         resetVisibleStations();
@@ -735,9 +740,19 @@ if (sIn) {
         fBtn.classList.add("active");
         if (pSel) pSel.style.display = "none";
         if (sIn) sIn.style.display = "none";
+        if (sortContainer) sortContainer.style.display = "inline-flex";
         if (genreLabel) genreLabel.textContent = "Favorites";
         const favoritesList = await createFavoritesPlaylist();
         currentPlaylist = favoritesList;
+
+        // Apply saved sort preference
+        const savedSort = localStorage.getItem("favoritesSortBy") || "date-added";
+        if (sortSelect) sortSelect.value = savedSort;
+        if (currentPlaylist.length > 0) {
+          const sortedPlaylist = sortStations(currentPlaylist, savedSort);
+          currentPlaylist = sortedPlaylist;
+        }
+
         if (!currentPlaylist.length) {
           playlistElement.innerHTML = `<li style="pointer-events:none;opacity:.7">No favorites yet</li>`;
         }
@@ -753,6 +768,40 @@ if (sIn) {
     }
   });
 }
+
+  // Setup sort dropdown for favorites mode
+  const sortContainer = document.getElementById("sortContainer");
+  const sortSelect = document.getElementById("sortSelect");
+
+  if (sortSelect) {
+    sortSelect.addEventListener("change", () => {
+      const sortBy = sortSelect.value;
+      localStorage.setItem("favoritesSortBy", sortBy);
+
+      if (window.currentPlaylist && currentPlaylist.length > 0) {
+        const isFavoritesMode = fBtn && fBtn.classList.contains("active");
+        if (isFavoritesMode) {
+          // Get current playing station URL before sorting
+          const currentUrl = window.currentStationUrl;
+
+          // Sort the playlist
+          const sortedPlaylist = sortStations(window.currentPlaylist, sortBy);
+          window.currentPlaylist = sortedPlaylist;
+
+          // Re-render the playlist
+          resetVisibleStations();
+
+          // Restore playing station styling
+          if (currentUrl) {
+            const playingLi = playlistElement.querySelector(`li[data-station-url="${currentUrl}"]`);
+            if (playingLi) {
+              playingLi.classList.add("active");
+            }
+          }
+        }
+      }
+    });
+  }
 
   if (wBtn) {
     wBtn.addEventListener("click", async () => {
