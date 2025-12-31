@@ -716,11 +716,11 @@ body.dark .logo {
 
 .favorites-sort select {
   appearance: none;
-  background: transparent;
+  background: #171C2B;
   color: #fff;
-  border: none;
-  border-radius: 0;
-  padding: 4px 0;
+  border: 1px solid #fff;
+  border-radius: 8px;
+  padding: 4px 12px;
   font-family: 'Ruda', sans-serif;
   font-weight: 600;
   font-size: 12px;
@@ -728,7 +728,6 @@ body.dark .logo {
   outline: none;
   min-width: 140px;
   position: relative;
-  text-decoration: underline;
 }
 
 .favorites-sort::after {
