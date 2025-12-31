@@ -453,7 +453,9 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       const emoji = getGenreEmoji(genre);
 
       // Set background color of the list item to genre color
-      li.style.backgroundColor = color;
+      // But if station is active (playing), use #171C2B instead
+      const isActive = window.currentStationUrl && station.url === window.currentStationUrl;
+      li.style.backgroundColor = isActive ? "#171C2B" : color;
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
