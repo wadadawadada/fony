@@ -659,6 +659,11 @@ body.dark .logo {
   pointer-events: auto;
 }
 
+/* Keep button color #00F2B8 when hovering over active station */
+#playlist li.active:hover .remove-btn {
+  color: #00F2B8;
+}
+
 #playlist li img.station-icon {
   width: 40px;
   height: 40px;

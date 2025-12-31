@@ -411,7 +411,6 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     removeBtn.style.transform = "translateY(-50%)";
     removeBtn.style.background = "transparent";
     removeBtn.style.border = "none";
-    removeBtn.style.color = "#00F2B8";
     removeBtn.style.fontSize = "18px";
     removeBtn.style.cursor = "pointer";
     const titleSpan = span;
