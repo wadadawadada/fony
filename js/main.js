@@ -454,6 +454,7 @@ function onStationSelect(i) {
   if (!st) return
   window.currentStationUrl = st.url
   renderPlaylist(playlistElement, currentPlaylist, 0, visibleStations)
+  updateFavoritesBackgroundColors()
   const lis = document.querySelectorAll("#playlist li")
   lis.forEach(x => {
     x.classList.remove("active")
@@ -537,6 +538,7 @@ function onStationSelect(i) {
       const pt = document.getElementById("playTimer")
       if (pt) pt.textContent = formatTime(0)
       if (li) li.classList.add("active")
+      updateFavoritesBackgroundColors()
       audioPlayer.muted = false
       audioPlayer.volume = defaultVolume.value
       audioPlayer.play().then(() => {
@@ -567,6 +569,7 @@ function onStationSelect(i) {
 
       checkRealBuffering(3000, li, () => {
         if (li) li.classList.add("active")
+        updateFavoritesBackgroundColors()
         if (stationLabel) {
           const t = stationLabel.querySelector(".scrolling-text")
           if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station")
@@ -598,6 +601,27 @@ function onStationSelect(i) {
       updateMediaSessionMetadata(st)
     }
   }
+}
+
+// Update background colors for favorites mode when active station changes
+function updateFavoritesBackgroundColors() {
+  const fBtn = document.getElementById("favoritesFilterBtn");
+  if (!fBtn || !fBtn.classList.contains("active")) return; // Only in favorites mode
+
+  const playlistElement = document.getElementById("playlist");
+  if (!playlistElement) return;
+
+  const lis = playlistElement.querySelectorAll("li");
+  lis.forEach(li => {
+    const isActive = li.classList.contains("active");
+    const genreColor = li.dataset.genreColor;
+
+    if (isActive) {
+      li.style.backgroundColor = "#171C2B";
+    } else if (genreColor) {
+      li.style.backgroundColor = genreColor;
+    }
+  });
 }
 
 function onGenreChange(randomStation = false) {
@@ -740,7 +764,7 @@ if (sIn) {
         fBtn.classList.add("active");
         if (pSel) pSel.style.display = "none";
         if (sIn) sIn.style.display = "none";
-        if (sortContainer) sortContainer.style.display = "inline-flex";
+        if (sortContainer) sortContainer.style.display = "flex";
         if (genreLabel) genreLabel.textContent = "Favorites";
         const favoritesList = await createFavoritesPlaylist();
         currentPlaylist = favoritesList;

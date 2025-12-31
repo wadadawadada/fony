@@ -483,6 +483,9 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       const color = getGenreColor(genre);
       const emoji = getGenreEmoji(genre);
 
+      // Store genre color as data attribute for later reference
+      li.dataset.genreColor = color;
+
       // Set background color of the list item to genre color
       // But if station is active (playing), use #171C2B instead
       const isActive = window.currentStationUrl && station.url === window.currentStationUrl;
