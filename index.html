@@ -160,6 +160,15 @@
       <div class="genre-box">
         <img src="/img/fav_list.svg" id="favoritesFilterBtn" class="favorites-filter-icon">
         <label for="playlistSelect">Genre:</label>
+        <div class="favorites-sort" id="favoritesSortContainer">
+          <label for="favoritesSortSelect">Sort by</label>
+          <select id="favoritesSortSelect">
+            <option value="custom">Custom order</option>
+            <option value="date">Date added</option>
+            <option value="genre">Genre</option>
+            <option value="alpha">Alphabetical</option>
+          </select>
+        </div>
         <select id="playlistSelect" class="genre-select"></select>
         <div class="search-wrapper">
     <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">

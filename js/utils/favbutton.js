@@ -4,7 +4,20 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!favBtn || !playlistElement) return;
 
   function getFavorites() {
-    return JSON.parse(localStorage.getItem("favorites") || "[]");
+    const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+    let needsSave = false;
+    const normalized = favs.map((fav, idx) => {
+      if (fav && typeof fav.addedAt !== "number") {
+        needsSave = true;
+        return { ...fav, addedAt: idx };
+      }
+      return fav;
+    });
+    if (needsSave) {
+      localStorage.setItem("favorites", JSON.stringify(normalized));
+      return normalized;
+    }
+    return favs;
   }
 
   function saveFavorites(favs) {
@@ -71,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (idx !== -1) {
       favs.splice(idx, 1);
     } else {
-      favs.push({ url, genre: currentGenre });
+      favs.push({ url, genre: currentGenre, addedAt: Date.now() });
     }
     saveFavorites(favs);
     updateFavBtnIcon(url);

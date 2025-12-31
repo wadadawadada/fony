@@ -211,7 +211,7 @@ function updateFavoriteRowColors() {
       if (station) {
         const genre = station.favGenre || station.genre || "World";
         const color = getGenreColor(genre);
-        item.style.backgroundColor = color;
+        item.style.setProperty("--favorite-bg", color);
 
         // Update emoji circle background color for theme change
         const avatarElement = item.querySelector(".station-avatar");
@@ -453,7 +453,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       const emoji = getGenreEmoji(genre);
 
       // Set background color of the list item to genre color
-      li.style.backgroundColor = color;
+      li.style.setProperty("--favorite-bg", color);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
@@ -598,7 +598,20 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
   }
 }
 function getFavorites() {
-  return JSON.parse(localStorage.getItem("favorites") || "[]");
+  const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+  let needsSave = false;
+  const normalized = favs.map((fav, idx) => {
+    if (fav && typeof fav.addedAt !== "number") {
+      needsSave = true;
+      return { ...fav, addedAt: idx };
+    }
+    return fav;
+  });
+  if (needsSave) {
+    localStorage.setItem("favorites", JSON.stringify(normalized));
+    return normalized;
+  }
+  return favs;
 }
 function saveFavorites(favs) {
   localStorage.setItem("favorites", JSON.stringify(favs));
@@ -704,7 +717,7 @@ export function updatePlaylistHearts() {
       const emoji = getGenreEmoji(genre);
 
       // Set background color of the list item to genre color
-      li.style.backgroundColor = color;
+      li.style.setProperty("--favorite-bg", color);
 
       const iconContainer = document.createElement("div");
       iconContainer.classList.add("station-favorite-icon");
