@@ -401,36 +401,40 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       }
     }
 
-    // Create delete button only for favorites mode
-    if (isFavoritesMode) {
-      const removeBtn = document.createElement("button");
-      removeBtn.textContent = "×";
-      removeBtn.classList.add("remove-btn");
-      removeBtn.style.position = "absolute";
-      removeBtn.style.right = "10px";
-      removeBtn.style.top = "50%";
-      removeBtn.style.transform = "translateY(-50%)";
-      removeBtn.style.background = "transparent";
-      removeBtn.style.border = "none";
-      removeBtn.style.color = "#00F2B8";
-      removeBtn.style.fontSize = "18px";
-      removeBtn.style.cursor = "pointer";
-      const titleSpan = span;
-      const originalText = titleSpan.textContent;
-      removeBtn.addEventListener("mouseenter", () => {
+    // Create delete button for both modes
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "×";
+    removeBtn.classList.add("remove-btn");
+    removeBtn.style.position = "absolute";
+    removeBtn.style.right = "10px";
+    removeBtn.style.top = "50%";
+    removeBtn.style.transform = "translateY(-50%)";
+    removeBtn.style.background = "transparent";
+    removeBtn.style.border = "none";
+    removeBtn.style.color = "#00F2B8";
+    removeBtn.style.fontSize = "18px";
+    removeBtn.style.cursor = "pointer";
+    const titleSpan = span;
+    const originalText = titleSpan.textContent;
+    removeBtn.addEventListener("mouseenter", () => {
+      if (isFavoritesMode) {
         titleSpan.textContent = "Remove from favorites?";
-        titleSpan.style.color = "#fff";
-        removeBtn.style.color = "#171C2B";
-        li.style.backgroundColor = "#ff0505ff";
-      });
-      removeBtn.addEventListener("mouseleave", () => {
-        titleSpan.textContent = originalText;
-        titleSpan.style.color = "";
-        removeBtn.style.color = "#00F2B8";
-        li.style.backgroundColor = "";
-      });
-      removeBtn.addEventListener("click", (event) => {
-        event.stopPropagation();
+      } else {
+        titleSpan.textContent = "Delete station?";
+      }
+      titleSpan.style.color = "#fff";
+      removeBtn.style.color = "#171C2B";
+      li.style.backgroundColor = "#ff0505ff";
+    });
+    removeBtn.addEventListener("mouseleave", () => {
+      titleSpan.textContent = originalText;
+      titleSpan.style.color = "";
+      removeBtn.style.color = "#00F2B8";
+      li.style.backgroundColor = "";
+    });
+    removeBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (isFavoritesMode) {
         const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
         const idx = favs.findIndex(f => f.url === station.url);
         if (idx !== -1) {
@@ -439,9 +443,13 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
           li.remove();
           if (typeof window.updatePlaylistHearts === "function") window.updatePlaylistHearts();
         }
-      });
-      li.appendChild(removeBtn);
-    }
+      } else {
+        if (typeof window.markStationAsHidden === "function") {
+          window.markStationAsHidden(parseInt(li.dataset.index, 10));
+        }
+      }
+    });
+    li.appendChild(removeBtn);
     if (isFavoritesMode) {
       // In favorites mode, show dark avatar with genre emoji
       const genre = station.favGenre || station.genre || "World";

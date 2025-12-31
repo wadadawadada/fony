@@ -639,6 +639,23 @@ body.dark .logo {
   color: #000;
 }
 
+/* Hide remove button by default, show on hover and for active station */
+#playlist li .remove-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+#playlist li:hover .remove-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#playlist li.active .remove-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 #playlist li img.station-icon {
   width: 40px;
   height: 40px;
