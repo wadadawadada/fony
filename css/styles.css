@@ -716,8 +716,8 @@ body.dark .logo {
 
 .favorites-sort select {
   appearance: none;
-  background: transparent;
-  color: #fff;
+  background: #fff;
+  color: #171C2B;
   border: 1px solid #fff;
   border-radius: 8px;
   padding: 4px 22px 4px 8px;
@@ -732,7 +732,7 @@ body.dark .logo {
 
 .favorites-sort::after {
   content: "▾";
-  color: #fff;
+  color: #171C2B;
   font-size: 10px;
   pointer-events: none;
   position: relative;
