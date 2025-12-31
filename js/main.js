@@ -165,6 +165,102 @@ function stopPlaylistPreloader() {
   playlistLoader.textContent = ""
 }
 
+const FAVORITES_SORT_KEY = "favoritesSortMode";
+
+function normalizeFavoritesStorage() {
+  const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+  let needsSave = false;
+  const normalized = favs.map((fav, idx) => {
+    if (fav && typeof fav.addedAt !== "number") {
+      needsSave = true;
+      return { ...fav, addedAt: idx };
+    }
+    return fav;
+  });
+  if (needsSave) {
+    localStorage.setItem("favorites", JSON.stringify(normalized));
+    return normalized;
+  }
+  return favs;
+}
+
+function getFavoritesSortMode() {
+  const mode = localStorage.getItem(FAVORITES_SORT_KEY);
+  if (mode === "date" || mode === "genre" || mode === "alpha" || mode === "custom") return mode;
+  return "custom";
+}
+
+function setFavoritesSortMode(mode) {
+  if (mode === "date" || mode === "genre" || mode === "alpha" || mode === "custom") {
+    localStorage.setItem(FAVORITES_SORT_KEY, mode);
+  }
+}
+
+function toggleFavoritesSortVisibility(isVisible) {
+  const sortContainer = document.getElementById("favoritesSortContainer");
+  if (sortContainer) {
+    sortContainer.style.display = isVisible ? "flex" : "none";
+  }
+}
+
+function syncFavoritesSortSelect() {
+  const sortSelect = document.getElementById("favoritesSortSelect");
+  if (sortSelect) {
+    sortSelect.value = getFavoritesSortMode();
+  }
+}
+
+function applyFavoritesSorting(list) {
+  const sortMode = getFavoritesSortMode();
+  const favorites = normalizeFavoritesStorage();
+  const orderMap = new Map(favorites.map((fav, idx) => [fav.url, { ...fav, order: idx }]));
+  const sortedList = list.map(st => {
+    const favEntry = orderMap.get(st.url);
+    if (favEntry) {
+      let favGenre = favEntry.genre;
+      if (favGenre && favGenre.startsWith("genres/")) {
+        const matchedPlaylist = allPlaylists.find(p => p.file === favGenre);
+        favGenre = matchedPlaylist ? matchedPlaylist.name : favGenre;
+      }
+      if (!st.favGenre && favGenre) st.favGenre = favGenre;
+      st.favAddedAt = typeof favEntry.addedAt === "number" ? favEntry.addedAt : favEntry.order;
+    } else if (typeof st.favAddedAt !== "number") {
+      st.favAddedAt = 0;
+    }
+    return st;
+  });
+
+  if (sortMode === "custom") {
+    return sortedList.sort((a, b) => {
+      const aOrder = orderMap.get(a.url)?.order ?? 0;
+      const bOrder = orderMap.get(b.url)?.order ?? 0;
+      return aOrder - bOrder;
+    });
+  }
+
+  if (sortMode === "date") {
+    return sortedList.sort((a, b) => (b.favAddedAt || 0) - (a.favAddedAt || 0));
+  }
+
+  if (sortMode === "genre") {
+    return sortedList.sort((a, b) => {
+      const aGenre = (a.favGenre || a.genre || "").toLowerCase();
+      const bGenre = (b.favGenre || b.genre || "").toLowerCase();
+      return aGenre.localeCompare(bGenre);
+    });
+  }
+
+  if (sortMode === "alpha") {
+    return sortedList.sort((a, b) => {
+      const aTitle = (a.title || "").toLowerCase();
+      const bTitle = (b.title || "").toLowerCase();
+      return aTitle.localeCompare(bTitle);
+    });
+  }
+
+  return sortedList;
+}
+
 function ensureVisible(i) {
   if (i >= visibleStations) {
     visibleStations = i + CHUNK_SIZE
@@ -229,6 +325,15 @@ function switchToRadio() {
     g.innerHTML = `
       <img src="/img/fav_list.svg" id="favoritesFilterBtn" class="favorites-filter-icon">
       <label for="playlistSelect">Genre:</label>
+      <div class="favorites-sort" id="favoritesSortContainer">
+        <label for="favoritesSortSelect">Sort by</label>
+        <select id="favoritesSortSelect">
+          <option value="custom">Custom order</option>
+          <option value="date">Date added</option>
+          <option value="genre">Genre</option>
+          <option value="alpha">Alphabetical</option>
+        </select>
+      </div>
       <select id="playlistSelect" class="genre-select"></select>
       <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
       <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
@@ -631,14 +736,19 @@ function onGenreChange(randomStation = false) {
 }
 
 async function createFavoritesPlaylist() {
-  const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+  const favs = normalizeFavoritesStorage();
   let list = [];
+  const favOrderMap = new Map(favs.map((fav, idx) => [fav.url, { ...fav, order: idx }]));
   for (let pl of allPlaylists) {
     const st = await loadPlaylist(pl.file, pl.name);
     const matched = st.filter(x => favs.some(f => f.url === x.url));
     matched.forEach(x => {
       const favEntry = favs.find(f => f.url === x.url);
       let favGenre = pl.name;
+      let favAddedAt = favOrderMap.get(x.url)?.addedAt;
+      if (typeof favAddedAt !== "number") {
+        favAddedAt = favOrderMap.get(x.url)?.order ?? 0;
+      }
 
       // If favEntry has genre, use it (but convert file path to name if needed)
       if (favEntry && favEntry.genre) {
@@ -653,11 +763,23 @@ async function createFavoritesPlaylist() {
       }
 
       x.favGenre = favGenre;
+      x.favAddedAt = favAddedAt;
     });
     list = list.concat(matched);
   }
   const uniqueStations = Array.from(new Map(list.map(o => [o.url, o])).values());
   return uniqueStations;
+}
+
+function setFavoritesPlaylistView(list) {
+  const sortedFavorites = applyFavoritesSorting(list || []);
+  currentPlaylist = sortedFavorites;
+  if (!currentPlaylist.length) {
+    playlistElement.innerHTML = `<li style="pointer-events:none;opacity:.7">No favorites yet</li>`;
+  }
+  resetVisibleStations();
+  toggleFavoritesSortVisibility(true);
+  syncFavoritesSortSelect();
 }
 
 
@@ -667,11 +789,25 @@ function setRadioListeners() {
   const fBtn = document.getElementById("favoritesFilterBtn");
   const wBtn = document.getElementById("connectWalletBtn");
   const rBtn = document.getElementById("radioModeBtn");
+  const sortSelect = document.getElementById("favoritesSortSelect");
 
   if (rBtn) rBtn.style.display = "none";
+  toggleFavoritesSortVisibility(false);
 
   if (pSel) {
     pSel.addEventListener("change", () => onGenreChange(false));
+  }
+
+  if (sortSelect) {
+    sortSelect.value = getFavoritesSortMode();
+    sortSelect.addEventListener("change", () => {
+      setFavoritesSortMode(sortSelect.value);
+      const genreLabel = document.querySelector("label[for='playlistSelect']");
+      const isFavoritesView = genreLabel && genreLabel.textContent === "Favorites";
+      if (isFavoritesView && Array.isArray(currentPlaylist)) {
+        setFavoritesPlaylistView(currentPlaylist.slice());
+      }
+    });
   }
 
 if (sIn) {
@@ -729,6 +865,7 @@ if (sIn) {
         if (pSel) pSel.style.display = "";
         if (sIn) sIn.style.display = "";
         if (genreLabel) genreLabel.textContent = "Genre:";
+        toggleFavoritesSortVisibility(false);
         currentPlaylist = allStations.slice();
         resetVisibleStations();
       } else {
@@ -737,11 +874,7 @@ if (sIn) {
         if (sIn) sIn.style.display = "none";
         if (genreLabel) genreLabel.textContent = "Favorites";
         const favoritesList = await createFavoritesPlaylist();
-        currentPlaylist = favoritesList;
-        if (!currentPlaylist.length) {
-          playlistElement.innerHTML = `<li style="pointer-events:none;opacity:.7">No favorites yet</li>`;
-        }
-        resetVisibleStations();
+        setFavoritesPlaylistView(favoritesList);
       }
     } finally {
       clearInterval(interval);
@@ -1277,7 +1410,7 @@ window.onStationSelect = function(i) {
   }
 
   async function warm(force=false){
-    const favs = JSON.parse(localStorage.getItem("favorites")||"[]");
+    const favs = normalizeFavoritesStorage();
     if(!Array.isArray(favs)||!favs.length){ cache.list=[]; cache.ready=true; window.preloadedFavorites=[]; return []; }
 
     // Load all playlists to find stations
@@ -1294,7 +1427,7 @@ window.onStationSelect = function(i) {
     }
 
     const out=[];
-    for(const fav of favs){
+    favs.forEach((fav, idx) => {
       // Search for station in all genres
       for (const [genre, stations] of Object.entries(cache.byGenre)) {
         const st = stations && stations.find(s => s.url === fav.url);
@@ -1311,11 +1444,12 @@ window.onStationSelect = function(i) {
             }
           }
           st.favGenre = favGenre;
+          st.favAddedAt = typeof fav.addedAt === "number" ? fav.addedAt : idx;
           out.push(st);
           break;
         }
       }
-    }
+    });
 
     cache.list = dedupe(out);
     cache.ready = true;
@@ -1332,9 +1466,8 @@ window.onStationSelect = function(i) {
   document.addEventListener("DOMContentLoaded", waitAndWarm);
   document.addEventListener("favoritesChanged", ()=>warm());
   window.usePreloadedFavorites = function(){
-    if(cache.list&&cache.list.length){
-      currentPlaylist = cache.list;
-      resetVisibleStations();
+    if(cache.ready){
+      setFavoritesPlaylistView(cache.list ? cache.list.slice() : []);
       return true;
     }
     return false;
@@ -1369,6 +1502,7 @@ window.onStationSelect = function(i) {
       if(pSel) pSel.style.display="";
       if(sIn) sIn.style.display="";
       if(genreLabel) genreLabel.textContent="Genre:";
+      toggleFavoritesSortVisibility(false);
       currentPlaylist = allStations.slice();
       resetVisibleStations();
       return;
@@ -1377,19 +1511,16 @@ window.onStationSelect = function(i) {
     if(pSel) pSel.style.display="none";
     if(sIn) sIn.style.display="none";
     if(genreLabel) genreLabel.textContent="Favorites";
-    if(cache.ready && cache.list.length){
-      currentPlaylist = cache.list;
-      if(!currentPlaylist.length){ playlistElement.innerHTML = `<li style="pointer-events:none;opacity:.7">No favorites yet</li>`; }
-      resetVisibleStations();
+    toggleFavoritesSortVisibility(true);
+    if(cache.ready){
+      setFavoritesPlaylistView(cache.list ? cache.list.slice() : []);
       return;
     }
     playlistElement.classList.add("hidden");
     playlistLoader.classList.remove("hidden");
     let dots=0, t=setInterval(()=>{ dots=(dots+1)%4; playlistLoader.textContent=":".repeat(dots)+":".repeat(dots); },250);
     warm().then(list=>{
-      currentPlaylist = list;
-      if(!currentPlaylist.length){ playlistElement.innerHTML = `<li style="pointer-events:none;opacity:.7">No favorites yet</li>`; }
-      resetVisibleStations();
+      setFavoritesPlaylistView(list);
     }).finally(()=>{
       clearInterval(t);
       playlistLoader.classList.add("hidden");
