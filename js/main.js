@@ -291,6 +291,33 @@ function checkMarquee(container) {
   if (sW > cW) st.classList.add("marquee")
 }
 
+function getGenreSvgPath(genreName) {
+  if (!genreName) return "/img/genres/world.svg";
+
+  // Special mapping for genres with special characters or different naming
+  const genreMapping = {
+    "Drum & Bass": "drum&bass",
+    "Hip Hop": "hiphop",
+    "New Age": "newage",
+    "RnB": "rnb",
+    "Southeast Asia": "southeast_asia",
+    "Japan": "japan",
+    "China": "china"
+  };
+
+  // Use mapping if available, otherwise convert to lowercase with underscores
+  let svgName = genreMapping[genreName];
+  if (!svgName) {
+    svgName = genreName
+      .toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/&/g, 'and')
+      .replace(/[^\w_]/g, '');
+  }
+
+  return `/img/genres/${svgName}.svg`;
+}
+
 function fillPlaylistSelect() {
   const pSel = document.getElementById("playlistSelect")
   if (!pSel) return
@@ -298,6 +325,7 @@ function fillPlaylistSelect() {
   allPlaylists.forEach(pl => {
     const o = document.createElement("option")
     o.value = pl.file
+    o.dataset.svgIcon = getGenreSvgPath(pl.name)
     o.textContent = pl.name
     pSel.appendChild(o)
   })
@@ -783,6 +811,39 @@ function setFavoritesPlaylistView(list) {
 }
 
 
+function updateGenreIcon() {
+  const pSel = document.getElementById("playlistSelect");
+  const genreLabel = document.querySelector("label[for='playlistSelect']");
+
+  if (!pSel || !genreLabel) return;
+
+  const selectedOption = pSel.options[pSel.selectedIndex];
+  if (!selectedOption) return;
+
+  const svgPath = selectedOption.dataset.svgIcon;
+  const genreName = selectedOption.textContent;
+
+  // Remove existing icon if any
+  let existingIcon = genreLabel.querySelector(".genre-icon");
+  if (existingIcon) {
+    existingIcon.remove();
+  }
+
+  // Create new icon element
+  const iconContainer = document.createElement("span");
+  iconContainer.classList.add("genre-icon");
+
+  const imgElement = document.createElement("img");
+  imgElement.src = svgPath;
+  imgElement.alt = `${genreName} icon`;
+  imgElement.loading = "lazy";
+
+  iconContainer.appendChild(imgElement);
+
+  // Insert icon after label
+  genreLabel.parentNode.insertBefore(iconContainer, genreLabel.nextSibling);
+}
+
 function setRadioListeners() {
   const pSel = document.getElementById("playlistSelect");
   const sIn = document.getElementById("searchInput");
@@ -795,7 +856,11 @@ function setRadioListeners() {
   toggleFavoritesSortVisibility(false);
 
   if (pSel) {
-    pSel.addEventListener("change", () => onGenreChange(false));
+    updateGenreIcon();
+    pSel.addEventListener("change", () => {
+      updateGenreIcon();
+      onGenreChange(false);
+    });
   }
 
   if (sortSelect) {
@@ -865,6 +930,10 @@ if (sIn) {
         if (pSel) pSel.style.display = "";
         if (sIn) sIn.style.display = "";
         if (genreLabel) genreLabel.textContent = "Genre:";
+        // Remove genre icon when exiting favorites
+        const genreIcon = genreLabel.querySelector(".genre-icon");
+        if (genreIcon) genreIcon.remove();
+        updateGenreIcon();
         toggleFavoritesSortVisibility(false);
         currentPlaylist = allStations.slice();
         resetVisibleStations();
@@ -873,6 +942,9 @@ if (sIn) {
         if (pSel) pSel.style.display = "none";
         if (sIn) sIn.style.display = "none";
         if (genreLabel) genreLabel.textContent = "Favorites";
+        // Remove genre icon when entering favorites
+        const genreIcon = genreLabel.querySelector(".genre-icon");
+        if (genreIcon) genreIcon.remove();
         const favoritesList = await createFavoritesPlaylist();
         setFavoritesPlaylistView(favoritesList);
       }
@@ -1106,6 +1178,7 @@ fetch("../json/playlists.json")
       pl.forEach(x => {
         const o = document.createElement("option");
         o.value = x.file;
+        o.dataset.svgIcon = getGenreSvgPath(x.name);
         o.textContent = x.name;
         playlistSelect.appendChild(o);
       });

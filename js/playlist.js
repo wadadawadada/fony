@@ -169,6 +169,33 @@ function getGenreEmoji(genreName) {
   return GENRE_EMOJI_MAP[genreName] || "📻";
 }
 
+function getGenreSvgPath(genreName) {
+  if (!genreName) return "/img/genres/world.svg";
+
+  // Special mapping for genres with special characters or different naming
+  const genreMapping = {
+    "Drum & Bass": "drum&bass",
+    "Hip Hop": "hiphop",
+    "New Age": "newage",
+    "RnB": "rnb",
+    "Southeast Asia": "southeast_asia",
+    "Japan": "japan",
+    "China": "china"
+  };
+
+  // Use mapping if available, otherwise convert to lowercase with underscores
+  let svgName = genreMapping[genreName];
+  if (!svgName) {
+    svgName = genreName
+      .toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/&/g, 'and')
+      .replace(/[^\w_]/g, '');
+  }
+
+  return `/img/genres/${svgName}.svg`;
+}
+
 function generateColorFromString(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -213,15 +240,15 @@ function updateFavoriteRowColors() {
         const color = getGenreColor(genre);
         item.style.setProperty("--favorite-bg", color);
 
-        // Update emoji circle background color for theme change
+        // Update avatar circle background color for theme change
         const avatarElement = item.querySelector(".station-avatar");
         if (avatarElement) {
           const isDarkTheme = document.body.classList.contains('dark');
-          avatarElement.style.backgroundColor = isDarkTheme ? "#00F2B8" : "#171C2B";
-          // Update text color for contrast
-          const emojiElement = avatarElement.querySelector("div");
-          if (emojiElement) {
-            emojiElement.style.color = isDarkTheme ? "#000" : "#fff";
+          avatarElement.style.backgroundColor = isDarkTheme ? "#00F6B4" : "#171C2B";
+          // Update SVG filter for theme change
+          const svgIcon = avatarElement.querySelector("img");
+          if (svgIcon) {
+            svgIcon.style.filter = isDarkTheme ? "brightness(0) saturate(100%) invert(15%) sepia(88%) saturate(1221%) hue-rotate(95deg) brightness(98%)" : "brightness(0) invert(1)";
           }
         }
       }
@@ -450,10 +477,10 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     });
     li.appendChild(removeBtn);
     if (isFavoritesMode) {
-      // In favorites mode, show dark avatar with genre emoji
+      // In favorites mode, show dark avatar with genre SVG icon
       const genre = station.favGenre || station.genre || "World";
       const color = getGenreColor(genre);
-      const emoji = getGenreEmoji(genre);
+      const svgPath = getGenreSvgPath(genre);
 
       // Set background color of the list item to genre color
       li.style.setProperty("--favorite-bg", color);
@@ -464,26 +491,29 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       iconContainer.style.alignItems = "center";
       iconContainer.style.marginRight = "6px";
 
-      // Dark avatar with emoji inside
+      // Avatar with SVG icon inside
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
       avatar.style.width = "28px";
       avatar.style.height = "28px";
       avatar.style.borderRadius = "50%";
       const isDarkTheme = document.body.classList.contains('dark');
-      avatar.style.backgroundColor = isDarkTheme ? "#00F2B8" : "#171C2B";
+      avatar.style.backgroundColor = isDarkTheme ? "#00F6B4" : "#171C2B";
       avatar.style.display = "flex";
       avatar.style.alignItems = "center";
       avatar.style.justifyContent = "center";
       avatar.style.flexShrink = "0";
       avatar.style.position = "relative";
+      avatar.style.overflow = "hidden";
 
-      // Add emoji inside circle
-      const emojiElement = document.createElement("div");
-      emojiElement.textContent = emoji;
-      emojiElement.style.fontSize = "14px";
-      emojiElement.style.color = isDarkTheme ? "#000" : "#fff";
-      avatar.appendChild(emojiElement);
+      // Add SVG icon inside circle
+      const svgIcon = document.createElement("img");
+      svgIcon.src = svgPath;
+      svgIcon.alt = `${genre} icon`;
+      svgIcon.style.width = "18px";
+      svgIcon.style.height = "18px";
+      svgIcon.style.filter = isDarkTheme ? "brightness(0) saturate(100%) invert(15%) sepia(88%) saturate(1221%) hue-rotate(95deg) brightness(98%)" : "brightness(0) invert(1)";
+      avatar.appendChild(svgIcon);
 
       iconContainer.appendChild(avatar);
 
@@ -709,7 +739,7 @@ export function updatePlaylistHearts() {
     if (!station) return;
 
     if (isFavoritesMode) {
-      // In favorites mode, update the avatar icon with genre emoji
+      // In favorites mode, update the avatar icon with genre SVG
       const existingIcon = li.querySelector(".station-favorite-icon");
       if (existingIcon) {
         existingIcon.remove();
@@ -717,7 +747,7 @@ export function updatePlaylistHearts() {
 
       const genre = station.favGenre || station.genre || "World";
       const color = getGenreColor(genre);
-      const emoji = getGenreEmoji(genre);
+      const svgPath = getGenreSvgPath(genre);
 
       // Set background color of the list item to genre color
       li.style.setProperty("--favorite-bg", color);
@@ -728,24 +758,29 @@ export function updatePlaylistHearts() {
       iconContainer.style.alignItems = "center";
       iconContainer.style.marginRight = "6px";
 
-      // Dark avatar with emoji inside
+      // Avatar with SVG icon inside
       const avatar = document.createElement("div");
       avatar.classList.add("station-avatar");
       avatar.style.width = "32px";
       avatar.style.height = "32px";
       avatar.style.borderRadius = "50%";
-      avatar.style.backgroundColor = "#171C2B";
+      const isDarkTheme = document.body.classList.contains('dark');
+      avatar.style.backgroundColor = isDarkTheme ? "#00F6B4" : "#171C2B";
       avatar.style.display = "flex";
       avatar.style.alignItems = "center";
       avatar.style.justifyContent = "center";
       avatar.style.flexShrink = "0";
       avatar.style.position = "relative";
+      avatar.style.overflow = "hidden";
 
-      // Add emoji inside circle
-      const emojiElement = document.createElement("div");
-      emojiElement.textContent = emoji;
-      emojiElement.style.fontSize = "18px";
-      avatar.appendChild(emojiElement);
+      // Add SVG icon inside circle
+      const svgIcon = document.createElement("img");
+      svgIcon.src = svgPath;
+      svgIcon.alt = `${genre} icon`;
+      svgIcon.style.width = "22px";
+      svgIcon.style.height = "22px";
+      svgIcon.style.filter = isDarkTheme ? "brightness(0) saturate(100%) invert(15%) sepia(88%) saturate(1221%) hue-rotate(95deg) brightness(98%)" : "brightness(0) invert(1)";
+      avatar.appendChild(svgIcon);
 
       iconContainer.appendChild(avatar);
 
