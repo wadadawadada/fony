@@ -127,11 +127,13 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
     const favBtn = document.getElementById("favoritesFilterBtn");
     if (favBtn && favBtn.classList.contains("active")) {
       favBtn.classList.remove("active");
-      const pSel = document.getElementById("playlistSelect");
+      const customSelect = document.getElementById("customGenreSelect");
       const sIn = document.getElementById("searchInput");
-      const genreLabel = document.querySelector("label[for='playlistSelect']");
-      if (pSel) pSel.style.display = "";
+      const genreLabel = document.querySelector("label[for='customGenreSelect']");
+      const sortContainer = document.getElementById("favoritesSortContainer");
+      if (customSelect) customSelect.style.display = "";
       if (sIn) sIn.style.display = "";
+      if (sortContainer) sortContainer.style.display = "none";
       if (genreLabel) genreLabel.textContent = "Genre:";
     }
     if (window.allStations && Array.isArray(window.allStations)) {
@@ -142,11 +144,18 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
       window.fadeAudioOut(window.audioPlayer, 500, () => {
         if (!window.allPlaylists || !window.allPlaylists.length) return;
         const ri = Math.floor(Math.random() * window.allPlaylists.length);
-        const rg = window.allPlaylists[ri].file;
-        const pSel = document.getElementById("playlistSelect");
-        if (pSel) {
-          pSel.value = rg;
-          if (typeof window.onGenreChange === "function") window.onGenreChange(true);
+        const randomPlaylist = window.allPlaylists[ri];
+        if (typeof window.setSelectedGenre === "function") {
+          window.setSelectedGenre(randomPlaylist.file, randomPlaylist.name);
+          window.currentGenre = randomPlaylist.name;
+          if (typeof window.loadAndRenderPlaylist === "function") {
+            window.loadAndRenderPlaylist(randomPlaylist.file, randomPlaylist.name, () => {
+              if (window.currentPlaylist && window.currentPlaylist.length) {
+                const idx = Math.floor(Math.random() * window.currentPlaylist.length);
+                if (typeof window.onStationSelect === "function") window.onStationSelect(idx);
+              }
+            });
+          }
         }
       });
     }

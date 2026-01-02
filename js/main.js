@@ -5,7 +5,8 @@ import { initChat} from './chat.js'
 import { getStreamMetadata, secureUrl } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
 import { connectWallet, getNFTContractList, connectAndLoadWalletNFTs } from './web3.js'
-import { clearDiscogsInfo } from './nowplaying.js';
+import { clearDiscogsInfo } from './nowplaying.js'
+import { initCustomGenreSelect, setSelectedGenre, getSelectedGenre } from './custom-genre-select.js';
 
 let currentMode = "radio"
 let currentParsingUrl = ""
@@ -33,85 +34,17 @@ audioPlayer.volume = defaultVolume.value
 audioPlayer.crossOrigin = 'anonymous'
 
 const stationLabel = document.getElementById('stationLabel')
-const playlistSelect = document.getElementById('playlistSelect')
+const customGenreSelect = document.getElementById('customGenreSelect')
 const searchInput = document.getElementById('searchInput')
 const playlistContainer = document.getElementById('playlistContent')
 const playlistElement = document.getElementById('playlist')
 
-const genreOptionIconCache = new Map();
-const GENRE_DROPDOWN_ICON_COLOR = "#FFFFFF";
 
-async function getColoredIconUrl(iconPath, color) {
-  const cacheKey = `${iconPath}:${color}`;
-  if (genreOptionIconCache.has(cacheKey)) return genreOptionIconCache.get(cacheKey);
-  const res = await fetch(iconPath);
-  if (!res.ok) throw new Error("Icon fetch failed");
-  const svgText = await res.text();
-  const coloredSvg = svgText.replace(/fill=\"[^\"]*\"/g, `fill="${color}"`);
-  const encoded = encodeURIComponent(coloredSvg)
-    .replace(/%0A/g, '')
-    .replace(/%20/g, ' ');
-  const dataUrl = `data:image/svg+xml,${encoded}`;
-  genreOptionIconCache.set(cacheKey, dataUrl);
-  return dataUrl;
-}
-
-function decorateGenreOption(optionEl, genreName) {
-  const iconPath = getGenreIcon(genreName);
-  const color = GENRE_DROPDOWN_ICON_COLOR;
-  optionEl.dataset.genreIcon = iconPath;
-  optionEl.style.paddingLeft = "26px";
-  getColoredIconUrl(iconPath, color)
-    .then(colored => {
-      optionEl.style.setProperty("background-image", `url("${colored}")`, "important");
-    })
-    .catch(() => {
-      optionEl.style.setProperty("background-image", `url(${iconPath})`, "important");
-    })
-    .finally(() => {
-      optionEl.style.setProperty("background-repeat", "no-repeat", "important");
-      optionEl.style.setProperty("background-position", "4px center", "important");
-      optionEl.style.setProperty("background-size", "14px 14px", "important");
-    });
-}
-
-function updateGenreSelectIcon() {
-  const pSel = document.getElementById("playlistSelect");
-  if (!pSel) return;
-  const selectedOption = pSel.selectedOptions && pSel.selectedOptions.length ? pSel.selectedOptions[0] : null;
-  const selectedGenreName = selectedOption ? selectedOption.textContent : (window.currentGenre || "");
-  const iconPath = getGenreIcon(selectedGenreName);
-  const color = GENRE_DROPDOWN_ICON_COLOR;
-  pSel.style.paddingLeft = "30px";
-  getColoredIconUrl(iconPath, color)
-    .then(colored => {
-      pSel.style.setProperty("background-image", `url("${colored}")`, "important");
-    })
-    .catch(() => {
-      pSel.style.setProperty("background-image", `url(${iconPath})`, "important");
-    })
-    .finally(() => {
-      pSel.style.setProperty("background-repeat", "no-repeat", "important");
-      pSel.style.setProperty("background-position", "6px center", "important");
-      pSel.style.setProperty("background-size", "16px 16px", "important");
-    });
-}
-
-function refreshGenreOptionIcons() {
-  const pSel = document.getElementById("playlistSelect");
-  if (!pSel) return;
-  const options = Array.from(pSel.options || []);
-  options.forEach(opt => {
-    const genreName = opt.textContent || opt.value;
-    decorateGenreOption(opt, genreName);
-  });
-  updateGenreSelectIcon();
-}
 
 const themeIconObserver = new MutationObserver((mutations) => {
   for (const mutation of mutations) {
     if (mutation.type === "attributes" && mutation.attributeName === "class" && mutation.target === document.body) {
-      refreshGenreOptionIcons();
+      // Theme changed - icons already white so no refresh needed
     }
   }
 });
@@ -148,9 +81,8 @@ function playRandomFromUrlGenre() {
 
   if (!genreEntry) return false;
 
-  if (playlistSelect) {
-    playlistSelect.value = genreEntry.file;
-    updateGenreSelectIcon();
+  if (allPlaylists) {
+    setSelectedGenre(genreEntry.file, genreEntry.name);
   }
   window.currentGenre = genreEntry.name;
   initChat();
@@ -380,17 +312,13 @@ function checkMarquee(container) {
 }
 
 function fillPlaylistSelect() {
-  const pSel = document.getElementById("playlistSelect")
-  if (!pSel) return
-  pSel.innerHTML = ""
-  allPlaylists.forEach(pl => {
-    const o = document.createElement("option")
-    o.value = pl.file
-    o.textContent = pl.name
-    decorateGenreOption(o, pl.name)
-    pSel.appendChild(o)
-  })
-  updateGenreSelectIcon()
+  // Reinitialize custom genre select with updated playlists
+  if (allPlaylists) {
+    initCustomGenreSelect(allPlaylists, (file, name) => {
+      window.currentGenre = name;
+      loadAndRenderPlaylist(file, name);
+    });
+  }
 }
 
 function switchToRadio() {
@@ -414,7 +342,7 @@ function switchToRadio() {
   if (g) {
     g.innerHTML = `
       <img src="/img/fav_list.svg" id="favoritesFilterBtn" class="favorites-filter-icon">
-      <label for="playlistSelect">Genre:</label>
+      <label for="customGenreSelect">Genre:</label>
       <div class="favorites-sort" id="favoritesSortContainer">
         <label for="favoritesSortSelect">Sort by</label>
         <select id="favoritesSortSelect">
@@ -424,7 +352,15 @@ function switchToRadio() {
           <option value="alpha">Alphabetical</option>
         </select>
       </div>
-      <select id="playlistSelect" class="genre-select"></select>
+      <div class="custom-genre-select" id="customGenreSelect">
+        <div class="genre-select-header" id="genreSelectHeader">
+          <span class="genre-select-icon" id="genreSelectIcon"></span>
+          <span class="genre-select-text" id="genreSelectText">Select Genre</span>
+        </div>
+        <div class="genre-select-dropdown" id="genreSelectDropdown">
+          <ul class="genre-select-list" id="genreSelectList"></ul>
+        </div>
+      </div>
       <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
       <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
       <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
@@ -440,11 +376,7 @@ function switchToRadio() {
       const playlistEntry = allPlaylists.find(pl => pl.name === genre || pl.file === genre);
       if (!playlistEntry) throw new Error("Genre not found");
 
-      const pSel = document.getElementById("playlistSelect");
-      if (pSel) {
-        pSel.value = playlistEntry.file;
-        updateGenreSelectIcon();
-      }
+      setSelectedGenre(playlistEntry.file, playlistEntry.name);
       initChat();
       loadAndRenderPlaylist(playlistEntry.file, playlistEntry.name, () => {
         const i = trackIndex < currentPlaylist.length ? trackIndex : 0;
@@ -530,9 +462,8 @@ async function updateWalletUI(account) {
 function defaultPlaylist() {
   if (!allPlaylists.length) return
   const firstPlaylist = allPlaylists[0];
-  if (playlistSelect) playlistSelect.value = firstPlaylist.file
+  setSelectedGenre(firstPlaylist.file, firstPlaylist.name);
   window.currentGenre = firstPlaylist.name
-  updateGenreSelectIcon();
   initChat()
   loadAndRenderPlaylist(firstPlaylist.file, firstPlaylist.name, () => {
     if (currentPlaylist.length) {
@@ -661,9 +592,10 @@ function onStationSelect(i) {
   const li = Array.from(lis).find(x => parseInt(x.dataset.index) === i)
   currentTrackIndex = i
   currentParsingUrl = st.originalUrl || st.url;
-  if (playlistSelect) {
-    localStorage.setItem("lastStation", JSON.stringify({ genre: playlistSelect.value, trackIndex: i }))
-    window.currentGenre = playlistSelect.value
+  const selectedGenre = getSelectedGenre();
+  if (selectedGenre.name) {
+    localStorage.setItem("lastStation", JSON.stringify({ genre: selectedGenre.name, trackIndex: i }))
+    window.currentGenre = selectedGenre.name
   }
   if (stationLabel) {
     const t = stationLabel.querySelector(".scrolling-text")
@@ -799,37 +731,6 @@ function onStationSelect(i) {
   }
 }
 
-function onGenreChange(randomStation = false) {
-  const pSel = document.getElementById("playlistSelect");
-  const sIn = document.getElementById("searchInput");
-  if (!pSel) return;
-  const newGenreFile = pSel.value;
-  const playlistEntry = allPlaylists.find(pl => pl.file === newGenreFile);
-  const genreName = playlistEntry ? playlistEntry.name : newGenreFile;
-  window.currentGenre = genreName;
-  updateGenreSelectIcon();
-  loadAndRenderPlaylist(newGenreFile, genreName, () => {
-    if (sIn) sIn.value = "";
-    if (currentPlaylist.length) {
-      let idx = 0;
-      if (randomStation) {
-        idx = Math.floor(Math.random() * currentPlaylist.length);
-      }
-      ensureVisible(idx);
-      onStationSelect(idx);
-      setTimeout(() => {
-        const lis = document.querySelectorAll("#playlist li");
-        const li = Array.from(lis).find(x => parseInt(x.dataset.index) === idx);
-        if (li) {
-          li.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 100);
-      localStorage.setItem("lastStation", JSON.stringify({ genre: newGenre, trackIndex: idx }));
-      updateChat(newGenre);
-    }
-  }, true);
-}
-
 async function createFavoritesPlaylist() {
   const favs = normalizeFavoritesStorage();
   let list = [];
@@ -879,7 +780,6 @@ function setFavoritesPlaylistView(list) {
 
 
 function setRadioListeners() {
-  const pSel = document.getElementById("playlistSelect");
   const sIn = document.getElementById("searchInput");
   const fBtn = document.getElementById("favoritesFilterBtn");
   const wBtn = document.getElementById("connectWalletBtn");
@@ -889,19 +789,11 @@ function setRadioListeners() {
   if (rBtn) rBtn.style.display = "none";
   toggleFavoritesSortVisibility(false);
 
-  if (pSel) {
-    pSel.addEventListener("change", () => {
-      onGenreChange(false);
-      updateGenreSelectIcon();
-    });
-    refreshGenreOptionIcons();
-  }
-
   if (sortSelect) {
     sortSelect.value = getFavoritesSortMode();
     sortSelect.addEventListener("change", () => {
       setFavoritesSortMode(sortSelect.value);
-      const genreLabel = document.querySelector("label[for='playlistSelect']");
+      const genreLabel = document.querySelector("label[for='customGenreSelect']");
       const isFavoritesView = genreLabel && genreLabel.textContent === "Favorites";
       if (isFavoritesView && Array.isArray(currentPlaylist)) {
         setFavoritesPlaylistView(currentPlaylist.slice());
@@ -943,7 +835,7 @@ if (sIn) {
   fBtn.addEventListener("click", async () => {
     if (fBtn.disabled) return;
     fBtn.disabled = true;
-    const genreLabel = document.querySelector("label[for='playlistSelect']");
+    const genreLabel = document.querySelector("label[for='customGenreSelect']");
     playlistElement.classList.add("hidden");
     playlistLoader.classList.remove("hidden");
     playlistLoader.style.fontFamily = "Ruda";
@@ -1148,12 +1040,15 @@ if (randomBtn) {
       fadeAudioOut(audioPlayer, 500, () => {
         if (!allPlaylists.length) return;
         const ri = Math.floor(Math.random() * allPlaylists.length);
-        const rg = allPlaylists[ri].file;
-        const pSel = document.getElementById("playlistSelect");
-        if (pSel) {
-          pSel.value = rg;
-          onGenreChange(true);
-        }
+        const randomPlaylist = allPlaylists[ri];
+        setSelectedGenre(randomPlaylist.file, randomPlaylist.name);
+        window.currentGenre = randomPlaylist.name;
+        loadAndRenderPlaylist(randomPlaylist.file, randomPlaylist.name, () => {
+          if (currentPlaylist.length) {
+            const idx = Math.floor(Math.random() * currentPlaylist.length);
+            onStationSelect(idx);
+          }
+        });
       });
     }
   });
@@ -1182,12 +1077,10 @@ requestAnimationFrame(globalUpdater)
 function playRandomGenreAndStation() {
   if (!allPlaylists.length) return;
   const randomGenreIndex = Math.floor(Math.random() * allPlaylists.length);
-  const randomGenre = allPlaylists[randomGenreIndex].file;
-  if (playlistSelect) {
-    playlistSelect.value = randomGenre;
-    updateGenreSelectIcon();
-  }
-  window.currentGenre = randomGenre;
+  const randomGenreEntry = allPlaylists[randomGenreIndex];
+  const randomGenre = randomGenreEntry.file;
+  setSelectedGenre(randomGenreEntry.file, randomGenreEntry.name);
+  window.currentGenre = randomGenreEntry.name;
   initChat();
   loadAndRenderPlaylist(randomGenre, () => {
     if (currentPlaylist.length) {
@@ -1203,17 +1096,11 @@ fetch("../json/playlists.json")
   .then(r => r.json())
   .then(pl => {
     allPlaylists = pl;
-    if (playlistSelect) {
-      playlistSelect.innerHTML = "";
-      pl.forEach(x => {
-        const o = document.createElement("option");
-        o.value = x.file;
-        o.textContent = x.name;
-        decorateGenreOption(o, x.name);
-        playlistSelect.appendChild(o);
-      });
-      updateGenreSelectIcon();
-    }
+    // Initialize custom genre select with callback
+    initCustomGenreSelect(pl, (file, name) => {
+      window.currentGenre = name;
+      loadAndRenderPlaylist(file, name);
+    });
 
     if (playRandomFromUrlGenre()) {
       return;
@@ -1233,37 +1120,39 @@ fetch("../json/playlists.json")
         }
       }
       if (hh) {
-        if (playlistSelect) {
-          playlistSelect.value = hg;
-          updateGenreSelectIcon();
+        const playlistEntry = allPlaylists.find(pl => pl.name === hg || pl.file === hg);
+        if (playlistEntry) {
+          setSelectedGenre(playlistEntry.file, playlistEntry.name);
+          window.currentGenre = playlistEntry.name;
+          initChat();
+          loadAndRenderPlaylist(playlistEntry.file, () => {
+            const fi = currentPlaylist.findIndex(x => generateStationHash(x.url) === sh);
+            if (fi !== -1) {
+              onStationSelect(fi);
+              localStorage.setItem("lastStation", JSON.stringify({ genre: playlistEntry.name, trackIndex: fi }));
+              updateChat(playlistEntry.name);
+            } else {
+              playRandomGenreAndStation();
+            }
+          });
         }
-        window.currentGenre = hg;
-        initChat();
-        loadAndRenderPlaylist(hg, () => {
-          const fi = currentPlaylist.findIndex(x => generateStationHash(x.url) === sh);
-          if (fi !== -1) {
-            onStationSelect(fi);
-            localStorage.setItem("lastStation", JSON.stringify({ genre: hg, trackIndex: fi }));
-            updateChat(hg);
-          } else {
-            playRandomGenreAndStation();
-          }
-        });
       }
     } else if (localStorage.getItem("lastStation")) {
       try {
         const { genre, trackIndex } = JSON.parse(localStorage.getItem("lastStation"));
-        if (playlistSelect) {
-          playlistSelect.value = genre;
-          updateGenreSelectIcon();
+        const playlistEntry = allPlaylists.find(pl => pl.name === genre || pl.file === genre);
+        if (playlistEntry) {
+          setSelectedGenre(playlistEntry.file, playlistEntry.name);
+          window.currentGenre = playlistEntry.name;
+          initChat();
+          loadAndRenderPlaylist(playlistEntry.file, () => {
+            const si = trackIndex < currentPlaylist.length ? trackIndex : 0;
+            onStationSelect(si);
+            updateChat(playlistEntry.name);
+          });
+        } else {
+          playRandomGenreAndStation();
         }
-        window.currentGenre = genre;
-        initChat();
-        loadAndRenderPlaylist(genre, () => {
-          const si = trackIndex < currentPlaylist.length ? trackIndex : 0;
-          onStationSelect(si);
-          updateChat(genre);
-        });
       } catch(e) {
         playRandomGenreAndStation();
       }
@@ -1604,12 +1493,12 @@ window.onStationSelect = function(i) {
     e.stopImmediatePropagation();
     e.preventDefault();
     if(btn.disabled) return;
-    const pSel = document.getElementById("playlistSelect");
+    const customSelect = document.getElementById("customGenreSelect");
     const sIn = document.getElementById("searchInput");
-    const genreLabel = document.querySelector("label[for='playlistSelect']");
+    const genreLabel = document.querySelector("label[for='customGenreSelect']");
     if(btn.classList.contains("active")){
       btn.classList.remove("active");
-      if(pSel) pSel.style.display="";
+      if(customSelect) customSelect.style.display="";
       if(sIn) sIn.style.display="";
       if(genreLabel) genreLabel.textContent="Genre:";
       toggleFavoritesSortVisibility(false);
@@ -1618,7 +1507,7 @@ window.onStationSelect = function(i) {
       return;
     }
     btn.classList.add("active");
-    if(pSel) pSel.style.display="none";
+    if(customSelect) customSelect.style.display="none";
     if(sIn) sIn.style.display="none";
     if(genreLabel) genreLabel.textContent="Favorites";
     toggleFavoritesSortVisibility(true);

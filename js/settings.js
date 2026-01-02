@@ -66,10 +66,11 @@ function handleSettingsClick(e) {
     var leftHandedCheckbox = document.getElementById("leftHandedCheckbox");
     localStorage.setItem("leftHanded", leftHandedCheckbox.checked ? "true" : "false");
     updateLeftHandedSetting();
-    var select = document.getElementById("playlistSelect");
-    if (select) {
-      select.dispatchEvent(new Event("change"));
-    }
+    // Custom genre select will trigger refresh automatically if needed
+    // var select = document.getElementById("playlistSelect");
+    // if (select) {
+    //   select.dispatchEvent(new Event("change"));
+    // }
     modalContent.innerHTML = defaultModalContent;
     attachSettingsListener();
     modal.style.display = "none";
