@@ -92,8 +92,8 @@ export default function Fish({ container, analyser }) {
     const edgeWidth = w * 0.25
 
     // BASS BUBBLES - Large, on edges (sides), slower
-    if (bassLevel > 0.25) {
-      const bassCount = Math.floor(bassLevel * 5)
+    if (bassLevel > 0.35) {
+      const bassCount = Math.floor(bassLevel * 2)
       for (let i = 0; i < bassCount; i++) {
         // Spawn on left or right edge
         const onRight = Math.random() > 0.5
@@ -101,56 +101,56 @@ export default function Fish({ container, analyser }) {
           ? w - edgeWidth + Math.random() * edgeWidth * 0.8
           : edgeWidth * 0.2 + Math.random() * edgeWidth * 0.8
 
-        const r = 3 + bassLevel * 10
-        const speed = 0.06 + bassLevel * 0.12
-        const grow = 0.4 + bassLevel * 1.2
+        const r = 2 + bassLevel * 6 + Math.random() * 2
+        const speed = 0.05 + bassLevel * 0.1
+        const shrink = 0.5 + Math.random() * 0.3  // Shrink factor as rises
 
         bubbles.push({
-          x, y: h - 1, r, baseR: r, vy: speed, grow,
+          x, y: h - 1, r, baseR: r, vy: speed, shrink,
           type: 'bass', value: bassLevel, wobble: Math.random() * Math.PI * 2
         })
       }
     }
 
     // TREBLE BUBBLES - Small, in center, fast
-    if (trebleLevel > 0.3) {
-      const trebleCount = Math.floor(trebleLevel * 8)
+    if (trebleLevel > 0.4) {
+      const trebleCount = Math.floor(trebleLevel * 4)
       for (let i = 0; i < trebleCount; i++) {
-        const x = centerX + (Math.random() - 0.5) * w * 0.15
-        const y = h * 0.3 + Math.random() * h * 0.35
+        const x = centerX + (Math.random() - 0.5) * w * 0.2
+        const y = h * 0.2 + Math.random() * h * 0.4
 
-        const r = 0.7 + trebleLevel * 2.5
-        const speed = 0.4 + trebleLevel * 0.6
-        const grow = 0.8 + trebleLevel * 1.5
+        const r = 0.5 + trebleLevel * 1.5 + Math.random() * 0.8
+        const speed = 0.35 + trebleLevel * 0.5
+        const shrink = 0.6 + Math.random() * 0.25
 
         bubbles.push({
-          x, y, r, baseR: r, vy: speed, grow,
+          x, y, r, baseR: r, vy: speed, shrink,
           type: 'treble', value: trebleLevel, wobble: Math.random() * Math.PI * 2
         })
       }
     }
 
     // MID BUBBLES - Medium, between center and edges
-    if (midLevel > 0.3) {
-      const midCount = Math.floor(midLevel * 4)
+    if (midLevel > 0.35) {
+      const midCount = Math.floor(midLevel * 2.5)
       for (let i = 0; i < midCount; i++) {
-        const x = (Math.random() > 0.5 ? centerX + w * 0.15 : centerX - w * 0.15) + (Math.random() - 0.5) * w * 0.1
-        const y = h * 0.2 + Math.random() * h * 0.4
+        const x = (Math.random() > 0.5 ? centerX + w * 0.15 : centerX - w * 0.15) + (Math.random() - 0.5) * w * 0.12
+        const y = h * 0.15 + Math.random() * h * 0.5
 
-        const r = 1.2 + midLevel * 5
-        const speed = 0.15 + midLevel * 0.35
-        const grow = 0.9 + midLevel * 1.8
+        const r = 1 + midLevel * 3 + Math.random() * 1.5
+        const speed = 0.12 + midLevel * 0.3
+        const shrink = 0.55 + Math.random() * 0.3
 
         bubbles.push({
-          x, y, r, baseR: r, vy: speed, grow,
+          x, y, r, baseR: r, vy: speed, shrink,
           type: 'mid', value: midLevel, wobble: Math.random() * Math.PI * 2
         })
       }
     }
 
     // Limit total bubbles
-    if (bubbles.length > baseMaxBubbles * 1.5) {
-      bubbles = bubbles.slice(-Math.floor(baseMaxBubbles * 1.5))
+    if (bubbles.length > baseMaxBubbles) {
+      bubbles = bubbles.slice(-baseMaxBubbles)
     }
   }
   function drawBubbles() {
@@ -162,25 +162,21 @@ export default function Fish({ container, analyser }) {
       // Different wobble per bubble type
       let wobbleAmount, wobbleFreq
       if (b.type === 'bass') {
-        wobbleAmount = 0.05  // Minimal wobble
+        wobbleAmount = 0.06  // Minimal wobble
         wobbleFreq = 0.02
       } else if (b.type === 'treble') {
-        wobbleAmount = 0.4   // Lots of movement
-        wobbleFreq = 0.15
+        wobbleAmount = 0.5   // Lots of movement
+        wobbleFreq = 0.18
       } else {
-        wobbleAmount = 0.15  // Medium wobble
-        wobbleFreq = 0.08
+        wobbleAmount = 0.2   // Medium wobble
+        wobbleFreq = 0.09
       }
 
       b.x += Math.sin((b.y + b.r) * wobbleFreq + now * 2.5 + b.wobble) * wobbleAmount
 
-      const norm = 1 - (b.y / h)
-      b.r = b.baseR * (1 + norm * b.grow)
-
-      // Subtle size variation for realism
-      if (b.y < h * 0.1 && Math.random() < 0.01) {
-        b.r *= 0.98
-      }
+      // Shrink bubbles as they rise to top
+      const norm = 1 - (b.y / h)  // 0 at bottom, 1 at top
+      b.r = b.baseR * (1 - norm * (1 - b.shrink))  // Shrink from baseR to baseR*shrink
     })
 
     bubblesGroup.replaceChildren(
@@ -193,9 +189,8 @@ export default function Fish({ container, analyser }) {
         c.setAttribute('stroke', '#00F2B8')  // One color for all
 
         // Smooth fade-out as bubbles rise
-        // Start visible, gradually fade near top
         const progress = b.y / h  // 1 at bottom, 0 at top
-        const fadeStart = 0.3
+        const fadeStart = 0.25
         let opacity = 0.85
 
         if (progress < fadeStart) {
@@ -203,18 +198,23 @@ export default function Fish({ container, analyser }) {
           opacity = 0.85 * (progress / fadeStart)
         }
 
-        c.setAttribute('opacity', Math.max(0.05, opacity).toFixed(2))
+        c.setAttribute('opacity', Math.max(0.02, opacity).toFixed(2))
 
-        // Stroke width varies by bubble type and value
+        // Stroke width varies by bubble type and shrinks as bubble rises
         let strokeWidth = 0.7
         if (b.type === 'bass') {
-          strokeWidth = 0.9 + b.value * 0.3
+          strokeWidth = 0.85 + b.value * 0.25
         } else if (b.type === 'treble') {
-          strokeWidth = 0.5 + b.value * 0.15
+          strokeWidth = 0.45 + b.value * 0.2
         } else {
-          strokeWidth = 0.65 + b.value * 0.25
+          strokeWidth = 0.6 + b.value * 0.2
         }
-        c.setAttribute('stroke-width', strokeWidth.toFixed(2))
+
+        // Stroke width also shrinks slightly as bubble rises
+        const sizeRatio = b.r / b.baseR
+        strokeWidth *= sizeRatio
+
+        c.setAttribute('stroke-width', Math.max(0.3, strokeWidth).toFixed(2))
 
         return c
       })
