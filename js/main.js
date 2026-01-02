@@ -350,6 +350,12 @@ function switchToRadio() {
   playlistElement.innerHTML = "";
   const g = document.querySelector(".genre-box");
   if (g) {
+    // Remove custom dropdown if it exists
+    const customDropdown = document.getElementById("customGenreDropdown");
+    if (customDropdown) {
+      customDropdown.remove();
+    }
+
     g.innerHTML = `
       <img src="/img/fav_list.svg" id="favoritesFilterBtn" class="favorites-filter-icon">
       <label for="playlistSelect">Genre:</label>
@@ -906,7 +912,10 @@ function setRadioListeners() {
   toggleFavoritesSortVisibility(false);
 
   if (pSel) {
-    initCustomGenreDropdown();
+    // Only create dropdown if it doesn't exist yet
+    if (!document.getElementById("customGenreDropdown")) {
+      initCustomGenreDropdown();
+    }
     pSel.addEventListener("change", () => {
       onGenreChange(false);
     });
@@ -985,7 +994,12 @@ if (sIn) {
         resetVisibleStations();
       } else {
         fBtn.classList.add("active");
-        if (customDropdown) customDropdown.style.display = "none";
+        if (customDropdown) {
+          customDropdown.style.display = "none";
+          // Close the dropdown menu if it's open
+          const dropdownMenu = customDropdown.querySelector(".genre-dropdown-menu");
+          if (dropdownMenu) dropdownMenu.classList.remove("active");
+        }
         if (sIn) sIn.style.display = "none";
         if (genreLabel) genreLabel.textContent = "Favorites";
         const favoritesList = await createFavoritesPlaylist();
