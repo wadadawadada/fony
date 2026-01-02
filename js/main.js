@@ -39,10 +39,7 @@ const playlistContainer = document.getElementById('playlistContent')
 const playlistElement = document.getElementById('playlist')
 
 const genreOptionIconCache = new Map();
-
-function getGenreIconColorForTheme() {
-  return document.body.classList.contains('dark') ? "#171C2B" : "#00F6B4";
-}
+const GENRE_DROPDOWN_ICON_COLOR = "#FFFFFF";
 
 async function getColoredIconUrl(iconPath, color) {
   const cacheKey = `${iconPath}:${color}`;
@@ -61,7 +58,7 @@ async function getColoredIconUrl(iconPath, color) {
 
 function decorateGenreOption(optionEl, genreName) {
   const iconPath = getGenreIcon(genreName);
-  const color = getGenreIconColorForTheme();
+  const color = GENRE_DROPDOWN_ICON_COLOR;
   optionEl.dataset.genreIcon = iconPath;
   optionEl.style.paddingLeft = "32px";
   getColoredIconUrl(iconPath, color)
@@ -84,7 +81,7 @@ function updateGenreSelectIcon() {
   const selectedOption = pSel.selectedOptions && pSel.selectedOptions.length ? pSel.selectedOptions[0] : null;
   const selectedGenreName = selectedOption ? selectedOption.textContent : (window.currentGenre || "");
   const iconPath = getGenreIcon(selectedGenreName);
-  const color = getGenreIconColorForTheme();
+  const color = GENRE_DROPDOWN_ICON_COLOR;
   pSel.style.paddingLeft = "38px";
   getColoredIconUrl(iconPath, color)
     .then(colored => {
