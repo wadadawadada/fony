@@ -815,11 +815,11 @@ function initCustomGenreDropdown() {
   const pSel = document.getElementById("playlistSelect");
   if (!pSel) return;
 
-  // Remove existing dropdown if present
-  const existingDropdown = document.getElementById("customGenreDropdown");
-  if (existingDropdown) {
-    existingDropdown.remove();
-  }
+  // Remove ALL existing dropdowns if present (there might be multiple)
+  const allExistingDropdowns = document.querySelectorAll("#customGenreDropdown");
+  allExistingDropdowns.forEach(dropdown => {
+    dropdown.remove();
+  });
 
   // Create custom dropdown container
   const dropdownContainer = document.createElement("div");
@@ -983,12 +983,18 @@ if (sIn) {
       playlistLoader.textContent = left + right;
     }, 300);
     try {
-      const customDropdown = document.getElementById("customGenreDropdown");
       if (fBtn.classList.contains("active")) {
-        // Exiting Favorites mode - show dropdown
+        // Exiting Favorites mode - recreate dropdown
         fBtn.classList.remove("active");
-        if (customDropdown) {
-          customDropdown.classList.remove("hidden");
+        // Remove any hidden dropdowns
+        const allDropdowns = document.querySelectorAll("#customGenreDropdown");
+        allDropdowns.forEach(dropdown => {
+          dropdown.remove();
+        });
+        // Recreate dropdown
+        const pSel = document.getElementById("playlistSelect");
+        if (pSel) {
+          initCustomGenreDropdown();
         }
         if (sIn) sIn.style.display = "";
         if (genreLabel) genreLabel.textContent = "Genre:";
@@ -996,13 +1002,11 @@ if (sIn) {
         currentPlaylist = allStations.slice();
         resetVisibleStations();
       } else {
-        // Entering Favorites mode - hide dropdown
+        // Entering Favorites mode - remove dropdown completely
         fBtn.classList.add("active");
+        const customDropdown = document.getElementById("customGenreDropdown");
         if (customDropdown) {
-          customDropdown.classList.add("hidden");
-          // Close the dropdown menu if it's open
-          const dropdownMenu = customDropdown.querySelector(".genre-dropdown-menu");
-          if (dropdownMenu) dropdownMenu.classList.remove("active");
+          customDropdown.remove();
         }
         if (sIn) sIn.style.display = "none";
         if (genreLabel) genreLabel.textContent = "Favorites";
