@@ -316,7 +316,7 @@ function fillPlaylistSelect() {
   if (allPlaylists) {
     initCustomGenreSelect(allPlaylists, (file, name) => {
       window.currentGenre = name;
-      loadPlaylist(file);
+      loadAndRenderPlaylist(file, name);
     });
   }
 }
@@ -1099,7 +1099,7 @@ fetch("../json/playlists.json")
     // Initialize custom genre select with callback
     initCustomGenreSelect(pl, (file, name) => {
       window.currentGenre = name;
-      loadPlaylist(file);
+      loadAndRenderPlaylist(file, name);
     });
 
     if (playRandomFromUrlGenre()) {
