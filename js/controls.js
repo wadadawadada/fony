@@ -130,8 +130,10 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
       const customSelect = document.getElementById("customGenreSelect");
       const sIn = document.getElementById("searchInput");
       const genreLabel = document.querySelector("label[for='customGenreSelect']");
+      const sortContainer = document.getElementById("favoritesSortContainer");
       if (customSelect) customSelect.style.display = "";
       if (sIn) sIn.style.display = "";
+      if (sortContainer) sortContainer.style.display = "none";
       if (genreLabel) genreLabel.textContent = "Genre:";
     }
     if (window.allStations && Array.isArray(window.allStations)) {
