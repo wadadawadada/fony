@@ -444,6 +444,7 @@ body.dark .logo {
 
 .genre-select {
   padding: 8px 0;
+  padding-left: 38px;
   font-size: 1.2rem;
   border-radius: 3px;
   border: none;
@@ -456,13 +457,20 @@ body.dark .logo {
   scrollbar-width: thin;
   scrollbar-color: #00F2B8 #f2f2f265;
   border-radius: 22px;
+  background-repeat: no-repeat;
+  background-position: 10px center;
+  background-size: 18px 18px;
 }
 
 .genre-select option {
   font-size: 1rem;
   padding: 10px 12px;
+  padding-left: 32px;
   cursor: pointer;
   background: #171c2b;
+  background-repeat: no-repeat;
+  background-position: 8px center;
+  background-size: 16px 16px;
   color: #fff;
   font-family: 'Ruda', sans-serif;
 }
@@ -723,6 +731,11 @@ body.dark .logo {
 .station-favorite-icon:hover .station-avatar {
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 242, 184, 0.4);
+}
+
+.genre-icon {
+  display: block;
+  background-color: #00F6B4;
 }
 
 .favorites-sort {

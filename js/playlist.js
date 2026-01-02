@@ -5,49 +5,48 @@ export function updateUseOnlyHttpsSetting(newValue) {
   USE_ONLY_HTTPS = newValue;
 }
 
-// Genre to emoji mapping and colors
-const GENRE_EMOJI_MAP = {
-  "African": "🌍",
-  "Alternative": "🎸",
-  "Asian": "🏯",
-  "Balkans": "🎺",
-  "Blues": "🎹",
-  "Caribbean": "🏝️",
-  "Chillout": "😌",
-  "China": "🏮",
-  "Chiptune": "🎮",
-  "Classical": "🎻",
-  "Downtempo": "🍃",
-  "Drum & Bass": "🥁",
-  "Dub": "🎧",
-  "Electronic": "⚡",
-  "Funk": "💃",
-  "Goa": "🕉️",
-  "Hardcore": "🔥",
-  "Hip Hop": "🎤",
-  "House": "🏠",
-  "Industrial": "⚙️",
-  "Italian": "🍝",
-  "Japan": "🗾",
-  "Jazz": "🎷",
-  "Jungle": "🐆",
-  "Lounge": "🛋️",
-  "Meditation": "🧘",
-  "Metal": "🤘",
-  "Nature": "🌲",
-  "New Age": "✨",
-  "News": "📢",
-  "Oriental": "🎋",
-  "Spiritual": "☮️",
-  "Punk": "⚡",
-  "Rap": "🎙️",
-  "Reggae": "🌴",
-  "RnB": "💿",
-  "Russian": "🪶",
-  "Southeast Asia": "🎎",
-  "Techno": "🤖",
-  "Turk": "🎸",
-  "World": "🌐"
+const GENRE_ICON_MAP = {
+  "African": "/img/genres/african.svg",
+  "Alternative": "/img/genres/alternative.svg",
+  "Asian": "/img/genres/asian.svg",
+  "Balkans": "/img/genres/balkans.svg",
+  "Blues": "/img/genres/blues.svg",
+  "Caribbean": "/img/genres/caribbean.svg",
+  "Chillout": "/img/genres/chillout.svg",
+  "China": "/img/genres/china.svg",
+  "Chiptune": "/img/genres/chiptune.svg",
+  "Classical": "/img/genres/classical.svg",
+  "Downtempo": "/img/genres/downtempo.svg",
+  "Drum & Bass": "/img/genres/drum&bass.svg",
+  "Dub": "/img/genres/dub.svg",
+  "Electronic": "/img/genres/electronic.svg",
+  "Funk": "/img/genres/funk.svg",
+  "Goa": "/img/genres/goa.svg",
+  "Hardcore": "/img/genres/hardcore.svg",
+  "Hip Hop": "/img/genres/hiphop.svg",
+  "House": "/img/genres/house.svg",
+  "Industrial": "/img/genres/industrial.svg",
+  "Italian": "/img/genres/italian.svg",
+  "Japan": "/img/genres/japan.svg",
+  "Jazz": "/img/genres/jazz.svg",
+  "Jungle": "/img/genres/jungle.svg",
+  "Lounge": "/img/genres/lounge.svg",
+  "Meditation": "/img/genres/meditation.svg",
+  "Metal": "/img/genres/metal.svg",
+  "Nature": "/img/genres/nature.svg",
+  "New Age": "/img/genres/newage.svg",
+  "News": "/img/genres/news.svg",
+  "Oriental": "/img/genres/oriental.svg",
+  "Spiritual": "/img/genres/spiritual.svg",
+  "Punk": "/img/genres/punk.svg",
+  "Rap": "/img/genres/rap.svg",
+  "Reggae": "/img/genres/reggae.svg",
+  "RnB": "/img/genres/rnb.svg",
+  "Russian": "/img/genres/russian.svg",
+  "Southeast Asia": "/img/genres/southeast_asia.svg",
+  "Techno": "/img/genres/techno.svg",
+  "Turk": "/img/genres/turk.svg",
+  "World": "/img/genres/world.svg"
 };
 
 // Genre colors for light theme - muted warm and cool tones
@@ -164,9 +163,83 @@ const AVATAR_COLORS = [
   "#5A3FBB"
 ];
 
-function getGenreEmoji(genreName) {
-  if (!genreName) return "📻";
-  return GENRE_EMOJI_MAP[genreName] || "📻";
+const GENRE_ICON_SLUG_MAP = Object.fromEntries(
+  Object.entries(GENRE_ICON_MAP).map(([name, path]) => {
+    const slug = name.toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/\s+/g, "_")
+      .replace(/[^a-z0-9_]/g, "");
+    return [slug, path];
+  })
+);
+
+function normalizeGenreName(genreName) {
+  if (!genreName) return "World";
+  if (GENRE_ICON_MAP[genreName]) return genreName;
+  const cleaned = genreName.replace(/^genres\//i, "").replace(/\.m3u$/i, "");
+  const titleCase = cleaned.split(/[_\s]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  if (GENRE_ICON_MAP[titleCase]) return titleCase;
+  return genreName;
+}
+
+export function getGenreIcon(genreName) {
+  if (!genreName) return GENRE_ICON_MAP["World"];
+  const normalized = normalizeGenreName(genreName);
+  if (GENRE_ICON_MAP[normalized]) return GENRE_ICON_MAP[normalized];
+  const slug = normalized.toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
+  return GENRE_ICON_SLUG_MAP[slug] || GENRE_ICON_MAP["World"];
+}
+
+function getGenreIconColor() {
+  const isDarkTheme = document.body.classList.contains('dark');
+  return isDarkTheme ? "#171C2B" : "#00F6B4";
+}
+
+function getAvatarBackgroundColor() {
+  const isDarkTheme = document.body.classList.contains('dark');
+  return isDarkTheme ? "#00F2B8" : "#171C2B";
+}
+
+function createGenreAvatar(genre, size = 28, iconSize = 16) {
+  const iconContainer = document.createElement("div");
+  iconContainer.classList.add("station-favorite-icon");
+  iconContainer.style.display = "inline-flex";
+  iconContainer.style.alignItems = "center";
+  iconContainer.style.marginRight = "6px";
+
+  const avatar = document.createElement("div");
+  avatar.classList.add("station-avatar");
+  avatar.style.width = `${size}px`;
+  avatar.style.height = `${size}px`;
+  avatar.style.borderRadius = "50%";
+  avatar.style.backgroundColor = getAvatarBackgroundColor();
+  avatar.style.display = "flex";
+  avatar.style.alignItems = "center";
+  avatar.style.justifyContent = "center";
+  avatar.style.flexShrink = "0";
+  avatar.style.position = "relative";
+
+  const iconElement = document.createElement("div");
+  iconElement.classList.add("genre-icon");
+  const iconUrl = getGenreIcon(genre);
+  iconElement.style.width = `${iconSize}px`;
+  iconElement.style.height = `${iconSize}px`;
+  iconElement.style.backgroundColor = getGenreIconColor();
+  iconElement.style.maskImage = `url(${iconUrl})`;
+  iconElement.style.webkitMaskImage = `url(${iconUrl})`;
+  iconElement.style.maskSize = "contain";
+  iconElement.style.webkitMaskSize = "contain";
+  iconElement.style.maskRepeat = "no-repeat";
+  iconElement.style.webkitMaskRepeat = "no-repeat";
+  iconElement.style.maskPosition = "center";
+  iconElement.style.webkitMaskPosition = "center";
+
+  avatar.appendChild(iconElement);
+  iconContainer.appendChild(avatar);
+  return iconContainer;
 }
 
 function generateColorFromString(str) {
@@ -216,12 +289,10 @@ function updateFavoriteRowColors() {
         // Update emoji circle background color for theme change
         const avatarElement = item.querySelector(".station-avatar");
         if (avatarElement) {
-          const isDarkTheme = document.body.classList.contains('dark');
-          avatarElement.style.backgroundColor = isDarkTheme ? "#00F2B8" : "#171C2B";
-          // Update text color for contrast
-          const emojiElement = avatarElement.querySelector("div");
-          if (emojiElement) {
-            emojiElement.style.color = isDarkTheme ? "#000" : "#fff";
+          avatarElement.style.backgroundColor = getAvatarBackgroundColor();
+          const iconElement = avatarElement.querySelector(".genre-icon");
+          if (iconElement) {
+            iconElement.style.backgroundColor = getGenreIconColor();
           }
         }
       }
@@ -453,41 +524,11 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       // In favorites mode, show dark avatar with genre emoji
       const genre = station.favGenre || station.genre || "World";
       const color = getGenreColor(genre);
-      const emoji = getGenreEmoji(genre);
 
       // Set background color of the list item to genre color
       li.style.setProperty("--favorite-bg", color);
 
-      const iconContainer = document.createElement("div");
-      iconContainer.classList.add("station-favorite-icon");
-      iconContainer.style.display = "inline-flex";
-      iconContainer.style.alignItems = "center";
-      iconContainer.style.marginRight = "6px";
-
-      // Dark avatar with emoji inside
-      const avatar = document.createElement("div");
-      avatar.classList.add("station-avatar");
-      avatar.style.width = "28px";
-      avatar.style.height = "28px";
-      avatar.style.borderRadius = "50%";
-      const isDarkTheme = document.body.classList.contains('dark');
-      avatar.style.backgroundColor = isDarkTheme ? "#00F2B8" : "#171C2B";
-      avatar.style.display = "flex";
-      avatar.style.alignItems = "center";
-      avatar.style.justifyContent = "center";
-      avatar.style.flexShrink = "0";
-      avatar.style.position = "relative";
-
-      // Add emoji inside circle
-      const emojiElement = document.createElement("div");
-      emojiElement.textContent = emoji;
-      emojiElement.style.fontSize = "14px";
-      emojiElement.style.color = isDarkTheme ? "#000" : "#fff";
-      avatar.appendChild(emojiElement);
-
-      iconContainer.appendChild(avatar);
-
-      // Insert at the beginning of li, before cover icon
+      const iconContainer = createGenreAvatar(genre, 28, 16);
       li.insertBefore(iconContainer, li.firstChild);
 
     } else if (isFavorite(station)) {
@@ -717,38 +758,11 @@ export function updatePlaylistHearts() {
 
       const genre = station.favGenre || station.genre || "World";
       const color = getGenreColor(genre);
-      const emoji = getGenreEmoji(genre);
 
       // Set background color of the list item to genre color
       li.style.setProperty("--favorite-bg", color);
 
-      const iconContainer = document.createElement("div");
-      iconContainer.classList.add("station-favorite-icon");
-      iconContainer.style.display = "inline-flex";
-      iconContainer.style.alignItems = "center";
-      iconContainer.style.marginRight = "6px";
-
-      // Dark avatar with emoji inside
-      const avatar = document.createElement("div");
-      avatar.classList.add("station-avatar");
-      avatar.style.width = "32px";
-      avatar.style.height = "32px";
-      avatar.style.borderRadius = "50%";
-      avatar.style.backgroundColor = "#171C2B";
-      avatar.style.display = "flex";
-      avatar.style.alignItems = "center";
-      avatar.style.justifyContent = "center";
-      avatar.style.flexShrink = "0";
-      avatar.style.position = "relative";
-
-      // Add emoji inside circle
-      const emojiElement = document.createElement("div");
-      emojiElement.textContent = emoji;
-      emojiElement.style.fontSize = "18px";
-      avatar.appendChild(emojiElement);
-
-      iconContainer.appendChild(avatar);
-
+      const iconContainer = createGenreAvatar(genre, 32, 18);
       li.insertBefore(iconContainer, li.firstChild);
     } else {
       // In normal mode, update heart icon

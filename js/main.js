@@ -1,5 +1,5 @@
 import { fadeAudioOut, fadeAudioIn } from './player.js'
-import { renderPlaylist, loadPlaylist } from './playlist.js'
+import { renderPlaylist, loadPlaylist, getGenreIcon } from './playlist.js'
 import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from './controls.js'
 import { initChat} from './chat.js'
 import { getStreamMetadata, secureUrl } from './parsing.js'
@@ -38,6 +38,94 @@ const searchInput = document.getElementById('searchInput')
 const playlistContainer = document.getElementById('playlistContent')
 const playlistElement = document.getElementById('playlist')
 
+const genreOptionIconCache = new Map();
+
+function getGenreIconColorForTheme() {
+  return document.body.classList.contains('dark') ? "#171C2B" : "#00F6B4";
+}
+
+async function getColoredIconUrl(iconPath, color) {
+  const cacheKey = `${iconPath}:${color}`;
+  if (genreOptionIconCache.has(cacheKey)) return genreOptionIconCache.get(cacheKey);
+  const res = await fetch(iconPath);
+  if (!res.ok) throw new Error("Icon fetch failed");
+  const svgText = await res.text();
+  const coloredSvg = svgText.replace(/fill=\"[^\"]*\"/g, `fill="${color}"`);
+  const encoded = encodeURIComponent(coloredSvg)
+    .replace(/%0A/g, '')
+    .replace(/%20/g, ' ');
+  const dataUrl = `data:image/svg+xml,${encoded}`;
+  genreOptionIconCache.set(cacheKey, dataUrl);
+  return dataUrl;
+}
+
+function decorateGenreOption(optionEl, genreName) {
+  const iconPath = getGenreIcon(genreName);
+  const color = getGenreIconColorForTheme();
+  optionEl.dataset.genreIcon = iconPath;
+  optionEl.style.paddingLeft = "32px";
+  getColoredIconUrl(iconPath, color)
+    .then(colored => {
+      optionEl.style.backgroundImage = `url("${colored}")`;
+    })
+    .catch(() => {
+      optionEl.style.backgroundImage = `url(${iconPath})`;
+    })
+    .finally(() => {
+      optionEl.style.backgroundRepeat = "no-repeat";
+      optionEl.style.backgroundPosition = "8px center";
+      optionEl.style.backgroundSize = "16px 16px";
+    });
+}
+
+function updateGenreSelectIcon() {
+  const pSel = document.getElementById("playlistSelect");
+  if (!pSel) return;
+  const selectedOption = pSel.selectedOptions && pSel.selectedOptions.length ? pSel.selectedOptions[0] : null;
+  const selectedGenreName = selectedOption ? selectedOption.textContent : (window.currentGenre || "");
+  const iconPath = getGenreIcon(selectedGenreName);
+  const color = getGenreIconColorForTheme();
+  pSel.style.paddingLeft = "38px";
+  getColoredIconUrl(iconPath, color)
+    .then(colored => {
+      pSel.style.backgroundImage = `url("${colored}")`;
+    })
+    .catch(() => {
+      pSel.style.backgroundImage = `url(${iconPath})`;
+    })
+    .finally(() => {
+      pSel.style.backgroundRepeat = "no-repeat";
+      pSel.style.backgroundPosition = "10px center";
+      pSel.style.backgroundSize = "18px 18px";
+    });
+}
+
+function refreshGenreOptionIcons() {
+  const pSel = document.getElementById("playlistSelect");
+  if (!pSel) return;
+  const options = Array.from(pSel.options || []);
+  options.forEach(opt => {
+    const genreName = opt.textContent || opt.value;
+    decorateGenreOption(opt, genreName);
+  });
+  updateGenreSelectIcon();
+}
+
+const themeIconObserver = new MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    if (mutation.type === "attributes" && mutation.attributeName === "class" && mutation.target === document.body) {
+      refreshGenreOptionIcons();
+    }
+  }
+});
+if (document.body) {
+  themeIconObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+} else {
+  document.addEventListener("DOMContentLoaded", () => {
+    themeIconObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  });
+}
+
 const rrBtn = document.getElementById('rrBtn')
 const ffBtn = document.getElementById('ffBtn')
 const favBtn = document.getElementById('favBtn')
@@ -63,7 +151,10 @@ function playRandomFromUrlGenre() {
 
   if (!genreEntry) return false;
 
-  if (playlistSelect) playlistSelect.value = genreEntry.file;
+  if (playlistSelect) {
+    playlistSelect.value = genreEntry.file;
+    updateGenreSelectIcon();
+  }
   window.currentGenre = genreEntry.name;
   initChat();
   loadAndRenderPlaylist(genreEntry.file, genreEntry.name, () => {
@@ -299,8 +390,10 @@ function fillPlaylistSelect() {
     const o = document.createElement("option")
     o.value = pl.file
     o.textContent = pl.name
+    decorateGenreOption(o, pl.name)
     pSel.appendChild(o)
   })
+  updateGenreSelectIcon()
 }
 
 function switchToRadio() {
@@ -351,7 +444,10 @@ function switchToRadio() {
       if (!playlistEntry) throw new Error("Genre not found");
 
       const pSel = document.getElementById("playlistSelect");
-      if (pSel) pSel.value = playlistEntry.file;
+      if (pSel) {
+        pSel.value = playlistEntry.file;
+        updateGenreSelectIcon();
+      }
       initChat();
       loadAndRenderPlaylist(playlistEntry.file, playlistEntry.name, () => {
         const i = trackIndex < currentPlaylist.length ? trackIndex : 0;
@@ -439,6 +535,7 @@ function defaultPlaylist() {
   const firstPlaylist = allPlaylists[0];
   if (playlistSelect) playlistSelect.value = firstPlaylist.file
   window.currentGenre = firstPlaylist.name
+  updateGenreSelectIcon();
   initChat()
   loadAndRenderPlaylist(firstPlaylist.file, firstPlaylist.name, () => {
     if (currentPlaylist.length) {
@@ -713,6 +810,7 @@ function onGenreChange(randomStation = false) {
   const playlistEntry = allPlaylists.find(pl => pl.file === newGenreFile);
   const genreName = playlistEntry ? playlistEntry.name : newGenreFile;
   window.currentGenre = genreName;
+  updateGenreSelectIcon();
   loadAndRenderPlaylist(newGenreFile, genreName, () => {
     if (sIn) sIn.value = "";
     if (currentPlaylist.length) {
@@ -795,7 +893,11 @@ function setRadioListeners() {
   toggleFavoritesSortVisibility(false);
 
   if (pSel) {
-    pSel.addEventListener("change", () => onGenreChange(false));
+    pSel.addEventListener("change", () => {
+      onGenreChange(false);
+      updateGenreSelectIcon();
+    });
+    refreshGenreOptionIcons();
   }
 
   if (sortSelect) {
@@ -1084,7 +1186,10 @@ function playRandomGenreAndStation() {
   if (!allPlaylists.length) return;
   const randomGenreIndex = Math.floor(Math.random() * allPlaylists.length);
   const randomGenre = allPlaylists[randomGenreIndex].file;
-  if (playlistSelect) playlistSelect.value = randomGenre;
+  if (playlistSelect) {
+    playlistSelect.value = randomGenre;
+    updateGenreSelectIcon();
+  }
   window.currentGenre = randomGenre;
   initChat();
   loadAndRenderPlaylist(randomGenre, () => {
@@ -1107,8 +1212,10 @@ fetch("../json/playlists.json")
         const o = document.createElement("option");
         o.value = x.file;
         o.textContent = x.name;
+        decorateGenreOption(o, x.name);
         playlistSelect.appendChild(o);
       });
+      updateGenreSelectIcon();
     }
 
     if (playRandomFromUrlGenre()) {
@@ -1129,7 +1236,10 @@ fetch("../json/playlists.json")
         }
       }
       if (hh) {
-        if (playlistSelect) playlistSelect.value = hg;
+        if (playlistSelect) {
+          playlistSelect.value = hg;
+          updateGenreSelectIcon();
+        }
         window.currentGenre = hg;
         initChat();
         loadAndRenderPlaylist(hg, () => {
@@ -1146,7 +1256,10 @@ fetch("../json/playlists.json")
     } else if (localStorage.getItem("lastStation")) {
       try {
         const { genre, trackIndex } = JSON.parse(localStorage.getItem("lastStation"));
-        if (playlistSelect) playlistSelect.value = genre;
+        if (playlistSelect) {
+          playlistSelect.value = genre;
+          updateGenreSelectIcon();
+        }
         window.currentGenre = genre;
         initChat();
         loadAndRenderPlaylist(genre, () => {
