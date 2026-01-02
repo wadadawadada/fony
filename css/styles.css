@@ -745,8 +745,9 @@ body.dark .logo {
   color: #00F2B8;
   border-radius: 3px;
   z-index: 0;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, opacity 0.3s ease;
   pointer-events: none;
+  opacity: 1;
 }
 
 #playlist li.radio-mode .progress {
@@ -778,7 +779,8 @@ body.dark .logo {
 #playlist li .remove-btn {
   opacity: 0;
   color: #00F2B8;
-  transition: opacity 0.2s ease, color 0.2s ease;
+  background-color: transparent;
+  transition: opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease;
   pointer-events: none;
 }
 
@@ -791,12 +793,22 @@ body.dark .logo {
 #playlist li.active .remove-btn {
   opacity: 1;
   color: #00F2B8;
+  background-color: transparent;
   pointer-events: auto;
 }
 
-/* Keep button color #00F2B8 when hovering over active station */
+#playlist li.active:hover {
+  color: #171C2B;
+}
+
+/* Match active hover delete button with text/icon colors */
 #playlist li.active:hover .remove-btn {
-  color: #00F2B8;
+  color: #171C2B;
+  background-color: #00F2B8;
+}
+
+#playlist li.buffer-complete .progress {
+  opacity: 0;
 }
 
 #playlist li img.station-icon {

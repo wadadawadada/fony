@@ -523,6 +523,7 @@ function checkRealBuffering(durationMs, li, cb) {
     cb()
     return
   }
+  li.classList.remove("buffer-complete")
   const p = document.getElementById("playTimer")
   let progress = 0
   const step = 100
@@ -538,7 +539,12 @@ function checkRealBuffering(durationMs, li, cb) {
     if (currentStep >= maxSteps) {
       clearInterval(intervalId)
       if (p) p.textContent = formatTime(0)
-      cb()
+      li.classList.add("buffer-complete")
+      setTimeout(() => {
+        li.style.setProperty("--buffer-percent", "0%")
+        li.classList.remove("buffer-complete")
+        cb()
+      }, 300)
     }
   }, step)
 }

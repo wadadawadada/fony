@@ -193,11 +193,6 @@ export function getGenreIcon(genreName) {
   return GENRE_ICON_SLUG_MAP[slug] || GENRE_ICON_MAP["World"];
 }
 
-function getGenreIconColor() {
-  const isDarkTheme = document.body.classList.contains('dark');
-  return isDarkTheme ? "#171C2B" : "#00F6B4";
-}
-
 function getAvatarBackgroundColor() {
   return "transparent";
 }
@@ -226,7 +221,7 @@ function createGenreAvatar(genre, size = 26, iconSize = 14, iconColor = null) {
   const iconUrl = getGenreIcon(genre);
   iconElement.style.width = `${iconSize}px`;
   iconElement.style.height = `${iconSize}px`;
-  iconElement.style.backgroundColor = iconColor || getGenreIconColor();
+  iconElement.style.backgroundColor = iconColor || "currentColor";
   iconElement.style.maskImage = `url(${iconUrl})`;
   iconElement.style.webkitMaskImage = `url(${iconUrl})`;
   iconElement.style.maskSize = "contain";
@@ -291,8 +286,7 @@ function updateFavoriteRowColors() {
           avatarElement.style.backgroundColor = getAvatarBackgroundColor();
           const iconElement = avatarElement.querySelector(".genre-icon");
           if (iconElement) {
-            const textColor = getComputedStyle(item).color || getGenreIconColor();
-            iconElement.style.backgroundColor = textColor;
+            iconElement.style.backgroundColor = "currentColor";
           }
         }
       }
@@ -529,11 +523,6 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       li.style.setProperty("--favorite-bg", color);
 
       const iconContainer = createGenreAvatar(genre, 24, 18);
-      const iconEl = iconContainer.querySelector(".genre-icon");
-      if (iconEl) {
-        const textColor = getComputedStyle(li).color || getGenreIconColor();
-        iconEl.style.backgroundColor = textColor;
-      }
       li.insertBefore(iconContainer, li.firstChild);
 
     } else if (isFavorite(station)) {
@@ -768,11 +757,6 @@ export function updatePlaylistHearts() {
       li.style.setProperty("--favorite-bg", color);
 
       const iconContainer = createGenreAvatar(genre, 26, 16);
-      const iconEl = iconContainer.querySelector(".genre-icon");
-      if (iconEl) {
-        const textColor = getComputedStyle(li).color || getGenreIconColor();
-        iconEl.style.backgroundColor = textColor;
-      }
       li.insertBefore(iconContainer, li.firstChild);
     } else {
       // In normal mode, update heart icon
