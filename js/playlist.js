@@ -244,7 +244,7 @@ function updateFavoriteRowColors() {
         const avatarElement = item.querySelector(".station-avatar");
         if (avatarElement) {
           const isDarkTheme = document.body.classList.contains('dark');
-          avatarElement.style.backgroundColor = isDarkTheme ? "#00F6B4" : "#171C2B";
+          avatarElement.style.backgroundColor = isDarkTheme ? "#171C2B" : "#00F6B4";
           // Update SVG filter for theme change
           const svgIcon = avatarElement.querySelector("img");
           if (svgIcon) {
@@ -498,7 +498,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       avatar.style.height = "28px";
       avatar.style.borderRadius = "50%";
       const isDarkTheme = document.body.classList.contains('dark');
-      avatar.style.backgroundColor = isDarkTheme ? "#00F6B4" : "#171C2B";
+      avatar.style.backgroundColor = isDarkTheme ? "#171C2B" : "#00F6B4";
       avatar.style.display = "flex";
       avatar.style.alignItems = "center";
       avatar.style.justifyContent = "center";
@@ -765,7 +765,7 @@ export function updatePlaylistHearts() {
       avatar.style.height = "32px";
       avatar.style.borderRadius = "50%";
       const isDarkTheme = document.body.classList.contains('dark');
-      avatar.style.backgroundColor = isDarkTheme ? "#00F6B4" : "#171C2B";
+      avatar.style.backgroundColor = isDarkTheme ? "#171C2B" : "#00F6B4";
       avatar.style.display = "flex";
       avatar.style.alignItems = "center";
       avatar.style.justifyContent = "center";
