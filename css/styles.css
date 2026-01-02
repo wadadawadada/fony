@@ -875,6 +875,11 @@ body.dark .logo {
   transition: background-color 0.3s ease;
 }
 
+/* Genre icon color for active station */
+#playlist li.active .genre-icon {
+  background-color: #00F2B8;
+}
+
 /* Genre icon color on hover for active station */
 #playlist li.active:hover .genre-icon {
   background-color: #00F2B8;

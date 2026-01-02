@@ -291,8 +291,12 @@ function updateFavoriteRowColors() {
           avatarElement.style.backgroundColor = getAvatarBackgroundColor();
           const iconElement = avatarElement.querySelector(".genre-icon");
           if (iconElement) {
-            const textColor = getComputedStyle(item).color || getGenreIconColor();
-            iconElement.style.backgroundColor = textColor;
+            // Only set inline style if NOT active station - let CSS handle active state
+            const isActiveStation = window.currentStationUrl && station.url === window.currentStationUrl;
+            if (!isActiveStation) {
+              const textColor = getComputedStyle(item).color || getGenreIconColor();
+              iconElement.style.backgroundColor = textColor;
+            }
           }
         }
       }
@@ -531,8 +535,12 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       const iconContainer = createGenreAvatar(genre, 24, 18);
       const iconEl = iconContainer.querySelector(".genre-icon");
       if (iconEl) {
-        const textColor = getComputedStyle(li).color || getGenreIconColor();
-        iconEl.style.backgroundColor = textColor;
+        // Only set inline style if NOT active station - let CSS handle active state
+        const isActiveStation = window.currentStationUrl && station.url === window.currentStationUrl;
+        if (!isActiveStation) {
+          const textColor = getComputedStyle(li).color || getGenreIconColor();
+          iconEl.style.backgroundColor = textColor;
+        }
       }
       li.insertBefore(iconContainer, li.firstChild);
 
@@ -770,8 +778,12 @@ export function updatePlaylistHearts() {
       const iconContainer = createGenreAvatar(genre, 26, 16);
       const iconEl = iconContainer.querySelector(".genre-icon");
       if (iconEl) {
-        const textColor = getComputedStyle(li).color || getGenreIconColor();
-        iconEl.style.backgroundColor = textColor;
+        // Only set inline style if NOT active station - let CSS handle active state
+        const isActiveStation = window.currentStationUrl && station.url === window.currentStationUrl;
+        if (!isActiveStation) {
+          const textColor = getComputedStyle(li).color || getGenreIconColor();
+          iconEl.style.backgroundColor = textColor;
+        }
       }
       li.insertBefore(iconContainer, li.firstChild);
     } else {
