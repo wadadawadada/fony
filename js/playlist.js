@@ -199,16 +199,15 @@ function getGenreIconColor() {
 }
 
 function getAvatarBackgroundColor() {
-  const isDarkTheme = document.body.classList.contains('dark');
-  return isDarkTheme ? "#00F2B8" : "#171C2B";
+  return "transparent";
 }
 
-function createGenreAvatar(genre, size = 28, iconSize = 16) {
+function createGenreAvatar(genre, size = 28, iconSize = 16, iconColor = null) {
   const iconContainer = document.createElement("div");
   iconContainer.classList.add("station-favorite-icon");
   iconContainer.style.display = "inline-flex";
   iconContainer.style.alignItems = "center";
-  iconContainer.style.marginRight = "6px";
+  iconContainer.style.marginRight = "4px";
 
   const avatar = document.createElement("div");
   avatar.classList.add("station-avatar");
@@ -227,7 +226,7 @@ function createGenreAvatar(genre, size = 28, iconSize = 16) {
   const iconUrl = getGenreIcon(genre);
   iconElement.style.width = `${iconSize}px`;
   iconElement.style.height = `${iconSize}px`;
-  iconElement.style.backgroundColor = getGenreIconColor();
+  iconElement.style.backgroundColor = iconColor || getGenreIconColor();
   iconElement.style.maskImage = `url(${iconUrl})`;
   iconElement.style.webkitMaskImage = `url(${iconUrl})`;
   iconElement.style.maskSize = "contain";
@@ -286,13 +285,14 @@ function updateFavoriteRowColors() {
         const color = getGenreColor(genre);
         item.style.setProperty("--favorite-bg", color);
 
-        // Update emoji circle background color for theme change
+        // Update circle/icon background color for theme change
         const avatarElement = item.querySelector(".station-avatar");
         if (avatarElement) {
           avatarElement.style.backgroundColor = getAvatarBackgroundColor();
           const iconElement = avatarElement.querySelector(".genre-icon");
           if (iconElement) {
-            iconElement.style.backgroundColor = getGenreIconColor();
+            const textColor = getComputedStyle(item).color || getGenreIconColor();
+            iconElement.style.backgroundColor = textColor;
           }
         }
       }
@@ -529,6 +529,11 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       li.style.setProperty("--favorite-bg", color);
 
       const iconContainer = createGenreAvatar(genre, 28, 16);
+      const iconEl = iconContainer.querySelector(".genre-icon");
+      if (iconEl) {
+        const textColor = getComputedStyle(li).color || getGenreIconColor();
+        iconEl.style.backgroundColor = textColor;
+      }
       li.insertBefore(iconContainer, li.firstChild);
 
     } else if (isFavorite(station)) {
@@ -763,6 +768,11 @@ export function updatePlaylistHearts() {
       li.style.setProperty("--favorite-bg", color);
 
       const iconContainer = createGenreAvatar(genre, 32, 18);
+      const iconEl = iconContainer.querySelector(".genre-icon");
+      if (iconEl) {
+        const textColor = getComputedStyle(li).color || getGenreIconColor();
+        iconEl.style.backgroundColor = textColor;
+      }
       li.insertBefore(iconContainer, li.firstChild);
     } else {
       // In normal mode, update heart icon
