@@ -33,7 +33,10 @@ let isContinuation = false;
 
 let lastFonyUpdateCheck = 0;
 let fonyUpdateCache = "";
+let fonyUpdateLoading = false;
 const FONY_UPDATE_INTERVAL = 30 * 60 * 1000;
+const FONY_UPDATE_TIMEOUT = 5000; // 5 segundos
+const GIST_URL = 'https://gist.githubusercontent.com/wadadawadada/ae325357525ba9674bf31c498b129c91/raw/fonyupdate.txt';
 
 async function loadChatConfig() {
   if (chatConfig) return chatConfig;
@@ -43,23 +46,62 @@ async function loadChatConfig() {
   return chatConfig;
 }
 
-async function loadFonyUpdateFromGist() {
+async function loadFonyUpdateFromGist(retries = 3, delayMs = 1000) {
   const now = Date.now();
+
+  // Check cache first
   if (fonyUpdateCache && (now - lastFonyUpdateCheck < FONY_UPDATE_INTERVAL)) {
     return fonyUpdateCache;
   }
 
-  const gistUrl = 'https://gist.githubusercontent.com/wadadawadada/ae325357525ba9674bf31c498b129c91/raw/fonyupdate.txt';
-  try {
-    const res = await fetch(gistUrl);
-    if (!res.ok) throw new Error('Failed to load');
-    const text = await res.text();
-    fonyUpdateCache = text;
-    lastFonyUpdateCheck = now;
-    return text;
-  } catch {
-    return fonyUpdateCache || '⚠️ Failed to load update log.';
+  // Prevent multiple simultaneous requests
+  if (fonyUpdateLoading) {
+    return fonyUpdateCache || '';
   }
+
+  fonyUpdateLoading = true;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FONY_UPDATE_TIMEOUT);
+
+      const res = await fetch(GIST_URL, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+
+      const text = await res.text();
+
+      if (!text || text.trim() === '') {
+        console.warn('Gist returned empty content');
+        throw new Error('Empty gist content');
+      }
+
+      fonyUpdateCache = text;
+      lastFonyUpdateCheck = now;
+      fonyUpdateLoading = false;
+      return text;
+    } catch (error) {
+      console.warn(`Attempt ${attempt}/${retries} to load gist failed:`, error.message);
+
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, delayMs));
+      }
+    }
+  }
+
+  fonyUpdateLoading = false;
+
+  if (fonyUpdateCache) {
+    console.warn('Using cached gist content after failed attempts');
+    return fonyUpdateCache;
+  }
+
+  console.error('Failed to load gist after all retries');
+  return '';
 }
 
 
@@ -768,7 +810,10 @@ function renderQuickLinks() {
 
 function sendWelcomeMessage() {
   loadFonyUpdateFromGist().then(text => {
-    const updateBlock = `<br><div style="margin-top:12px; font-size: 12px; color: #ffffffff; white-space: pre-line;">${escapeHtml(text)}</div>`;
+    // Only show update block if text is not empty
+    const updateBlock = text && text.trim()
+      ? `<br><div style="margin-top:12px; font-size: 12px; color: #ffffffff; white-space: pre-line;">${escapeHtml(text)}</div>`
+      : '';
 
     const welcomeText = `
       <div style="line-height: 1.6;">
@@ -785,6 +830,27 @@ function sendWelcomeMessage() {
         <span style="white-space: nowrap;">💖&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/donate'; chatSendBtn.click();">Donate</a></span>,&nbsp;
         <span style="white-space: nowrap;">💡&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='[fony tips]'; chatSendBtn.click();">FONY tips</a></span>
         ${updateBlock}
+      </div>
+    `;
+    addMessage("bot", welcomeText);
+    conversationHistory.push({ role: "assistant", content: welcomeText });
+  }).catch(error => {
+    console.error('Error in sendWelcomeMessage:', error);
+    // Show welcome message even if gist fails
+    const welcomeText = `
+      <div style="line-height: 1.6;">
+        Welcome to the FONY console!<br><br>
+        You can use the chat to explore music or try the quick commands below.<br>
+        <span style="white-space: nowrap;">🎵&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Recommend 3 tracks similar to the current track'; chatSendBtn.click();">Similar Tracks</a></span>,&nbsp;
+        <span style="white-space: nowrap;">📚&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='List facts about the current track or artist'; chatSendBtn.click();">Facts</a></span>,&nbsp;
+        <span style="white-space: nowrap;">🆕&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Suggest 3 new tracks in a similar genre'; chatSendBtn.click();">New in Genre</a></span>,&nbsp;
+        <span style="white-space: nowrap;">ℹ️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Show technical metadata about the current track'; chatSendBtn.click();">Get Track Info</a></span>,&nbsp;
+        <span style="white-space: nowrap;">📀&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/discogs'; chatSendBtn.click();">Discogs Info</a></span>,&nbsp;
+        <span style="white-space: nowrap;">🎨&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/skins'; chatSendBtn.click();">Generate Skin</a></span>,&nbsp;
+        <span style="white-space: nowrap;">📂&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/collection recommendations'; chatSendBtn.click();">Collection Recommendations</a></span>,&nbsp;
+        <span style="white-space: nowrap;">🎛️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/equalizer'; chatSendBtn.click();">Equalizer</a></span>,&nbsp;
+        <span style="white-space: nowrap;">💖&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/donate'; chatSendBtn.click();">Donate</a></span>,&nbsp;
+        <span style="white-space: nowrap;">💡&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='[fony tips]'; chatSendBtn.click();">FONY tips</a></span>
       </div>
     `;
     addMessage("bot", welcomeText);
