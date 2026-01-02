@@ -538,6 +538,7 @@ function checkRealBuffering(durationMs, li, cb) {
     if (currentStep >= maxSteps) {
       clearInterval(intervalId)
       if (p) p.textContent = formatTime(0)
+      li.style.setProperty("--buffer-percent", "0%")
       cb()
     }
   }, step)
