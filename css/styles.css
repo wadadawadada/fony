@@ -745,8 +745,9 @@ body.dark .logo {
   color: #00F2B8;
   border-radius: 3px;
   z-index: 0;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, opacity 0.3s ease;
   pointer-events: none;
+  opacity: 1;
 }
 
 #playlist li.radio-mode .progress {
@@ -804,6 +805,10 @@ body.dark .logo {
 #playlist li.active:hover .remove-btn {
   color: #171C2B;
   background-color: #00F2B8;
+}
+
+#playlist li.buffer-complete .progress {
+  opacity: 0;
 }
 
 #playlist li img.station-icon {
