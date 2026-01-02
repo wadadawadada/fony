@@ -837,6 +837,10 @@ body.dark #manifestoBtn img:hover {
   flex: 0 0 auto;
 }
 
+.custom-genre-dropdown.hidden {
+  display: none !important;
+}
+
 .genre-dropdown-btn {
   display: flex;
   align-items: center;

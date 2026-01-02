@@ -350,12 +350,6 @@ function switchToRadio() {
   playlistElement.innerHTML = "";
   const g = document.querySelector(".genre-box");
   if (g) {
-    // Remove custom dropdown if it exists
-    const customDropdown = document.getElementById("customGenreDropdown");
-    if (customDropdown) {
-      customDropdown.remove();
-    }
-
     g.innerHTML = `
       <img src="/img/fav_list.svg" id="favoritesFilterBtn" class="favorites-filter-icon">
       <label for="playlistSelect">Genre:</label>
@@ -821,6 +815,12 @@ function initCustomGenreDropdown() {
   const pSel = document.getElementById("playlistSelect");
   if (!pSel) return;
 
+  // Remove existing dropdown if present
+  const existingDropdown = document.getElementById("customGenreDropdown");
+  if (existingDropdown) {
+    existingDropdown.remove();
+  }
+
   // Create custom dropdown container
   const dropdownContainer = document.createElement("div");
   dropdownContainer.classList.add("custom-genre-dropdown");
@@ -912,10 +912,10 @@ function setRadioListeners() {
   toggleFavoritesSortVisibility(false);
 
   if (pSel) {
-    // Only create dropdown if it doesn't exist yet
-    if (!document.getElementById("customGenreDropdown")) {
-      initCustomGenreDropdown();
-    }
+    // Create custom dropdown (will remove old one if exists)
+    initCustomGenreDropdown();
+
+    // Add change listener
     pSel.addEventListener("change", () => {
       onGenreChange(false);
     });
@@ -985,17 +985,21 @@ if (sIn) {
     try {
       const customDropdown = document.getElementById("customGenreDropdown");
       if (fBtn.classList.contains("active")) {
+        // Exiting Favorites mode - show dropdown
         fBtn.classList.remove("active");
-        if (customDropdown) customDropdown.style.display = "";
+        if (customDropdown) {
+          customDropdown.classList.remove("hidden");
+        }
         if (sIn) sIn.style.display = "";
         if (genreLabel) genreLabel.textContent = "Genre:";
         toggleFavoritesSortVisibility(false);
         currentPlaylist = allStations.slice();
         resetVisibleStations();
       } else {
+        // Entering Favorites mode - hide dropdown
         fBtn.classList.add("active");
         if (customDropdown) {
-          customDropdown.style.display = "none";
+          customDropdown.classList.add("hidden");
           // Close the dropdown menu if it's open
           const dropdownMenu = customDropdown.querySelector(".genre-dropdown-menu");
           if (dropdownMenu) dropdownMenu.classList.remove("active");
