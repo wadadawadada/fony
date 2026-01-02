@@ -933,15 +933,7 @@ body.dark .dropdown-icon img {
 }
 
 .genre-dropdown-item:hover .dropdown-item-icon img {
-  filter: brightness(0) invert(0);
-}
-
-body.dark .dropdown-item-icon img {
-  filter: brightness(0) saturate(100%) invert(15%) sepia(88%) saturate(1221%) hue-rotate(95deg) brightness(98%);
-}
-
-body.dark .genre-dropdown-item:hover .dropdown-item-icon img {
-  filter: brightness(0) saturate(100%) invert(15%) sepia(88%) saturate(1221%) hue-rotate(95deg) brightness(98%);
+  filter: brightness(0) invert(1);
 }
 
 .dropdown-item-text {
