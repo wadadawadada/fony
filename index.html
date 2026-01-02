@@ -159,7 +159,7 @@
     <div class="right-panel">
       <div class="genre-box">
         <img src="/img/fav_list.svg" id="favoritesFilterBtn" class="favorites-filter-icon">
-        <label for="playlistSelect">Genre:</label>
+        <label for="customGenreSelect">Genre:</label>
         <div class="favorites-sort" id="favoritesSortContainer">
           <label for="favoritesSortSelect">⇅</label>
           <select id="favoritesSortSelect">
@@ -169,7 +169,15 @@
             <option value="alpha">Alphabetical</option>
           </select>
         </div>
-        <select id="playlistSelect" class="genre-select"></select>
+        <div class="custom-genre-select" id="customGenreSelect">
+          <div class="genre-select-header" id="genreSelectHeader">
+            <span class="genre-select-icon" id="genreSelectIcon"></span>
+            <span class="genre-select-text" id="genreSelectText">Select Genre</span>
+          </div>
+          <div class="genre-select-dropdown" id="genreSelectDropdown">
+            <ul class="genre-select-list" id="genreSelectList"></ul>
+          </div>
+        </div>
         <div class="search-wrapper">
     <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
     <span id="clearSearch">×</span>
