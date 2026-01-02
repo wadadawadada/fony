@@ -528,7 +528,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       // Set background color of the list item to genre color
       li.style.setProperty("--favorite-bg", color);
 
-      const iconContainer = createGenreAvatar(genre, 24, 14);
+      const iconContainer = createGenreAvatar(genre, 24, 18);
       const iconEl = iconContainer.querySelector(".genre-icon");
       if (iconEl) {
         const textColor = getComputedStyle(li).color || getGenreIconColor();
