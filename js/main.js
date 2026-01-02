@@ -811,37 +811,87 @@ function setFavoritesPlaylistView(list) {
 }
 
 
-function updateGenreIcon() {
+function initCustomGenreDropdown() {
   const pSel = document.getElementById("playlistSelect");
-  const genreLabel = document.querySelector("label[for='playlistSelect']");
+  if (!pSel) return;
 
-  if (!pSel || !genreLabel) return;
+  // Create custom dropdown container
+  const dropdownContainer = document.createElement("div");
+  dropdownContainer.classList.add("custom-genre-dropdown");
+  dropdownContainer.id = "customGenreDropdown";
 
-  const selectedOption = pSel.options[pSel.selectedIndex];
-  if (!selectedOption) return;
+  // Create dropdown button (shows selected genre with icon)
+  const dropdownBtn = document.createElement("button");
+  dropdownBtn.classList.add("genre-dropdown-btn");
+  dropdownBtn.type = "button";
+  dropdownBtn.innerHTML = '<span class="dropdown-icon"></span><span class="dropdown-text">African</span>';
 
-  const svgPath = selectedOption.dataset.svgIcon;
-  const genreName = selectedOption.textContent;
+  // Create dropdown menu
+  const dropdownMenu = document.createElement("div");
+  dropdownMenu.classList.add("genre-dropdown-menu");
 
-  // Remove existing icon if any
-  let existingIcon = genreLabel.querySelector(".genre-icon");
-  if (existingIcon) {
-    existingIcon.remove();
+  // Populate menu with options
+  Array.from(pSel.options).forEach((option) => {
+    const menuItem = document.createElement("div");
+    menuItem.classList.add("genre-dropdown-item");
+    menuItem.dataset.value = option.value;
+    menuItem.dataset.svgIcon = option.dataset.svgIcon;
+
+    const iconSpan = document.createElement("span");
+    iconSpan.classList.add("dropdown-item-icon");
+    const iconImg = document.createElement("img");
+    iconImg.src = option.dataset.svgIcon;
+    iconImg.alt = `${option.textContent} icon`;
+    iconSpan.appendChild(iconImg);
+
+    const textSpan = document.createElement("span");
+    textSpan.classList.add("dropdown-item-text");
+    textSpan.textContent = option.textContent;
+
+    menuItem.appendChild(iconSpan);
+    menuItem.appendChild(textSpan);
+
+    menuItem.addEventListener("click", () => {
+      pSel.value = option.value;
+      dropdownBtn.querySelector(".dropdown-icon").innerHTML = `<img src="${option.dataset.svgIcon}" alt="${option.textContent} icon">`;
+      dropdownBtn.querySelector(".dropdown-text").textContent = option.textContent;
+      dropdownMenu.classList.remove("active");
+      pSel.dispatchEvent(new Event("change"));
+    });
+
+    dropdownMenu.appendChild(menuItem);
+  });
+
+  // Toggle dropdown menu
+  dropdownBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle("active");
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", () => {
+    dropdownMenu.classList.remove("active");
+  });
+
+  // Prevent closing when clicking on menu
+  dropdownMenu.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  // Assemble custom dropdown
+  dropdownContainer.appendChild(dropdownBtn);
+  dropdownContainer.appendChild(dropdownMenu);
+
+  // Replace select with custom dropdown (hide select)
+  pSel.style.display = "none";
+  pSel.parentNode.insertBefore(dropdownContainer, pSel);
+
+  // Set initial selection
+  const firstOption = pSel.options[0];
+  if (firstOption) {
+    dropdownBtn.querySelector(".dropdown-icon").innerHTML = `<img src="${firstOption.dataset.svgIcon}" alt="${firstOption.textContent} icon">`;
+    dropdownBtn.querySelector(".dropdown-text").textContent = firstOption.textContent;
   }
-
-  // Create new icon element
-  const iconContainer = document.createElement("span");
-  iconContainer.classList.add("genre-icon");
-
-  const imgElement = document.createElement("img");
-  imgElement.src = svgPath;
-  imgElement.alt = `${genreName} icon`;
-  imgElement.loading = "lazy";
-
-  iconContainer.appendChild(imgElement);
-
-  // Insert icon after label
-  genreLabel.parentNode.insertBefore(iconContainer, genreLabel.nextSibling);
 }
 
 function setRadioListeners() {
@@ -856,9 +906,8 @@ function setRadioListeners() {
   toggleFavoritesSortVisibility(false);
 
   if (pSel) {
-    updateGenreIcon();
+    initCustomGenreDropdown();
     pSel.addEventListener("change", () => {
-      updateGenreIcon();
       onGenreChange(false);
     });
   }
@@ -925,26 +974,20 @@ if (sIn) {
       playlistLoader.textContent = left + right;
     }, 300);
     try {
+      const customDropdown = document.getElementById("customGenreDropdown");
       if (fBtn.classList.contains("active")) {
         fBtn.classList.remove("active");
-        if (pSel) pSel.style.display = "";
+        if (customDropdown) customDropdown.style.display = "";
         if (sIn) sIn.style.display = "";
         if (genreLabel) genreLabel.textContent = "Genre:";
-        // Remove genre icon when exiting favorites
-        const genreIcon = genreLabel.querySelector(".genre-icon");
-        if (genreIcon) genreIcon.remove();
-        updateGenreIcon();
         toggleFavoritesSortVisibility(false);
         currentPlaylist = allStations.slice();
         resetVisibleStations();
       } else {
         fBtn.classList.add("active");
-        if (pSel) pSel.style.display = "none";
+        if (customDropdown) customDropdown.style.display = "none";
         if (sIn) sIn.style.display = "none";
         if (genreLabel) genreLabel.textContent = "Favorites";
-        // Remove genre icon when entering favorites
-        const genreIcon = genreLabel.querySelector(".genre-icon");
-        if (genreIcon) genreIcon.remove();
         const favoritesList = await createFavoritesPlaylist();
         setFavoritesPlaylistView(favoritesList);
       }
