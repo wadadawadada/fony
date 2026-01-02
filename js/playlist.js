@@ -202,12 +202,12 @@ function getAvatarBackgroundColor() {
   return "transparent";
 }
 
-function createGenreAvatar(genre, size = 28, iconSize = 16, iconColor = null) {
+function createGenreAvatar(genre, size = 26, iconSize = 14, iconColor = null) {
   const iconContainer = document.createElement("div");
   iconContainer.classList.add("station-favorite-icon");
   iconContainer.style.display = "inline-flex";
   iconContainer.style.alignItems = "center";
-  iconContainer.style.marginRight = "4px";
+  iconContainer.style.marginRight = "2px";
 
   const avatar = document.createElement("div");
   avatar.classList.add("station-avatar");
@@ -528,7 +528,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       // Set background color of the list item to genre color
       li.style.setProperty("--favorite-bg", color);
 
-      const iconContainer = createGenreAvatar(genre, 28, 16);
+      const iconContainer = createGenreAvatar(genre, 24, 14);
       const iconEl = iconContainer.querySelector(".genre-icon");
       if (iconEl) {
         const textColor = getComputedStyle(li).color || getGenreIconColor();
@@ -767,7 +767,7 @@ export function updatePlaylistHearts() {
       // Set background color of the list item to genre color
       li.style.setProperty("--favorite-bg", color);
 
-      const iconContainer = createGenreAvatar(genre, 32, 18);
+      const iconContainer = createGenreAvatar(genre, 26, 16);
       const iconEl = iconContainer.querySelector(".genre-icon");
       if (iconEl) {
         const textColor = getComputedStyle(li).color || getGenreIconColor();

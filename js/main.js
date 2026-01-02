@@ -60,18 +60,18 @@ function decorateGenreOption(optionEl, genreName) {
   const iconPath = getGenreIcon(genreName);
   const color = GENRE_DROPDOWN_ICON_COLOR;
   optionEl.dataset.genreIcon = iconPath;
-  optionEl.style.paddingLeft = "32px";
+  optionEl.style.paddingLeft = "26px";
   getColoredIconUrl(iconPath, color)
     .then(colored => {
-      optionEl.style.backgroundImage = `url("${colored}")`;
+      optionEl.style.setProperty("background-image", `url("${colored}")`, "important");
     })
     .catch(() => {
-      optionEl.style.backgroundImage = `url(${iconPath})`;
+      optionEl.style.setProperty("background-image", `url(${iconPath})`, "important");
     })
     .finally(() => {
-      optionEl.style.backgroundRepeat = "no-repeat";
-      optionEl.style.backgroundPosition = "8px center";
-      optionEl.style.backgroundSize = "16px 16px";
+      optionEl.style.setProperty("background-repeat", "no-repeat", "important");
+      optionEl.style.setProperty("background-position", "4px center", "important");
+      optionEl.style.setProperty("background-size", "14px 14px", "important");
     });
 }
 
@@ -82,18 +82,18 @@ function updateGenreSelectIcon() {
   const selectedGenreName = selectedOption ? selectedOption.textContent : (window.currentGenre || "");
   const iconPath = getGenreIcon(selectedGenreName);
   const color = GENRE_DROPDOWN_ICON_COLOR;
-  pSel.style.paddingLeft = "38px";
+  pSel.style.paddingLeft = "30px";
   getColoredIconUrl(iconPath, color)
     .then(colored => {
-      pSel.style.backgroundImage = `url("${colored}")`;
+      pSel.style.setProperty("background-image", `url("${colored}")`, "important");
     })
     .catch(() => {
-      pSel.style.backgroundImage = `url(${iconPath})`;
+      pSel.style.setProperty("background-image", `url(${iconPath})`, "important");
     })
     .finally(() => {
-      pSel.style.backgroundRepeat = "no-repeat";
-      pSel.style.backgroundPosition = "10px center";
-      pSel.style.backgroundSize = "18px 18px";
+      pSel.style.setProperty("background-repeat", "no-repeat", "important");
+      pSel.style.setProperty("background-position", "6px center", "important");
+      pSel.style.setProperty("background-size", "16px 16px", "important");
     });
 }
 

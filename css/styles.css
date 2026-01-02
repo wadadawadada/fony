@@ -724,13 +724,14 @@ body.dark .logo {
 }
 
 .station-avatar {
-  box-shadow: 0 2px 8px rgba(0, 242, 184, 0.2);
+  box-shadow: none;
+  border: none;
   transition: all 0.3s ease;
 }
 
 .station-favorite-icon:hover .station-avatar {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 242, 184, 0.4);
+  box-shadow: none;
 }
 
 .genre-icon {
