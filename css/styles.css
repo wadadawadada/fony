@@ -797,6 +797,14 @@ body.dark .logo {
 /* Keep button color #00F2B8 when hovering over active station */
 #playlist li.active:hover .remove-btn {
   color: #00F2B8;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Ensure button stays visible for active stations in both modes */
+#playlist li.radio-mode.active:hover .remove-btn,
+#playlist li.web3-mode.active:hover .remove-btn {
+  color: #00F2B8;
 }
 
 #playlist li img.station-icon {
@@ -864,6 +872,21 @@ body.dark .logo {
 .genre-icon {
   display: block;
   background-color: #00F6B4;
+  transition: background-color 0.3s ease;
+}
+
+/* Genre icon color on hover for active station */
+#playlist li.active:hover .genre-icon {
+  background-color: #00F2B8;
+}
+
+/* Genre icon color on hover for inactive stations */
+#playlist li.radio-mode:hover .genre-icon {
+  background-color: #171C2B;
+}
+
+#playlist li.web3-mode:hover .genre-icon {
+  background-color: #171C2B;
 }
 
 .favorites-sort {
