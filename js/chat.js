@@ -558,7 +558,7 @@ if (userInput.trim().toLowerCase() === "/collection") {
               Authorization: `Bearer ${openAiApiKey}`
             },
             body: JSON.stringify({
-              model: "gpt-4.1-mini",
+              model: "gpt-4.1-nano",
               messages,
               temperature: 0.7,
               max_tokens: 100
@@ -601,7 +601,7 @@ if (userInput.trim().toLowerCase() === "/collection") {
         Authorization: `Bearer ${openAiApiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-4.1-mini",
+        model: "gpt-4.1-nano",
         messages,
         temperature: 0.7,
         max_tokens: 100
