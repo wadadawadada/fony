@@ -366,6 +366,18 @@ function applyDefaultThemePanels() {
   const rightPanel = document.querySelector(".right-panel");
   const container = document.querySelector(".container");
   if (!leftPanel || !rightPanel || !container) return;
+
+  // Clear all previous styles
+  leftPanel.style.background = "";
+  leftPanel.style.backgroundColor = "";
+  leftPanel.style.color = "";
+  leftPanel.style.transition = "";
+  rightPanel.style.background = "";
+  rightPanel.style.backgroundColor = "";
+  rightPanel.style.color = "";
+  rightPanel.style.transition = "";
+  container.style.background = "";
+
   const isDark = document.body.classList.contains("dark");
   if (isDark) {
     leftPanel.style.backgroundColor = "#171C2B";
@@ -378,7 +390,6 @@ function applyDefaultThemePanels() {
     leftPanel.style.color = "#222";
     rightPanel.style.color = "#222";
   }
-  container.style.background = "";
   currentSkin = { left: null, right: null };
   saveSkinToStorage();
 }
@@ -388,10 +399,18 @@ export async function handleSkinsCommand(addMessage) {
   const leftStyle = generateLeftPanelStyle(isDark);
   const rightStyle = generateRightPanelStyle(isDark);
   applySkinStyles(leftStyle, rightStyle, isDark);
-  const existingBtn = document.getElementById("saveSkinBtn");
-  if (existingBtn) existingBtn.remove();
-  const saveButton = `<button id="saveSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">save current skin</button>`;
-  addMessage("bot", "Skin updated.<br><br>" + saveButton);
+  const existingContainer = document.getElementById("skinButtonsContainer");
+  if (existingContainer) existingContainer.remove();
+  const buttons = `
+    <div id="skinButtonsContainer" style="display: flex; align-items: center; gap: 8px;">
+      <button id="saveSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">save current skin</button>
+      <span style="color:#00F2B8;">|</span>
+      <button id="generateNewSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">generate new</button>
+      <span style="color:#00F2B8;">|</span>
+      <button id="resetSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">reset</button>
+    </div>
+  `;
+  addMessage("bot", "Skin updated.<br><br>" + buttons);
   setTimeout(() => {
     const saveEl = document.getElementById("saveSkinBtn");
     if (saveEl) {
@@ -399,6 +418,21 @@ export async function handleSkinsCommand(addMessage) {
         e.preventDefault();
         saveSkinToStorage();
         addMessage("bot", "Skin saved!");
+      };
+    }
+    const generateEl = document.getElementById("generateNewSkinBtn");
+    if (generateEl) {
+      generateEl.onclick = (e) => {
+        e.preventDefault();
+        handleSkinsCommand(addMessage);
+      };
+    }
+    const resetEl = document.getElementById("resetSkinBtn");
+    if (resetEl) {
+      resetEl.onclick = (e) => {
+        e.preventDefault();
+        applyDefaultThemePanels();
+        addMessage("bot", "Skin reset to default!");
       };
     }
   }, 100);
