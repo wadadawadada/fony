@@ -561,7 +561,7 @@ if (userInput.trim().toLowerCase() === "/collection") {
               model: "gpt-4.1-nano",
               messages,
               temperature: 0.7,
-              max_tokens: 1024
+              max_tokens: 512
             })
           });
           if (!resp.ok) {
@@ -604,7 +604,7 @@ if (userInput.trim().toLowerCase() === "/collection") {
         model: "gpt-4.1-nano",
         messages,
         temperature: 0.7,
-        max_tokens: 1024
+        max_tokens: 512
       })
     });
     if (!resp.ok) {
