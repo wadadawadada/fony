@@ -366,6 +366,18 @@ function applyDefaultThemePanels() {
   const rightPanel = document.querySelector(".right-panel");
   const container = document.querySelector(".container");
   if (!leftPanel || !rightPanel || !container) return;
+
+  // Clear all previous styles
+  leftPanel.style.background = "";
+  leftPanel.style.backgroundColor = "";
+  leftPanel.style.color = "";
+  leftPanel.style.transition = "";
+  rightPanel.style.background = "";
+  rightPanel.style.backgroundColor = "";
+  rightPanel.style.color = "";
+  rightPanel.style.transition = "";
+  container.style.background = "";
+
   const isDark = document.body.classList.contains("dark");
   if (isDark) {
     leftPanel.style.backgroundColor = "#171C2B";
@@ -378,7 +390,6 @@ function applyDefaultThemePanels() {
     leftPanel.style.color = "#222";
     rightPanel.style.color = "#222";
   }
-  container.style.background = "";
   currentSkin = { left: null, right: null };
   saveSkinToStorage();
 }
