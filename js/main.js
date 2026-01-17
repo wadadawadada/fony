@@ -386,7 +386,8 @@ function switchToRadio() {
         <ul class="genre-select-list" id="genreSelectList"></ul>
       </div>
     </div>
-      <input type="text" id="searchInput" class="genre-search" placeholder="Search in all playlists">
+      <img src="/img/search_icon.svg" alt="" class="search-icon">
+      <input type="text" id="searchInput" class="genre-search" placeholder="">
       <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
       <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
     `;
