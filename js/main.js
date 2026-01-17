@@ -26,6 +26,9 @@ let preloaderInterval = null
 let lastChatUpdate = 0
 let lastMetadataUpdate = 0
 let userPaused = false;
+let allStationsCache = []
+let allStationsCachePromise = null
+let allStationsCacheReady = false
 // const chatUpdateInterval = 15000
 const metadataUpdateInterval = 7000
 
@@ -123,6 +126,28 @@ function debounce(fn, wait) {
     clearTimeout(t)
     t = setTimeout(() => fn(...args), wait)
   }
+}
+
+function dedupeStations(stations) {
+  return Array.from(new Map(stations.map(station => [station.url, station])).values())
+}
+
+function buildAllStationsCache() {
+  if (allStationsCachePromise) return allStationsCachePromise
+  allStationsCachePromise = Promise.all(
+    (Array.isArray(allPlaylists) ? allPlaylists : []).map(async pl => {
+      try {
+        return await loadPlaylist(pl.file, pl.name)
+      } catch (e) {
+        return []
+      }
+    })
+  ).then(results => {
+    allStationsCache = dedupeStations(results.flat())
+    allStationsCacheReady = true
+    return allStationsCache
+  })
+  return allStationsCachePromise
 }
 
 function updateMediaSessionMetadata(st) {
@@ -357,11 +382,11 @@ function switchToRadio() {
           <span class="genre-select-icon" id="genreSelectIcon"></span>
           <span class="genre-select-text" id="genreSelectText">Select Genre</span>
         </div>
-        <div class="genre-select-dropdown" id="genreSelectDropdown">
-          <ul class="genre-select-list" id="genreSelectList"></ul>
-        </div>
+      <div class="genre-select-dropdown" id="genreSelectDropdown">
+        <ul class="genre-select-list" id="genreSelectList"></ul>
       </div>
-      <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
+    </div>
+      <input type="text" id="searchInput" class="genre-search" placeholder="Search in all playlists">
       <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
       <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
     `;
@@ -809,17 +834,31 @@ function setRadioListeners() {
 
 if (sIn) {
   const clearBtn = document.getElementById("clearSearch");
+  let searchToken = 0;
 
   function updateClearBtn() {
     if (!clearBtn) return;
     clearBtn.style.display = sIn.value.length > 0 ? "block" : "none";
   }
 
-  sIn.addEventListener("input", debounce(() => {
-    const q = sIn.value.toLowerCase();
-    currentPlaylist = allStations.filter(x => x.title.toLowerCase().includes(q));
+  const applySearch = async () => {
+    const q = sIn.value.trim().toLowerCase();
+    const token = ++searchToken;
+    if (!q) {
+      currentPlaylist = allStations.slice();
+      resetVisibleStations();
+      updateClearBtn();
+      return;
+    }
+    const source = allStationsCacheReady ? allStationsCache : await buildAllStationsCache();
+    if (token !== searchToken) return;
+    currentPlaylist = source.filter(x => x.title.toLowerCase().includes(q));
     resetVisibleStations();
     updateClearBtn();
+  };
+
+  sIn.addEventListener("input", debounce(() => {
+    applySearch().catch(() => {});
   }, 300));
 
   sIn.addEventListener("change", updateClearBtn);
@@ -827,6 +866,7 @@ if (sIn) {
 
   if (clearBtn) {
     clearBtn.addEventListener("click", () => {
+      searchToken += 1;
       sIn.value = "";
       currentPlaylist = allStations.slice();
       resetVisibleStations();
