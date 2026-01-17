@@ -93,7 +93,11 @@ function playRandomFromUrlGenre() {
     if (currentPlaylist.length) {
       const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length);
       onStationSelect(randomStationIndex);
-      localStorage.setItem("lastStation", JSON.stringify({ genre: genreEntry.name, trackIndex: randomStationIndex }));
+      localStorage.setItem("lastStation", JSON.stringify({
+        genre: genreEntry.name,
+        trackIndex: randomStationIndex,
+        url: currentPlaylist[randomStationIndex]?.url
+      }));
       updateChat(genreEntry.name);
     }
   });
@@ -382,12 +386,15 @@ function switchToRadio() {
           <span class="genre-select-icon" id="genreSelectIcon"></span>
           <span class="genre-select-text" id="genreSelectText">Select Genre</span>
         </div>
-      <div class="genre-select-dropdown" id="genreSelectDropdown">
-        <ul class="genre-select-list" id="genreSelectList"></ul>
+        <div class="genre-select-dropdown" id="genreSelectDropdown">
+          <ul class="genre-select-list" id="genreSelectList"></ul>
+        </div>
       </div>
-    </div>
-      <img src="/img/search_icon.svg" alt="" class="search-icon">
-      <input type="text" id="searchInput" class="genre-search" placeholder="">
+      <div class="search-wrapper">
+        <img src="/img/search_icon.svg" alt="" class="search-icon">
+        <input type="text" id="searchInput" class="genre-search" placeholder="">
+        <span id="clearSearch">×</span>
+      </div>
       <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
       <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
     `;
@@ -397,7 +404,7 @@ function switchToRadio() {
   const ls = localStorage.getItem("lastStation");
   if (ls) {
     try {
-      const { genre, trackIndex } = JSON.parse(ls);
+      const { genre, trackIndex, url } = JSON.parse(ls);
       // Find the playlist entry - genre might be either name or file path
       const playlistEntry = allPlaylists.find(pl => pl.name === genre || pl.file === genre);
       if (!playlistEntry) throw new Error("Genre not found");
@@ -405,7 +412,17 @@ function switchToRadio() {
       setSelectedGenre(playlistEntry.file, playlistEntry.name);
       initChat();
       loadAndRenderPlaylist(playlistEntry.file, playlistEntry.name, () => {
-        const i = trackIndex < currentPlaylist.length ? trackIndex : 0;
+        let i = 0;
+        if (url) {
+          const foundIndex = currentPlaylist.findIndex(st => st.url === url);
+          if (foundIndex !== -1) {
+            i = foundIndex;
+          } else if (typeof trackIndex === "number" && trackIndex < currentPlaylist.length) {
+            i = trackIndex;
+          }
+        } else if (typeof trackIndex === "number" && trackIndex < currentPlaylist.length) {
+          i = trackIndex;
+        }
         onStationSelect(i);
         updateChat(playlistEntry.name);
       });
@@ -495,7 +512,11 @@ function defaultPlaylist() {
     if (currentPlaylist.length) {
       const i = 0
       onStationSelect(i)
-      localStorage.setItem("lastStation", JSON.stringify({ genre: firstPlaylist.name, trackIndex: i }))
+      localStorage.setItem("lastStation", JSON.stringify({
+        genre: firstPlaylist.name,
+        trackIndex: i,
+        url: currentPlaylist[i]?.url
+      }))
       updateChat(firstPlaylist.name)
     }
   })
@@ -625,9 +646,10 @@ function onStationSelect(i) {
   currentTrackIndex = i
   currentParsingUrl = st.originalUrl || st.url;
   const selectedGenre = getSelectedGenre();
-  if (selectedGenre.name) {
-    localStorage.setItem("lastStation", JSON.stringify({ genre: selectedGenre.name, trackIndex: i }))
-    window.currentGenre = selectedGenre.name
+  const storedGenre = selectedGenre.name || st.genre || st.favGenre || "";
+  if (storedGenre) {
+    localStorage.setItem("lastStation", JSON.stringify({ genre: storedGenre, trackIndex: i, url: st.url }))
+    window.currentGenre = storedGenre
   }
   if (stationLabel) {
     const t = stationLabel.querySelector(".scrolling-text")
@@ -1133,7 +1155,11 @@ function playRandomGenreAndStation() {
     if (currentPlaylist.length) {
       const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length);
       onStationSelect(randomStationIndex);
-      localStorage.setItem("lastStation", JSON.stringify({ genre: randomGenre, trackIndex: randomStationIndex }));
+      localStorage.setItem("lastStation", JSON.stringify({
+        genre: randomGenreEntry.name,
+        trackIndex: randomStationIndex,
+        url: currentPlaylist[randomStationIndex]?.url
+      }));
       updateChat(randomGenre);
     }
   });
@@ -1176,7 +1202,11 @@ fetch("../json/playlists.json")
             const fi = currentPlaylist.findIndex(x => generateStationHash(x.url) === sh);
             if (fi !== -1) {
               onStationSelect(fi);
-              localStorage.setItem("lastStation", JSON.stringify({ genre: playlistEntry.name, trackIndex: fi }));
+              localStorage.setItem("lastStation", JSON.stringify({
+                genre: playlistEntry.name,
+                trackIndex: fi,
+                url: currentPlaylist[fi]?.url
+              }));
               updateChat(playlistEntry.name);
             } else {
               playRandomGenreAndStation();
@@ -1186,14 +1216,24 @@ fetch("../json/playlists.json")
       }
     } else if (localStorage.getItem("lastStation")) {
       try {
-        const { genre, trackIndex } = JSON.parse(localStorage.getItem("lastStation"));
+        const { genre, trackIndex, url } = JSON.parse(localStorage.getItem("lastStation"));
         const playlistEntry = allPlaylists.find(pl => pl.name === genre || pl.file === genre);
         if (playlistEntry) {
           setSelectedGenre(playlistEntry.file, playlistEntry.name);
           window.currentGenre = playlistEntry.name;
           initChat();
           loadAndRenderPlaylist(playlistEntry.file, () => {
-            const si = trackIndex < currentPlaylist.length ? trackIndex : 0;
+            let si = 0;
+            if (url) {
+              const foundIndex = currentPlaylist.findIndex(st => st.url === url);
+              if (foundIndex !== -1) {
+                si = foundIndex;
+              } else if (typeof trackIndex === "number" && trackIndex < currentPlaylist.length) {
+                si = trackIndex;
+              }
+            } else if (typeof trackIndex === "number" && trackIndex < currentPlaylist.length) {
+              si = trackIndex;
+            }
             onStationSelect(si);
             updateChat(playlistEntry.name);
           });
