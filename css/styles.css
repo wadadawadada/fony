@@ -638,6 +638,7 @@ body.dark .logo {
   transform: translateY(-50%);
   width: 14px;
   height: 14px;
+  color: #fff;
   opacity: 0.7;
   pointer-events: none;
 }
