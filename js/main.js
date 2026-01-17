@@ -1179,6 +1179,8 @@ fetch("../json/playlists.json")
       return;
     }
 
+    let didStart = false;
+
     if (window.location.hash) {
       let hg = "";
       let sh = "";
@@ -1195,6 +1197,7 @@ fetch("../json/playlists.json")
       if (hh) {
         const playlistEntry = allPlaylists.find(pl => pl.name === hg || pl.file === hg);
         if (playlistEntry) {
+          didStart = true;
           setSelectedGenre(playlistEntry.file, playlistEntry.name);
           window.currentGenre = playlistEntry.name;
           initChat();
@@ -1214,11 +1217,14 @@ fetch("../json/playlists.json")
           });
         }
       }
-    } else if (localStorage.getItem("lastStation")) {
+    }
+
+    if (!didStart && localStorage.getItem("lastStation")) {
       try {
         const { genre, trackIndex, url } = JSON.parse(localStorage.getItem("lastStation"));
         const playlistEntry = allPlaylists.find(pl => pl.name === genre || pl.file === genre);
         if (playlistEntry) {
+          didStart = true;
           setSelectedGenre(playlistEntry.file, playlistEntry.name);
           window.currentGenre = playlistEntry.name;
           initChat();
@@ -1243,7 +1249,9 @@ fetch("../json/playlists.json")
       } catch(e) {
         playRandomGenreAndStation();
       }
-    } else {
+    }
+
+    if (!didStart && !localStorage.getItem("lastStation")) {
       playRandomGenreAndStation();
     }
     setRadioListeners();
