@@ -18,6 +18,7 @@ let currentTrackIndex = 0
 let shuffleActive = false
 let visibleStations = 0
 let lastValidNowPlaying = ""
+let currentGenreFile = ""
 const defaultVolume = { value: 0.9 }
 const CHUNK_SIZE = 30
 const BUFFER_THRESHOLD = 30
@@ -459,6 +460,38 @@ async function updateWalletUI(account) {
   }
 }
 
+function performGlobalSearch(query) {
+  if (!query || query.length === 0) {
+    currentPlaylist = allStations.slice();
+    resetVisibleStations();
+    return;
+  }
+
+  const q = query.toLowerCase();
+  const currentGenreResults = allStations.filter(x => x.title.toLowerCase().includes(q));
+  currentPlaylist = currentGenreResults;
+  resetVisibleStations();
+
+  // Asynchronously search in other playlists
+  if (currentGenreFile) {
+    allPlaylists.forEach(playlist => {
+      if (playlist.file !== currentGenreFile) {
+        loadPlaylist(playlist.file, playlist.name)
+          .then(stations => {
+            const otherResults = stations.filter(x => x.title.toLowerCase().includes(q));
+            if (otherResults.length > 0) {
+              const merged = [...currentPlaylist, ...otherResults];
+              const unique = Array.from(new Map(merged.map(x => [x.url, x])).values());
+              currentPlaylist = unique;
+              resetVisibleStations();
+            }
+          })
+          .catch(err => {});
+      }
+    });
+  }
+}
+
 function defaultPlaylist() {
   if (!allPlaylists.length) return
   const firstPlaylist = allPlaylists[0];
@@ -483,6 +516,7 @@ function loadAndRenderPlaylist(url, genreName = null, cb, scTop = false) {
     genreName = null;
   }
 
+  currentGenreFile = url;
   playlistLoader.classList.remove("hidden")
   loadPlaylist(url, genreName)
     .then(s => {
@@ -816,9 +850,7 @@ if (sIn) {
   }
 
   sIn.addEventListener("input", debounce(() => {
-    const q = sIn.value.toLowerCase();
-    currentPlaylist = allStations.filter(x => x.title.toLowerCase().includes(q));
-    resetVisibleStations();
+    performGlobalSearch(sIn.value);
     updateClearBtn();
   }, 300));
 
