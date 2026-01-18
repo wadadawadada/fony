@@ -894,13 +894,24 @@ if (sIn) {
 
   sIn.addEventListener("input", debounce(() => {
     const q = sIn.value.trim();
+    const genreLabel = document.querySelector("label[for='customGenreSelect']");
+    const isFavoritesMode = genreLabel && genreLabel.textContent === "Favorites";
+
     if (q === "") {
-      // Empty search - show all stations from current genre
+      // Empty search - show all stations
       currentPlaylist = allStations.slice();
       resetVisibleStations();
     } else {
-      // Perform global search
-      performGlobalSearch(q);
+      // Perform search
+      if (isFavoritesMode) {
+        // In favorites mode, search only in allStations (which are favorites)
+        const filtered = allStations.filter(x => x.title.toLowerCase().includes(q.toLowerCase()));
+        currentPlaylist = filtered;
+        resetVisibleStations();
+      } else {
+        // In genre mode, perform global search
+        performGlobalSearch(q);
+      }
     }
     updateClearBtn();
   }, 300));
@@ -958,7 +969,7 @@ if (sIn) {
         fBtn.classList.add("active");
         if (pSel) pSel.style.display = "none";
         if (sIn) {
-          sIn.style.display = "none";
+          sIn.style.display = "";
           sIn.value = "";
           const clearBtn = document.getElementById("clearSearch");
           if (clearBtn) clearBtn.style.display = "none";
@@ -1255,8 +1266,10 @@ fetch("../json/playlists.json")
             fBtn.classList.add("active");
             if (customSelect) customSelect.style.display = "none";
             if (sIn) {
-              sIn.style.display = "none";
+              sIn.style.display = "";
               sIn.value = "";
+              const clearBtn = document.getElementById("clearSearch");
+              if (clearBtn) clearBtn.style.display = "none";
             }
             if (genreLabel) genreLabel.textContent = "Favorites";
             toggleFavoritesSortVisibility(true);
