@@ -19,6 +19,7 @@ let shuffleActive = false
 let currentGenreFile = null
 let globalSearchRequestId = 0
 const globalSearchCache = new Map()
+let favoritesBaseStations = []
 let visibleStations = 0
 let lastValidNowPlaying = ""
 const defaultVolume = { value: 0.9 }
@@ -136,9 +137,27 @@ function clearSearchState() {
   if (clearBtn) clearBtn.style.display = "none"
 }
 
+function isFavoritesView() {
+  const fBtn = document.getElementById("favoritesFilterBtn")
+  return fBtn && fBtn.classList.contains("active")
+}
+
 function performGlobalSearch(query) {
   const normalizedQuery = query.trim().toLowerCase()
   const searchId = ++globalSearchRequestId
+
+  if (isFavoritesView()) {
+    if (!normalizedQuery) {
+      currentPlaylist = favoritesBaseStations.slice()
+      resetVisibleStations()
+      return
+    }
+    currentPlaylist = favoritesBaseStations.filter(st =>
+      (st.title || "").toLowerCase().includes(normalizedQuery)
+    )
+    resetVisibleStations()
+    return
+  }
 
   if (!normalizedQuery) {
     currentPlaylist = allStations.slice()
@@ -379,7 +398,7 @@ function fillPlaylistSelect() {
   }
 }
 
-function switchToRadio() {
+async function switchToRadio() {
   currentMode = "radio";
   window.currentMode = currentMode;
   if (window.playTimerInterval) {
@@ -438,7 +457,13 @@ function switchToRadio() {
   const ls = localStorage.getItem("lastStation");
   if (ls) {
     try {
-      const { genre, trackIndex } = JSON.parse(ls);
+      const { mode, genre, trackIndex, url } = JSON.parse(ls);
+      if (mode === "favorites") {
+        const restored = await activateFavoritesView(url);
+        if (restored || (favoritesBaseStations && favoritesBaseStations.length)) {
+          return;
+        }
+      }
       // Find the playlist entry - genre might be either name or file path
       const playlistEntry = allPlaylists.find(pl => pl.name === genre || pl.file === genre);
       if (!playlistEntry) throw new Error("Genre not found");
@@ -667,10 +692,14 @@ function onStationSelect(i) {
   const li = Array.from(lis).find(x => parseInt(x.dataset.index) === i)
   currentTrackIndex = i
   currentParsingUrl = st.originalUrl || st.url;
-  const selectedGenre = getSelectedGenre();
-  if (selectedGenre.name) {
-    localStorage.setItem("lastStation", JSON.stringify({ genre: selectedGenre.name, trackIndex: i }))
-    window.currentGenre = selectedGenre.name
+  if (isFavoritesView()) {
+    localStorage.setItem("lastStation", JSON.stringify({ mode: "favorites", url: st.url, trackIndex: i }))
+  } else {
+    const selectedGenre = getSelectedGenre();
+    if (selectedGenre.name) {
+      localStorage.setItem("lastStation", JSON.stringify({ genre: selectedGenre.name, trackIndex: i }))
+      window.currentGenre = selectedGenre.name
+    }
   }
   if (stationLabel) {
     const t = stationLabel.querySelector(".scrolling-text")
@@ -845,12 +874,34 @@ async function createFavoritesPlaylist() {
 function setFavoritesPlaylistView(list) {
   const sortedFavorites = applyFavoritesSorting(list || []);
   currentPlaylist = sortedFavorites;
+  favoritesBaseStations = sortedFavorites.slice();
   if (!currentPlaylist.length) {
     playlistElement.innerHTML = `<li style="pointer-events:none;opacity:.7">No favorites yet</li>`;
   }
   resetVisibleStations();
   toggleFavoritesSortVisibility(true);
   syncFavoritesSortSelect();
+}
+
+async function activateFavoritesView(stationUrl = null) {
+  const fBtn = document.getElementById("favoritesFilterBtn");
+  const genreLabel = document.querySelector("label[for='customGenreSelect']");
+  if (fBtn && !fBtn.classList.contains("active")) {
+    fBtn.classList.add("active");
+  }
+  if (pSel) pSel.style.display = "none";
+  if (genreLabel) genreLabel.textContent = "Favorites";
+  toggleFavoritesSortVisibility(true);
+  clearSearchState();
+  const favoritesList = await createFavoritesPlaylist();
+  setFavoritesPlaylistView(favoritesList);
+  if (!stationUrl) return false;
+  const targetIndex = currentPlaylist.findIndex(st => st.url === stationUrl);
+  if (targetIndex !== -1) {
+    onStationSelect(targetIndex);
+    return true;
+  }
+  return false;
 }
 
 
@@ -926,16 +977,17 @@ function setRadioListeners() {
       if (fBtn.classList.contains("active")) {
         fBtn.classList.remove("active");
         if (pSel) pSel.style.display = "";
-        if (sIn) sIn.style.display = "";
         if (genreLabel) genreLabel.textContent = "Genre:";
         toggleFavoritesSortVisibility(false);
+        favoritesBaseStations = [];
+        clearSearchState();
         currentPlaylist = allStations.slice();
         resetVisibleStations();
       } else {
         fBtn.classList.add("active");
         if (pSel) pSel.style.display = "none";
-        if (sIn) sIn.style.display = "none";
         if (genreLabel) genreLabel.textContent = "Favorites";
+        clearSearchState();
         const favoritesList = await createFavoritesPlaylist();
         setFavoritesPlaylistView(favoritesList);
       }
@@ -1166,7 +1218,7 @@ function playRandomGenreAndStation() {
 
 fetch("../json/playlists.json")
   .then(r => r.json())
-  .then(pl => {
+  .then(async pl => {
     allPlaylists = pl;
     // Initialize custom genre select with callback
     initCustomGenreSelect(pl, (file, name) => {
@@ -1211,7 +1263,14 @@ fetch("../json/playlists.json")
       }
     } else if (localStorage.getItem("lastStation")) {
       try {
-        const { genre, trackIndex } = JSON.parse(localStorage.getItem("lastStation"));
+        const { mode, genre, trackIndex, url } = JSON.parse(localStorage.getItem("lastStation"));
+        if (mode === "favorites") {
+          const restored = await activateFavoritesView(url);
+          if (restored || (favoritesBaseStations && favoritesBaseStations.length)) {
+            setRadioListeners();
+            return;
+          }
+        }
         const playlistEntry = allPlaylists.find(pl => pl.name === genre || pl.file === genre);
         if (playlistEntry) {
           setSelectedGenre(playlistEntry.file, playlistEntry.name);
