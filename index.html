@@ -179,9 +179,15 @@
           </div>
         </div>
         <div class="search-wrapper">
-    <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
-    <span id="clearSearch">×</span>
-    </div>
+          <span class="search-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+              <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"></circle>
+              <line x1="16.65" y1="16.65" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+            </svg>
+          </span>
+          <input type="text" id="searchInput" class="genre-search" aria-label="Search stations">
+          <span id="clearSearch">×</span>
+        </div>
         <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
         <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
       </div>

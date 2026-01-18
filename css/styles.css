@@ -608,13 +608,33 @@ body.dark .logo {
   flex: 1;
 }
 
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.search-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .genre-search {
   box-sizing: border-box;
   width: 100%;
   margin-left: 0;
   border: 2px solid #fff;
   border-radius: 50px;
-  padding: 4px 22px 4px 8px;
+  padding: 4px 22px 4px 32px;
   color: #fff;
   background-color: transparent;
   font-family: 'Ruda', sans-serif;

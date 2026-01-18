@@ -16,6 +16,9 @@ let allStations = []
 let currentPlaylist = []
 let currentTrackIndex = 0
 let shuffleActive = false
+let currentGenreFile = null
+let globalSearchRequestId = 0
+const globalSearchCache = new Map()
 let visibleStations = 0
 let lastValidNowPlaying = ""
 const defaultVolume = { value: 0.9 }
@@ -123,6 +126,61 @@ function debounce(fn, wait) {
     clearTimeout(t)
     t = setTimeout(() => fn(...args), wait)
   }
+}
+
+function clearSearchState() {
+  globalSearchRequestId += 1
+  const sIn = document.getElementById("searchInput")
+  const clearBtn = document.getElementById("clearSearch")
+  if (sIn) sIn.value = ""
+  if (clearBtn) clearBtn.style.display = "none"
+}
+
+function performGlobalSearch(query) {
+  const normalizedQuery = query.trim().toLowerCase()
+  const searchId = ++globalSearchRequestId
+
+  if (!normalizedQuery) {
+    currentPlaylist = allStations.slice()
+    resetVisibleStations()
+    return
+  }
+
+  const merged = new Map()
+  const immediateMatches = allStations.filter(st =>
+    (st.title || "").toLowerCase().includes(normalizedQuery)
+  )
+  immediateMatches.forEach(st => merged.set(st.url, st))
+  currentPlaylist = Array.from(merged.values())
+  resetVisibleStations()
+
+  const playlistsToSearch = (Array.isArray(allPlaylists) ? allPlaylists : [])
+    .filter(pl => pl.file !== currentGenreFile)
+
+  playlistsToSearch.forEach(async pl => {
+    if (searchId !== globalSearchRequestId) return
+    let stations = globalSearchCache.get(pl.file)
+    if (!stations) {
+      try {
+        stations = await loadPlaylist(pl.file, pl.name)
+        globalSearchCache.set(pl.file, stations)
+      } catch (e) {
+        stations = []
+        globalSearchCache.set(pl.file, stations)
+      }
+    }
+    if (searchId !== globalSearchRequestId) return
+    const matches = stations.filter(st =>
+      (st.title || "").toLowerCase().includes(normalizedQuery)
+    )
+    if (!matches.length) return
+    matches.forEach(st => {
+      if (!merged.has(st.url)) merged.set(st.url, st)
+    })
+    if (searchId !== globalSearchRequestId) return
+    currentPlaylist = Array.from(merged.values())
+    resetVisibleStations()
+  })
 }
 
 function updateMediaSessionMetadata(st) {
@@ -361,7 +419,16 @@ function switchToRadio() {
           <ul class="genre-select-list" id="genreSelectList"></ul>
         </div>
       </div>
-      <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
+      <div class="search-wrapper">
+        <span class="search-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"></circle>
+            <line x1="16.65" y1="16.65" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+          </svg>
+        </span>
+        <input type="text" id="searchInput" class="genre-search" aria-label="Search stations">
+        <span id="clearSearch">×</span>
+      </div>
       <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
       <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
     `;
@@ -483,6 +550,8 @@ function loadAndRenderPlaylist(url, genreName = null, cb, scTop = false) {
     genreName = null;
   }
 
+  currentGenreFile = url
+  clearSearchState()
   playlistLoader.classList.remove("hidden")
   loadPlaylist(url, genreName)
     .then(s => {
@@ -807,7 +876,7 @@ function setRadioListeners() {
     });
   }
 
-if (sIn) {
+  if (sIn) {
   const clearBtn = document.getElementById("clearSearch");
 
   function updateClearBtn() {
@@ -816,9 +885,7 @@ if (sIn) {
   }
 
   sIn.addEventListener("input", debounce(() => {
-    const q = sIn.value.toLowerCase();
-    currentPlaylist = allStations.filter(x => x.title.toLowerCase().includes(q));
-    resetVisibleStations();
+    performGlobalSearch(sIn.value);
     updateClearBtn();
   }, 300));
 
@@ -828,8 +895,7 @@ if (sIn) {
   if (clearBtn) {
     clearBtn.addEventListener("click", () => {
       sIn.value = "";
-      currentPlaylist = allStations.slice();
-      resetVisibleStations();
+      performGlobalSearch("");
       updateClearBtn();
     });
   }
