@@ -604,8 +604,16 @@ body.dark .logo {
 
 .search-wrapper {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   flex: 1;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  pointer-events: none;
+  flex-shrink: 0;
 }
 
 .genre-search {
@@ -614,7 +622,7 @@ body.dark .logo {
   margin-left: 0;
   border: 2px solid #fff;
   border-radius: 50px;
-  padding: 4px 22px 4px 8px;
+  padding: 4px 22px 4px 36px;
   color: #fff;
   background-color: transparent;
   font-family: 'Ruda', sans-serif;

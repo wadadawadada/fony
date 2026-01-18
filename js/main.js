@@ -25,7 +25,11 @@ let playCheckTimer = null
 let preloaderInterval = null
 let lastChatUpdate = 0
 let lastMetadataUpdate = 0
-let userPaused = false;
+let userPaused = false
+let currentGenreFile = null
+let globalSearchResults = []
+let globalSearchInProgress = false
+let globalSearchTaskCounter = 0
 // const chatUpdateInterval = 15000
 const metadataUpdateInterval = 7000
 
@@ -361,7 +365,14 @@ function switchToRadio() {
           <ul class="genre-select-list" id="genreSelectList"></ul>
         </div>
       </div>
-      <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
+      <div class="search-wrapper">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input type="text" id="searchInput" class="genre-search" placeholder="">
+        <span id="clearSearch">×</span>
+      </div>
       <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
       <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
     `;
@@ -483,6 +494,17 @@ function loadAndRenderPlaylist(url, genreName = null, cb, scTop = false) {
     genreName = null;
   }
 
+  // Update current genre file when loading a new genre
+  currentGenreFile = url;
+
+  // Clear search when changing genre
+  const sIn = document.getElementById("searchInput");
+  if (sIn) {
+    sIn.value = "";
+    const clearBtn = document.getElementById("clearSearch");
+    if (clearBtn) clearBtn.style.display = "none";
+  }
+
   playlistLoader.classList.remove("hidden")
   loadPlaylist(url, genreName)
     .then(s => {
@@ -498,6 +520,61 @@ function loadAndRenderPlaylist(url, genreName = null, cb, scTop = false) {
     .catch(() => {
       playlistLoader.classList.add("hidden")
     })
+}
+
+async function performGlobalSearch(query) {
+  // Clear previous search
+  globalSearchResults = [];
+
+  if (!query || query.trim() === "") {
+    // If search is empty, show all stations from current genre
+    currentPlaylist = allStations.slice();
+    resetVisibleStations();
+    return;
+  }
+
+  const q = query.toLowerCase();
+  globalSearchInProgress = true;
+  globalSearchTaskCounter++;
+  const taskId = globalSearchTaskCounter;
+
+  // Immediately show results from current genre
+  const currentGenreResults = allStations.filter(x => x.title.toLowerCase().includes(q));
+  globalSearchResults = currentGenreResults.slice();
+  currentPlaylist = globalSearchResults.slice();
+  resetVisibleStations();
+
+  // Load other genres in background
+  const otherGenres = allPlaylists.filter(pl => pl.file !== currentGenreFile);
+
+  for (const genre of otherGenres) {
+    // Check if task was cancelled
+    if (taskId !== globalSearchTaskCounter) break;
+
+    try {
+      const stations = await loadPlaylist(genre.file, genre.name);
+
+      // Check if task was cancelled
+      if (taskId !== globalSearchTaskCounter) break;
+
+      // Filter and add new results
+      const matching = stations.filter(x => x.title.toLowerCase().includes(q));
+
+      // Add only stations that are not already in results (by URL)
+      const existingUrls = new Set(globalSearchResults.map(s => s.url));
+      const newResults = matching.filter(x => !existingUrls.has(x.url));
+
+      if (newResults.length > 0) {
+        globalSearchResults = globalSearchResults.concat(newResults);
+        currentPlaylist = globalSearchResults.slice();
+        resetVisibleStations();
+      }
+    } catch (e) {
+      // Failed to load genre, skip it
+    }
+  }
+
+  globalSearchInProgress = false;
 }
 
 function markStationAsHidden(i) {
@@ -816,9 +893,15 @@ if (sIn) {
   }
 
   sIn.addEventListener("input", debounce(() => {
-    const q = sIn.value.toLowerCase();
-    currentPlaylist = allStations.filter(x => x.title.toLowerCase().includes(q));
-    resetVisibleStations();
+    const q = sIn.value.trim();
+    if (q === "") {
+      // Empty search - show all stations from current genre
+      currentPlaylist = allStations.slice();
+      resetVisibleStations();
+    } else {
+      // Perform global search
+      performGlobalSearch(q);
+    }
     updateClearBtn();
   }, 300));
 
@@ -860,18 +943,30 @@ if (sIn) {
       if (fBtn.classList.contains("active")) {
         fBtn.classList.remove("active");
         if (pSel) pSel.style.display = "";
-        if (sIn) sIn.style.display = "";
+        if (sIn) {
+          sIn.style.display = "";
+          sIn.value = "";
+          const clearBtn = document.getElementById("clearSearch");
+          if (clearBtn) clearBtn.style.display = "none";
+        }
         if (genreLabel) genreLabel.textContent = "Genre:";
         toggleFavoritesSortVisibility(false);
         currentPlaylist = allStations.slice();
         resetVisibleStations();
+        localStorage.setItem("lastSessionMode", "radio");
       } else {
         fBtn.classList.add("active");
         if (pSel) pSel.style.display = "none";
-        if (sIn) sIn.style.display = "none";
+        if (sIn) {
+          sIn.style.display = "none";
+          sIn.value = "";
+          const clearBtn = document.getElementById("clearSearch");
+          if (clearBtn) clearBtn.style.display = "none";
+        }
         if (genreLabel) genreLabel.textContent = "Favorites";
         const favoritesList = await createFavoritesPlaylist();
         setFavoritesPlaylistView(favoritesList);
+        localStorage.setItem("lastSessionMode", "favorites");
       }
     } finally {
       clearInterval(interval);
@@ -1136,6 +1231,7 @@ fetch("../json/playlists.json")
             if (fi !== -1) {
               onStationSelect(fi);
               localStorage.setItem("lastStation", JSON.stringify({ genre: playlistEntry.name, trackIndex: fi }));
+              localStorage.setItem("lastSessionMode", "radio");
               updateChat(playlistEntry.name);
             } else {
               playRandomGenreAndStation();
@@ -1145,19 +1241,51 @@ fetch("../json/playlists.json")
       }
     } else if (localStorage.getItem("lastStation")) {
       try {
+        const sessionMode = localStorage.getItem("lastSessionMode") || "radio";
         const { genre, trackIndex } = JSON.parse(localStorage.getItem("lastStation"));
-        const playlistEntry = allPlaylists.find(pl => pl.name === genre || pl.file === genre);
-        if (playlistEntry) {
-          setSelectedGenre(playlistEntry.file, playlistEntry.name);
-          window.currentGenre = playlistEntry.name;
-          initChat();
-          loadAndRenderPlaylist(playlistEntry.file, () => {
-            const si = trackIndex < currentPlaylist.length ? trackIndex : 0;
-            onStationSelect(si);
-            updateChat(playlistEntry.name);
+
+        if (sessionMode === "favorites") {
+          // Restore favorites mode
+          const fBtn = document.getElementById("favoritesFilterBtn");
+          const genreLabel = document.querySelector("label[for='customGenreSelect']");
+          const customSelect = document.getElementById("customGenreSelect");
+          const sIn = document.getElementById("searchInput");
+
+          if (fBtn && !fBtn.classList.contains("active")) {
+            fBtn.classList.add("active");
+            if (customSelect) customSelect.style.display = "none";
+            if (sIn) {
+              sIn.style.display = "none";
+              sIn.value = "";
+            }
+            if (genreLabel) genreLabel.textContent = "Favorites";
+            toggleFavoritesSortVisibility(true);
+          }
+
+          // Load favorites and restore station
+          createFavoritesPlaylist().then(favList => {
+            setFavoritesPlaylistView(favList);
+            if (trackIndex < currentPlaylist.length) {
+              onStationSelect(trackIndex);
+            } else if (currentPlaylist.length > 0) {
+              onStationSelect(0);
+            }
           });
         } else {
-          playRandomGenreAndStation();
+          // Restore radio/genre mode
+          const playlistEntry = allPlaylists.find(pl => pl.name === genre || pl.file === genre);
+          if (playlistEntry) {
+            setSelectedGenre(playlistEntry.file, playlistEntry.name);
+            window.currentGenre = playlistEntry.name;
+            initChat();
+            loadAndRenderPlaylist(playlistEntry.file, () => {
+              const si = trackIndex < currentPlaylist.length ? trackIndex : 0;
+              onStationSelect(si);
+              updateChat(playlistEntry.name);
+            });
+          } else {
+            playRandomGenreAndStation();
+          }
         }
       } catch(e) {
         playRandomGenreAndStation();
@@ -1505,18 +1633,30 @@ window.onStationSelect = function(i) {
     if(btn.classList.contains("active")){
       btn.classList.remove("active");
       if(customSelect) customSelect.style.display="";
-      if(sIn) sIn.style.display="";
+      if(sIn) {
+        sIn.style.display="";
+        sIn.value = "";
+        const clearBtn = document.getElementById("clearSearch");
+        if (clearBtn) clearBtn.style.display = "none";
+      }
       if(genreLabel) genreLabel.textContent="Genre:";
       toggleFavoritesSortVisibility(false);
       currentPlaylist = allStations.slice();
       resetVisibleStations();
+      localStorage.setItem("lastSessionMode", "radio");
       return;
     }
     btn.classList.add("active");
     if(customSelect) customSelect.style.display="none";
-    if(sIn) sIn.style.display="none";
+    if(sIn) {
+      sIn.style.display="";
+      sIn.value = "";
+      const clearBtn = document.getElementById("clearSearch");
+      if (clearBtn) clearBtn.style.display = "none";
+    }
     if(genreLabel) genreLabel.textContent="Favorites";
     toggleFavoritesSortVisibility(true);
+    localStorage.setItem("lastSessionMode", "favorites");
     if(cache.ready){
       setFavoritesPlaylistView(cache.list ? cache.list.slice() : []);
       return;
