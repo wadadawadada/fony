@@ -27,6 +27,8 @@ let lastChatUpdate = 0
 let lastMetadataUpdate = 0
 let userPaused = false;
 let radioSearchPool = []
+let radioSearchPoolLoadingPromise = null
+let radioSearchPoolReady = false
 let favoritesBaseList = []
 let web3BaseList = []
 const APP_MODE_KEY = "lastAppMode"
@@ -308,19 +310,37 @@ function applyModeSearch(mode = getEffectiveMode()) {
   resetVisibleStations()
 }
 
-async function prepareRadioSearchPool() {
-  if (!Array.isArray(allPlaylists) || !allPlaylists.length) return
-  const stationLists = await Promise.all(
+async function prepareRadioSearchPool(force = false) {
+  if (radioSearchPoolReady && !force) return radioSearchPool
+  if (radioSearchPoolLoadingPromise && !force) return radioSearchPoolLoadingPromise
+  if (!Array.isArray(allPlaylists) || !allPlaylists.length) return []
+
+  radioSearchPoolLoadingPromise = Promise.all(
     allPlaylists.map(async pl => {
       try {
         const stations = await loadPlaylist(pl.file, pl.name)
-        return stations.map(st => ({ ...st, genreName: pl.name, genreFile: pl.file }))
+        return stations.map(st => ({
+          url: st.url,
+          originalUrl: st.originalUrl,
+          title: st.title,
+          artist: st.artist || "",
+          playlistTitle: st.playlistTitle || "",
+          genreName: pl.name,
+          genreFile: pl.file
+        }))
       } catch (_) {
         return []
       }
     })
-  )
-  radioSearchPool = Array.from(new Map(stationLists.flat().map(st => [st.url, st])).values())
+  ).then(stationLists => {
+    radioSearchPool = Array.from(new Map(stationLists.flat().map(st => [st.url, st])).values())
+    radioSearchPoolReady = true
+    return radioSearchPool
+  }).finally(() => {
+    radioSearchPoolLoadingPromise = null
+  })
+
+  return radioSearchPoolLoadingPromise
 }
 
 function normalizeFavoritesStorage() {
@@ -980,10 +1000,14 @@ function setRadioListeners() {
       clearBtn.style.display = sIn.value.length > 0 ? "block" : "none";
     }
 
-    sIn.addEventListener("input", debounce(() => {
+    sIn.addEventListener("input", debounce(async () => {
       const mode = getEffectiveMode();
       searchByMode[mode] = sIn.value;
       saveSearchState();
+      const query = (searchByMode[mode] || "").trim();
+      if (mode === "radio" && query.length > 0 && !radioSearchPoolReady) {
+        try { await prepareRadioSearchPool(); } catch (_) {}
+      }
       applyModeSearch(mode);
       updateClearBtn();
     }, 300));
@@ -1359,8 +1383,6 @@ fetch("../json/playlists.json")
     }, { autoSelectFirst: false });
 
     loadSearchState();
-    await prepareRadioSearchPool();
-
     const hasRadioRestoreState = !!localStorage.getItem(LAST_RADIO_TRACK_KEY) || !!localStorage.getItem("lastStation");
     const favoritesRaw = localStorage.getItem("favorites");
     let hasFavoritesRestoreState = !!localStorage.getItem(LAST_FAVORITES_TRACK_KEY);
