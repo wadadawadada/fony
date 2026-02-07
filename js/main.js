@@ -439,13 +439,13 @@ function checkMarquee(container) {
   if (sW > cW) st.classList.add("marquee")
 }
 
-function fillPlaylistSelect() {
+function fillPlaylistSelect(autoSelectFirst = true) {
   // Reinitialize custom genre select with updated playlists
   if (allPlaylists) {
     initCustomGenreSelect(allPlaylists, (file, name) => {
       window.currentGenre = name;
       loadAndRenderPlaylist(file, name);
-    });
+    }, { autoSelectFirst });
   }
 }
 
@@ -498,7 +498,7 @@ function switchToRadio(restorePlayback = true) {
       <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
     `;
   }
-  fillPlaylistSelect();
+  fillPlaylistSelect(restorePlayback);
   setRadioListeners();
   if (!restorePlayback) return;
 
@@ -1300,26 +1300,41 @@ async function restoreRadioPlayback() {
 
 async function restoreFavoritesPlayback() {
   switchToRadio(false);
+
   const favoritesBtn = document.getElementById("favoritesFilterBtn");
+  const customSelect = document.getElementById("customGenreSelect");
+  const genreLabel = document.querySelector("label[for='customGenreSelect']");
   if (!favoritesBtn) return;
 
-  if (!favoritesBtn.classList.contains("active")) {
-    favoritesBtn.click();
-  }
+  favoritesBtn.classList.add("active");
+  if (customSelect) customSelect.style.display = "none";
+  if (genreLabel) genreLabel.textContent = "Favorites";
+  persistCurrentMode("favorites");
+  updateSearchInputByMode();
+
+  const favoritesList = await createFavoritesPlaylist();
+  setFavoritesPlaylistView(favoritesList);
 
   const targetUrl = localStorage.getItem(LAST_FAVORITES_TRACK_KEY);
   if (!targetUrl) return;
 
-  const waitStart = Date.now();
-  while (!currentPlaylist.length && Date.now() - waitStart < 5000) {
-    await new Promise(resolve => setTimeout(resolve, 100));
+  let trackIndex = currentPlaylist.findIndex(st => st.url === targetUrl);
+  if (trackIndex < 0) {
+    const baseIndex = favoritesBaseList.findIndex(st => st.url === targetUrl);
+    if (baseIndex >= 0) {
+      searchByMode.favorites = "";
+      saveSearchState();
+      updateSearchInputByMode();
+      applyModeSearch("favorites");
+      trackIndex = currentPlaylist.findIndex(st => st.url === targetUrl);
+    }
   }
 
-  const trackIndex = currentPlaylist.findIndex(st => st.url === targetUrl);
   if (trackIndex >= 0) {
     onStationSelect(trackIndex);
   }
 }
+
 
 fetch("../json/playlists.json")
   .then(r => r.json())
@@ -1331,14 +1346,10 @@ fetch("../json/playlists.json")
       loadAndRenderPlaylist(file, name, () => {
         applyModeSearch("radio");
       });
-    });
+    }, { autoSelectFirst: false });
 
     loadSearchState();
     await prepareRadioSearchPool();
-
-    if (playRandomFromUrlGenre()) {
-      return;
-    }
 
     const savedMode = getSavedMode();
 
@@ -1354,6 +1365,10 @@ fetch("../json/playlists.json")
 
     if (savedMode === "favorites") {
       await restoreFavoritesPlayback();
+      return;
+    }
+
+    if (playRandomFromUrlGenre()) {
       return;
     }
 

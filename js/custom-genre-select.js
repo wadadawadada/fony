@@ -41,7 +41,7 @@ async function createIconElement(genreName) {
 }
 
 // Инициализировать кастомный dropdown
-export async function initCustomGenreSelect(playlists, onSelect) {
+export async function initCustomGenreSelect(playlists, onSelect, options = {}) {
   const customSelect = document.getElementById('customGenreSelect');
   const header = document.getElementById('genreSelectHeader');
   const dropdown = document.getElementById('genreSelectDropdown');
@@ -117,7 +117,8 @@ export async function initCustomGenreSelect(playlists, onSelect) {
   });
 
   // Установить первый элемент как выбранный по умолчанию
-  if (playlists.length > 0) {
+  const autoSelectFirst = options.autoSelectFirst !== false;
+  if (autoSelectFirst && playlists.length > 0) {
     const firstItem = list.querySelector('.genre-select-item');
     if (firstItem) {
       firstItem.click();
