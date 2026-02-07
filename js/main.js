@@ -365,6 +365,26 @@ function scheduleRadioSearchPoolRelease() {
   }, RADIO_SEARCH_POOL_IDLE_TTL)
 }
 
+function ensureRadioSearchPoolForCurrentQuery() {
+  const mode = getEffectiveMode()
+  const query = (searchByMode.radio || "").trim().toLowerCase()
+  if (mode !== "radio" || !query || radioSearchPoolReady || radioSearchLoading) return
+
+  radioSearchLoading = true
+  updateSearchInputByMode()
+  prepareRadioSearchPool()
+    .then(() => {
+      if (getEffectiveMode() === "radio" && (searchByMode.radio || "").trim().length > 0) {
+        applyModeSearch("radio")
+      }
+    })
+    .catch(() => {})
+    .finally(() => {
+      radioSearchLoading = false
+      updateSearchInputByMode()
+    })
+}
+
 function normalizeFavoritesStorage() {
   const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
   let needsSave = false;
@@ -1019,15 +1039,7 @@ function setRadioListeners() {
 
     const currentModeForInput = getEffectiveMode();
     if (currentModeForInput === "radio" && (searchByMode.radio || "").trim().length > 0 && !radioSearchPoolReady) {
-      radioSearchLoading = true;
-      updateSearchInputByMode();
-      prepareRadioSearchPool()
-        .then(() => applyModeSearch("radio"))
-        .catch(() => {})
-        .finally(() => {
-          radioSearchLoading = false;
-          updateSearchInputByMode();
-        });
+      ensureRadioSearchPoolForCurrentQuery();
     }
 
     function updateClearBtn() {
@@ -1047,20 +1059,7 @@ function setRadioListeners() {
         resetVisibleStations();
 
         if (!radioSearchLoading) {
-          radioSearchLoading = true;
-          updateSearchInputByMode();
-          const queryAtStart = query.toLowerCase();
-          prepareRadioSearchPool()
-            .then(() => {
-              if (getEffectiveMode() === "radio" && (searchByMode.radio || "").trim().toLowerCase() === queryAtStart) {
-                applyModeSearch("radio");
-              }
-            })
-            .catch(() => {})
-            .finally(() => {
-              radioSearchLoading = false;
-              updateSearchInputByMode();
-            });
+          ensureRadioSearchPoolForCurrentQuery();
         }
       } else {
         applyModeSearch(mode);
@@ -1120,6 +1119,7 @@ function setRadioListeners() {
           updateSearchInputByMode();
           toggleFavoritesSortVisibility(false);
           scheduleRadioSearchPoolRelease();
+          ensureRadioSearchPoolForCurrentQuery();
           if (allStations.length) {
             applyModeSearch("radio");
           } else {
