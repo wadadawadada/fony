@@ -34,6 +34,7 @@ const SEARCH_STATE_KEY = "searchByMode"
 const LAST_RADIO_TRACK_KEY = "lastRadioTrackUrl"
 const LAST_FAVORITES_TRACK_KEY = "lastFavoritesTrackUrl"
 const LAST_WEB3_TRACK_KEY = "lastWeb3TrackState"
+const APP_FIRST_LAUNCH_DONE_KEY = "appFirstLaunchDone"
 const searchByMode = {
   radio: "",
   favorites: "",
@@ -216,6 +217,14 @@ function getSavedWeb3State() {
     if (state && typeof state === "object") return state
   } catch (_) {}
   return {}
+}
+
+function isFirstLaunch() {
+  return !localStorage.getItem(APP_FIRST_LAUNCH_DONE_KEY)
+}
+
+function markFirstLaunchDone() {
+  localStorage.setItem(APP_FIRST_LAUNCH_DONE_KEY, "true")
 }
 
 function savePlaybackState(station) {
@@ -1352,6 +1361,28 @@ fetch("../json/playlists.json")
     loadSearchState();
     await prepareRadioSearchPool();
 
+    const hasRadioRestoreState = !!localStorage.getItem(LAST_RADIO_TRACK_KEY) || !!localStorage.getItem("lastStation");
+    const favoritesRaw = localStorage.getItem("favorites");
+    let hasFavoritesRestoreState = !!localStorage.getItem(LAST_FAVORITES_TRACK_KEY);
+    if (!hasFavoritesRestoreState && favoritesRaw) {
+      try { hasFavoritesRestoreState = Array.isArray(JSON.parse(favoritesRaw)) && JSON.parse(favoritesRaw).length > 0 } catch (_) {}
+    }
+    const web3Raw = localStorage.getItem(LAST_WEB3_TRACK_KEY);
+    let hasWeb3RestoreState = false;
+    if (web3Raw) {
+      try {
+        const ws = JSON.parse(web3Raw);
+        hasWeb3RestoreState = !!(ws && (ws.contract || ws.trackUrl));
+      } catch (_) {}
+    }
+    const hasDirectRoute = !!window.location.hash || (window.location.pathname !== "/" && window.location.pathname !== "");
+
+    if (isFirstLaunch() && !hasRadioRestoreState && !hasFavoritesRestoreState && !hasWeb3RestoreState && !hasDirectRoute) {
+      playRandomGenreAndStation();
+      markFirstLaunchDone();
+      return;
+    }
+
     const savedMode = getSavedMode();
 
     if (savedMode === "web3") {
@@ -1361,23 +1392,28 @@ fetch("../json/playlists.json")
       } catch (_) {
         await restoreRadioPlayback();
       }
+      markFirstLaunchDone();
       return;
     }
 
     if (savedMode === "favorites") {
       await restoreFavoritesPlayback();
+      markFirstLaunchDone();
       return;
     }
 
     if (playRandomFromUrlGenre()) {
+      markFirstLaunchDone();
       return;
     }
 
     await restoreRadioPlayback();
+    markFirstLaunchDone();
   })
   .catch(() => {
     switchToRadio(false);
     playRandomGenreAndStation();
+    markFirstLaunchDone();
     setRadioListeners();
   });
 
