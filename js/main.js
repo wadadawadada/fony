@@ -104,7 +104,6 @@ function playRandomFromUrlGenre() {
       const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length);
       onStationSelect(randomStationIndex);
       localStorage.setItem("lastStation", JSON.stringify({ genre: genreEntry.name, trackIndex: randomStationIndex }));
-      updateChat(genreEntry.name);
     }
   });
   setRadioListeners();
@@ -511,7 +510,6 @@ function switchToRadio(restorePlayback = true) {
       loadAndRenderPlaylist(savedStation.genreFile, savedStation.genreName, () => {
         const idx = currentPlaylist.findIndex(st => st.url === lastRadioTrackUrl);
         onStationSelect(idx >= 0 ? idx : 0);
-        updateChat(savedStation.genreName);
       });
       return;
     }
@@ -529,7 +527,6 @@ function switchToRadio(restorePlayback = true) {
       loadAndRenderPlaylist(playlistEntry.file, playlistEntry.name, () => {
         const i = trackIndex < currentPlaylist.length ? trackIndex : 0;
         onStationSelect(i);
-        updateChat(playlistEntry.name);
       });
       return;
     } catch (e) {}
@@ -539,6 +536,7 @@ function switchToRadio(restorePlayback = true) {
 
 function switchToWeb3(acc, restoreState = null) {
   currentMode = "web3"
+  initChat();
   window.currentMode = currentMode;
   persistCurrentMode("web3");
   audioPlayer.pause()
@@ -626,7 +624,6 @@ function defaultPlaylist() {
       const i = 0
       onStationSelect(i)
       localStorage.setItem("lastStation", JSON.stringify({ genre: firstPlaylist.name, trackIndex: i }))
-      updateChat(firstPlaylist.name)
     }
   })
 }
@@ -1026,7 +1023,12 @@ function setRadioListeners() {
           if (genreLabel) genreLabel.textContent = "Genre:";
           updateSearchInputByMode();
           toggleFavoritesSortVisibility(false);
-          applyModeSearch("radio");
+          if (allStations.length) {
+            applyModeSearch("radio");
+          } else {
+            switchToRadio(true);
+            return;
+          }
         } else {
           fBtn.classList.add("active");
           persistCurrentMode("favorites");
@@ -1257,7 +1259,6 @@ function playRandomGenreAndStation() {
       const randomStationIndex = Math.floor(Math.random() * currentPlaylist.length);
       onStationSelect(randomStationIndex);
       localStorage.setItem("lastStation", JSON.stringify({ genre: randomGenre, trackIndex: randomStationIndex }));
-      updateChat(randomGenre);
     }
   });
 }
@@ -1285,8 +1286,7 @@ async function restoreRadioPlayback() {
           const foundIndex = currentPlaylist.findIndex(x => generateStationHash(x.url) === stationHash);
           if (foundIndex !== -1) {
             onStationSelect(foundIndex);
-            updateChat(playlistEntry.name);
-          } else {
+              } else {
             defaultPlaylist();
           }
         });
@@ -1300,6 +1300,7 @@ async function restoreRadioPlayback() {
 
 async function restoreFavoritesPlayback() {
   switchToRadio(false);
+  initChat();
 
   const favoritesBtn = document.getElementById("favoritesFilterBtn");
   const customSelect = document.getElementById("customGenreSelect");
@@ -1716,7 +1717,11 @@ window.onStationSelect = function(i) {
       persistCurrentMode("radio");
       updateSearchInputByMode();
       toggleFavoritesSortVisibility(false);
-      applyModeSearch("radio");
+      if (allStations.length) {
+        applyModeSearch("radio");
+      } else {
+        switchToRadio(true);
+      }
       return;
     }
     btn.classList.add("active");
