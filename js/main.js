@@ -438,7 +438,7 @@ function checkMarquee(container) {
   if (sW > cW) st.classList.add("marquee")
 }
 
-function fillPlaylistSelect(autoSelectFirst = true) {
+function fillPlaylistSelect(autoSelectFirst = false) {
   // Reinitialize custom genre select with updated playlists
   if (allPlaylists) {
     initCustomGenreSelect(allPlaylists, (file, name) => {
@@ -497,7 +497,7 @@ function switchToRadio(restorePlayback = true) {
       <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
     `;
   }
-  fillPlaylistSelect(restorePlayback);
+  fillPlaylistSelect(false);
   setRadioListeners();
   if (!restorePlayback) return;
 
