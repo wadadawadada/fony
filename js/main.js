@@ -311,7 +311,7 @@ async function prepareRadioSearchPool(force = false) {
   radioSearchPoolLoadingPromise = Promise.all(
     allPlaylists.map(async pl => {
       try {
-        const stations = await loadPlaylist(pl.file, pl.name)
+        const stations = await loadPlaylist(pl.file, pl.name, { skipAssetValidation: true })
         return stations.map(st => ({
           url: st.url,
           originalUrl: st.originalUrl,
@@ -1018,19 +1018,37 @@ function setRadioListeners() {
       clearBtn.style.display = sIn.value.length > 0 ? "block" : "none";
     }
 
-    sIn.addEventListener("input", debounce(async () => {
+    sIn.addEventListener("input", debounce(() => {
       const mode = getEffectiveMode();
       searchByMode[mode] = sIn.value;
       saveSearchState();
       const query = (searchByMode[mode] || "").trim();
+
       if (mode === "radio" && query.length > 0 && !radioSearchPoolReady) {
-        radioSearchLoading = true;
-        updateSearchInputByMode();
-        try { await prepareRadioSearchPool(); } catch (_) {}
-        radioSearchLoading = false;
-        updateSearchInputByMode();
+        // Immediate local feedback while global index is still building
+        currentPlaylist = (allStations || []).filter(st => getStationSearchText(st).includes(query.toLowerCase()));
+        resetVisibleStations();
+
+        if (!radioSearchLoading) {
+          radioSearchLoading = true;
+          updateSearchInputByMode();
+          const queryAtStart = query.toLowerCase();
+          prepareRadioSearchPool()
+            .then(() => {
+              if (getEffectiveMode() === "radio" && (searchByMode.radio || "").trim().toLowerCase() === queryAtStart) {
+                applyModeSearch("radio");
+              }
+            })
+            .catch(() => {})
+            .finally(() => {
+              radioSearchLoading = false;
+              updateSearchInputByMode();
+            });
+        }
+      } else {
+        applyModeSearch(mode);
       }
-      applyModeSearch(mode);
+
       updateClearBtn();
     }, 300));
 
