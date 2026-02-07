@@ -995,6 +995,18 @@ function setRadioListeners() {
     const clearBtn = document.getElementById("clearSearch");
     updateSearchInputByMode();
 
+    const currentModeForInput = getEffectiveMode();
+    if (currentModeForInput === "radio" && (searchByMode.radio || "").trim().length > 0 && !radioSearchPoolReady) {
+      prepareRadioSearchPool().then(() => applyModeSearch("radio")).catch(() => {});
+    }
+
+    sIn.addEventListener("focus", () => {
+      const mode = getEffectiveMode();
+      if (mode === "radio" && !radioSearchPoolReady) {
+        prepareRadioSearchPool().catch(() => {});
+      }
+    });
+
     function updateClearBtn() {
       if (!clearBtn) return;
       clearBtn.style.display = sIn.value.length > 0 ? "block" : "none";
