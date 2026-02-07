@@ -26,6 +26,16 @@ let preloaderInterval = null
 let lastChatUpdate = 0
 let lastMetadataUpdate = 0
 let userPaused = false;
+let radioSearchPool = []
+let favoritesBaseList = []
+let web3BaseList = []
+const APP_MODE_KEY = "lastAppMode"
+const SEARCH_STATE_KEY = "searchByMode"
+const searchByMode = {
+  radio: "",
+  favorites: "",
+  web3: ""
+}
 // const chatUpdateInterval = 15000
 const metadataUpdateInterval = 7000
 
@@ -187,6 +197,92 @@ function stopPlaylistPreloader() {
 
 const FAVORITES_SORT_KEY = "favoritesSortMode";
 
+function persistCurrentMode(mode) {
+  if (["radio", "favorites", "web3"].includes(mode)) {
+    localStorage.setItem(APP_MODE_KEY, mode)
+  }
+}
+
+function getSavedMode() {
+  const mode = localStorage.getItem(APP_MODE_KEY)
+  return ["radio", "favorites", "web3"].includes(mode) ? mode : "radio"
+}
+
+function loadSearchState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SEARCH_STATE_KEY) || "{}")
+    if (typeof saved === "object" && saved) {
+      for (const key of ["radio", "favorites", "web3"]) {
+        if (typeof saved[key] === "string") searchByMode[key] = saved[key]
+      }
+    }
+  } catch (_) {}
+}
+
+function saveSearchState() {
+  localStorage.setItem(SEARCH_STATE_KEY, JSON.stringify(searchByMode))
+}
+
+function getEffectiveMode() {
+  return currentMode === "radio" && document.getElementById("favoritesFilterBtn")?.classList.contains("active")
+    ? "favorites"
+    : currentMode
+}
+
+function getStationSearchText(station = {}) {
+  return `${station.title || ""} ${station.playlistTitle || ""} ${station.artist || ""}`.toLowerCase()
+}
+
+function updateSearchInputByMode() {
+  const sIn = document.getElementById("searchInput")
+  if (!sIn) return
+  const mode = getEffectiveMode()
+  const placeholders = {
+    radio: "Search all radio playlists",
+    favorites: "Search favorites",
+    web3: "Search web3 tracks"
+  }
+  sIn.placeholder = placeholders[mode] || "Search"
+  sIn.value = searchByMode[mode] || ""
+}
+
+function applyModeSearch(mode = getEffectiveMode()) {
+  const sIn = document.getElementById("searchInput")
+  if (!sIn) return
+  const query = (searchByMode[mode] || "").trim().toLowerCase()
+
+  if (mode === "web3") {
+    currentPlaylist = query ? web3BaseList.filter(st => getStationSearchText(st).includes(query)) : web3BaseList.slice()
+    resetVisibleStations()
+    return
+  }
+
+  if (mode === "favorites") {
+    currentPlaylist = query ? favoritesBaseList.filter(st => getStationSearchText(st).includes(query)) : favoritesBaseList.slice()
+    resetVisibleStations()
+    return
+  }
+
+  const radioBase = query ? (radioSearchPool.length ? radioSearchPool : allStations) : allStations
+  currentPlaylist = (radioBase || []).filter(st => getStationSearchText(st).includes(query))
+  resetVisibleStations()
+}
+
+async function prepareRadioSearchPool() {
+  if (!Array.isArray(allPlaylists) || !allPlaylists.length) return
+  const stationLists = await Promise.all(
+    allPlaylists.map(async pl => {
+      try {
+        const stations = await loadPlaylist(pl.file, pl.name)
+        return stations.map(st => ({ ...st, genreName: pl.name, genreFile: pl.file }))
+      } catch (_) {
+        return []
+      }
+    })
+  )
+  radioSearchPool = Array.from(new Map(stationLists.flat().map(st => [st.url, st])).values())
+}
+
 function normalizeFavoritesStorage() {
   const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
   let needsSave = false;
@@ -324,6 +420,7 @@ function fillPlaylistSelect() {
 function switchToRadio() {
   currentMode = "radio";
   window.currentMode = currentMode;
+  persistCurrentMode("radio");
   if (window.playTimerInterval) {
     clearInterval(window.playTimerInterval);
     window.playTimerInterval = null;
@@ -361,7 +458,10 @@ function switchToRadio() {
           <ul class="genre-select-list" id="genreSelectList"></ul>
         </div>
       </div>
-      <input type="text" id="searchInput" class="genre-search" placeholder="Search in genre">
+      <div class="search-wrapper">
+        <input type="text" id="searchInput" class="genre-search" placeholder="Search all radio playlists">
+        <span id="clearSearch">×</span>
+      </div>
       <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
       <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
     `;
@@ -392,6 +492,7 @@ function switchToRadio() {
 function switchToWeb3(acc) {
   currentMode = "web3"
   window.currentMode = currentMode;
+  persistCurrentMode("web3");
   audioPlayer.pause()
   audioPlayer.src = ""
   currentPlaylist = []
@@ -406,13 +507,12 @@ function switchToWeb3(acc) {
           const sel = cs.value
           const { tracks } = await connectAndLoadWalletNFTs(sel)
           if (tracks && tracks.length > 0) {
-            currentPlaylist = tracks
-            visibleStations = tracks.length
-            renderPlaylist(playlistElement, tracks, 0, tracks.length)
+            web3BaseList = tracks.slice()
+            applyModeSearch("web3")
             onStationSelect(0)
           } else {
-            currentPlaylist = []
-            renderPlaylist(playlistElement, [], 0, 0)
+            web3BaseList = []
+            applyModeSearch("web3")
             stationLabel.textContent = "No NFT tracks found"
           }
         } finally {
@@ -424,13 +524,12 @@ function switchToWeb3(acc) {
       const sel = cs.value
       connectAndLoadWalletNFTs(sel).then(({ tracks }) => {
         if (tracks && tracks.length > 0) {
-          currentPlaylist = tracks
-          visibleStations = tracks.length
-          renderPlaylist(playlistElement, tracks, 0, tracks.length)
+          web3BaseList = tracks.slice()
+          applyModeSearch("web3")
           onStationSelect(0)
         } else {
-          currentPlaylist = []
-          renderPlaylist(playlistElement, [], 0, 0)
+          web3BaseList = []
+          applyModeSearch("web3")
           stationLabel.textContent = "No NFT tracks found"
         }
       }).finally(() => stopPlaylistPreloader())
@@ -448,6 +547,10 @@ async function updateWalletUI(account) {
       <span id="walletConnectedLabel">WEB3: </span>
       <select id="contractSelect" class="genre-select">${ops}</select>
       <span id="walletAddress">${shortAddr}</span>
+      <div class="search-wrapper">
+        <input type="text" id="searchInput" class="genre-search" placeholder="Search web3 tracks">
+        <span id="clearSearch">×</span>
+      </div>
       <img src="/img/wallet.svg" alt="Wallet" id="walletIcon" style="cursor: pointer; width: 28px; height: 28px;">
       <img src="/img/radio.svg" alt="Radio" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px;">
     `
@@ -457,6 +560,8 @@ async function updateWalletUI(account) {
     r.style.display = "inline-block"
     r.addEventListener("click", () => switchToRadio())
   }
+  updateSearchInputByMode();
+  setRadioListeners();
 }
 
 function defaultPlaylist() {
@@ -487,8 +592,7 @@ function loadAndRenderPlaylist(url, genreName = null, cb, scTop = false) {
   loadPlaylist(url, genreName)
     .then(s => {
       allStations = s
-      currentPlaylist = s.slice()
-      resetVisibleStations()
+      applyModeSearch("radio")
       if (scTop) setTimeout(() => playlistContainer.scrollTo({ top: 0, behavior: "smooth" }), 50)
     })
     .then(() => {
@@ -775,11 +879,11 @@ async function createFavoritesPlaylist() {
 
 function setFavoritesPlaylistView(list) {
   const sortedFavorites = applyFavoritesSorting(list || []);
-  currentPlaylist = sortedFavorites;
+  favoritesBaseList = sortedFavorites.slice();
+  applyModeSearch("favorites");
   if (!currentPlaylist.length) {
     playlistElement.innerHTML = `<li style="pointer-events:none;opacity:.7">No favorites yet</li>`;
   }
-  resetVisibleStations();
   toggleFavoritesSortVisibility(true);
   syncFavoritesSortSelect();
 }
@@ -791,98 +895,105 @@ function setRadioListeners() {
   const wBtn = document.getElementById("connectWalletBtn");
   const rBtn = document.getElementById("radioModeBtn");
   const sortSelect = document.getElementById("favoritesSortSelect");
+  const customSelect = document.getElementById("customGenreSelect");
 
-  if (rBtn) rBtn.style.display = "none";
-  toggleFavoritesSortVisibility(false);
+  if (rBtn && currentMode !== "web3") rBtn.style.display = "none";
+  if (currentMode !== "radio" || !(fBtn && fBtn.classList.contains("active"))) {
+    toggleFavoritesSortVisibility(false);
+  }
 
   if (sortSelect) {
     sortSelect.value = getFavoritesSortMode();
     sortSelect.addEventListener("change", () => {
       setFavoritesSortMode(sortSelect.value);
-      const genreLabel = document.querySelector("label[for='customGenreSelect']");
-      const isFavoritesView = genreLabel && genreLabel.textContent === "Favorites";
-      if (isFavoritesView && Array.isArray(currentPlaylist)) {
-        setFavoritesPlaylistView(currentPlaylist.slice());
+      const isFavoritesView = getEffectiveMode() === "favorites";
+      if (isFavoritesView) {
+        setFavoritesPlaylistView(favoritesBaseList.slice());
       }
     });
   }
 
-if (sIn) {
-  const clearBtn = document.getElementById("clearSearch");
+  if (sIn) {
+    const clearBtn = document.getElementById("clearSearch");
+    updateSearchInputByMode();
 
-  function updateClearBtn() {
-    if (!clearBtn) return;
-    clearBtn.style.display = sIn.value.length > 0 ? "block" : "none";
-  }
+    function updateClearBtn() {
+      if (!clearBtn) return;
+      clearBtn.style.display = sIn.value.length > 0 ? "block" : "none";
+    }
 
-  sIn.addEventListener("input", debounce(() => {
-    const q = sIn.value.toLowerCase();
-    currentPlaylist = allStations.filter(x => x.title.toLowerCase().includes(q));
-    resetVisibleStations();
-    updateClearBtn();
-  }, 300));
-
-  sIn.addEventListener("change", updateClearBtn);
-  sIn.addEventListener("keyup", updateClearBtn);
-
-  if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-      sIn.value = "";
-      currentPlaylist = allStations.slice();
-      resetVisibleStations();
+    sIn.addEventListener("input", debounce(() => {
+      const mode = getEffectiveMode();
+      searchByMode[mode] = sIn.value;
+      saveSearchState();
+      applyModeSearch(mode);
       updateClearBtn();
-    });
-  }
+    }, 300));
 
-  updateClearBtn();
-}
+    sIn.addEventListener("change", updateClearBtn);
+    sIn.addEventListener("keyup", updateClearBtn);
+
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        const mode = getEffectiveMode();
+        searchByMode[mode] = "";
+        saveSearchState();
+        sIn.value = "";
+        applyModeSearch(mode);
+        updateClearBtn();
+      });
+    }
+
+    updateClearBtn();
+  }
 
   if (fBtn) {
-  fBtn.addEventListener("click", async () => {
-    if (fBtn.disabled) return;
-    fBtn.disabled = true;
-    const genreLabel = document.querySelector("label[for='customGenreSelect']");
-    playlistElement.classList.add("hidden");
-    playlistLoader.classList.remove("hidden");
-    playlistLoader.style.fontFamily = "Ruda";
-    playlistLoader.style.textAlign = "center";
-    playlistLoader.style.fontSize = "28px";
-    let dotCount = 0;
-    const maxDots = 3;
-    playlistLoader.textContent = "";
-    const interval = setInterval(() => {
-      dotCount = (dotCount + 1) % (maxDots + 1);
-      const left = ":".repeat(dotCount);
-      const right = ":".repeat(dotCount);
-      playlistLoader.textContent = left + right;
-    }, 300);
-    try {
-      if (fBtn.classList.contains("active")) {
-        fBtn.classList.remove("active");
-        if (pSel) pSel.style.display = "";
-        if (sIn) sIn.style.display = "";
-        if (genreLabel) genreLabel.textContent = "Genre:";
-        toggleFavoritesSortVisibility(false);
-        currentPlaylist = allStations.slice();
-        resetVisibleStations();
-      } else {
-        fBtn.classList.add("active");
-        if (pSel) pSel.style.display = "none";
-        if (sIn) sIn.style.display = "none";
-        if (genreLabel) genreLabel.textContent = "Favorites";
-        const favoritesList = await createFavoritesPlaylist();
-        setFavoritesPlaylistView(favoritesList);
-      }
-    } finally {
-      clearInterval(interval);
-      playlistLoader.classList.add("hidden");
+    fBtn.addEventListener("click", async () => {
+      if (fBtn.disabled) return;
+      fBtn.disabled = true;
+      const genreLabel = document.querySelector("label[for='customGenreSelect']");
+      playlistElement.classList.add("hidden");
+      playlistLoader.classList.remove("hidden");
+      playlistLoader.style.fontFamily = "Ruda";
+      playlistLoader.style.textAlign = "center";
+      playlistLoader.style.fontSize = "28px";
+      let dotCount = 0;
+      const maxDots = 3;
       playlistLoader.textContent = "";
-      playlistLoader.style.fontSize = "";
-      playlistElement.classList.remove("hidden");
-      fBtn.disabled = false;
-    }
-  });
-}
+      const interval = setInterval(() => {
+        dotCount = (dotCount + 1) % (maxDots + 1);
+        const left = ":".repeat(dotCount);
+        const right = ":".repeat(dotCount);
+        playlistLoader.textContent = left + right;
+      }, 300);
+      try {
+        if (fBtn.classList.contains("active")) {
+          fBtn.classList.remove("active");
+          persistCurrentMode("radio");
+          if (customSelect) customSelect.style.display = "";
+          if (genreLabel) genreLabel.textContent = "Genre:";
+          updateSearchInputByMode();
+          toggleFavoritesSortVisibility(false);
+          applyModeSearch("radio");
+        } else {
+          fBtn.classList.add("active");
+          persistCurrentMode("favorites");
+          if (customSelect) customSelect.style.display = "none";
+          if (genreLabel) genreLabel.textContent = "Favorites";
+          updateSearchInputByMode();
+          const favoritesList = await createFavoritesPlaylist();
+          setFavoritesPlaylistView(favoritesList);
+        }
+      } finally {
+        clearInterval(interval);
+        playlistLoader.classList.add("hidden");
+        playlistLoader.textContent = "";
+        playlistLoader.style.fontSize = "";
+        playlistElement.classList.remove("hidden");
+        fBtn.disabled = false;
+      }
+    });
+  }
 
   if (wBtn) {
     wBtn.addEventListener("click", async () => {
@@ -891,6 +1002,7 @@ if (sIn) {
     });
   }
 }
+
 
 audioPlayer.addEventListener("play", async () => {
   userPaused = false;
@@ -1105,8 +1217,13 @@ fetch("../json/playlists.json")
     // Initialize custom genre select with callback
     initCustomGenreSelect(pl, (file, name) => {
       window.currentGenre = name;
-      loadAndRenderPlaylist(file, name);
+      loadAndRenderPlaylist(file, name, () => {
+        applyModeSearch("radio");
+      });
     });
+
+    loadSearchState();
+    prepareRadioSearchPool();
 
     if (playRandomFromUrlGenre()) {
       return;
@@ -1166,10 +1283,32 @@ fetch("../json/playlists.json")
       playRandomGenreAndStation();
     }
     setRadioListeners();
+    const savedMode = getSavedMode();
+    if (savedMode === "favorites") {
+      setTimeout(() => document.getElementById("favoritesFilterBtn")?.click(), 0);
+    } else if (savedMode === "web3") {
+      setTimeout(async () => {
+        try {
+          const acc = await connectWallet();
+          switchToWeb3(acc);
+        } catch (_) {}
+      }, 0);
+    }
   })
   .catch(() => {
     playRandomGenreAndStation();
     setRadioListeners();
+    const savedMode = getSavedMode();
+    if (savedMode === "favorites") {
+      setTimeout(() => document.getElementById("favoritesFilterBtn")?.click(), 0);
+    } else if (savedMode === "web3") {
+      setTimeout(async () => {
+        try {
+          const acc = await connectWallet();
+          switchToWeb3(acc);
+        } catch (_) {}
+      }, 0);
+    }
   });
 
 
@@ -1507,15 +1646,18 @@ window.onStationSelect = function(i) {
       if(customSelect) customSelect.style.display="";
       if(sIn) sIn.style.display="";
       if(genreLabel) genreLabel.textContent="Genre:";
+      persistCurrentMode("radio");
+      updateSearchInputByMode();
       toggleFavoritesSortVisibility(false);
-      currentPlaylist = allStations.slice();
-      resetVisibleStations();
+      applyModeSearch("radio");
       return;
     }
     btn.classList.add("active");
     if(customSelect) customSelect.style.display="none";
     if(sIn) sIn.style.display="none";
     if(genreLabel) genreLabel.textContent="Favorites";
+    persistCurrentMode("favorites");
+    updateSearchInputByMode();
     toggleFavoritesSortVisibility(true);
     if(cache.ready){
       setFavoritesPlaylistView(cache.list ? cache.list.slice() : []);
