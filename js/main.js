@@ -30,6 +30,7 @@ let radioSearchPool = []
 let radioSearchPoolLoadingPromise = null
 let radioSearchPoolReady = false
 let radioSearchLoading = false
+let radioSearchPoolReleaseTimer = null
 let favoritesBaseList = []
 let web3BaseList = []
 const APP_MODE_KEY = "lastAppMode"
@@ -44,6 +45,7 @@ const searchByMode = {
 }
 // const chatUpdateInterval = 15000
 const metadataUpdateInterval = 7000
+const RADIO_SEARCH_POOL_IDLE_TTL = 120000
 
 const audioPlayer = document.getElementById('audioPlayer')
 audioPlayer.volume = defaultVolume.value
@@ -304,6 +306,10 @@ function applyModeSearch(mode = getEffectiveMode()) {
 }
 
 async function prepareRadioSearchPool(force = false) {
+  if (radioSearchPoolReleaseTimer) {
+    clearTimeout(radioSearchPoolReleaseTimer)
+    radioSearchPoolReleaseTimer = null
+  }
   if (radioSearchPoolReady && !force) return radioSearchPool
   if (radioSearchPoolLoadingPromise && !force) return radioSearchPoolLoadingPromise
   if (!Array.isArray(allPlaylists) || !allPlaylists.length) return []
@@ -334,6 +340,29 @@ async function prepareRadioSearchPool(force = false) {
   })
 
   return radioSearchPoolLoadingPromise
+}
+
+function releaseRadioSearchPool() {
+  radioSearchPool = []
+  radioSearchPoolReady = false
+}
+
+function scheduleRadioSearchPoolRelease() {
+  if (radioSearchPoolReleaseTimer) {
+    clearTimeout(radioSearchPoolReleaseTimer)
+    radioSearchPoolReleaseTimer = null
+  }
+
+  if (radioSearchLoading || radioSearchPoolLoadingPromise) return
+  if ((searchByMode.radio || "").trim().length > 0) return
+  if (!radioSearchPoolReady || !radioSearchPool.length) return
+
+  radioSearchPoolReleaseTimer = setTimeout(() => {
+    radioSearchPoolReleaseTimer = null
+    if (radioSearchLoading || radioSearchPoolLoadingPromise) return
+    if ((searchByMode.radio || "").trim().length > 0) return
+    releaseRadioSearchPool()
+  }, RADIO_SEARCH_POOL_IDLE_TTL)
 }
 
 function normalizeFavoritesStorage() {
@@ -1001,18 +1030,6 @@ function setRadioListeners() {
         });
     }
 
-    sIn.addEventListener("focus", () => {
-      const mode = getEffectiveMode();
-      if (mode === "radio" && !radioSearchPoolReady) {
-        radioSearchLoading = true;
-        updateSearchInputByMode();
-        prepareRadioSearchPool().catch(() => {}).finally(() => {
-          radioSearchLoading = false;
-          updateSearchInputByMode();
-        });
-      }
-    });
-
     function updateClearBtn() {
       if (!clearBtn) return;
       clearBtn.style.display = sIn.value.length > 0 ? "block" : "none";
@@ -1047,6 +1064,9 @@ function setRadioListeners() {
         }
       } else {
         applyModeSearch(mode);
+        if (mode === "radio" && query.length === 0) {
+          scheduleRadioSearchPoolRelease();
+        }
       }
 
       updateClearBtn();
@@ -1062,6 +1082,9 @@ function setRadioListeners() {
         saveSearchState();
         sIn.value = "";
         applyModeSearch(mode);
+        if (mode === "radio") {
+          scheduleRadioSearchPoolRelease();
+        }
         updateClearBtn();
       });
     }
@@ -1096,6 +1119,7 @@ function setRadioListeners() {
           if (genreLabel) genreLabel.textContent = "Genre:";
           updateSearchInputByMode();
           toggleFavoritesSortVisibility(false);
+          scheduleRadioSearchPoolRelease();
           if (allStations.length) {
             applyModeSearch("radio");
           } else {
@@ -1105,6 +1129,7 @@ function setRadioListeners() {
         } else {
           fBtn.classList.add("active");
           persistCurrentMode("favorites");
+          scheduleRadioSearchPoolRelease();
           if (customSelect) customSelect.style.display = "none";
           if (genreLabel) genreLabel.textContent = "Favorites";
           updateSearchInputByMode();
