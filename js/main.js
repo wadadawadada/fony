@@ -29,10 +29,10 @@ let userPaused = false;
 let radioSearchPool = []
 let radioSearchPoolLoadingPromise = null
 let radioSearchPoolReady = false
+let radioSearchLoading = false
 let favoritesBaseList = []
 let web3BaseList = []
 const APP_MODE_KEY = "lastAppMode"
-const SEARCH_STATE_KEY = "searchByMode"
 const LAST_RADIO_TRACK_KEY = "lastRadioTrackUrl"
 const LAST_FAVORITES_TRACK_KEY = "lastFavoritesTrackUrl"
 const LAST_WEB3_TRACK_KEY = "lastWeb3TrackState"
@@ -251,19 +251,12 @@ function savePlaybackState(station) {
 }
 
 function loadSearchState() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(SEARCH_STATE_KEY) || "{}")
-    if (typeof saved === "object" && saved) {
-      for (const key of ["radio", "favorites", "web3"]) {
-        if (typeof saved[key] === "string") searchByMode[key] = saved[key]
-      }
-    }
-  } catch (_) {}
+  searchByMode.radio = ""
+  searchByMode.favorites = ""
+  searchByMode.web3 = ""
 }
 
-function saveSearchState() {
-  localStorage.setItem(SEARCH_STATE_KEY, JSON.stringify(searchByMode))
-}
+function saveSearchState() {}
 
 function getEffectiveMode() {
   return currentMode === "radio" && document.getElementById("favoritesFilterBtn")?.classList.contains("active")
@@ -280,7 +273,7 @@ function updateSearchInputByMode() {
   if (!sIn) return
   const mode = getEffectiveMode()
   const placeholders = {
-    radio: "Search all radio playlists",
+    radio: radioSearchLoading ? "Searching across all genres..." : "Search across all genres",
     favorites: "Search favorites",
     web3: "Search web3 tracks"
   }
@@ -997,13 +990,26 @@ function setRadioListeners() {
 
     const currentModeForInput = getEffectiveMode();
     if (currentModeForInput === "radio" && (searchByMode.radio || "").trim().length > 0 && !radioSearchPoolReady) {
-      prepareRadioSearchPool().then(() => applyModeSearch("radio")).catch(() => {});
+      radioSearchLoading = true;
+      updateSearchInputByMode();
+      prepareRadioSearchPool()
+        .then(() => applyModeSearch("radio"))
+        .catch(() => {})
+        .finally(() => {
+          radioSearchLoading = false;
+          updateSearchInputByMode();
+        });
     }
 
     sIn.addEventListener("focus", () => {
       const mode = getEffectiveMode();
       if (mode === "radio" && !radioSearchPoolReady) {
-        prepareRadioSearchPool().catch(() => {});
+        radioSearchLoading = true;
+        updateSearchInputByMode();
+        prepareRadioSearchPool().catch(() => {}).finally(() => {
+          radioSearchLoading = false;
+          updateSearchInputByMode();
+        });
       }
     });
 
@@ -1018,7 +1024,11 @@ function setRadioListeners() {
       saveSearchState();
       const query = (searchByMode[mode] || "").trim();
       if (mode === "radio" && query.length > 0 && !radioSearchPoolReady) {
+        radioSearchLoading = true;
+        updateSearchInputByMode();
         try { await prepareRadioSearchPool(); } catch (_) {}
+        radioSearchLoading = false;
+        updateSearchInputByMode();
       }
       applyModeSearch(mode);
       updateClearBtn();
