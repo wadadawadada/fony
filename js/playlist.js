@@ -663,10 +663,11 @@ function removeFavorite(station) {
   favs = favs.filter(f => f.url !== station.url);
   saveFavorites(favs);
 }
-export function loadPlaylist(url, genreName = null) {
+export function loadPlaylist(url, genreName = null, options = {}) {
   return fetch(url)
     .then(response => response.text())
     .then(text => {
+      const skipAssetValidation = options && options.skipAssetValidation === true;
       const lines = text.split("\n").map(line => line.trim()).filter(line => line !== "");
       let loadedStations = [];
       if (lines[0] === "#EXTM3U") {
@@ -709,6 +710,10 @@ export function loadPlaylist(url, genreName = null) {
       if (USE_ONLY_HTTPS) {
         loadedStations = loadedStations.filter(station => station.originalUrl.startsWith('https://'));
       }
+      if (skipAssetValidation) {
+        return loadedStations;
+      }
+
       return Promise.all(
         loadedStations.map(st => {
           return new Promise(resolve => {
