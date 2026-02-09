@@ -1,6 +1,19 @@
 import { secureUrl } from './parsing.js';
 
-export let USE_ONLY_HTTPS = localStorage.getItem("useOnlyHttps") === "true" ? true : false;
+// Migration: old code had inverted checkbox logic — "Hide http stations" checked
+// saved useOnlyHttps="false" and unchecked saved "true" (backwards).
+// Invert the value once so old backups and existing localStorage are corrected.
+if (localStorage.getItem("useOnlyHttpsMigrated") !== "true") {
+  const prev = localStorage.getItem("useOnlyHttps");
+  if (prev === "true") {
+    localStorage.setItem("useOnlyHttps", "false");
+  } else if (prev === "false") {
+    localStorage.setItem("useOnlyHttps", "true");
+  }
+  localStorage.setItem("useOnlyHttpsMigrated", "true");
+}
+
+export let USE_ONLY_HTTPS = localStorage.getItem("useOnlyHttps") === "true";
 export function updateUseOnlyHttpsSetting(newValue) {
   USE_ONLY_HTTPS = newValue;
 }
@@ -707,7 +720,8 @@ export function loadPlaylist(url, genreName = null, options = {}) {
       }
       const hiddenStations = JSON.parse(localStorage.getItem("hiddenStations") || "[]");
       loadedStations = loadedStations.filter(station => !hiddenStations.includes(station.url));
-      if (USE_ONLY_HTTPS) {
+      const skipHttpsFilter = options && options.skipHttpsFilter === true;
+      if (USE_ONLY_HTTPS && !skipHttpsFilter) {
         loadedStations = loadedStations.filter(station => station.originalUrl.startsWith('https://'));
       }
       if (skipAssetValidation) {

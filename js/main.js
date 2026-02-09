@@ -966,7 +966,7 @@ async function createFavoritesPlaylist() {
   let list = [];
   const favOrderMap = new Map(favs.map((fav, idx) => [fav.url, { ...fav, order: idx }]));
   for (let pl of allPlaylists) {
-    const st = await loadPlaylist(pl.file, pl.name);
+    const st = await loadPlaylist(pl.file, pl.name, { skipHttpsFilter: true });
     const matched = st.filter(x => favs.some(f => f.url === x.url));
     matched.forEach(x => {
       const favEntry = favs.find(f => f.url === x.url);
@@ -1755,7 +1755,7 @@ window.onStationSelect = function(i) {
       await Promise.all(
         (Array.isArray(allPlaylists) ? allPlaylists : []).map(async pl => {
           try {
-            cache.byGenre[pl.name] = await loadPlaylist(pl.file, pl.name);
+            cache.byGenre[pl.name] = await loadPlaylist(pl.file, pl.name, { skipHttpsFilter: true });
           } catch(e) {
             cache.byGenre[pl.name] = [];
           }
