@@ -707,7 +707,8 @@ export function loadPlaylist(url, genreName = null, options = {}) {
       }
       const hiddenStations = JSON.parse(localStorage.getItem("hiddenStations") || "[]");
       loadedStations = loadedStations.filter(station => !hiddenStations.includes(station.url));
-      if (USE_ONLY_HTTPS) {
+      const skipHttpsFilter = options && options.skipHttpsFilter === true;
+      if (USE_ONLY_HTTPS && !skipHttpsFilter) {
         loadedStations = loadedStations.filter(station => station.originalUrl.startsWith('https://'));
       }
       if (skipAssetValidation) {

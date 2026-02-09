@@ -53,15 +53,15 @@ function handleSettingsClick(e) {
     '<button id="restoreAppBtn" style="background-color: #00F2B8; color: #171C2B; border: none; border-radius: 25px; padding: 7px 13px; font-family: \'Ruda\', sans-serif; font-size: 12px; cursor: pointer; margin-top: 10px;">Restore App</button>' +
     '<button id="saveSettingsBtn" class="save-settings-btn" style="margin-top:10px;">Save Settings</button>';
 
-  document.getElementById("httpStationsCheckbox").checked = (localStorage.getItem("useOnlyHttps") === "false");
+  document.getElementById("httpStationsCheckbox").checked = (localStorage.getItem("useOnlyHttps") === "true");
   document.getElementById("leftHandedCheckbox").checked = (localStorage.getItem("leftHanded") === "true");
 
   document.getElementById("saveSettingsBtn").addEventListener("click", function() {
     var checkbox = document.getElementById("httpStationsCheckbox");
-    var newValue = checkbox.checked ? "false" : "true";
+    var newValue = checkbox.checked ? "true" : "false";
     localStorage.setItem("useOnlyHttps", newValue);
     if (window.updateUseOnlyHttpsSetting) {
-      window.updateUseOnlyHttpsSetting(checkbox.checked ? false : true);
+      window.updateUseOnlyHttpsSetting(checkbox.checked);
     }
     var leftHandedCheckbox = document.getElementById("leftHandedCheckbox");
     localStorage.setItem("leftHanded", leftHandedCheckbox.checked ? "true" : "false");
