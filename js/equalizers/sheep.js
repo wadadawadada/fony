@@ -12,6 +12,9 @@ export default function Sheep({ container, analyser }) {
   let mode = "walk", modeTimer = 0, actionTimer = 0, pauseTimer = 0;
   let nextAction = null;
   let prevLevel = 0;
+  let prevBass = 0;
+  let beatPulse = 0;
+  let beatCooldown = 0;
   let actionDuration = 18;
   const STONES_Y = CONTAINER_HEIGHT - 16; // выше передней травы (ниже = выше визуально)
   const GROUND_Y = CONTAINER_HEIGHT - 16; // линия "земли" по центру камней и овцы
@@ -250,12 +253,32 @@ export default function Sheep({ container, analyser }) {
     prevLevel += (newLevel - prevLevel) * 0.2;
     return prevLevel;
   }
-  function getLevel() {
+  function smoothBass(newBass) {
+    prevBass += (newBass - prevBass) * 0.35;
+    return prevBass;
+  }
+  function getAudioMetrics() {
     analyser.getByteFrequencyData(freq);
-    let s = 0;
-    for (let i = 0; i < freq.length; i++) s += freq[i];
-    const avg = (s / Math.max(1, freq.length)) / 255;
-    return smoothLevel(avg);
+    let sum = 0;
+    let bassSum = 0;
+    const bassBins = Math.max(4, Math.floor(freq.length * 0.16));
+    for (let i = 0; i < freq.length; i++) {
+      sum += freq[i];
+      if (i < bassBins) bassSum += freq[i];
+    }
+    const level = smoothLevel((sum / Math.max(1, freq.length)) / 255);
+    const rawBass = (bassSum / Math.max(1, bassBins)) / 255;
+    const transient = Math.max(0, rawBass - prevBass);
+    const bass = smoothBass(rawBass);
+
+    beatPulse *= 0.88;
+    if (beatCooldown > 0) beatCooldown -= 1;
+    if (transient > 0.035 && bass > 0.18 && beatCooldown <= 0) {
+      beatPulse = Math.min(1, beatPulse + 0.9);
+      beatCooldown = 7;
+    }
+
+    return { level, bass, beat: beatPulse };
   }
   function centerPos() {
     return (getContainerWidth() - SHEEP_WIDTH) / 2;
@@ -264,17 +287,19 @@ export default function Sheep({ container, analyser }) {
     const choices = [
       { mode: "nod", weight: 1.1 },
       { mode: "graze", weight: 1.1 },
-      { mode: "jump", weight: 1 }
+      { mode: "jump", weight: 1 },
+      { mode: "dance", weight: 1.6 }
     ];
     let sum = choices.reduce((s, c) => s + c.weight, 0);
     let r = Math.random() * sum;
     for (let c of choices) { if (r < c.weight) return c.mode; r -= c.weight; }
     return "nod";
   }
-  function animateSheep(level, t) {
+  function animateSheep(metrics, t) {
+    const { level, bass, beat } = metrics;
     updateGroundOnResize();
     if (mode === "walk") {
-      const speed = 0.06 + 0.04 * level;
+      const speed = 0.06 + 0.06 * level + beat * 0.03;
       sheepX += sheepDir * speed;
       const width = getContainerWidth();
       const leftBound = 8;
@@ -282,27 +307,44 @@ export default function Sheep({ container, analyser }) {
       if (sheepX < leftBound) { sheepX = leftBound; sheepDir = 1; }
       if (sheepX > rightBound) { sheepX = rightBound; sheepDir = -1; }
       modeTimer += 1 / 60;
+      if (beat > 0.45 && level > 0.16 && Math.random() < 0.06) {
+        mode = "dance";
+        actionTimer = 0;
+        actionDuration = 5 + Math.random() * 4;
+      }
       if (modeTimer > 5 + Math.random() * 3) { mode = "pause"; pauseTimer = 0; nextAction = pickNextAction(); modeTimer = 0; }
     } else if (mode === "pause") {
       pauseTimer += 1 / 60;
+      if (beat > 0.45 && level > 0.16 && Math.random() < 0.04) {
+        mode = "dance";
+        actionTimer = 0;
+        actionDuration = 4 + Math.random() * 3;
+      }
       if (pauseTimer > 1.3 + Math.random() * 2.0) {
         mode = nextAction; actionTimer = 0;
         if (nextAction === "nod") actionDuration = 8 + Math.random() * 4;
         else if (nextAction === "graze") actionDuration = 12 + Math.random() * 6;
         else if (nextAction === "jump") actionDuration = 5 + Math.random() * 3;
+        else if (nextAction === "dance") actionDuration = 5 + Math.random() * 4;
         else actionDuration = 7 + Math.random() * 5;
       }
-    } else if (mode === "nod" || mode === "graze" || mode === "jump") {
+    } else if (mode === "nod" || mode === "graze" || mode === "jump" || mode === "dance") {
       actionTimer += 1 / 60;
       if (actionTimer > (typeof actionDuration === "number" ? actionDuration : 10)) { mode = "walk"; modeTimer = 0; }
     }
     tryEmitCloud(t);
     drawClouds();
-    let yOffset = 8;
+    let yOffset = 8 + Math.sin(t * 0.011) * beat * 2.6;
     if (mode === "jump") yOffset = -Math.abs(Math.sin(t * 0.004) * 12);
+    if (mode === "dance") yOffset = -Math.abs(Math.sin(t * 0.013) * (5 + beat * 9));
+    let danceWiggle = 0;
+    if (mode === "dance") {
+      danceWiggle = Math.sin(t * 0.018) * (3 + beat * 8);
+      sheepX += danceWiggle * 0.05;
+    }
     const transform = (sheepDir === 1)
-      ? `translate(${sheepX + SHEEP_WIDTH},${yOffset}) scale(-1,1)`
-      : `translate(${sheepX},${yOffset})`;
+      ? `translate(${sheepX + SHEEP_WIDTH + danceWiggle},${yOffset}) scale(-1,1)`
+      : `translate(${sheepX + danceWiggle},${yOffset})`;
     sheepGroup.setAttribute("transform", transform);
     if (head) {
       if (mode === "nod") {
@@ -313,6 +355,10 @@ export default function Sheep({ container, analyser }) {
         head.setAttribute("transform", `translate(0,18) rotate(-14,42,27) translate(0,${chew.toFixed(2)})`);
       } else if (mode === "jump") {
         head.setAttribute("transform", `translate(0,8)`);
+      } else if (mode === "dance") {
+        const side = Math.sin(t * 0.013) * (2.2 + beat * 2.4);
+        const bob = Math.abs(Math.sin(t * 0.026)) * (3.2 + bass * 4.2);
+        head.setAttribute("transform", `translate(${side.toFixed(2)},${bob.toFixed(2)}) rotate(${(Math.sin(t * 0.01) * (3 + beat * 9)).toFixed(2)},42,27)`);
       } else if (mode === "pause") {
         head.setAttribute("transform", `translate(0,3)`);
       } else {
@@ -322,23 +368,28 @@ export default function Sheep({ container, analyser }) {
       }
     }
     const step = t * 0.009;
-    const legsAnim = (mode === "walk" || mode === "jump");
-    if (frontL) frontL.setAttribute("transform", legsAnim ? `rotate(${Math.sin(step)*16*level},40,43)` : "");
-    if (frontR) frontR.setAttribute("transform", legsAnim ? `rotate(${-Math.sin(step)*16*level},34,41)` : "");
-    if (rearL)  rearL.setAttribute("transform", legsAnim ? `rotate(${Math.sin(step+1.2)*13*level},70,41)` : "");
-    if (rearR)  rearR.setAttribute("transform", legsAnim ? `rotate(${-Math.sin(step+1.2)*13*level},63,43)` : "");
+    const legsAnim = (mode === "walk" || mode === "jump" || mode === "dance");
+    const legAmp = mode === "dance" ? (15 + beat * 22) : (16 * level);
+    const rearAmp = mode === "dance" ? (12 + beat * 18) : (13 * level);
+    if (frontL) frontL.setAttribute("transform", legsAnim ? `rotate(${Math.sin(step)*legAmp},40,43)` : "");
+    if (frontR) frontR.setAttribute("transform", legsAnim ? `rotate(${-Math.sin(step)*legAmp},34,41)` : "");
+    if (rearL)  rearL.setAttribute("transform", legsAnim ? `rotate(${Math.sin(step+1.2)*rearAmp},70,41)` : "");
+    if (rearR)  rearR.setAttribute("transform", legsAnim ? `rotate(${-Math.sin(step+1.2)*rearAmp},63,43)` : "");
   }
   function loop() {
     raf = requestAnimationFrame(loop);
-    const level = getLevel();
+    const metrics = getAudioMetrics();
     const t = performance.now();
-    animateSheep(level, t);
+    animateSheep(metrics, t);
   }
   function start() {
     analyser.fftSize = 128;
     mode = "walk";
     modeTimer = 0;
     prevLevel = 0;
+    prevBass = 0;
+    beatPulse = 0;
+    beatCooldown = 0;
     loop();
   }
   function stop() {
