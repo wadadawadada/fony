@@ -1,63 +1,60 @@
-const FONY_PROXY_BASES = [
-  "https://fonyserver.onrender.com",
-  "https://fonyserver.up.railway.app"
-];
+const FONY_PROXY_PRIMARY = "https://fonyserver.onrender.com";
+const FONY_PROXY_FALLBACK = "https://fonyserver.up.railway.app";
 
-let activeFonyProxyBase = FONY_PROXY_BASES[0];
-let fonyProxyResolvePromise = null;
+let activeFonyProxyBase = FONY_PROXY_PRIMARY;
 
-async function canReachServer(base, path) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 3500);
-  try {
-    await fetch(`${base}${path}`, { signal: controller.signal });
-    return true;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timeoutId);
+function switchToFallback() {
+  if (activeFonyProxyBase !== FONY_PROXY_FALLBACK) {
+    activeFonyProxyBase = FONY_PROXY_FALLBACK;
   }
 }
 
-async function resolveFonyProxyBase() {
-  if (fonyProxyResolvePromise) return fonyProxyResolvePromise;
+async function fetchWithProxyFallback(path, options = {}) {
+  const primaryUrl = `${activeFonyProxyBase}${path}`;
 
-  fonyProxyResolvePromise = (async () => {
-    const probePath = `/?url=${encodeURIComponent("https://example.com")}&t=${Date.now()}`;
-    if (await canReachServer(FONY_PROXY_BASES[0], probePath)) {
-      activeFonyProxyBase = FONY_PROXY_BASES[0];
-      return activeFonyProxyBase;
+  try {
+    const response = await fetch(primaryUrl, options);
+    if (!response.ok && activeFonyProxyBase === FONY_PROXY_PRIMARY) {
+      switchToFallback();
+      return fetch(`${activeFonyProxyBase}${path}`, options);
     }
-    activeFonyProxyBase = FONY_PROXY_BASES[1];
-    return activeFonyProxyBase;
-  })();
-
-  const resolvedBase = await fonyProxyResolvePromise;
-  fonyProxyResolvePromise = null;
-  return resolvedBase;
+    return response;
+  } catch (error) {
+    if (activeFonyProxyBase === FONY_PROXY_PRIMARY) {
+      switchToFallback();
+      return fetch(`${activeFonyProxyBase}${path}`, options);
+    }
+    throw error;
+  }
 }
 
 export function secureUrl(url) {
   if (url.startsWith("http://")) {
-    resolveFonyProxyBase().catch(() => {});
     return `${activeFonyProxyBase}/stream?url=${encodeURIComponent(url)}`;
   }
   return url;
 }
 
 export async function fetchIcyMetadata(url) {
-  if (url.startsWith("http://")) {
-    const base = await resolveFonyProxyBase();
-    url = `${base}/stream?url=${encodeURIComponent(url)}`;
-  }
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
-    const response = await fetch(url, {
+    const requestOptions = {
       headers: { 'Icy-MetaData': '1' },
       signal: controller.signal
-    });
+    };
+
+    const response = url.startsWith("http://")
+      ? await fetchWithProxyFallback(`/stream?url=${encodeURIComponent(url)}`, requestOptions)
+      : await fetch(url, requestOptions);
+
     clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      console.warn("Icy metadata request failed, status:", response.status);
+      return null;
+    }
+
     const metaIntHeader = response.headers.get("icy-metaint");
     if (!metaIntHeader) {
       console.warn("Icy-metaint header not available");
@@ -100,15 +97,21 @@ export async function fetchIcyMetadata(url) {
 
 export async function getNowPlaying(streamUrl) {
   try {
-    const base = await resolveFonyProxyBase();
-    const apiUrl = `${base}/?url=${encodeURIComponent(streamUrl)}&t=${Date.now()}`;
-    const response = await fetch(apiUrl);
+    const response = await fetchWithProxyFallback(`/?url=${encodeURIComponent(streamUrl)}&t=${Date.now()}`);
     if (!response.ok) {
       console.warn("Metadata not received, status: " + response.status);
       return null;
     }
-    const metadata = await response.json();
-    return metadata.StreamTitle || null;
+
+    const rawText = await response.text();
+    if (!rawText) return null;
+
+    try {
+      const metadata = JSON.parse(rawText);
+      return metadata.StreamTitle || null;
+    } catch {
+      return null;
+    }
   } catch (error) {
     console.error("Error getting Now Playing:", error);
     return null;

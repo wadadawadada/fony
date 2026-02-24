@@ -1655,40 +1655,21 @@ if (!isIOSMobile()) {
 }
 
 
-const IOS_FIX_BASES = [
-  "https://fony-ios-fix-server.onrender.com",
-  "https://fony-ios-fix-server-production.up.railway.app"
-];
-let activeIosFixBase = IOS_FIX_BASES[0];
-let iosFixResolvePromise = null;
-
-async function resolveIosFixBase() {
-  if (iosFixResolvePromise) return iosFixResolvePromise;
-
-  iosFixResolvePromise = (async () => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
-    try {
-      await fetch(`${IOS_FIX_BASES[0]}/`, { signal: controller.signal });
-      activeIosFixBase = IOS_FIX_BASES[0];
-    } catch {
-      activeIosFixBase = IOS_FIX_BASES[1];
-    } finally {
-      clearTimeout(timeoutId);
-    }
-    return activeIosFixBase;
-  })();
-
-  const resolvedBase = await iosFixResolvePromise;
-  iosFixResolvePromise = null;
-  return resolvedBase;
-}
+const IOS_FIX_PRIMARY = "https://fony-ios-fix-server.onrender.com";
+const IOS_FIX_FALLBACK = "https://fony-ios-fix-server-production.up.railway.app";
+let activeIosFixBase = IOS_FIX_PRIMARY;
 
 function getStreamUrlForPlayback(originalUrl, stationId) {
-  resolveIosFixBase().catch(() => {});
-  const base = activeIosFixBase;
-  fetch(`${base}/start?id=${encodeURIComponent(stationId)}&url=${encodeURIComponent(originalUrl)}`).catch(() => {});
-  return `${base}/hls/${encodeURIComponent(stationId)}/playlist.m3u8`;
+  const makeStartUrl = (base) => `${base}/start?id=${encodeURIComponent(stationId)}&url=${encodeURIComponent(originalUrl)}`;
+
+  fetch(makeStartUrl(activeIosFixBase)).catch(() => {
+    if (activeIosFixBase === IOS_FIX_PRIMARY) {
+      activeIosFixBase = IOS_FIX_FALLBACK;
+      fetch(makeStartUrl(activeIosFixBase)).catch(() => {});
+    }
+  });
+
+  return `${activeIosFixBase}/hls/${encodeURIComponent(stationId)}/playlist.m3u8`;
 }
 
 const __wrapIOS_OnStationSelect = window.onStationSelect || onStationSelect;
