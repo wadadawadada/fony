@@ -1655,30 +1655,8 @@ if (!isIOSMobile()) {
 }
 
 
-const IOS_FIX_SERVERS = [
-  'https://fony-ios-fix-server.onrender.com',
-  'https://fony-ios-fix-server-production.up.railway.app'
-];
-
-let _activeIosServer = IOS_FIX_SERVERS[0];
-
-// Probe iOS fix servers on load to find the first reachable one
-(async () => {
-  for (const server of IOS_FIX_SERVERS) {
-    try {
-      const ctrl = new AbortController();
-      setTimeout(() => ctrl.abort(), 6000);
-      await fetch(server + '/', { mode: 'no-cors', signal: ctrl.signal });
-      _activeIosServer = server;
-      return;
-    } catch {
-      // timeout or network error — try next server
-    }
-  }
-})();
-
 function getStreamUrlForPlayback(originalUrl, stationId) {
-  const base = _activeIosServer;
+  const base = "https://fony-ios-fix-server.onrender.com";
   fetch(`${base}/start?id=${encodeURIComponent(stationId)}&url=${encodeURIComponent(originalUrl)}`).catch(() => {});
   return `${base}/hls/${encodeURIComponent(stationId)}/playlist.m3u8`;
 }
