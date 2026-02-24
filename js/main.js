@@ -1656,7 +1656,7 @@ if (!isIOSMobile()) {
 
 
 function getStreamUrlForPlayback(originalUrl, stationId) {
-  const base = "https://fony-ios-fix-server.onrender.com";
+  const base = "https://fony-ios-fix-server-production.up.railway.app";
   fetch(`${base}/start?id=${encodeURIComponent(stationId)}&url=${encodeURIComponent(originalUrl)}`).catch(() => {});
   return `${base}/hls/${encodeURIComponent(stationId)}/playlist.m3u8`;
 }
