@@ -1,6 +1,28 @@
+const PROXY_SERVERS = [
+  'https://fonyserver.onrender.com',
+  'https://fonyserver.up.railway.app'
+];
+
+let _activeProxy = PROXY_SERVERS[0];
+
+// Probe servers on load to find the first reachable one
+(async () => {
+  for (const server of PROXY_SERVERS) {
+    try {
+      const ctrl = new AbortController();
+      setTimeout(() => ctrl.abort(), 6000);
+      await fetch(server + '/', { mode: 'no-cors', signal: ctrl.signal });
+      _activeProxy = server;
+      return;
+    } catch {
+      // timeout or network error — try next server
+    }
+  }
+})();
+
 export function secureUrl(url) {
   if (url.startsWith("http://")) {
-    return "https://fonyserver.onrender.com/stream?url=" + encodeURIComponent(url);
+    return _activeProxy + '/stream?url=' + encodeURIComponent(url);
   }
   return url;
 }
@@ -56,19 +78,24 @@ export async function fetchIcyMetadata(url) {
 }
 
 export async function getNowPlaying(streamUrl) {
-  try {
-    const apiUrl = `https://fonyserver.onrender.com/?url=${encodeURIComponent(streamUrl)}&t=${Date.now()}`;
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      console.warn("Metadata not received, status: " + response.status);
-      return null;
+  for (const server of PROXY_SERVERS) {
+    try {
+      const apiUrl = `${server}/?url=${encodeURIComponent(streamUrl)}&t=${Date.now()}`;
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 8000);
+      const response = await fetch(apiUrl, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (!response.ok) {
+        console.warn(`[fony] getNowPlaying: ${server} returned ${response.status}`);
+        continue;
+      }
+      const metadata = await response.json();
+      return metadata.StreamTitle || null;
+    } catch (err) {
+      console.warn(`[fony] getNowPlaying: ${server} failed`, err);
     }
-    const metadata = await response.json();
-    return metadata.StreamTitle || null;
-  } catch (error) {
-    console.error("Error getting Now Playing:", error);
-    return null;
   }
+  return null;
 }
 
 export { getNowPlaying as getStreamMetadata };
