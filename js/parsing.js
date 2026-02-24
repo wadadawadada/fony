@@ -1,6 +1,6 @@
 export function secureUrl(url) {
   if (url.startsWith("http://")) {
-    return "https://fonyserver.onrender.com/stream?url=" + encodeURIComponent(url);
+    return "https://fonyserver.up.railway.app/stream?url=" + encodeURIComponent(url);
   }
   return url;
 }
@@ -57,7 +57,7 @@ export async function fetchIcyMetadata(url) {
 
 export async function getNowPlaying(streamUrl) {
   try {
-    const apiUrl = `https://fonyserver.onrender.com/?url=${encodeURIComponent(streamUrl)}&t=${Date.now()}`;
+    const apiUrl = `https://fonyserver.up.railway.app/?url=${encodeURIComponent(streamUrl)}&t=${Date.now()}`;
     const response = await fetch(apiUrl);
     if (!response.ok) {
       console.warn("Metadata not received, status: " + response.status);
