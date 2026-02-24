@@ -1,12 +1,55 @@
+const FONY_PROXY_BASES = [
+  "https://fonyserver.onrender.com",
+  "https://fonyserver.up.railway.app"
+];
+
+let activeFonyProxyBase = FONY_PROXY_BASES[0];
+let fonyProxyResolvePromise = null;
+
+async function canReachServer(base, path) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3500);
+  try {
+    await fetch(`${base}${path}`, { signal: controller.signal });
+    return true;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function resolveFonyProxyBase() {
+  if (fonyProxyResolvePromise) return fonyProxyResolvePromise;
+
+  fonyProxyResolvePromise = (async () => {
+    const probePath = `/?url=${encodeURIComponent("https://example.com")}&t=${Date.now()}`;
+    if (await canReachServer(FONY_PROXY_BASES[0], probePath)) {
+      activeFonyProxyBase = FONY_PROXY_BASES[0];
+      return activeFonyProxyBase;
+    }
+    activeFonyProxyBase = FONY_PROXY_BASES[1];
+    return activeFonyProxyBase;
+  })();
+
+  const resolvedBase = await fonyProxyResolvePromise;
+  fonyProxyResolvePromise = null;
+  return resolvedBase;
+}
+
 export function secureUrl(url) {
   if (url.startsWith("http://")) {
-    return "https://fonyserver.onrender.com/stream?url=" + encodeURIComponent(url);
+    resolveFonyProxyBase().catch(() => {});
+    return `${activeFonyProxyBase}/stream?url=${encodeURIComponent(url)}`;
   }
   return url;
 }
 
 export async function fetchIcyMetadata(url) {
-  url = secureUrl(url);
+  if (url.startsWith("http://")) {
+    const base = await resolveFonyProxyBase();
+    url = `${base}/stream?url=${encodeURIComponent(url)}`;
+  }
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -57,7 +100,8 @@ export async function fetchIcyMetadata(url) {
 
 export async function getNowPlaying(streamUrl) {
   try {
-    const apiUrl = `https://fonyserver.onrender.com/?url=${encodeURIComponent(streamUrl)}&t=${Date.now()}`;
+    const base = await resolveFonyProxyBase();
+    const apiUrl = `${base}/?url=${encodeURIComponent(streamUrl)}&t=${Date.now()}`;
     const response = await fetch(apiUrl);
     if (!response.ok) {
       console.warn("Metadata not received, status: " + response.status);

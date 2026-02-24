@@ -1655,8 +1655,38 @@ if (!isIOSMobile()) {
 }
 
 
+const IOS_FIX_BASES = [
+  "https://fony-ios-fix-server.onrender.com",
+  "https://fony-ios-fix-server-production.up.railway.app"
+];
+let activeIosFixBase = IOS_FIX_BASES[0];
+let iosFixResolvePromise = null;
+
+async function resolveIosFixBase() {
+  if (iosFixResolvePromise) return iosFixResolvePromise;
+
+  iosFixResolvePromise = (async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    try {
+      await fetch(`${IOS_FIX_BASES[0]}/`, { signal: controller.signal });
+      activeIosFixBase = IOS_FIX_BASES[0];
+    } catch {
+      activeIosFixBase = IOS_FIX_BASES[1];
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    return activeIosFixBase;
+  })();
+
+  const resolvedBase = await iosFixResolvePromise;
+  iosFixResolvePromise = null;
+  return resolvedBase;
+}
+
 function getStreamUrlForPlayback(originalUrl, stationId) {
-  const base = "https://fony-ios-fix-server.onrender.com";
+  resolveIosFixBase().catch(() => {});
+  const base = activeIosFixBase;
   fetch(`${base}/start?id=${encodeURIComponent(stationId)}&url=${encodeURIComponent(originalUrl)}`).catch(() => {});
   return `${base}/hls/${encodeURIComponent(stationId)}/playlist.m3u8`;
 }
