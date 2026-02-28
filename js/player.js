@@ -1,30 +1,32 @@
 export function fadeAudioOut(audioPlayer, duration, callback) {
   const initialVolume = audioPlayer.volume;
   const startTime = performance.now();
+  const step = 16;
   function fade() {
     const elapsed = performance.now() - startTime;
     const fraction = elapsed / duration;
     audioPlayer.volume = Math.max(initialVolume * (1 - fraction), 0);
     if (fraction < 1) {
-      requestAnimationFrame(fade);
+      setTimeout(fade, step);
     } else {
       if (callback) callback();
     }
   }
-  requestAnimationFrame(fade);
+  setTimeout(fade, step);
 }
 
 export function fadeAudioIn(audioPlayer, defaultVolume, duration) {
   const startTime = performance.now();
+  const step = 16;
   function fade() {
     const elapsed = performance.now() - startTime;
     const fraction = Math.min(elapsed / duration, 1);
     audioPlayer.volume = fraction * defaultVolume;
     if (fraction < 1) {
-      requestAnimationFrame(fade);
+      setTimeout(fade, step);
     }
   }
-  requestAnimationFrame(fade);
+  setTimeout(fade, step);
 }
 
 function addTooltip(buttonId, tooltipText, position) {

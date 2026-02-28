@@ -1214,8 +1214,26 @@ if ("mediaSession" in navigator) {
     userPaused = true;
     audioPlayer.pause()
   })
-  navigator.mediaSession.setActionHandler("previoustrack", () => rrBtn.click())
-  navigator.mediaSession.setActionHandler("nexttrack", () => ffBtn.click())
+  navigator.mediaSession.setActionHandler("previoustrack", () => {
+    if (currentTrackIndex > 0) {
+      audioPlayer.volume = 0;
+      onStationSelect(currentTrackIndex - 1);
+    }
+  })
+  navigator.mediaSession.setActionHandler("nexttrack", () => {
+    if (shuffleActive) {
+      let r;
+      do {
+        r = Math.floor(Math.random() * currentPlaylist.length);
+      } while (r === currentTrackIndex && currentPlaylist.length > 1);
+      audioPlayer.volume = 0;
+      onStationSelect(r);
+    } else {
+      const next = currentTrackIndex < currentPlaylist.length - 1 ? currentTrackIndex + 1 : 0;
+      audioPlayer.volume = 0;
+      onStationSelect(next);
+    }
+  })
 }
 
 playlistContainer.addEventListener("scroll", () => {
