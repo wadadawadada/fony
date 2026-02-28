@@ -2,7 +2,7 @@ const FONY_BACKEND_URL = window.FONY_BACKEND_URL || "https://fonyserver.up.railw
 
 function sanitizeQuery(str) {
   return str
-    .replace(/["вЂњвЂќвЂвЂ™']/g, "")
+    .replace(/["\u201C\u201D\u2018\u2019']/g, "")
     .replace(/\([^)]*\)/g, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -24,15 +24,15 @@ function escapeHtml(text) {
 export async function fetchDiscogsTrackInfo(artist, track) {
   const rawQuery = `${artist} ${track}`.trim();
   const query = sanitizeQuery(rawQuery);
-  if (!query) return "вљ пёЏ Artist or track name is required.";
+  if (!query) return "\u26A0\uFE0F Artist or track name is required.";
 
   try {
     const response = await fetch(`${FONY_BACKEND_URL}/api/discogs/search?q=${encodeURIComponent(query)}`);
     if (!response.ok) {
       if (response.status === 404) {
-        return `вљ пёЏ No results found on Discogs for "${escapeHtml(query)}"`;
+        return `\u26A0\uFE0F No results found on Discogs for "${escapeHtml(query)}"`;
       }
-      return `вќ— Discogs API error: ${response.status}`;
+      return `\u274D Discogs API error: ${response.status}`;
     }
 
     const releaseData = await response.json();
@@ -47,7 +47,7 @@ export async function fetchDiscogsTrackInfo(artist, track) {
     if (!discogsLink && releaseData.id) {
       discogsLink = `https://www.discogs.com/release/${releaseData.id}`;
     }
-    discogsLink = (discogsLink || "#").replace(/\s*[вЂ“вЂ”]\s*/g, "-");
+    discogsLink = (discogsLink || "#").replace(/\s*[\u2013\u2014]\s*/g, "-");
 
     const artistTrackQuery = encodeURIComponent(`${artist} ${track}`);
     const ytSearchUrl = `https://www.youtube.com/results?search_query=${artistTrackQuery}`;
@@ -56,9 +56,9 @@ export async function fetchDiscogsTrackInfo(artist, track) {
 
     const searchLinks = `
 <div style="margin-top: 8px; font-size: 14px; font-family: monospace, monospace;">
-  рџ”Ћ <a href="${ytSearchUrl}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">YouTube</a> | 
-  рџЋ§ <a href="${spotifySearchUrl}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Spotify</a> | 
-  рџЊЉ <a href="${tidalSearchUrl}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Tidal</a>
+  🔎 <a href="${ytSearchUrl}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">YouTube</a> |
+  🎧 <a href="${spotifySearchUrl}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Spotify</a> |
+  🌊 <a href="${tidalSearchUrl}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Tidal</a>
 </div>
 `;
 
@@ -67,11 +67,11 @@ export async function fetchDiscogsTrackInfo(artist, track) {
   ${cover ? `<div style="flex-shrink: 0;"><img src="${cover}" alt="Cover" style="max-width: 150px; border-radius: 8px;"></div>` : ""}
   <div style="flex-grow: 1; line-height: 1.4; font-size: 14px;">
     <div><strong>${escapeHtml(artist)} - ${title}</strong></div>
-    <div>рџЋµ Album: ${title} &nbsp;&nbsp; рџ“… Year: ${year}</div>
-    <div>рџЊЌ Country: ${country}</div>
-    <div>рџЏ·пёЏ Label: ${label}</div>
-    <div>рџЋ¶ Genre: ${escapeHtml(genres)}</div>
-    <div>рџ”— <a href="${discogsLink}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Discogs page</a></div>
+    <div>🎵 Album: ${title} &nbsp;&nbsp; 📅 Year: ${year}</div>
+    <div>🌍 Country: ${country}</div>
+    <div>🏷️ Label: ${label}</div>
+    <div>🎶 Genre: ${escapeHtml(genres)}</div>
+    <div>🔗 <a href="${discogsLink}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Discogs page</a></div>
     ${searchLinks}
   </div>
 </div>
@@ -79,6 +79,6 @@ export async function fetchDiscogsTrackInfo(artist, track) {
 
     return message;
   } catch (e) {
-    return `вќ— Error fetching Discogs data: ${escapeHtml(e.message)}`;
+    return `\u274D Error fetching Discogs data: ${escapeHtml(e.message)}`;
   }
 }
