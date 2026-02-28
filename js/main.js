@@ -38,6 +38,7 @@ const LAST_RADIO_TRACK_KEY = "lastRadioTrackUrl"
 const LAST_FAVORITES_TRACK_KEY = "lastFavoritesTrackUrl"
 const LAST_WEB3_TRACK_KEY = "lastWeb3TrackState"
 const APP_FIRST_LAUNCH_DONE_KEY = "appFirstLaunchDone"
+const FONY_BACKEND_URL = window.FONY_BACKEND_URL || "https://fonyserver.up.railway.app"
 const searchByMode = {
   radio: "",
   favorites: "",
@@ -1656,7 +1657,7 @@ if (!isIOSMobile()) {
 
 
 function getStreamUrlForPlayback(originalUrl, stationId) {
-  const base = "https://fony-ios-fix-server-production.up.railway.app";
+  const base = FONY_BACKEND_URL;
   fetch(`${base}/start?id=${encodeURIComponent(stationId)}&url=${encodeURIComponent(originalUrl)}`).catch(() => {});
   return `${base}/hls/${encodeURIComponent(stationId)}/playlist.m3u8`;
 }

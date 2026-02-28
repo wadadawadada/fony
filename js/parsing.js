@@ -1,6 +1,8 @@
+const FONY_BACKEND_URL = window.FONY_BACKEND_URL || "https://fonyserver.up.railway.app";
+
 export function secureUrl(url) {
   if (url.startsWith("http://")) {
-    return "https://fonyserver.up.railway.app/stream?url=" + encodeURIComponent(url);
+    return `${FONY_BACKEND_URL}/stream?url=` + encodeURIComponent(url);
   }
   return url;
 }
@@ -57,7 +59,7 @@ export async function fetchIcyMetadata(url) {
 
 export async function getNowPlaying(streamUrl) {
   try {
-    const apiUrl = `https://fonyserver.up.railway.app/?url=${encodeURIComponent(streamUrl)}&t=${Date.now()}`;
+    const apiUrl = `${FONY_BACKEND_URL}/?url=${encodeURIComponent(streamUrl)}&t=${Date.now()}`;
     const response = await fetch(apiUrl);
     if (!response.ok) {
       console.warn("Metadata not received, status: " + response.status);

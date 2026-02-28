@@ -1,4 +1,5 @@
-const TEST_MODE = true;
+const TEST_MODE = Boolean(window.__FONY_PODCAST_TEST_MODE__);
+const FONY_BACKEND_URL = window.FONY_BACKEND_URL || "https://fonyserver.up.railway.app";
 
 let podcastAudioEl = null;
 let podcastAudioCtx = null;
@@ -46,13 +47,13 @@ function renderPodcastControls(duration, currentTime, isPaused) {
   return `
     <div class="podcast-ui" style="display:flex; align-items:center; gap:12px; margin-top:8px; font-size:15px;">
       <button id="podcast-playpause-btn" style="background:none;border:none;color:#00F2B8;font-size:20px;cursor:pointer;">
-        ${isPaused ? "▶️" : "⏸️"}
+        ${isPaused ? "в–¶пёЏ" : "вЏёпёЏ"}
       </button>
       <span id="podcast-timer" style="font-family:monospace; font-size:15px; margin-left:10px; margin-right:10px;">
         ${timeStr}
       </span>
       <span style="margin-left:20px;">
-        <button id="podcast-vol-down" style="background:none;border:none;color:#00F2B8;font-size:19px;cursor:pointer;margin-right:6px;">[–]</button>
+        <button id="podcast-vol-down" style="background:none;border:none;color:#00F2B8;font-size:19px;cursor:pointer;margin-right:6px;">[вЂ“]</button>
         <span id="podcast-vol-label">${volPercent}%</span>
         <button id="podcast-vol-up" style="background:none;border:none;color:#00F2B8;font-size:19px;cursor:pointer;margin-left:6px;">[+]</button>
       </span>
@@ -168,62 +169,20 @@ export function stopPodcast() {
   speechSynthesis.cancel();
 }
 
-async function generatePodcastScript(topic) {
-  let apiKey = null;
-  try {
-    const cfg = await fetch("../json/config.json").then(r => r.json());
-    apiKey = cfg.OPENAI_API_KEY;
-  } catch {}
-  if (!apiKey) throw new Error("api key unknown error");
-  const systemPrompt = `You are a podcast scriptwriter. Always respond in the same language as the user prompt. Write a friendly, engaging, well-structured podcast script (2–4 min), with intro and outro, split into clear sections with short titles and light pauses.`;
-  const resp = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: topic }
-      ],
-      temperature: 0.88,
-      max_tokens: 1200
-    })
-  });
-  if (!resp.ok) throw new Error(await resp.text());
-  const data = await resp.json();
-  return data.choices?.[0]?.message?.content;
-}
-
 async function generateCleanPodcastScript(topic) {
-  let apiKey = null;
-  try {
-    const cfg = await fetch("../json/config.json").then(r => r.json());
-    apiKey = cfg.OPENAI_API_KEY;
-  } catch {}
-  if (!apiKey) throw new Error("api key unknown error");
-  const systemPrompt = `You are a podcast scriptwriter. Respond only with plain sentences suitable for text-to-speech. Do not include any markdown, lists, asterisks, hashtags, or formatting symbols. Only output clean text. Length: 2–4 minutes.`;
-  const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+  const resp = await fetch(`${FONY_BACKEND_URL}/api/podcast/script`, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: topic }
-      ],
-      temperature: 0.8,
-      max_tokens: 1200
+      topic,
+      clean: true
     })
   });
   if (!resp.ok) throw new Error(await resp.text());
   const data = await resp.json();
-  let text = data.choices?.[0]?.message?.content || "";
+  let text = data.script || "";
   return text.replace(/[*#`_>]/g, "");
 }
 
@@ -238,20 +197,14 @@ export async function fetchPodcastAudio(topic, opts = {}) {
     if (!resp.ok) throw new Error("Local test mp3 not found");
     return await resp.blob();
   }
-  const script = await generatePodcastScript(topic);
-  if (!script) throw new Error("Can't generate podcast text");
-  const cfg = await fetch("../json/config.json").then(r => r.json());
-  const apiKey = cfg.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("api key unknown error");
-  const ttsResp = await fetch("https://api.openai.com/v1/audio/speech", {
+  const ttsResp = await fetch(`${FONY_BACKEND_URL}/api/podcast/audio`, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: opts.ttsModel || "tts-1",
-      input: script,
+      topic,
+      ttsModel: opts.ttsModel || "tts-1",
       voice: opts.voice || "onyx",
       response_format: opts.response_format || "opus"
     })

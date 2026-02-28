@@ -5,11 +5,10 @@ import { addTrackToCollection, createMainCollectMenuHtml, setupCollectionMenuHan
 import { playPodcastOverRadio, fetchPodcastAudio, stopPodcast } from './utils/podcast.js';
 
 
-const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+const FONY_BACKEND_URL = window.FONY_BACKEND_URL || "https://fonyserver.up.railway.app";
 const TIPS_JSON_URL = "../json/fony_tips.json";
 
 let walletAddress = null;
-let openAiApiKey = null;
 
 const chatContainer = document.getElementById("chat");
 const chatMessagesElem = document.getElementById("chatMessages");
@@ -49,9 +48,8 @@ async function loadFonyUpdateFromGist() {
     return fonyUpdateCache;
   }
 
-  const gistUrl = 'https://gist.githubusercontent.com/wadadawadada/ae325357525ba9674bf31c498b129c91/raw/fonyupdate.txt';
   try {
-    const res = await fetch(gistUrl);
+    const res = await fetch(`${FONY_BACKEND_URL}/api/fony-update`);
     if (!res.ok) throw new Error('Failed to load');
     const text = await res.text();
     fonyUpdateCache = text;
@@ -225,24 +223,26 @@ function showFeatureDetails(idx) {
   showFeatureChoices();
 }
 
-async function fetchOpenAIKey() {
-  if (openAiApiKey) return;
-  try {
-    const res = await fetch("../json/config.json");
-    if (res.ok) {
-      const data = await res.json();
-      if (data.OPENAI_API_KEY) {
-        openAiApiKey = data.OPENAI_API_KEY;
-        return;
-      }
-    }
-  } catch {}
-  try {
-    const res = await fetch("/.netlify/functions/get-config");
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    openAiApiKey = data.OPENAI_API_KEY;
-  } catch {}
+async function requestChatCompletion(messages) {
+  const resp = await fetch(`${FONY_BACKEND_URL}/api/openai/chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "gpt-4.1-nano",
+      messages,
+      temperature: 0.7,
+      max_tokens: 512
+    })
+  });
+
+  if (!resp.ok) {
+    const errorText = await resp.text();
+    throw new Error(`FONY Console error ${resp.status}: ${errorText}`);
+  }
+
+  return resp.json();
 }
 
 function getNowPlayingText() {
@@ -533,11 +533,6 @@ if (userInput.trim().toLowerCase() === "/collection") {
       const info = await fetchMusicBrainzInfoWithRetries(parsed.artist, parsed.track, 3, 2000);
       if (info) return { type: "text", content: info };
       else {
-        if (!openAiApiKey) await fetchOpenAIKey();
-        if (!openAiApiKey) {
-          addMessage("bot", "Error: FONY Console API key is not available.");
-          return;
-        }
         let systemPrompt = "";
         try {
           systemPrompt = await buildSystemPrompt(nowPlayingText);
@@ -551,39 +546,16 @@ if (userInput.trim().toLowerCase() === "/collection") {
           { role: "user", content: "Show technical metadata about the current track" }
         ];
         try {
-          const resp = await fetch(OPENAI_API_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${openAiApiKey}`
-            },
-            body: JSON.stringify({
-              model: "gpt-4.1-nano",
-              messages,
-              temperature: 0.7,
-              max_tokens: 512
-            })
-          });
-          if (!resp.ok) {
-            const errorText = await resp.text();
-            addMessage("bot", `FONY Console error ${resp.status}: ${errorText}`);
-            return;
-          }
-          const data = await resp.json();
+          const data = await requestChatCompletion(messages);
           let botReply = data.choices?.[0]?.message?.content || "No response.";
           return { type: "text", content: botReply };
-        } catch {
-          addMessage("bot", "Error communicating with FONY Console.");
+        } catch (error) {
+          addMessage("bot", error.message || "Error communicating with FONY Console.");
         }
       }
     }
   }
 
-  if (!openAiApiKey) await fetchOpenAIKey();
-  if (!openAiApiKey) {
-    addMessage("bot", "Error: FONY Console API key is not available.");
-    return;
-  }
   let systemPrompt = "";
   try {
     systemPrompt = await buildSystemPrompt(nowPlayingText);
@@ -594,29 +566,11 @@ if (userInput.trim().toLowerCase() === "/collection") {
   const messages = [{ role: "system", content: systemPrompt }, ...history];
   if (!isContinuation && userInput) messages.push({ role: "user", content: userInput });
   try {
-    const resp = await fetch(OPENAI_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${openAiApiKey}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4.1-nano",
-        messages,
-        temperature: 0.7,
-        max_tokens: 512
-      })
-    });
-    if (!resp.ok) {
-      const errorText = await resp.text();
-      addMessage("bot", `FONY Console error ${resp.status}: ${errorText}`);
-      return;
-    }
-    const data = await resp.json();
+    const data = await requestChatCompletion(messages);
     let botReply = data.choices?.[0]?.message?.content || "No response.";
     return { type: "text", content: botReply };
-  } catch {
-    addMessage("bot", "Error communicating with FONY Console.");
+  } catch (error) {
+    addMessage("bot", error.message || "Error communicating with FONY Console.");
   }
 }
 
