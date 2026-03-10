@@ -982,3 +982,49 @@ body:not(.dark) #manifestoBtn img:hover {
 body.dark #manifestoBtn img:hover {
   content: url('/img/dark/about_icon_hover.svg');
 }
+
+.migration-notice-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 30000;
+  background: rgba(10, 14, 24, 0.45);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.migration-notice-content {
+  position: relative;
+  width: min(620px, 100%);
+  background: #171C2B;
+  border: 2px solid #00F2B8;
+  border-radius: 20px;
+  padding: 24px;
+  color: #fff;
+  text-align: center;
+  font-family: 'Ruda', sans-serif;
+}
+
+.migration-notice-content h2 {
+  margin-top: 0;
+  color: #00F2B8;
+}
+
+.migration-notice-content a {
+  color: #00F2B8;
+  font-weight: 700;
+}
+
+.migration-notice-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #00F2B8;
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}

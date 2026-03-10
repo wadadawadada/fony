@@ -374,3 +374,13 @@
     display: none !important;
   }
 }
+
+@media (max-width: 1024px) {
+  .migration-notice-modal {
+    padding: 12px;
+  }
+
+  .migration-notice-content {
+    padding: 18px;
+  }
+}
