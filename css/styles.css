@@ -1016,6 +1016,32 @@ body.dark #manifestoBtn img:hover {
   font-weight: 700;
 }
 
+.migration-notice-guide-btn {
+  margin-top: 4px;
+  border: 1px solid #00F2B8;
+  background: transparent;
+  color: #00F2B8;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: 'Ruda', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.migration-notice-guide-link {
+  display: inline-block;
+  margin-top: 10px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.migration-notice-guide-text {
+  margin: 10px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.35;
+  color: #d4fef0;
+}
+
 .migration-notice-close {
   position: absolute;
   top: 10px;

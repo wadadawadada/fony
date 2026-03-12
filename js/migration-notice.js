@@ -59,8 +59,11 @@ function setupMigrationNotice() {
   const modal = document.getElementById("migrationNoticeModal");
   const closeBtn = document.getElementById("migrationNoticeClose");
   const link = document.getElementById("migrationNoticeLink");
+  const guideBtn = document.getElementById("migrationNoticeGuideBtn");
+  const guideLink = document.getElementById("migrationNoticeGuideLink");
+  const guideText = document.getElementById("migrationNoticeGuideText");
 
-  if (!modal || !closeBtn || !link) return;
+  if (!modal || !closeBtn || !link || !guideBtn || !guideLink || !guideText) return;
 
   function openModal() {
     const todayKey = getTodayKey();
@@ -71,6 +74,7 @@ function setupMigrationNotice() {
     }
 
     markShown(state);
+    guideText.hidden = true;
     modal.style.display = "flex";
 
     const nextDelay = timeUntilNextShow(state);
@@ -95,6 +99,14 @@ function setupMigrationNotice() {
 
     window.open("https://fony.fun", "_blank", "noopener,noreferrer");
   });
+
+  const toggleGuide = (event) => {
+    event.preventDefault();
+    guideText.hidden = !guideText.hidden;
+  };
+
+  guideBtn.addEventListener("click", toggleGuide);
+  guideLink.addEventListener("click", toggleGuide);
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
