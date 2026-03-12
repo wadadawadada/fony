@@ -1,4 +1,5 @@
 var defaultModalContent = "";
+
 document.addEventListener("DOMContentLoaded", function() {
   var modalContentElement = document.querySelector("#manifestoModal .manifesto-content");
   if (modalContentElement) {
@@ -7,16 +8,21 @@ document.addEventListener("DOMContentLoaded", function() {
   attachSettingsListener();
   updateLeftHandedSetting();
 });
+
 document.getElementById("manifestoBtn").addEventListener("click", function() {
   document.getElementById("manifestoModal").style.display = "block";
 });
+
 document.getElementById("manifestoModal").addEventListener("click", function(e) {
   if (e.target.classList.contains("manifesto-close")) {
-    document.querySelector("#manifestoModal .manifesto-content").innerHTML = defaultModalContent;
+    var modalContent = document.querySelector("#manifestoModal .manifesto-content");
+    modalContent.classList.remove("settings-view");
+    modalContent.innerHTML = defaultModalContent;
     attachSettingsListener();
     this.style.display = "none";
   }
 });
+
 function updateLeftHandedSetting() {
   var leftHanded = localStorage.getItem("leftHanded") === "true";
   var container = document.querySelector(".container");
@@ -26,54 +32,61 @@ function updateLeftHandedSetting() {
     container.style.flexDirection = "";
   }
 }
+
 function attachSettingsListener() {
   var settingsIcon = document.getElementById("settingsIcon");
   if (settingsIcon) {
     settingsIcon.addEventListener("click", handleSettingsClick);
   }
 }
-function handleSettingsClick(e) {
-  e.preventDefault();
+
+function closeSettingsView(modal, modalContent) {
+  modalContent.classList.remove("settings-view");
+  modalContent.innerHTML = defaultModalContent;
+  attachSettingsListener();
+  modal.style.display = "none";
+}
+
+function openSettingsModal() {
   var modal = document.getElementById("manifestoModal");
   var modalContent = modal.querySelector(".manifesto-content");
-  defaultModalContent = modalContent.innerHTML;
-  modalContent.innerHTML =
-    '<h1 style="color:#00F2B8; text-align: center;">SETTINGS</h1>' +
-    '<button class="manifesto-close" style="position: absolute; top: 15px; right: 20px; font-size: 24px; background: none; border: none; color: #00F2B8; cursor: pointer;">&times;</button>' +
-    '<div style="padding: 20px;">' +
-      '<label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;">' +
-        '<input type="checkbox" id="httpStationsCheckbox">Hide http stations' +
-      '</label>' +
-      '<label style="display: flex; align-items: center; gap: 10px; color: #00F2B8; font-family: \'Ruda\', sans-serif; font-size: 18px;">' +
-        '<input type="checkbox" id="leftHandedCheckbox">Left Handed' +
-      '</label>' +
-    '</div>' +
-    '<button id="resetAppBtn" style="background-color: red; color: white; border: none; border-radius: 25px; padding: 7px 13px; font-family: \'Ruda\', sans-serif; font-size: 12px; cursor: pointer; margin-top: 10px;">Reset App</button> ' +
-    '<button id="backupAppBtn" style="background-color: #00F2B8; color: #171C2B; border: none; border-radius: 25px; padding: 7px 13px; font-family: \'Ruda\', sans-serif; font-size: 12px; cursor: pointer; margin-top: 10px;">Backup App</button> ' +
-    '<button id="restoreAppBtn" style="background-color: #00F2B8; color: #171C2B; border: none; border-radius: 25px; padding: 7px 13px; font-family: \'Ruda\', sans-serif; font-size: 12px; cursor: pointer; margin-top: 10px;">Restore App</button>' +
-    '<button id="saveSettingsBtn" class="save-settings-btn" style="margin-top:10px;">Save Settings</button>';
 
-  document.getElementById("httpStationsCheckbox").checked = (localStorage.getItem("useOnlyHttps") === "true");
-  document.getElementById("leftHandedCheckbox").checked = (localStorage.getItem("leftHanded") === "true");
+  defaultModalContent = modalContent.innerHTML;
+  modalContent.classList.add("settings-view");
+  modalContent.innerHTML =
+    '<button class="manifesto-close" aria-label="Close settings">&times;</button>' +
+    '<div class="settings-panel">' +
+      '<h1 class="settings-title">Settings</h1>' +
+      '<div class="settings-options">' +
+        '<label class="settings-option">' +
+          '<input type="checkbox" id="httpStationsCheckbox">Hide http stations' +
+        '</label>' +
+        '<label class="settings-option">' +
+          '<input type="checkbox" id="leftHandedCheckbox">Left handed layout' +
+        '</label>' +
+      '</div>' +
+      '<div class="settings-actions">' +
+        '<button id="backupAppBtn" class="settings-btn" type="button">Backup App</button>' +
+        '<button id="restoreAppBtn" class="settings-btn" type="button">Restore App</button>' +
+        '<button id="resetAppBtn" class="settings-btn settings-btn-danger" type="button">Reset App</button>' +
+        '<button id="saveSettingsBtn" class="settings-btn settings-save" type="button">Save Settings</button>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById("httpStationsCheckbox").checked = localStorage.getItem("useOnlyHttps") === "true";
+  document.getElementById("leftHandedCheckbox").checked = localStorage.getItem("leftHanded") === "true";
 
   document.getElementById("saveSettingsBtn").addEventListener("click", function() {
     var checkbox = document.getElementById("httpStationsCheckbox");
-    var newValue = checkbox.checked ? "true" : "false";
-    localStorage.setItem("useOnlyHttps", newValue);
+    localStorage.setItem("useOnlyHttps", checkbox.checked ? "true" : "false");
     if (window.updateUseOnlyHttpsSetting) {
       window.updateUseOnlyHttpsSetting(checkbox.checked);
     }
+
     var leftHandedCheckbox = document.getElementById("leftHandedCheckbox");
     localStorage.setItem("leftHanded", leftHandedCheckbox.checked ? "true" : "false");
     updateLeftHandedSetting();
-    // Custom genre select will trigger refresh automatically if needed
-    // var select = document.getElementById("playlistSelect");
-    // if (select) {
-    //   select.dispatchEvent(new Event("change"));
-    // }
-    modalContent.innerHTML = defaultModalContent;
-    attachSettingsListener();
-    modal.style.display = "none";
+    closeSettingsView(modal, modalContent);
   });
 
   document.getElementById("resetAppBtn").addEventListener("click", function() {
@@ -100,9 +113,9 @@ function handleSettingsClick(e) {
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = function(loadEvent) {
         try {
-          const data = JSON.parse(e.target.result);
+          const data = JSON.parse(loadEvent.target.result);
           localStorage.clear();
           for (const key in data) {
             localStorage.setItem(key, data[key]);
@@ -120,4 +133,10 @@ function handleSettingsClick(e) {
   modal.style.display = "block";
 }
 
+function handleSettingsClick(e) {
+  e.preventDefault();
+  openSettingsModal();
+}
+
+window.openSettingsModal = openSettingsModal;
 window.addEventListener("resize", updateLeftHandedSetting);

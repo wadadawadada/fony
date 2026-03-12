@@ -16,7 +16,7 @@ html, body {
 
 @font-face {
   font-family: 'Fony';
-  src: url('/fonts/Fony.woff2') format('woff2'), url('/fonts/Fony.woff') format('woff');
+  src: url('/fonts/fony.woff') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -144,6 +144,67 @@ svg {
   scale: 0.95;
 }
 
+.settings-panel {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 10px 4px 0;
+  font-family: 'Ruda', sans-serif;
+}
+
+.settings-title {
+  margin: 0 0 14px;
+  text-align: center;
+  color: #00F2B8;
+  font-family: 'Ruda', sans-serif;
+  font-size: 1.5rem;
+}
+
+.settings-options {
+  display: grid;
+  gap: 10px;
+}
+
+.settings-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #d9fff3;
+  font-size: 0.98rem;
+}
+
+.settings-option input {
+  accent-color: #00F2B8;
+}
+
+.settings-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.settings-btn {
+  border: 1px solid #00F2B8;
+  background: transparent;
+  color: #00F2B8;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-family: 'Ruda', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.settings-btn-danger {
+  border-color: #ff5f7c;
+  color: #ff9bb0;
+}
+
+.settings-save {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-top: 2px;
+}
+
 .manifesto-close {
   position: absolute;
   top: 15px;
@@ -169,6 +230,11 @@ svg {
   max-width: 960px;
   position: relative;
   animation: slideUp 0.4s ease;
+}
+
+.manifesto-content.settings-view {
+  max-width: 500px;
+  padding: 1.2rem 1rem 1rem;
 }
 
 @keyframes slideUp {
@@ -1014,6 +1080,18 @@ body.dark #manifestoBtn img:hover {
 .migration-notice-content a {
   color: #00F2B8;
   font-weight: 700;
+}
+
+.migration-notice-settings-btn {
+  margin-top: 8px;
+  border: 1px solid #00F2B8;
+  background: transparent;
+  color: #00F2B8;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-family: 'Ruda', sans-serif;
+  font-size: 0.95rem;
+  cursor: pointer;
 }
 
 .migration-notice-close {

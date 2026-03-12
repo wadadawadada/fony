@@ -59,8 +59,9 @@ function setupMigrationNotice() {
   const modal = document.getElementById("migrationNoticeModal");
   const closeBtn = document.getElementById("migrationNoticeClose");
   const link = document.getElementById("migrationNoticeLink");
+  const settingsBtn = document.getElementById("migrationNoticeSettingsBtn");
 
-  if (!modal || !closeBtn || !link) return;
+  if (!modal || !closeBtn || !link || !settingsBtn) return;
 
   function openModal() {
     const todayKey = getTodayKey();
@@ -94,6 +95,13 @@ function setupMigrationNotice() {
     }
 
     window.open("https://fony.fun", "_blank", "noopener,noreferrer");
+  });
+
+  settingsBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+    if (typeof window.openSettingsModal === "function") {
+      window.openSettingsModal();
+    }
   });
 
   document.addEventListener("visibilitychange", () => {
