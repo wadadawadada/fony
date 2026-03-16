@@ -27,7 +27,7 @@ A real-time assistant that helps you discover similar tracks, explore metadata, 
 🛰️ Open, Flexible, and Future-Proof
 FONY goes beyond playlists. It’s a canvas for listening, discovery, and collection — combining modern tech with timeless listening principles.
 
-🔗 Learn more at https://fony.space
+🔗 Learn more at https://fony.fun
 
 
 ![f1](https://github.com/user-attachments/assets/1444d154-c293-46f2-b4ce-c945867c2df5)
