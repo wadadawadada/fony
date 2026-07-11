@@ -643,6 +643,11 @@ function renderQuickLinks() {
   const nowPlayingText = getNowPlayingText();
   const commands = [
     {
+      text: "/home",
+      description: "Return to the welcome screen",
+      isHome: true
+    },
+    {
       text: "/similar",
       description: "Recommend 3 tracks similar to the current track",
       command: () => nowPlayingText ? `Recommend 3 tracks similar to "${nowPlayingText}"` : "Recommend 3 similar tracks to the current track"
@@ -706,6 +711,10 @@ function renderQuickLinks() {
     a.style.cursor = "pointer";
     a.addEventListener("click", e => {
       e.preventDefault();
+      if (cmd.isHome) {
+        sendWelcomeMessage();
+        return;
+      }
       const commandToSend = typeof cmd.command === "function" ? cmd.command() : cmd.text;
       chatInput.value = commandToSend;
       setTimeout(() => chatSendBtn.click(), 10);
