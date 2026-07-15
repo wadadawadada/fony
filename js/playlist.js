@@ -462,16 +462,11 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
           }
           const hash = generateStationHash(station.url);
           const genre = favGenre || (window.currentGenre || "");
-          const longLink = window.location.origin + window.location.pathname + "#" + encodeURIComponent(genre) + "/" + hash;
-          fetch("https://tinyurl.com/api-create.php?url=" + encodeURIComponent(longLink))
-            .then(response => response.text())
-            .then(shortUrl => {
-              return navigator.clipboard.writeText(shortUrl).then(() => {
-                copiedSpan.style.display = "inline";
-                setTimeout(() => { copiedSpan.style.display = "none"; }, 2000);
-              });
-            })
-            .catch(() => {});
+          const link = window.location.origin + window.location.pathname + "#" + encodeURIComponent(genre) + "/" + hash;
+          navigator.clipboard.writeText(link).then(() => {
+            copiedSpan.style.display = "inline";
+            setTimeout(() => { copiedSpan.style.display = "none"; }, 2000);
+          }).catch(() => {});
         });
         shareWrapper.appendChild(shareIcon);
         shareWrapper.appendChild(copiedSpan);
