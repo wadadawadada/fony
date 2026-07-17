@@ -553,9 +553,12 @@ function checkMarquee(container) {
 }
 
 function handleDeleteCustomPlaylist(id) {
+  const deleted = allPlaylists.find(p => p.id === id);
+  const wasActive = deleted && getSelectedGenre().file === deleted.file;
   deleteCustomPlaylist(id);
   allPlaylists = allPlaylists.filter(p => p.id !== id);
   fillPlaylistSelect(false);
+  if (wasActive) defaultPlaylist();
 }
 
 function fillPlaylistSelect(autoSelectFirst = false) {
@@ -1274,6 +1277,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const entry = saveCustomPlaylist(name, url);
       allPlaylists.unshift(entry);
       fillPlaylistSelect(false);
+      if (window.addPlaylistToFavCache) window.addPlaylistToFavCache(entry);
       closeAddPlaylistModal();
       saveBtn.disabled = false;
       saveBtn.textContent = 'Add Playlist';
@@ -1950,6 +1954,13 @@ window.onStationSelect = function(i) {
   }
   document.addEventListener("DOMContentLoaded", waitAndWarm);
   document.addEventListener("favoritesChanged", ()=>warm());
+  window.addPlaylistToFavCache = async function(pl) {
+    try {
+      cache.byGenre[pl.name] = await loadPlaylist(pl.file, pl.name, { skipHttpsFilter: true });
+    } catch(e) {
+      cache.byGenre[pl.name] = [];
+    }
+  };
   window.usePreloadedFavorites = function(){
     if(cache.ready){
       setFavoritesPlaylistView(cache.list ? cache.list.slice() : []);

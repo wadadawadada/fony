@@ -364,14 +364,6 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     const progressDiv = document.createElement("div");
     progressDiv.classList.add("progress");
     li.appendChild(progressDiv);
-    if (station.cover) {
-      const icon = document.createElement("img");
-      icon.src = station.cover;
-      icon.alt = "Station icon";
-      icon.classList.add("station-icon");
-      icon.loading = "lazy";
-      li.appendChild(icon);
-    }
     const displayName = station.nft ? station.playlistTitle : station.title;
     const span = document.createElement("span");
     span.className = "title-ellipsis";
