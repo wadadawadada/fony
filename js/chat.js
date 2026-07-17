@@ -2,6 +2,7 @@ import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.es
 import { fetchDiscogsTrackInfo } from './utils/discogs.js';
 import { handleSkinsCommand, reapplySkin } from './utils/skins.js';
 import { addTrackToCollection, createMainCollectMenuHtml, setupCollectionMenuHandlers } from './utils/collection.js';
+import { handleMoodCommand, runMoodSearch } from './utils/mood.js';
 import { playPodcastOverRadio, fetchPodcastAudio, stopPodcast } from './utils/podcast.js';
 
 
@@ -339,8 +340,12 @@ async function fetchMusicBrainzInfoWithRetries(artist, track, retries = 3, delay
 
 function formatBotResponse(text) {
   if (!text) return "";
-  const escapedText = escapeHtml(text.replace(/<br\s*\/?>/gi, "\n"));
-  const lines = escapedText.split(/\r?\n/);
+  const cleaned = text.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "");
+  const escapedText = escapeHtml(cleaned);
+  const withMarkdown = escapedText
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>");
+  const lines = withMarkdown.split(/\r?\n/);
   const formatted = lines.map(line => {
     const cleanLine = line.replace(/🔗/g, "").trim();
     if (!cleanLine) return "";
@@ -369,6 +374,16 @@ async function getChatBotResponse(history, userInput) {
   } else {
     isContinuation = false;
   }
+
+if (window.__awaitingMoodQuery) {
+  window.__awaitingMoodQuery = false;
+  if (userInput.trim().startsWith("/")) {
+    chatInput.placeholder = "Enter message...";
+    return await getChatBotResponse(history, userInput.trim());
+  }
+  runMoodSearch(userInput.trim(), addMessage, requestChatCompletion);
+  return null;
+}
 
 if (window.__awaitingPodcastTopic) {
   window.__awaitingPodcastTopic = false;
@@ -433,6 +448,11 @@ if (userInput.trim().toLowerCase() === "/donate") {
   return { type: "html", content: donateMessage };
 }
 
+
+  if (userInput.trim().toLowerCase() === "/mood") {
+    await handleMoodCommand(addMessage, requestChatCompletion);
+    return null;
+  }
 
   if (userInput.trim().toLowerCase() === "/skins") {
     await handleSkinsCommand(addMessage);
@@ -677,6 +697,11 @@ function renderQuickLinks() {
       command: () => "/discogs "
     },
     {
+      text: "/mood",
+      description: "Find a station that matches your mood",
+      command: () => "/mood"
+    },
+    {
       text: "/skins",
       description: "Generate a new background",
       command: () => "/skins"
@@ -722,7 +747,11 @@ function renderQuickLinks() {
       chatInput.placeholder = `${cmd.text} - ${cmd.description}`;
     });
     a.addEventListener("mouseleave", () => {
-      chatInput.placeholder = "Enter message...";
+      if (window.__awaitingMoodQuery) {
+        chatInput.placeholder = "e.g. relaxing electronic, late night jazz...";
+      } else {
+        chatInput.placeholder = "Enter message...";
+      }
     });
     chatGenreElem.appendChild(a);
   });
@@ -741,6 +770,7 @@ function sendWelcomeMessage() {
         <span style="white-space: nowrap;">🆕&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Suggest 3 new tracks in a similar genre'; chatSendBtn.click();">New in Genre</a></span>,&nbsp;
         <span style="white-space: nowrap;">ℹ️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Show technical metadata about the current track'; chatSendBtn.click();">Get Track Info</a></span>,&nbsp;
         <span style="white-space: nowrap;">📀&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/discogs'; chatSendBtn.click();">Discogs Info</a></span>,&nbsp;
+        <span style="white-space: nowrap;">🎵&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/mood'; chatSendBtn.click();">Mood Search</a></span>,&nbsp;
         <span style="white-space: nowrap;">🎨&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/skins'; chatSendBtn.click();">Generate Skin</a></span>,&nbsp;
         <span style="white-space: nowrap;">📂&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/collection recommendations'; chatSendBtn.click();">Collection Recommendations</a></span>,&nbsp;
         <span style="white-space: nowrap;">🎛️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/equalizer'; chatSendBtn.click();">Equalizer</a></span>,&nbsp;

@@ -2033,3 +2033,33 @@ window.onStationSelect = function(i) {
     document.addEventListener("click", fastToggleFavorites, true);
   })();
 })();
+
+// /mood feature hooks
+window.getMoodStationPool = () => prepareRadioSearchPool();
+window.playStationDirect = function(st) {
+  if (!st || !st.url) return;
+  clearDiscogsInfo();
+  currentParsingUrl = st.originalUrl || st.url;
+  window.currentStationUrl = st.url;
+  lastValidNowPlaying = "";
+  if (stationLabel) {
+    const t = stationLabel.querySelector(".scrolling-text");
+    if (t) t.textContent = st.title || "Unknown Station";
+  }
+  const rg = document.querySelector(".right-group");
+  if (rg) {
+    rg.innerHTML = `<img src="/img/track_icon.svg" alt="Track Icon" class="track-icon"><span id="currentTrack" class="track-name"><span class="scrolling-text loading"></span></span>`;
+  }
+  const ppBtn = document.getElementById("playPauseBtn");
+  audioPlayer.src = secureUrl(st.url);
+  audioPlayer.oncanplay = () => {
+    audioPlayer.oncanplay = null;
+    audioPlayer.muted = false;
+    audioPlayer.volume = defaultVolume.value;
+    audioPlayer.play().catch(() => {});
+    fadeAudioIn(audioPlayer, defaultVolume.value, 1000);
+    if (ppBtn) updatePlayPauseButton(audioPlayer, ppBtn);
+  };
+  updateStreamMetadata(currentParsingUrl);
+  updateMediaSessionMetadata(st);
+};
