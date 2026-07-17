@@ -24,7 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
     volumeKnob: document.querySelector('.volume-knob'),
     volumeLine: document.querySelector('.volume-line'),
     sendImg: document.querySelector('#chatSendBtn img'),
-    manifestoBtn: document.querySelector('#manifestoBtn img')
+    manifestoBtn: document.querySelector('#manifestoBtn img'),
+    connectWalletBtn: document.getElementById('connectWalletBtn'),
+    logoutIcon: document.getElementById('logoutIcon')
   };
   const iconVariants = {
     light: {
@@ -38,7 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
       volumeKnob: '/img/volume_knob.svg',
       volumeLine: '/img/volume_line.svg',
       sendImg: '/img/send.svg',
-      manifestoBtn: '/img/about_icon.svg'
+      manifestoBtn: '/img/about_icon.svg',
+      connectWalletBtn: '/img/wallet.svg',
+      logoutIcon: '/img/logout.svg'
     },
     dark: {
       playPauseBtn: '/img/dark/play_button.svg',
@@ -51,7 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
       volumeKnob: '/img/dark/volume_knob.svg',
       volumeLine: '/img/dark/volume_line.svg',
       sendImg: '/img/dark/send.svg',
-      manifestoBtn: '/img/dark/about_icon.svg'
+      manifestoBtn: '/img/dark/about_icon.svg',
+      connectWalletBtn: '/img/dark/wallet.svg',
+      logoutIcon: '/img/dark/logout.svg'
     }
   };
   function applyThemeIcons(theme) {

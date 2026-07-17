@@ -49,6 +49,8 @@ export async function initCustomGenreSelect(playlists, onSelect, options = {}) {
   const headerText = document.getElementById('genreSelectText');
   const headerIcon = document.getElementById('genreSelectIcon');
 
+  const onDelete = options.onDelete || null;
+
   // Заполнить список элементов
   list.innerHTML = '';
   for (const playlist of playlists) {
@@ -60,15 +62,34 @@ export async function initCustomGenreSelect(playlists, onSelect, options = {}) {
     // Иконка
     const iconSpan = document.createElement('span');
     iconSpan.className = 'genre-select-item-icon';
-    const icon = await createIconElement(playlist.name);
-    if (icon) iconSpan.appendChild(icon);
+    if (playlist.custom) {
+      iconSpan.classList.add('genre-select-item-icon--letter');
+      iconSpan.textContent = playlist.name.charAt(0).toUpperCase();
+    } else {
+      const icon = await createIconElement(playlist.name);
+      if (icon) iconSpan.appendChild(icon);
+    }
 
     // Текст
     const textSpan = document.createElement('span');
+    textSpan.className = 'genre-select-item-name';
     textSpan.textContent = playlist.name;
 
     li.appendChild(iconSpan);
     li.appendChild(textSpan);
+
+    // Кнопка удаления для кастомных плейлистов
+    if (playlist.custom && onDelete) {
+      const delBtn = document.createElement('button');
+      delBtn.className = 'genre-select-item-delete';
+      delBtn.title = 'Remove playlist';
+      delBtn.textContent = '×';
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onDelete(playlist.id);
+      });
+      li.appendChild(delBtn);
+    }
 
     // Обработчик клика
     li.addEventListener('click', async () => {
@@ -78,8 +99,14 @@ export async function initCustomGenreSelect(playlists, onSelect, options = {}) {
       // Обновить header
       headerText.textContent = playlist.name;
       headerIcon.innerHTML = '';
-      const headerIconImg = await createIconElement(playlist.name);
-      if (headerIconImg) headerIcon.appendChild(headerIconImg);
+      if (playlist.custom) {
+        headerIcon.classList.add('genre-select-icon--letter');
+        headerIcon.textContent = playlist.name.charAt(0).toUpperCase();
+      } else {
+        headerIcon.classList.remove('genre-select-icon--letter');
+        const headerIconImg = await createIconElement(playlist.name);
+        if (headerIconImg) headerIcon.appendChild(headerIconImg);
+      }
 
       // Обновить стили выбранного элемента
       document.querySelectorAll('.genre-select-item').forEach(item => {
@@ -97,10 +124,10 @@ export async function initCustomGenreSelect(playlists, onSelect, options = {}) {
     list.appendChild(li);
   }
 
-  // Обработчик клика на header
-  header.addEventListener('click', () => {
+  // Обработчик клика на header (onclick чтобы не накапливались обработчики при повторном вызове)
+  header.onclick = () => {
     dropdown.classList.toggle('open');
-  });
+  };
 
   // Закрытие dropdown при клике вне
   document.addEventListener('click', (e) => {

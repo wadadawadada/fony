@@ -178,11 +178,11 @@
             <ul class="genre-select-list" id="genreSelectList"></ul>
           </div>
         </div>
+        <button id="addPlaylistBtn" title="Add custom playlist" aria-label="Add custom playlist">+</button>
         <div class="search-wrapper">
     <input type="text" id="searchInput" class="genre-search" placeholder="Search across all genres">
     <span id="clearSearch">×</span>
     </div>
-        <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
         <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
       </div>
       <div class="playlist-area" id="playlistContent">
@@ -191,9 +191,23 @@
       </div>
     </div>
   </div>
-  <button id="manifestoBtn" class="manifesto-button">
-    <img src="/img/about_icon.svg" alt="About">
-  </button>
+  <div id="topRightButtons">
+    <span id="walletAddress"></span>
+    <div id="walletWrapper">
+      <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn">
+      <div id="walletTooltip">
+        <button id="walletLogoutBtn">
+          <img src="/img/logout.svg" id="logoutIcon" alt="Disconnect">
+        </button>
+      </div>
+    </div>
+    <button id="manifestoBtn" class="manifesto-button">
+      <img src="/img/about_icon.svg" alt="About">
+    </button>
+    <button id="themeToggle">
+      <img src="/img/moon.svg" alt="Toggle Theme">
+    </button>
+  </div>
   <div id="manifestoModal" class="manifesto-modal">
     <div class="manifesto-content">
       <div class="manifesto-icons">
@@ -223,9 +237,6 @@
     </div>
   </div>
 
-  <button id="themeToggle">
-    <img src="/img/moon.svg" alt="Toggle Theme">
-  </button>
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <script type="module" src="/js/main.js"></script>
   <script type="module" src="/js/theme.js"></script>
@@ -238,7 +249,25 @@
   <script type="module" src="/js/utils/toggle-state.js"></script>
   <script type="module" src="/js/utils/favbutton.js"></script>
 
-  <div id="cookieBanner" style="position: fixed; bottom: 0; left: 0; right: 0; background: #171C2B; color: #00F2B8; padding: 16px; font-family: 'Ruda', sans-serif; font-size: 0.9rem; z-index: 9999; display: none; box-shadow: 0 -4px 8px rgba(0,0,0,0.2);">
+  <div id="addPlaylistModal" class="add-playlist-modal" style="display:none;">
+  <div class="add-playlist-content">
+    <button class="add-playlist-close" id="addPlaylistClose">&times;</button>
+    <h3>Add Custom Playlist</h3>
+    <div class="add-playlist-field">
+      <label for="addPlaylistUrl">M3U URL</label>
+      <input type="text" id="addPlaylistUrl" placeholder="https://example.com/playlist.m3u" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="add-playlist-field">
+      <label for="addPlaylistName">Name</label>
+      <input type="text" id="addPlaylistName" placeholder="My Playlist">
+    </div>
+    <div class="add-playlist-error" id="addPlaylistError"></div>
+    <button id="addPlaylistSave" class="add-playlist-save">Add Playlist</button>
+    <a class="add-playlist-hint" href="https://github.com/junguler/m3u-radio-music-playlists" target="_blank" rel="noopener noreferrer">Browse M3U playlists →</a>
+  </div>
+</div>
+
+<div id="cookieBanner" style="position: fixed; bottom: 0; left: 0; right: 0; background: #171C2B; color: #00F2B8; padding: 16px; font-family: 'Ruda', sans-serif; font-size: 0.9rem; z-index: 9999; display: none; box-shadow: 0 -4px 8px rgba(0,0,0,0.2);">
   <div style="max-width: 960px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;">
     <span style="margin-right: 12px;">We use cookies for basic functionality and analytics. Do you agree?</span>
     <button id="acceptCookies" style="background-color: #00F2B8; color: #171C2B; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">Accept</button>

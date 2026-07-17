@@ -5,7 +5,6 @@ const TRACKS_MODE = "all";
 
 export async function connectWallet() {
   if (!window.ethereum) {
-    alert("MetaMask not installed");
     throw new Error("MetaMask not installed");
   }
   const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -104,10 +103,10 @@ export async function updateWalletUI(account) {
     g.innerHTML = `
       <span id="walletConnectedLabel">WEB3: </span>
       <select id="contractSelect" class="genre-select">${ops}</select>
-      <span id="walletAddress">${shortAddr}</span>
-      <img src="/img/wallet.svg" alt="Wallet" id="walletIcon" style="cursor: pointer; width: 28px; height: 28px;">
       <img src="/img/radio.svg" alt="Radio" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px;">
     `;
+    const addrEl = document.getElementById('walletAddress');
+    if (addrEl) addrEl.textContent = shortAddr;
   }
   const r = document.getElementById("radioModeBtn");
   if (r) {

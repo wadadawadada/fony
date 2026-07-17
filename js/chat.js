@@ -626,7 +626,6 @@ function addRawHtmlMessage(role, htmlContent) {
 
 async function connectWalletAndInitChat() {
   if (!window.ethereum) {
-    alert("MetaMask is not installed");
     return;
   }
   try {
@@ -842,6 +841,7 @@ export function initChat() {
   const walletBtn = document.getElementById("connectWalletBtn");
   if (walletBtn) {
     walletBtn.addEventListener("click", async () => {
+      if (window.currentMode === 'web3') return;
       await connectWalletAndInitChat();
     });
   }

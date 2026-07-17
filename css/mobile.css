@@ -59,12 +59,15 @@
     font-size: 14px;
   }
 
-  .manifesto-button {
-    position: fixed;
-    top: 5px;
+  #topRightButtons {
     left: 5px;
-    right: unset;
-    rotate: unset;
+    right: 5px;
+    justify-content: space-between;
+  }
+
+  .manifesto-button {
+    position: static;
+    order: -1;
   }
 
   .manifesto-close {
@@ -190,7 +193,8 @@
   }
 
   #connectWalletBtn {
-    display: none !important;
+    width: 15px;
+    height: 15px;
   }
 
   #radioModeBtn {

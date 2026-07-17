@@ -7,6 +7,7 @@ import { initEqualizer } from './equalizer.js'
 import { connectWallet, getNFTContractList, connectAndLoadWalletNFTs } from './web3.js'
 import { clearDiscogsInfo } from './nowplaying.js'
 import { initCustomGenreSelect, setSelectedGenre, getSelectedGenre } from './custom-genre-select.js';
+import { loadCustomPlaylists, saveCustomPlaylist, deleteCustomPlaylist, normalizePlaylistUrl, suggestNameFromUrl } from './custom-playlists.js';
 
 let currentMode = "radio"
 let currentParsingUrl = ""
@@ -82,6 +83,47 @@ const shuffleBtn = document.getElementById('shuffleBtn')
 const randomBtn = document.getElementById('randomBtn')
 const walletBtn = document.getElementById('connectWalletBtn')
 const radioModeBtn = document.getElementById('radioModeBtn')
+
+function disconnectWallet() {
+  const addrEl = document.getElementById('walletAddress')
+  if (addrEl) addrEl.textContent = ''
+  const tooltip = document.getElementById('walletTooltip')
+  if (tooltip) tooltip.classList.remove('open')
+  switchToRadio()
+}
+
+if (walletBtn) {
+  walletBtn.addEventListener("click", async (evt) => {
+    evt.stopPropagation()
+    if (window.currentMode === 'web3') {
+      const tooltip = document.getElementById('walletTooltip')
+      if (tooltip) tooltip.classList.toggle('open')
+    } else {
+      try {
+        const acc = await connectWallet()
+        if (acc) switchToWeb3(acc)
+      } catch (_err) {
+        if (!window.ethereum) {
+          const addrEl = document.getElementById('walletAddress')
+          if (addrEl) {
+            addrEl.textContent = 'No wallet'
+            setTimeout(() => { addrEl.textContent = '' }, 2000)
+          }
+        }
+      }
+    }
+  })
+}
+
+document.addEventListener('click', () => {
+  const tooltip = document.getElementById('walletTooltip')
+  if (tooltip) tooltip.classList.remove('open')
+})
+
+document.addEventListener('DOMContentLoaded', () => {
+  const logoutBtn = document.getElementById('walletLogoutBtn')
+  if (logoutBtn) logoutBtn.addEventListener('click', disconnectWallet)
+})
 
 speechSynthesis.cancel()
 
@@ -510,13 +552,18 @@ function checkMarquee(container) {
   if (sW > cW) st.classList.add("marquee")
 }
 
+function handleDeleteCustomPlaylist(id) {
+  deleteCustomPlaylist(id);
+  allPlaylists = allPlaylists.filter(p => p.id !== id);
+  fillPlaylistSelect(false);
+}
+
 function fillPlaylistSelect(autoSelectFirst = false) {
-  // Reinitialize custom genre select with updated playlists
   if (allPlaylists) {
     initCustomGenreSelect(allPlaylists, (file, name) => {
       window.currentGenre = name;
       loadAndRenderPlaylist(file, name);
-    }, { autoSelectFirst });
+    }, { autoSelectFirst, onDelete: handleDeleteCustomPlaylist });
   }
 }
 
@@ -561,11 +608,11 @@ function switchToRadio(restorePlayback = true) {
           <ul class="genre-select-list" id="genreSelectList"></ul>
         </div>
       </div>
+      <button id="addPlaylistBtn" title="Add custom playlist" aria-label="Add custom playlist">+</button>
       <div class="search-wrapper">
         <input type="text" id="searchInput" class="genre-search" placeholder="Search all radio playlists">
         <span id="clearSearch">×</span>
       </div>
-      <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn" style="cursor: pointer; width: 28px; height: 28px;">
       <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
     `;
   }
@@ -667,14 +714,14 @@ async function updateWalletUI(account) {
     g.innerHTML = `
       <span id="walletConnectedLabel">WEB3: </span>
       <select id="contractSelect" class="genre-select">${ops}</select>
-      <span id="walletAddress">${shortAddr}</span>
       <div class="search-wrapper">
         <input type="text" id="searchInput" class="genre-search" placeholder="Search web3 tracks">
         <span id="clearSearch">×</span>
       </div>
-      <img src="/img/wallet.svg" alt="Wallet" id="walletIcon" style="cursor: pointer; width: 28px; height: 28px;">
       <img src="/img/radio.svg" alt="Radio" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px;">
     `
+    const addrEl = document.getElementById('walletAddress')
+    if (addrEl) addrEl.textContent = shortAddr
   }
   const r = document.getElementById("radioModeBtn")
   if (r) {
@@ -1013,7 +1060,6 @@ function setFavoritesPlaylistView(list) {
 function setRadioListeners() {
   const sIn = document.getElementById("searchInput");
   const fBtn = document.getElementById("favoritesFilterBtn");
-  const wBtn = document.getElementById("connectWalletBtn");
   const rBtn = document.getElementById("radioModeBtn");
   const sortSelect = document.getElementById("favoritesSortSelect");
   const customSelect = document.getElementById("customGenreSelect");
@@ -1148,13 +1194,103 @@ function setRadioListeners() {
     });
   }
 
-  if (wBtn) {
-    wBtn.addEventListener("click", async () => {
-      const acc = await connectWallet();
-      switchToWeb3(acc);
+  const addBtn = document.getElementById('addPlaylistBtn');
+  if (addBtn) {
+    addBtn.onclick = openAddPlaylistModal;
+  }
+
+}
+
+function openAddPlaylistModal() {
+  const modal = document.getElementById('addPlaylistModal');
+  if (!modal) return;
+  document.getElementById('addPlaylistUrl').value = '';
+  document.getElementById('addPlaylistName').value = '';
+  document.getElementById('addPlaylistError').textContent = '';
+  modal.style.display = 'flex';
+  document.getElementById('addPlaylistUrl').focus();
+}
+
+function closeAddPlaylistModal() {
+  const modal = document.getElementById('addPlaylistModal');
+  if (modal) modal.style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const initialAddBtn = document.getElementById('addPlaylistBtn');
+  if (initialAddBtn) initialAddBtn.onclick = openAddPlaylistModal;
+
+  const closeBtn = document.getElementById('addPlaylistClose');
+  if (closeBtn) closeBtn.addEventListener('click', closeAddPlaylistModal);
+
+  const modal = document.getElementById('addPlaylistModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeAddPlaylistModal();
     });
   }
-}
+
+  const urlInput = document.getElementById('addPlaylistUrl');
+  const nameInput = document.getElementById('addPlaylistName');
+  if (urlInput && nameInput) {
+    urlInput.addEventListener('blur', () => {
+      const url = urlInput.value.trim();
+      if (url && !nameInput.value.trim()) {
+        nameInput.value = suggestNameFromUrl(normalizePlaylistUrl(url));
+      }
+    });
+  }
+
+  const saveBtn = document.getElementById('addPlaylistSave');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
+      const rawUrl = (document.getElementById('addPlaylistUrl').value || '').trim();
+      const name = (document.getElementById('addPlaylistName').value || '').trim();
+      const errEl = document.getElementById('addPlaylistError');
+      errEl.textContent = '';
+
+      if (!rawUrl) { errEl.textContent = 'Please enter a URL.'; return; }
+      if (!name) { errEl.textContent = 'Please enter a name.'; return; }
+
+      const url = normalizePlaylistUrl(rawUrl);
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Loading…';
+
+      try {
+        await fetch(url, { method: 'HEAD' }).then(r => { if (!r.ok) throw new Error('not ok'); });
+      } catch {
+        try {
+          const r = await fetch(url);
+          if (!r.ok) throw new Error('fetch failed');
+        } catch {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Add Playlist';
+          errEl.textContent = 'Could not load playlist. Check the URL or CORS policy.';
+          return;
+        }
+      }
+
+      const entry = saveCustomPlaylist(name, url);
+      allPlaylists.unshift(entry);
+      fillPlaylistSelect(false);
+      closeAddPlaylistModal();
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Add Playlist';
+
+      // Select the newly added playlist
+      setTimeout(() => {
+        window.currentGenre = name;
+        loadAndRenderPlaylist(url, name);
+        setSelectedGenre(url, name);
+      }, 100);
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAddPlaylistModal();
+  });
+});
 
 
 audioPlayer.addEventListener("play", async () => {
@@ -1343,13 +1479,6 @@ if (randomBtn) {
   });
 }
 
-if (walletBtn) {
-  walletBtn.addEventListener("click", async () => {
-    const a = await connectWallet()
-    switchToWeb3(a)
-  })
-}
-
 initVolumeControl(audioPlayer, document.querySelector(".volume-slider"), document.querySelector(".volume-knob"), defaultVolume)
 
 function globalUpdater(ts) {
@@ -1457,14 +1586,14 @@ async function restoreFavoritesPlayback() {
 fetch("../json/playlists.json")
   .then(r => r.json())
   .then(async pl => {
-    allPlaylists = pl;
+    allPlaylists = [...loadCustomPlaylists(), ...pl];
 
-    initCustomGenreSelect(pl, (file, name) => {
+    initCustomGenreSelect(allPlaylists, (file, name) => {
       window.currentGenre = name;
       loadAndRenderPlaylist(file, name, () => {
         applyModeSearch("radio");
       });
-    }, { autoSelectFirst: false });
+    }, { autoSelectFirst: false, onDelete: handleDeleteCustomPlaylist });
 
     loadSearchState();
     const hasRadioRestoreState = !!localStorage.getItem(LAST_RADIO_TRACK_KEY) || !!localStorage.getItem("lastStation");
