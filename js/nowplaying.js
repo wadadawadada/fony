@@ -89,6 +89,7 @@ export async function showDiscogsInfo() {
   updateAlbumCoverAnimation();
 
   if (!nowPlaying) {
+    window.currentAlbumArtUrl = null;
     return;
   }
 
@@ -107,6 +108,7 @@ export async function showDiscogsInfo() {
     const infoHtml = await fetchDiscogsTrackInfo(artist, track);
 
     const coverUrl = extractCoverFromDiscogsHtml(infoHtml);
+    window.currentAlbumArtUrl = coverUrl || null;
     setAlbumCoverBackground(coverUrl);
     updateAlbumCoverAnimation();
 
@@ -142,7 +144,7 @@ export async function showDiscogsInfo() {
     const fields = [album, year, country, label, genre];
 
     if (fields.some(f => f.toLowerCase() === "unknown")) {
-      // Если много unknown, скрываем данные
+      window.currentAlbumArtUrl = null;
       setAlbumCoverBackground(null);
       updateAlbumCoverAnimation();
       return;
@@ -175,6 +177,7 @@ export async function showDiscogsInfo() {
 
   } catch (e) {
     discogsContainer.innerHTML = `<i>Error loading info: ${e.message}</i>`;
+    window.currentAlbumArtUrl = null;
     setAlbumCoverBackground(null);
     updateAlbumCoverAnimation();
   }

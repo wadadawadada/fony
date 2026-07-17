@@ -1,4 +1,4 @@
-let currentSkin = { left: null, right: null };
+let currentSkin = { left: null, right: null, albumArt: null };
 
 function randomBetween(min, max) {
   return Math.random() * (max - min) + min;
@@ -325,6 +325,17 @@ function generateRightPanelStyle(isDark) {
   `;
 }
 
+function applyAlbumArtSkin(artUrl) {
+  const leftPanel = document.querySelector(".left-panel");
+  if (!leftPanel || !artUrl) return;
+  const isDark = document.body.classList.contains("dark");
+  const overlay = isDark ? "rgba(23,28,43,0.6)" : "rgba(242,242,242,0.6)";
+  leftPanel.style.transition = "background 1s ease";
+  leftPanel.style.backgroundColor = isDark ? "#171C2B" : "#f2f2f2";
+  leftPanel.style.background = `linear-gradient(${overlay}, ${overlay}), url('${artUrl}') center / cover no-repeat`;
+  currentSkin.albumArt = artUrl;
+}
+
 function applySkinStyles(leftStyle, rightStyle, isDark) {
   const leftPanel = document.querySelector(".left-panel");
   const rightPanel = document.querySelector(".right-panel");
@@ -361,13 +372,11 @@ function clearSavedSkin() {
   localStorage.removeItem("skinTheme");
 }
 
-function applyDefaultThemePanels() {
+function resetPanelStyles() {
   const leftPanel = document.querySelector(".left-panel");
   const rightPanel = document.querySelector(".right-panel");
   const container = document.querySelector(".container");
-  if (!leftPanel || !rightPanel || !container) return;
-
-  // Clear all previous styles
+  if (!leftPanel || !rightPanel) return;
   leftPanel.style.background = "";
   leftPanel.style.backgroundColor = "";
   leftPanel.style.color = "";
@@ -376,8 +385,7 @@ function applyDefaultThemePanels() {
   rightPanel.style.backgroundColor = "";
   rightPanel.style.color = "";
   rightPanel.style.transition = "";
-  container.style.background = "";
-
+  if (container) container.style.background = "";
   const isDark = document.body.classList.contains("dark");
   if (isDark) {
     leftPanel.style.backgroundColor = "#171C2B";
@@ -390,27 +398,33 @@ function applyDefaultThemePanels() {
     leftPanel.style.color = "#222";
     rightPanel.style.color = "#222";
   }
-  currentSkin = { left: null, right: null };
+}
+
+function applyDefaultThemePanels() {
+  resetPanelStyles();
+  currentSkin = { left: null, right: null, albumArt: null };
   saveSkinToStorage();
 }
 
 export async function handleSkinsCommand(addMessage) {
-  const isDark = document.body.classList.contains("dark");
-  const leftStyle = generateLeftPanelStyle(isDark);
-  const rightStyle = generateRightPanelStyle(isDark);
-  applySkinStyles(leftStyle, rightStyle, isDark);
   const existingContainer = document.getElementById("skinButtonsContainer");
   if (existingContainer) existingContainer.remove();
+  const albumArtUrl = window.currentAlbumArtUrl || null;
+  const hasAlbumArt = !!albumArtUrl;
+  const albumArtPart = hasAlbumArt
+    ? `<span style="color:#00F2B8;">|</span><button id="useAlbumArtBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0; font-family:inherit; font-size:inherit;">use album art</button>`
+    : '';
   const buttons = `
-    <div id="skinButtonsContainer" style="display: flex; align-items: center; gap: 8px;">
+    <div id="skinButtonsContainer" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
       <button id="saveSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">save current skin</button>
       <span style="color:#00F2B8;">|</span>
       <button id="generateNewSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">generate new</button>
       <span style="color:#00F2B8;">|</span>
       <button id="resetSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">reset</button>
+      ${albumArtPart}
     </div>
   `;
-  addMessage("bot", "Skin updated.<br><br>" + buttons);
+  addMessage("bot", "Skins<br><br>" + buttons);
   setTimeout(() => {
     const saveEl = document.getElementById("saveSkinBtn");
     if (saveEl) {
@@ -424,6 +438,10 @@ export async function handleSkinsCommand(addMessage) {
     if (generateEl) {
       generateEl.onclick = (e) => {
         e.preventDefault();
+        const isDark = document.body.classList.contains("dark");
+        const leftStyle = generateLeftPanelStyle(isDark);
+        const rightStyle = generateRightPanelStyle(isDark);
+        applySkinStyles(leftStyle, rightStyle, isDark);
         handleSkinsCommand(addMessage);
       };
     }
@@ -435,6 +453,15 @@ export async function handleSkinsCommand(addMessage) {
         addMessage("bot", "Skin reset to default!");
       };
     }
+    const albumArtEl = document.getElementById("useAlbumArtBtn");
+    if (albumArtEl) {
+      albumArtEl.onclick = (e) => {
+        e.preventDefault();
+        applyAlbumArtSkin(albumArtUrl);
+        saveSkinToStorage();
+        addMessage("bot", "Album art applied!");
+      };
+    }
   }, 100);
 }
 
@@ -443,6 +470,9 @@ export function reapplySkin() {
   if (skin && skin.left && skin.right) {
     const isDark = document.body.classList.contains("dark");
     applySkinStyles(skin.left, skin.right, isDark);
+  }
+  if (skin && skin.albumArt) {
+    applyAlbumArtSkin(skin.albumArt);
   }
 }
 
@@ -463,15 +493,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const isDark = document.body.classList.contains("dark");
     applySkinStyles(skin.left, skin.right, isDark);
   }
+  if (skin && skin.albumArt) {
+    applyAlbumArtSkin(skin.albumArt);
+  }
 });
 
 document.addEventListener("themeChanged", () => {
   const skin = loadSkinFromStorage();
+  const isDark = document.body.classList.contains("dark");
   if (skin && skin.left && skin.right) {
-    const isDark = document.body.classList.contains("dark");
     applySkinStyles(skin.left, skin.right, isDark);
   } else {
-    applyDefaultThemePanels();
+    resetPanelStyles();
+  }
+  if (skin && skin.albumArt) {
+    applyAlbumArtSkin(skin.albumArt);
   }
 });
 
@@ -496,4 +532,4 @@ function clearSkinStyles() {
   currentSkin.right = null;
 }
 
-export { clearSkinStyles };
+export { clearSkinStyles, applyAlbumArtSkin };
