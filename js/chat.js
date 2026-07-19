@@ -156,6 +156,8 @@ function addMessage(role, htmlContent, isFonyTip = false) {
       });
     }
   }
+
+  return msgDiv;
 }
 
 function scrollToCenter(element) {
@@ -809,7 +811,8 @@ function renderQuickLinks() {
     // },
     {
       text: "[fony tips]",
-      description: "Useful tips about FONY"
+      description: "Useful tips about FONY",
+      command: () => "[fony tips]"
     }
   ];
   commands.forEach(cmd => {
@@ -851,19 +854,26 @@ function sendWelcomeMessage() {
       <div style="line-height: 1.6;">
         Welcome to the FONY console!<br><br>
         You can use the chat to explore music or try the quick commands below.<br>
-        <span style="white-space: nowrap;">🎵&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/similar'; chatSendBtn.click();">Similar Tracks</a></span>,&nbsp;
-        <span style="white-space: nowrap;">📚&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/facts'; chatSendBtn.click();">Facts</a></span>,&nbsp;
-        <span style="white-space: nowrap;">📀&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/discogs'; chatSendBtn.click();">Discogs Info</a></span>,&nbsp;
-        <span style="white-space: nowrap;">🎵&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/mood'; chatSendBtn.click();">Mood Search</a></span>,&nbsp;
-        <span style="white-space: nowrap;">🎨&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/skins'; chatSendBtn.click();">Generate Skin</a></span>,&nbsp;
-        <span style="white-space: nowrap;">📂&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/collection recommendations'; chatSendBtn.click();">Collection Recommendations</a></span>,&nbsp;
-        <span style="white-space: nowrap;">🎛️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/equalizer'; chatSendBtn.click();">Equalizer</a></span>,&nbsp;
-        <span style="white-space: nowrap;">💖&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/donate'; chatSendBtn.click();">Donate</a></span>,&nbsp;
-        <span style="white-space: nowrap;">💡&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='[fony tips]'; chatSendBtn.click();">FONY tips</a></span>
+        <span style="white-space: nowrap;">🎵&nbsp;<a href="#" data-chat-command="/similar">Similar Tracks</a></span>,&nbsp;
+        <span style="white-space: nowrap;">📚&nbsp;<a href="#" data-chat-command="/facts">Facts</a></span>,&nbsp;
+        <span style="white-space: nowrap;">📀&nbsp;<a href="#" data-chat-command="/discogs">Discogs Info</a></span>,&nbsp;
+        <span style="white-space: nowrap;">🎵&nbsp;<a href="#" data-chat-command="/mood">Mood Search</a></span>,&nbsp;
+        <span style="white-space: nowrap;">🎨&nbsp;<a href="#" data-chat-command="/skins">Generate Skin</a></span>,&nbsp;
+        <span style="white-space: nowrap;">📂&nbsp;<a href="#" data-chat-command="/collection recommendations">Collection Recommendations</a></span>,&nbsp;
+        <span style="white-space: nowrap;">🎛️&nbsp;<a href="#" data-chat-command="/equalizer">Equalizer</a></span>,&nbsp;
+        <span style="white-space: nowrap;">💖&nbsp;<a href="#" data-chat-command="/donate">Donate</a></span>,&nbsp;
+        <span style="white-space: nowrap;">💡&nbsp;<a href="#" data-chat-command="[fony tips]">FONY tips</a></span>
         ${updateBlock}
       </div>
     `;
-    addMessage("bot", welcomeText);
+    const welcomeMessage = addMessage("bot", welcomeText);
+    welcomeMessage.querySelectorAll("[data-chat-command]").forEach(link => {
+      link.addEventListener("click", event => {
+        event.preventDefault();
+        chatInput.value = link.dataset.chatCommand;
+        sendMessage();
+      });
+    });
     conversationHistory.push({ role: "assistant", content: welcomeText });
   });
 }
@@ -1116,7 +1126,7 @@ export function initChat() {
         // { text: "/img", description: "Show album cover of the playing track", command: () => "/img" },
         { text: "/discogs", description: "Get detailed info from Discogs about a track", command: () => "/discogs " },
         { text: "/skins", description: "Generate a new background", command: () => "/skins"},
-        { text: "[fony tips]", description: "Useful tips about FONY" }
+        { text: "[fony tips]", description: "Useful tips about FONY", command: () => "[fony tips]" }
       ];
       commands.forEach(cmd => {
         const a = document.createElement("a");
