@@ -1658,6 +1658,7 @@ fetch("../json/playlists.json")
 
 
   
+window.__fonyAppLoaded = true
 document.dispatchEvent(new Event("appLoaded"))
 
 const container = document.querySelector('.container');
