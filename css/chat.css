@@ -94,6 +94,10 @@
   margin-bottom: 0.5rem;
   text-align: right;
 }
+.bot-message {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
 .message-content.image-content {
   display: flex;
   justify-content: left;

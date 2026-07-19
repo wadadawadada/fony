@@ -144,9 +144,6 @@ export async function showDiscogsInfo() {
     const fields = [album, year, country, label, genre];
 
     if (fields.some(f => f.toLowerCase() === "unknown")) {
-      window.currentAlbumArtUrl = null;
-      setAlbumCoverBackground(null);
-      updateAlbumCoverAnimation();
       return;
     }
 

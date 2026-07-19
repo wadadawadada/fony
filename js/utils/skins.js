@@ -288,18 +288,99 @@ function createSeamlessSvgPattern(isDark, panel) {
   return encodeURIComponent(svg).replace(/'/g, "%27").replace(/"/g, "%22");
 }
 
+function createHexagonGridPattern(isDark) {
+  const colors = isDark
+    ? ["rgba(0,242,184,0.20)", "rgba(85,135,228,0.18)", "rgba(236,123,42,0.16)", "rgba(85,203,216,0.16)", "rgba(195,108,139,0.14)", "rgba(23,28,43,0.35)"]
+    : ["rgba(0,242,184,0.14)", "rgba(85,135,228,0.13)", "rgba(236,123,42,0.14)", "rgba(85,203,216,0.13)", "rgba(195,108,139,0.11)", "rgba(255,255,255,0.16)"];
+  const strokeColor = isDark ? "rgba(0,242,184,0.25)" : "rgba(85,135,228,0.28)";
+  const cols = Math.floor(randomBetween(5, 9));
+  const width = 320;
+  const s = (width / cols) / Math.sqrt(3);
+  const hexWidth = Math.sqrt(3) * s;
+  const hexHeight = 2 * s;
+  const vertSpacing = hexHeight * 0.75;
+  const rowPeriods = Math.floor(randomBetween(2, 4));
+  const rows = rowPeriods * 2;
+  const height = rowPeriods * vertSpacing * 2;
+  const fillChance = randomBetween(0.35, 0.6);
+  const shapes = [];
+  function hexPoints(cx, cy) {
+    const pts = [];
+    for (let k = 0; k < 6; k++) {
+      const angle = (Math.PI / 180) * (60 * k - 30);
+      pts.push(`${(cx + s * Math.cos(angle)).toFixed(2)},${(cy + s * Math.sin(angle)).toFixed(2)}`);
+    }
+    return pts.join(" ");
+  }
+  for (let r = 0; r < rows; r++) {
+    const rowOffset = (r % 2 === 1) ? hexWidth / 2 : 0;
+    for (let c = -1; c <= cols; c++) {
+      const cx = c * hexWidth + rowOffset;
+      const cy = r * vertSpacing + hexHeight / 2;
+      const points = hexPoints(cx, cy);
+      if (Math.random() < fillChance) {
+        shapes.push(`<polygon points="${points}" fill="${randomChoice(colors)}" stroke="${strokeColor}" stroke-width="1"/>`);
+      } else {
+        shapes.push(`<polygon points="${points}" fill="none" stroke="${strokeColor}" stroke-width="1"/>`);
+      }
+    }
+  }
+  const svg = `
+    <svg width="${width}" height="${height.toFixed(2)}" viewBox="0 0 ${width} ${height.toFixed(2)}" xmlns="http://www.w3.org/2000/svg">
+      ${shapes.join("\n")}
+    </svg>`;
+  return encodeURIComponent(svg).replace(/'/g, "%27").replace(/"/g, "%22");
+}
+
+function createTriangleMosaicPattern(isDark) {
+  const colors = isDark
+    ? ["rgba(0,242,184,0.20)", "rgba(85,135,228,0.20)", "rgba(214,130,85,0.16)", "rgba(236,123,42,0.16)", "rgba(195,108,139,0.15)", "rgba(85,203,216,0.16)", "rgba(23,28,43,0.30)"]
+    : ["rgba(0,242,184,0.15)", "rgba(85,135,228,0.15)", "rgba(214,130,85,0.13)", "rgba(236,123,42,0.14)", "rgba(195,108,139,0.12)", "rgba(85,203,216,0.13)", "rgba(255,255,255,0.18)"];
+  const width = 320;
+  const height = 320;
+  const cellSize = randomChoice([32, 40, 64, 80]);
+  const cols = width / cellSize;
+  const rows = height / cellSize;
+  const shapes = [];
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const x = col * cellSize;
+      const y = row * cellSize;
+      const flip = Math.random() < 0.5;
+      const colorA = randomChoice(colors);
+      const colorB = randomChoice(colors);
+      if (flip) {
+        shapes.push(`<polygon points="${x},${y} ${x + cellSize},${y} ${x},${y + cellSize}" fill="${colorA}"/>`);
+        shapes.push(`<polygon points="${x + cellSize},${y} ${x + cellSize},${y + cellSize} ${x},${y + cellSize}" fill="${colorB}"/>`);
+      } else {
+        shapes.push(`<polygon points="${x},${y} ${x + cellSize},${y} ${x + cellSize},${y + cellSize}" fill="${colorA}"/>`);
+        shapes.push(`<polygon points="${x},${y} ${x + cellSize},${y + cellSize} ${x},${y + cellSize}" fill="${colorB}"/>`);
+      }
+    }
+  }
+  const svg = `
+    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+      ${shapes.join("\n")}
+    </svg>`;
+  return encodeURIComponent(svg).replace(/'/g, "%27").replace(/"/g, "%22");
+}
+
 function createRandomPattern(isDark) {
   const rnd = Math.random();
-  if (rnd < 0.33) {
+  if (rnd < 0.2) {
     const waveScale = randomBetween(1, 7);
     const amplitude = randomBetween(3, 10);
     const smoothness = randomBetween(0, 441);
     const svgGrid = createSeamlessWaveGrid(isDark, 320, 320, waveScale, amplitude, smoothness);
     return encodeURIComponent(svgGrid).replace(/'/g, "%27").replace(/"/g, "%22");
-  } else if (rnd < 0.66) {
+  } else if (rnd < 0.4) {
     return createSeamlessSvgPattern(isDark, 'left');
-  } else {
+  } else if (rnd < 0.6) {
     return createAsciiArtSvgPattern();
+  } else if (rnd < 0.8) {
+    return createHexagonGridPattern(isDark);
+  } else {
+    return createTriangleMosaicPattern(isDark);
   }
 }
 
@@ -412,15 +493,20 @@ export async function handleSkinsCommand(addMessage) {
   const albumArtUrl = window.currentAlbumArtUrl || null;
   const hasAlbumArt = !!albumArtUrl;
   const albumArtPart = hasAlbumArt
-    ? `<span style="color:#00F2B8;">|</span><button id="useAlbumArtBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0; font-family:inherit; font-size:inherit;">use album art</button>`
+    ? `<div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+         <img src="${albumArtUrl}" alt="" style="width:28px; height:28px; object-fit:cover; border-radius:3px; flex-shrink:0;" />
+         <button id="useAlbumArtBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0; font-family:inherit; font-size:inherit;">use album art</button>
+       </div>`
     : '';
   const buttons = `
-    <div id="skinButtonsContainer" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-      <button id="saveSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">save current skin</button>
-      <span style="color:#00F2B8;">|</span>
-      <button id="generateNewSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">generate new</button>
-      <span style="color:#00F2B8;">|</span>
-      <button id="resetSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">reset</button>
+    <div id="skinButtonsContainer">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <button id="saveSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">save current skin</button>
+        <span style="color:#00F2B8;">|</span>
+        <button id="generateNewSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">generate new</button>
+        <span style="color:#00F2B8;">|</span>
+        <button id="resetSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">reset</button>
+      </div>
       ${albumArtPart}
     </div>
   `;
