@@ -51,7 +51,7 @@
     },
     {
       "name": "OpenAI-Powered Chat Commands",
-      "description": "Use chat commands like /similar, /facts, /new, /info to get AI-generated music recommendations and track details."
+      "description": "Use chat commands like /similar and /facts to get AI-generated music recommendations and track details."
     },
     {
       "name": "Discogs Integration with Rich Track Info",
@@ -77,14 +77,6 @@
       "command": "/facts",
       "usage": "Get interesting facts about the current artist or track.",
       "note": "Emojis may be included for better engagement."
-    },
-    {
-      "command": "/new",
-      "usage": "Discover 5 newly released tracks in the same or related genres."
-    },
-    {
-      "command": "/info",
-      "usage": "Retrieve detailed metadata about the current track including release year, label, and genre."
     },
     {
       "command": "/discogs",
@@ -123,14 +115,6 @@
     {
       "command": "/facts",
       "description": "Provides facts about the current artist or track."
-    },
-    {
-      "command": "/new",
-      "description": "Lists new tracks in a similar genre."
-    },
-    {
-      "command": "/info",
-      "description": "Gives technical metadata about the current track."
     },
     {
       "command": "/discogs",

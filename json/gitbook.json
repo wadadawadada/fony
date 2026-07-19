@@ -54,14 +54,6 @@
           "description": "Receive interesting facts and trivia about the current artist or track, sometimes enhanced with emojis for engagement."
         },
         {
-          "command": "/new",
-          "description": "Discover 5 recently released tracks within the same or related genres to keep your playlist fresh."
-        },
-        {
-          "command": "/info",
-          "description": "Access detailed technical metadata about the current track, including release date, label, genre, and duration."
-        },
-        {
           "command": "/discogs",
           "description": "Retrieve rich album and track info from Discogs database, including artwork, label info, and country of release."
         },

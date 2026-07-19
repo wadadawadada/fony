@@ -671,34 +671,6 @@ if (userInput.trim().toLowerCase() === "/collection") {
   }
 
   const nowPlayingText = getNowPlayingText();
-  if (userInput.trim().startsWith("/info") && nowPlayingText) {
-    const parsed = parseArtistTrack(nowPlayingText);
-    if (parsed) {
-      const info = await fetchMusicBrainzInfoWithRetries(parsed.artist, parsed.track, 3, 2000);
-      if (info) return { type: "text", content: info };
-      else {
-        let systemPrompt = "";
-        try {
-          systemPrompt = await buildSystemPrompt(nowPlayingText);
-        } catch {
-          addMessage("bot", "Error loading chat configuration.");
-          return;
-        }
-        const messages = [
-          { role: "system", content: systemPrompt },
-          ...history,
-          { role: "user", content: "Show technical metadata about the current track" }
-        ];
-        try {
-          const data = await requestChatCompletion(messages);
-          let botReply = data.choices?.[0]?.message?.content || "No response.";
-          return { type: "text", content: botReply };
-        } catch (error) {
-          addMessage("bot", error.message || "Error communicating with FONY Console.");
-        }
-      }
-    }
-  }
 
   let systemPrompt = "";
   try {
@@ -795,21 +767,11 @@ function renderQuickLinks() {
       description: "Recommend 3 tracks similar to the current track",
       command: () => "/similar"
     },
-    // {
-    //   text: "/new",
-    //   description: "Suggest 3 new tracks in a similar genre",
-    //   command: () => nowPlayingText ? `Suggest 3 new tracks in a similar genre to "${nowPlayingText}"` : "Suggest 3 new tracks in a similar genre"
-    // },
     {
       text: "/facts",
       description: "List facts about the current track or artist",
       command: () => "/facts"
     },
-    // {
-    //   text: "/info",
-    //   description: "Show technical metadata about the current track",
-    //   command: () => nowPlayingText ? `/info ${nowPlayingText}` : "/info"
-    // },
     // {
     //   text: "/img",
     //   description: "Show album cover of the playing track",
@@ -891,8 +853,6 @@ function sendWelcomeMessage() {
         You can use the chat to explore music or try the quick commands below.<br>
         <span style="white-space: nowrap;">🎵&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/similar'; chatSendBtn.click();">Similar Tracks</a></span>,&nbsp;
         <span style="white-space: nowrap;">📚&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/facts'; chatSendBtn.click();">Facts</a></span>,&nbsp;
-        <span style="white-space: nowrap;">🆕&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Suggest 3 new tracks in a similar genre'; chatSendBtn.click();">New in Genre</a></span>,&nbsp;
-        <span style="white-space: nowrap;">ℹ️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Show technical metadata about the current track'; chatSendBtn.click();">Get Track Info</a></span>,&nbsp;
         <span style="white-space: nowrap;">📀&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/discogs'; chatSendBtn.click();">Discogs Info</a></span>,&nbsp;
         <span style="white-space: nowrap;">🎵&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/mood'; chatSendBtn.click();">Mood Search</a></span>,&nbsp;
         <span style="white-space: nowrap;">🎨&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/skins'; chatSendBtn.click();">Generate Skin</a></span>,&nbsp;
@@ -1152,9 +1112,7 @@ export function initChat() {
       const nowPlayingText = getNowPlayingText();
       const commands = [
         { text: "/similar", description: "Recommend 3 tracks similar to the current track", command: () => "/similar" },
-        // { text: "/new", description: "Suggest 3 new tracks in a similar genre", command: () => nowPlayingText ? `Suggest 3 new tracks in a similar genre to "${nowPlayingText}"` : "Suggest 3 new tracks in a similar genre" },
         { text: "/facts", description: "List facts about the current track or artist", command: () => "/facts" },
-        // { text: "/info", description: "Show technical metadata about the current track", command: () => nowPlayingText ? `/info ${nowPlayingText}` : "/info" },
         // { text: "/img", description: "Show album cover of the playing track", command: () => "/img" },
         { text: "/discogs", description: "Get detailed info from Discogs about a track", command: () => "/discogs " },
         { text: "/skins", description: "Generate a new background", command: () => "/skins"},
