@@ -863,6 +863,48 @@ body:not(.dark) .add-playlist-field input {
 .add-playlist-field input:focus { border-color: #00F2B8; }
 body:not(.dark) .add-playlist-field input:focus { border-color: #171C2B; }
 
+.merged-playlist-catalog { position: relative; }
+.merged-playlist-catalog-row { display: flex; gap: 8px; }
+.merged-playlist-folder-catalog { flex: 0 0 82px; }
+.merged-playlist-catalog-row > .merged-playlist-catalog:not(.merged-playlist-folder-catalog) { min-width: 0; flex: 1; }
+
+.merged-playlist-catalog-toggle {
+  width: 100%; min-height: 38px; display: flex; align-items: center;
+  justify-content: space-between; gap: 12px; padding: 8px 10px;
+  color: #fff; background: #20283a; border: 1px solid #00F2B8; border-radius: 6px;
+  font: 700 0.78rem 'Ruda', sans-serif; text-align: left; cursor: pointer;
+}
+
+.merged-playlist-catalog-toggle:disabled { cursor: wait; opacity: 0.72; }
+.merged-playlist-catalog-chevron { color: #00F2B8; font-size: 1.1rem; transition: transform .15s; }
+.merged-playlist-catalog.open .merged-playlist-catalog-chevron { transform: rotate(180deg); }
+
+.merged-playlist-catalog-dropdown {
+  position: absolute; z-index: 2; top: calc(100% + 4px); left: 0; right: 0; display: none;
+  max-height: 230px; overflow-y: auto; background: #171C2B; border: 1px solid #00F2B8;
+  border-radius: 6px; box-shadow: 0 12px 26px rgba(0, 0, 0, .35);
+}
+
+.merged-playlist-catalog.open .merged-playlist-catalog-dropdown { display: block; }
+.merged-playlist-catalog-list { margin: 0; padding: 4px 0; list-style: none; }
+.merged-playlist-catalog-option {
+  width: 100%; display: block; padding: 8px 10px; color: #fff; background: transparent;
+  border: 0; font: 0.78rem 'Ruda', sans-serif; text-align: left; cursor: pointer;
+}
+
+.merged-playlist-catalog-option:hover, .merged-playlist-catalog-option:focus { background: rgba(0, 242, 184, .16); outline: none; }
+.merged-playlist-catalog-dropdown::-webkit-scrollbar { width: 8px; }
+.merged-playlist-catalog-dropdown::-webkit-scrollbar-thumb { background: #00F2B8; border-radius: 8px; }
+body:not(.dark) .merged-playlist-catalog-toggle, body:not(.dark) .merged-playlist-catalog-dropdown { color: #171C2B; background: #f2f2f2; border-color: #171C2B; }
+body:not(.dark) .merged-playlist-catalog-option { color: #171C2B; }
+body:not(.dark) .merged-playlist-catalog-chevron { color: #171C2B; }
+
+.add-playlist-catalog-status {
+  min-height: 14px;
+  font-size: 0.68rem;
+  opacity: 0.65;
+}
+
 .add-playlist-error {
   font-size: 0.75rem;
   color: #ff6b6b;

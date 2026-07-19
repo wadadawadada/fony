@@ -8,6 +8,7 @@ import { connectWallet, getNFTContractList, connectAndLoadWalletNFTs } from './w
 import { clearDiscogsInfo } from './nowplaying.js'
 import { initCustomGenreSelect, setSelectedGenre, getSelectedGenre } from './custom-genre-select.js';
 import { loadCustomPlaylists, saveCustomPlaylist, deleteCustomPlaylist, normalizePlaylistUrl, suggestNameFromUrl } from './custom-playlists.js';
+import { loadMergedPlaylistFolder as fetchMergedPlaylistFolder } from './merged-playlist-catalog.js';
 
 let currentMode = "radio"
 let currentParsingUrl = ""
@@ -1204,12 +1205,58 @@ function setRadioListeners() {
 
 }
 
+const MERGED_PLAYLIST_FOLDERS = ['0-9', ...'abcdefghijklmnopqrstuvwxyz'];
+
+async function loadMergedPlaylistFolder(folder) {
+  const toggle = document.getElementById('mergedPlaylistCatalogToggle');
+  const text = document.getElementById('mergedPlaylistCatalogText');
+  const list = document.getElementById('mergedPlaylistCatalogList');
+  const status = document.getElementById('mergedPlaylistStatus');
+  if (!toggle || !text || !list || !status) return;
+
+  toggle.disabled = true;
+  text.textContent = 'Loading…';
+  list.innerHTML = '';
+  status.textContent = `Loading “${folder}” playlists…`;
+
+  try {
+    const playlists = await fetchMergedPlaylistFolder(folder);
+    const fragment = document.createDocumentFragment();
+    for (const playlist of playlists) {
+      const item = document.createElement('li');
+      const option = document.createElement('button');
+      option.type = 'button';
+      option.className = 'merged-playlist-catalog-option';
+      option.dataset.url = playlist.url;
+      option.dataset.name = playlist.name;
+      option.setAttribute('role', 'option');
+      option.textContent = playlist.name;
+      item.appendChild(option);
+      fragment.appendChild(item);
+    }
+    list.appendChild(fragment);
+    text.textContent = 'Choose playlist';
+    status.textContent = `${playlists.length} playlists in “${folder}”.`;
+  } catch (error) {
+    console.warn('Could not load merged M3U catalog:', error);
+    status.textContent = error.message || 'Could not load this folder. Please try again.';
+    text.textContent = 'Choose another folder';
+  } finally {
+    toggle.disabled = false;
+  }
+}
+
 function openAddPlaylistModal() {
   const modal = document.getElementById('addPlaylistModal');
   if (!modal) return;
   document.getElementById('addPlaylistUrl').value = '';
   document.getElementById('addPlaylistName').value = '';
   document.getElementById('addPlaylistError').textContent = '';
+  document.getElementById('mergedPlaylistFolderText').textContent = 'Folder';
+  document.getElementById('mergedPlaylistCatalogText').textContent = 'Choose a folder first';
+  document.getElementById('mergedPlaylistCatalogToggle').disabled = true;
+  document.getElementById('mergedPlaylistCatalogList').innerHTML = '';
+  document.getElementById('mergedPlaylistStatus').textContent = '';
   modal.style.display = 'flex';
   document.getElementById('addPlaylistUrl').focus();
 }
@@ -1235,6 +1282,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const urlInput = document.getElementById('addPlaylistUrl');
   const nameInput = document.getElementById('addPlaylistName');
+  const mergedFolderCatalog = document.getElementById('mergedPlaylistFolderCatalog');
+  const mergedFolderToggle = document.getElementById('mergedPlaylistFolderToggle');
+  const mergedFolderList = document.getElementById('mergedPlaylistFolderList');
+  const mergedCatalog = document.getElementById('mergedPlaylistCatalog');
+  const mergedCatalogToggle = document.getElementById('mergedPlaylistCatalogToggle');
+  const mergedCatalogList = document.getElementById('mergedPlaylistCatalogList');
+
+  if (mergedFolderCatalog && mergedFolderToggle && mergedFolderList) {
+    const folderFragment = document.createDocumentFragment();
+    for (const folder of MERGED_PLAYLIST_FOLDERS) {
+      const item = document.createElement('li');
+      const option = document.createElement('button');
+      option.type = 'button';
+      option.className = 'merged-playlist-catalog-option merged-playlist-folder-option';
+      option.dataset.folder = folder;
+      option.textContent = folder.toUpperCase();
+      item.appendChild(option);
+      folderFragment.appendChild(item);
+    }
+    mergedFolderList.appendChild(folderFragment);
+
+    mergedFolderToggle.addEventListener('click', () => {
+      const isOpen = mergedFolderCatalog.classList.toggle('open');
+      mergedFolderToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    mergedFolderList.addEventListener('click', (event) => {
+      const option = event.target.closest('.merged-playlist-folder-option');
+      if (!option) return;
+      const folder = option.dataset.folder;
+      document.getElementById('mergedPlaylistFolderText').textContent = folder.toUpperCase();
+      mergedFolderCatalog.classList.remove('open');
+      mergedFolderToggle.setAttribute('aria-expanded', 'false');
+      loadMergedPlaylistFolder(folder);
+    });
+  }
+
+  if (mergedCatalog && mergedCatalogToggle && mergedCatalogList && nameInput && urlInput) {
+    mergedCatalogToggle.addEventListener('click', () => {
+      const isOpen = mergedCatalog.classList.toggle('open');
+      mergedCatalogToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    mergedCatalogList.addEventListener('click', (event) => {
+      const option = event.target.closest('.merged-playlist-catalog-option');
+      if (!option) return;
+      urlInput.value = option.dataset.url;
+      nameInput.value = option.dataset.name || option.textContent;
+      document.getElementById('addPlaylistError').textContent = '';
+      document.getElementById('mergedPlaylistCatalogText').textContent = option.textContent;
+      mergedCatalog.classList.remove('open');
+      mergedCatalogToggle.setAttribute('aria-expanded', 'false');
+    });
+  }
   if (urlInput && nameInput) {
     urlInput.addEventListener('blur', () => {
       const url = urlInput.value.trim();

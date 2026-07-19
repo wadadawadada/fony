@@ -257,6 +257,30 @@
       <label for="addPlaylistUrl">M3U URL</label>
       <input type="text" id="addPlaylistUrl" placeholder="https://example.com/playlist.m3u" autocomplete="off" spellcheck="false">
     </div>
+    <div class="add-playlist-field add-playlist-catalog-field">
+      <label>Or choose from the community catalog</label>
+      <div class="merged-playlist-catalog-row">
+        <div class="merged-playlist-catalog merged-playlist-folder-catalog" id="mergedPlaylistFolderCatalog">
+          <button id="mergedPlaylistFolderToggle" class="merged-playlist-catalog-toggle" type="button" aria-expanded="false" aria-controls="mergedPlaylistFolderDropdown">
+            <span id="mergedPlaylistFolderText">Folder</span>
+            <span class="merged-playlist-catalog-chevron" aria-hidden="true">⌄</span>
+          </button>
+          <div id="mergedPlaylistFolderDropdown" class="merged-playlist-catalog-dropdown" role="listbox" aria-label="Playlist folder">
+            <ul id="mergedPlaylistFolderList" class="merged-playlist-catalog-list"></ul>
+          </div>
+        </div>
+        <div class="merged-playlist-catalog" id="mergedPlaylistCatalog">
+          <button id="mergedPlaylistCatalogToggle" class="merged-playlist-catalog-toggle" type="button" disabled aria-expanded="false" aria-controls="mergedPlaylistCatalogDropdown">
+            <span id="mergedPlaylistCatalogText">Choose a folder first</span>
+            <span class="merged-playlist-catalog-chevron" aria-hidden="true">⌄</span>
+          </button>
+          <div id="mergedPlaylistCatalogDropdown" class="merged-playlist-catalog-dropdown" role="listbox" aria-label="Community playlists">
+            <ul id="mergedPlaylistCatalogList" class="merged-playlist-catalog-list"></ul>
+          </div>
+        </div>
+      </div>
+      <span id="mergedPlaylistStatus" class="add-playlist-catalog-status" aria-live="polite"></span>
+    </div>
     <div class="add-playlist-field">
       <label for="addPlaylistName">Name</label>
       <input type="text" id="addPlaylistName" placeholder="My Playlist">
