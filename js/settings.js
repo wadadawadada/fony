@@ -140,3 +140,75 @@ function handleSettingsClick(e) {
 
 window.openSettingsModal = openSettingsModal;
 window.addEventListener("resize", updateLeftHandedSetting);
+
+(function animateManifestoMascot() {
+  var phrases = [
+    "FONY is more than just a music player.",
+    "It's a revolutionary Web3 platform.",
+    "Infinite global music streaming, freedom, decentralization.",
+    "Unlimited Free Music Streaming.",
+    "No subscriptions. No restrictions. No ads.",
+    "Seamless 24/7 streaming — anytime, anywhere.",
+    "An Interface That Works for You.",
+    "Fast, intuitive, and diverse by design.",
+    "Dive into the world of music effortlessly.",
+    "Web3 & NFT Integration.",
+    "Connect your NFT audio tracks.",
+    "Play the music you truly own.",
+    "Decentralized Audio Without Limits.",
+    "FONY breaks the barriers of traditional platforms.",
+    "Fair, open, and built for the people.",
+    "Internet Radio & Music Discovery Tools.",
+    "Curated radio stations, endless genres.",
+    "AI-powered advisors to expand your sonic horizons."
+  ];
+
+  var closedSrc = "/img/dark/about_icon.svg";
+  var openSrc = "/img/dark/about_icon_hover.svg";
+  var idx = 0;
+  var mouthOpen = false;
+  var talkTimer = null;
+  var wasVisible = false;
+
+  function setMouth(open) {
+    var mascot = document.getElementById("manifestoMascot");
+    if (mascot) mascot.src = open ? openSrc : closedSrc;
+  }
+
+  function step() {
+    var mascot = document.getElementById("manifestoMascot");
+    var bubble = document.getElementById("mascotBubble");
+    var bubbleText = document.getElementById("mascotBubbleText");
+    var visibleNow = !!(mascot && bubble && bubbleText && mascot.offsetParent !== null);
+
+    if (!visibleNow) {
+      wasVisible = false;
+      clearInterval(talkTimer);
+      setTimeout(step, 500);
+      return;
+    }
+    if (!wasVisible) idx = 0;
+    wasVisible = true;
+
+    bubbleText.textContent = phrases[idx];
+    bubble.classList.add("visible");
+
+    clearInterval(talkTimer);
+    talkTimer = setInterval(function() {
+      mouthOpen = !mouthOpen;
+      setMouth(mouthOpen);
+    }, 220);
+
+    var showDuration = Math.max(1600, phrases[idx].length * 60);
+    setTimeout(function() {
+      clearInterval(talkTimer);
+      setMouth(false);
+      var stillThere = document.getElementById("mascotBubble");
+      if (stillThere) stillThere.classList.remove("visible");
+      idx = (idx + 1) % phrases.length;
+      setTimeout(step, 500);
+    }, showDuration);
+  }
+
+  step();
+})();
