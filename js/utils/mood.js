@@ -1,9 +1,91 @@
-const BATCH_SIZE = 15;
-const MAX_BATCHES = 6;
+const BATCH_SIZE = 24;
+const MAX_BATCHES = 3;
 const FETCH_TIMEOUT_MS = 3000;
-const FETCH_CONCURRENCY = 15;
+const FETCH_CONCURRENCY = 12;
+const MAX_PRESELECTED_STATIONS = BATCH_SIZE * MAX_BATCHES;
 
 let moodScannedUrls = new Set();
+
+// These terms let a useful result surface before the live metadata request.  The
+// LLM still makes the final choice, but it no longer has to judge a random sample.
+const MOOD_TERMS = {
+  relaxed: ["relax", "calm", "chill", "sleep", "ambient", "meditat", "focus", "study", "спокой", "расслаб", "сон", "медита", "лоунж"],
+  energetic: ["energy", "energet", "upbeat", "party", "workout", "dance", "club", "pump", "бодр", "энерг", "вечерин", "танц", "трениров"],
+  romantic: ["romantic", "love", "date", "sensual", "romance", "любов", "романт", "свидан"],
+  dark: ["dark", "night", "deep", "moody", "goth", "мрач", "ночн", "темн"],
+  happy: ["happy", "feel good", "sunny", "positive", "cheerful", "весел", "радост", "позитив"]
+};
+
+const NEWS_TERMS = [
+  "news", "news radio", "breaking", "headlines", "bbc", "npr", "cnn",
+  "новости", "новости", "вести", "инфо", "информация", "рбк"
+];
+
+function normalize(value = "") {
+  return String(value).toLowerCase().replace(/ё/g, "е").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+
+function queryTerms(query) {
+  const normalized = normalize(query);
+  const terms = new Set(normalized.split(/\s+/).filter(term => term.length > 1));
+  Object.values(MOOD_TERMS).forEach(group => {
+    if (group.some(term => normalized.includes(normalize(term)))) group.forEach(term => terms.add(normalize(term)));
+  });
+  return [...terms];
+}
+
+function scoreText(text, terms) {
+  const normalized = ` ${normalize(text)} `;
+  return terms.reduce((score, term) => score + (normalized.includes(` ${term} `) || normalized.includes(term) ? 1 : 0), 0);
+}
+
+function isNewsRequest(query) {
+  const normalized = normalize(query);
+  return NEWS_TERMS.some(term => normalized.includes(normalize(term)));
+}
+
+function isNamedNewsStation(station) {
+  const identity = `${station.title || ""} ${station.genreName || ""}`;
+  return NEWS_TERMS.some(term => normalize(identity).includes(normalize(term)));
+}
+
+function hasTrackMetadata(nowPlaying) {
+  if (!nowPlaying || nowPlaying.length < 5) return false;
+  const value = String(nowPlaying).trim();
+  // Most radio metadata uses Artist - Title. Separators cover the common
+  // stream variants while rejecting generic messages such as "Live radio".
+  return /^.{2,120}\s(?:-|–|—|\||\/|::)\s.{2,120}$/.test(value);
+}
+
+function requestedDecade(query) {
+  const normalized = normalize(query);
+  const fullMatch = normalized.match(/\b(19\d0|20\d0)\s*(?:s|х|е|год(?:а|ов)?)?/);
+  if (fullMatch) return Number(fullMatch[1]);
+  // "90-х", "90е" and "90s" become "90 х", "90е" and "90s" after
+  // normalization. Two-digit decades conventionally mean the 1900s here.
+  const shortMatch = normalized.match(/\b(\d{2})\s*(?:s|х|е|год(?:а|ов)?)/);
+  if (!shortMatch) return null;
+  const shortYear = Number(shortMatch[1]);
+  return shortYear >= 30 ? 1900 + shortYear : 2000 + shortYear;
+}
+
+function scoreStationForMood(station, terms) {
+  // Genre is the strongest catalogue signal. A descriptive station name gives
+  // an additional boost, while a tiny deterministic tie-breaker prevents the
+  // same stream always winning an otherwise equal result.
+  const genreScore = scoreText(station.genreName, terms) * 7;
+  const titleScore = scoreText(station.title, terms) * 4;
+  let hash = 0;
+  for (const char of (station.url || "")) hash = (hash * 31 + char.charCodeAt(0)) % 997;
+  return genreScore + titleScore + hash / 10000;
+}
+
+function rankCandidates(query, candidates) {
+  const terms = queryTerms(query);
+  return candidates
+    .map(candidate => ({ ...candidate, score: scoreStationForMood(candidate.station, terms) + scoreText(candidate.nowPlaying, terms) * 10 }))
+    .sort((a, b) => b.score - a.score);
+}
 
 function scrollToBottom() {
   const msgs = document.getElementById("chatMessages");
@@ -49,10 +131,19 @@ export async function runMoodSearch(query, addMessage, requestChatCompletion) {
     return;
   }
 
-  // Step 1: build numbered playlist list and ask LLM to pick by number
+  // Step 1: use the catalogue and the model to narrow the genre set.
   const allGenres = [...new Set(pool.map(s => s.genreName))].sort();
   updateStatus("Choosing playlists to search...");
-  const relevantGenres = await pickRelevantGenres(query, allGenres, requestChatCompletion);
+  const modelGenres = await pickRelevantGenres(query, allGenres, requestChatCompletion);
+  const localGenres = allGenres
+    .map(genre => ({ genre, score: scoreText(genre, queryTerms(query)) }))
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 8)
+    .map(item => item.genre);
+  // Local matching is a safety net for unavailable or imperfect completions;
+  // model choices add semantic matches such as "rainy Sunday" -> Chillout.
+  const relevantGenres = [...new Set([...modelGenres, ...localGenres])].slice(0, 12);
 
   // Filter pool to relevant genres; fall back to full pool if nothing matched
   const filteredPool = relevantGenres.length
@@ -63,19 +154,24 @@ export async function runMoodSearch(query, addMessage, requestChatCompletion) {
     ? relevantGenres.join(", ")
     : "all playlists";
 
-  // Step 2: scan batches from filtered pool
+  // Never start from a shuffled global list: rank the entire relevant pool first.
+  // This fixes the common case where a very suitable station was simply outside
+  // of the first 90 randomly scanned streams.
+  const terms = queryTerms(query);
+  const rankedPool = filteredPool
+    .slice()
+    .sort((a, b) => scoreStationForMood(b, terms) - scoreStationForMood(a, terms))
+    .slice(0, MAX_PRESELECTED_STATIONS);
+
+  // Step 2: inspect the best-ranked streams in batches.
   for (let batch = 0; batch < MAX_BATCHES; batch++) {
-    const available = filteredPool.filter(s => !moodScannedUrls.has(s.url));
+    const available = rankedPool.filter(s => !moodScannedUrls.has(s.url));
     if (!available.length) {
       updateStatus("Scanned all matching stations — no match found. Try different wording.");
       reenterMoodMode();
       return;
     }
 
-    for (let i = available.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [available[i], available[j]] = [available[j], available[i]];
-    }
     const batchStations = available.slice(0, BATCH_SIZE);
     batchStations.forEach(s => moodScannedUrls.add(s.url));
 
@@ -89,12 +185,14 @@ export async function runMoodSearch(query, addMessage, requestChatCompletion) {
       .filter(r => r.status === "fulfilled")
       .map(r => r.value);
 
-    // Include stations with metadata; also include name-only stations (news/talk often have no StreamTitle)
-    const withData = fulfilled.filter(r => r.nowPlaying);
-    const nameOnly = fulfilled.filter(r => !r.nowPlaying);
-
-    // Cap at 8 candidates so chain-of-thought fits in token limit
-    const candidates = [...withData, ...nameOnly].slice(0, 8);
+    const wantsNews = isNewsRequest(query);
+    // For a music request, a station cannot be recommended on its name alone:
+    // its live Artist - Track metadata is mandatory. News stations are the
+    // exception, because they commonly have no StreamTitle at all.
+    const evidenceBacked = wantsNews
+      ? fulfilled.filter(item => isNamedNewsStation(item.station))
+      : fulfilled.filter(item => hasTrackMetadata(item.nowPlaying));
+    const candidates = rankCandidates(query, evidenceBacked).slice(0, 12);
     if (candidates.length < 1) continue;
 
     const match = await matchMoodToStations(query, candidates, requestChatCompletion);
@@ -136,7 +234,7 @@ async function pickRelevantGenres(query, allGenres, requestChatCompletion) {
     const resp = await requestChatCompletion([
       { role: "system", content: "You are a radio music expert. Given a mood/genre request and a numbered list of radio playlists, pick the numbers most likely to contain matching music. Reply ONLY with numbers like: 3, 7, 12" },
       { role: "user", content: prompt }
-    ]);
+    ], { maxTokens: 128, reasoningEffort: "minimal" });
     const text = (resp?.choices?.[0]?.message?.content || "").trim();
     if (!text || text.toLowerCase() === "none") return [];
     const nums = text.split(/[\s,]+/)
@@ -164,12 +262,13 @@ async function fetchConcurrent(stations, concurrency) {
 }
 
 async function matchMoodToStations(query, candidates, requestChatCompletion) {
+  const decade = requestedDecade(query);
   const list = candidates
-    .map((c, i) => `${i + 1}. Station: ${c.station.title}${c.nowPlaying ? ` | Now playing: ${c.nowPlaying}` : " | Now playing: (live, no metadata)"}`)
+    .map((c, i) => `${i + 1}. Station: ${c.station.title} | Playlist: ${c.station.genreName}${c.nowPlaying ? ` | Now playing: ${c.nowPlaying}` : " | Now playing: (live, no metadata)"}`)
     .join("\n");
 
   const systemPrompt =
-    `You are a strict radio content evaluator. Evaluate EACH station using both the station name and the now-playing text.\n\n` +
+    `You are a strict radio content evaluator. Select the single best station using the playlist, station name and now-playing text.\n\n` +
     `IMPORTANT: Many live/talk/news stations show "(live, no metadata)" — judge them by station name only.\n\n` +
     `Content type rules:\n` +
     `- If now-playing shows "Artist - Track" format → this is a MUSIC station, NOT news, NOT talk.\n` +
@@ -178,13 +277,11 @@ async function matchMoodToStations(query, candidates, requestChatCompletion) {
     `- RELIGIOUS: "Worship", "Radio Maria", "псалом", "От Матфея", bible text → NOT news.\n\n` +
     `Matching rules — ALL criteria must match:\n` +
     `- If user wants NEWS: only accept stations that are clearly news/talk. A station playing music (Artist - Track) is NOT news even if it's in a news playlist.\n` +
-    `- If user wants MUSIC: only accept stations with Artist - Track metadata matching the requested genre/language/era.\n` +
+    `- If user wants MUSIC: ONLY pick a station with Artist - Track metadata. Analyse BOTH artist and track against the request; playlist and station name alone never qualify a music station.\n` +
+    (decade ? `- The user explicitly requests the ${decade}s. Verify the TRACK's original release year is from ${decade} to ${decade + 9}. Do not guess and do not pick a track outside this range.\n` : "") +
     `- Language must match the request.\n\n` +
-    `Output format:\n` +
-    `1: YES/NO — reason\n` +
-    `2: YES/NO — reason\n` +
-    `...\n` +
-    `PICK: N or PICK: none`;
+    `Reply with EXACTLY one line and no explanation: ` +
+    (decade ? `PICK: N | YEAR: YYYY, or PICK: none` : `PICK: N or PICK: none`);
 
   const prompt =
     `User request: "${query}"\n\n` +
@@ -202,7 +299,14 @@ async function matchMoodToStations(query, candidates, requestChatCompletion) {
     if (pickMatch) {
       if (pickMatch[1].toLowerCase() === "none") return null;
       const num = parseInt(pickMatch[1], 10);
-      if (!isNaN(num) && num >= 1 && num <= candidates.length) return candidates[num - 1];
+      if (!isNaN(num) && num >= 1 && num <= candidates.length) {
+        if (decade) {
+          const yearMatch = text.match(/YEAR:\s*(\d{4})/i);
+          const year = yearMatch ? Number(yearMatch[1]) : NaN;
+          if (!Number.isInteger(year) || year < decade || year > decade + 9) return null;
+        }
+        return candidates[num - 1];
+      }
     }
     // Fallback: last standalone number in response
     const nums = [...text.matchAll(/\b(\d+)\b/g)].map(m => parseInt(m[1], 10));
@@ -212,7 +316,11 @@ async function matchMoodToStations(query, candidates, requestChatCompletion) {
   };
 
   try {
-    const resp = await requestChatCompletion(messages);
+    const resp = await requestChatCompletion(messages, { maxTokens: 128, reasoningEffort: "minimal" });
+    const text = (resp?.choices?.[0]?.message?.content || "").trim();
+    // Respect an explicit rejection. A malformed response is not enough to
+    // recommend a track that was not actually evaluated by the model.
+    if (/PICK:\s*none/i.test(text)) return null;
     return parseResponse(resp);
   } catch {
     return null;

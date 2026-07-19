@@ -1,7 +1,7 @@
 import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js";
 import { fetchDiscogsTrackInfo } from './utils/discogs.js';
 import { handleSkinsCommand, reapplySkin } from './utils/skins.js';
-import { addTrackToCollection, createMainCollectMenuHtml, setupCollectionMenuHandlers } from './utils/collection.js';
+import { addTrackToCollection, createMainCollectMenuHtml, setupCollectionMenuHandlers, setupMobileCollectionHandlers, getCollection } from './utils/collection.js';
 import { handleMoodCommand, runMoodSearch } from './utils/mood.js';
 import { playPodcastOverRadio, fetchPodcastAudio, stopPodcast } from './utils/podcast.js';
 
@@ -224,17 +224,18 @@ function showFeatureDetails(idx) {
   showFeatureChoices();
 }
 
-async function requestChatCompletion(messages) {
+async function requestChatCompletion(messages, options = {}) {
   const resp = await fetch(`${FONY_BACKEND_URL}/api/openai/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "gpt-4.1-nano",
+      model: "gpt-5-mini",
       messages,
-      temperature: 0.7,
-      max_tokens: 512
+      temperature: options.temperature ?? 0.7,
+      max_tokens: options.maxTokens ?? 512,
+      reasoning_effort: options.reasoningEffort
     })
   });
 
@@ -257,14 +258,125 @@ function getNowPlayingText() {
 }
 
 function parseArtistTrack(text) {
-  const separator = text.includes("–") ? "–" : text.includes("-") ? "-" : null;
-  if (!separator) return null;
-  const parts = text.split(separator);
-  if (parts.length < 2) return null;
-  return {
-    artist: parts[0].trim(),
-    track: parts.slice(1).join(separator).trim()
-  };
+  const match = String(text || "").match(/^\s*(.+?)\s+(?:-|–|—)\s+(.+)\s*$/);
+  if (!match) return null;
+  return { artist: match[1].trim(), track: match[2].trim() };
+}
+
+function createTrackSearchListHtml(title, tracks) {
+  const items = tracks.map(({ artist, track }) => {
+    const query = encodeURIComponent(`${artist} ${track}`);
+    return `<li><a href="https://www.google.com/search?q=${query}" target="_blank" rel="noopener">${escapeHtml(artist)} — ${escapeHtml(track)} ↗</a></li>`;
+  }).join("");
+  return `<strong>${escapeHtml(title)}</strong><ul style="padding-left:18px; margin:8px 0;">${items}</ul>`;
+}
+
+function parseRecommendedTracks(reply, excludedArtist = "") {
+  const excluded = excludedArtist.toLowerCase();
+  return reply.split(/\r?\n/)
+    .map(line => line.replace(/^\s*\d+[.)]\s*/, "").trim())
+    .map(parseArtistTrack)
+    .filter(Boolean)
+    .filter(item => !excluded || !item.artist.toLowerCase().includes(excluded))
+    .slice(0, 5);
+}
+
+async function getSimilarTracksResponse(nowPlayingText) {
+  const source = parseArtistTrack(nowPlayingText);
+  if (!source?.artist || !source?.track) {
+    return { type: "text", content: "Play a track with Artist - Title metadata first, then try /similar again." };
+  }
+
+  const messages = [
+    {
+      role: "system",
+      content:
+        "You are FONY's track-similarity engine. Recommend exactly 5 real songs similar to the source track. " +
+        "Match musical style, genre, era, mood, tempo and production; do not recommend radio stations, playlists, albums or generic advice. " +
+        "Every recommendation must be by a different artist than the source artist. Reply with exactly five numbered lines in this format: Artist - Title. No introduction or explanations."
+    },
+    {
+      role: "user",
+      content: `Source track: ${source.artist} - ${source.track}`
+    }
+  ];
+
+  try {
+    const data = await requestChatCompletion(messages, { maxTokens: 256, reasoningEffort: "minimal" });
+    const reply = data.choices?.[0]?.message?.content?.trim();
+    if (!reply) return { type: "text", content: "No similar tracks found. Try again when the track metadata updates." };
+    const tracks = parseRecommendedTracks(reply, source.artist);
+
+    return tracks.length >= 3
+      ? { type: "html", content: createTrackSearchListHtml("Similar tracks", tracks) }
+      : { type: "text", content: "No verified set of similar tracks found. Try /similar again." };
+  } catch (error) {
+    return { type: "text", content: error.message || "Unable to find similar tracks right now." };
+  }
+}
+
+async function getCollectionRecommendations(collection = getCollection()) {
+  if (!collection.length) {
+    return { type: "text", content: "Collection is empty. Add tracks first, then request recommendations." };
+  }
+  const sourceList = collection.map((item, index) => `${index + 1}. ${item.artist} - ${item.track}`).join("\n");
+  const messages = [
+    {
+      role: "system",
+      content:
+        "You are FONY's collection recommendation engine. Infer the shared style from the supplied collection and recommend exactly 5 real tracks that fit it. " +
+        "Do not recommend stations, playlists, albums or generic advice. Reply with exactly five numbered lines: Artist - Title. No summary or explanations."
+    },
+    { role: "user", content: `Collection:\n${sourceList}` }
+  ];
+
+  try {
+    const data = await requestChatCompletion(messages, { maxTokens: 256, reasoningEffort: "minimal" });
+    const reply = data.choices?.[0]?.message?.content?.trim();
+    const tracks = reply ? parseRecommendedTracks(reply) : [];
+    return tracks.length >= 3
+      ? { type: "html", content: createTrackSearchListHtml("Collection recommendations", tracks) }
+      : { type: "text", content: "No verified collection recommendations found. Try again." };
+  } catch (error) {
+    return { type: "text", content: error.message || "Unable to create collection recommendations right now." };
+  }
+}
+
+async function getTrackFactsResponse(nowPlayingText) {
+  const source = parseArtistTrack(nowPlayingText);
+  if (!source?.artist || !source?.track) {
+    return { type: "text", content: "Play a track with Artist - Title metadata first, then try /facts again." };
+  }
+
+  const messages = [
+    {
+      role: "system",
+      content:
+        "You are FONY's music-facts engine. Give exactly 4 concise, useful facts about the supplied artist and track. " +
+        "Prioritize verified facts: release era, album or context, genre/style, chart/cultural relevance or production details. " +
+        "Never invent facts, dates, awards, chart positions or collaborators. If a fact is uncertain, omit it. " +
+        "Reply only as four bullet points, with no introduction and no recommendations."
+    },
+    {
+      role: "user",
+      content: `Artist: ${source.artist}\nTrack: ${source.track}`
+    }
+  ];
+
+  try {
+    const data = await requestChatCompletion(messages, { maxTokens: 256, reasoningEffort: "minimal" });
+    const reply = data.choices?.[0]?.message?.content?.trim();
+    if (!reply) return { type: "text", content: "No facts found for the current track." };
+    const facts = reply.split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => /^(?:[-•*]|\d+[.)])\s+/.test(line))
+      .slice(0, 4);
+    return facts.length >= 2
+      ? { type: "text", content: facts.join("\n") }
+      : { type: "text", content: "No verified facts found for the current track." };
+  } catch (error) {
+    return { type: "text", content: error.message || "Unable to get track facts right now." };
+  }
 }
 
 async function fetchCoverArt(artist, track) {
@@ -454,6 +566,14 @@ if (userInput.trim().toLowerCase() === "/donate") {
     return null;
   }
 
+  if (userInput.trim().toLowerCase() === "/similar") {
+    return await getSimilarTracksResponse(getNowPlayingText());
+  }
+
+  if (userInput.trim().toLowerCase() === "/facts") {
+    return await getTrackFactsResponse(getNowPlayingText());
+  }
+
   if (userInput.trim().toLowerCase() === "/skins") {
     await handleSkinsCommand(addMessage);
     return null;
@@ -503,9 +623,13 @@ if (userInput.trim().toLowerCase() === "/donate") {
   //   }
   // }
 
+if (userInput.trim().toLowerCase() === "/collection recommendations") {
+  return await getCollectionRecommendations();
+}
+
 if (userInput.trim().toLowerCase() === "/collection") {
   const menuHtml = createMainCollectMenuHtml();
-  setupCollectionMenuHandlers(addMessage, getChatBotResponse, formatBotResponse);
+  setupCollectionMenuHandlers(addMessage, getCollectionRecommendations);
   return { type: "html", content: menuHtml };
 }
 
@@ -611,7 +735,7 @@ async function sendMessage() {
   if (typingIndicator && typingIndicator.parentElement) typingIndicator.remove();
   if (botReply) {
   if (typeof botReply === "object") {
-    if (botReply.type === "image" || botReply.type === "discogs") {
+      if (botReply.type === "image" || botReply.type === "discogs" || botReply.type === "html") {
       addMessage("bot", botReply.content);
       conversationHistory.push({ role: "assistant", content: botReply.content });
     } else if (botReply.type === "html") {
@@ -669,7 +793,7 @@ function renderQuickLinks() {
     {
       text: "/similar",
       description: "Recommend 3 tracks similar to the current track",
-      command: () => nowPlayingText ? `Recommend 3 tracks similar to "${nowPlayingText}"` : "Recommend 3 similar tracks to the current track"
+      command: () => "/similar"
     },
     // {
     //   text: "/new",
@@ -679,7 +803,7 @@ function renderQuickLinks() {
     {
       text: "/facts",
       description: "List facts about the current track or artist",
-      command: () => nowPlayingText ? `List facts about "${nowPlayingText}"` : "List facts about the current track or artist"
+      command: () => "/facts"
     },
     // {
     //   text: "/info",
@@ -765,8 +889,8 @@ function sendWelcomeMessage() {
       <div style="line-height: 1.6;">
         Welcome to the FONY console!<br><br>
         You can use the chat to explore music or try the quick commands below.<br>
-        <span style="white-space: nowrap;">🎵&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Recommend 3 tracks similar to the current track'; chatSendBtn.click();">Similar Tracks</a></span>,&nbsp;
-        <span style="white-space: nowrap;">📚&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='List facts about the current track or artist'; chatSendBtn.click();">Facts</a></span>,&nbsp;
+        <span style="white-space: nowrap;">🎵&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/similar'; chatSendBtn.click();">Similar Tracks</a></span>,&nbsp;
+        <span style="white-space: nowrap;">📚&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/facts'; chatSendBtn.click();">Facts</a></span>,&nbsp;
         <span style="white-space: nowrap;">🆕&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Suggest 3 new tracks in a similar genre'; chatSendBtn.click();">New in Genre</a></span>,&nbsp;
         <span style="white-space: nowrap;">ℹ️&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='Show technical metadata about the current track'; chatSendBtn.click();">Get Track Info</a></span>,&nbsp;
         <span style="white-space: nowrap;">📀&nbsp;<a href="#" onclick="event.preventDefault(); chatInput.value='/discogs'; chatSendBtn.click();">Discogs Info</a></span>,&nbsp;
@@ -985,7 +1109,7 @@ export function initChat() {
         sendFonyTipsIntroMobile();
       } else if (botReply) {
         if (typeof botReply === "object") {
-          if (botReply.type === "image" || botReply.type === "discogs") {
+          if (botReply.type === "image" || botReply.type === "discogs" || botReply.type === "html") {
             addMobileMessage("bot", botReply.content);
             conversationHistory.push({ role: "assistant", content: botReply.content });
           } else {
@@ -999,7 +1123,7 @@ export function initChat() {
         }
       }
       renderMobileQuickLinks();
-      setupMobileCollectionHandlers(addMobileMessage, getChatBotResponse, formatBotResponse);
+      setupMobileCollectionHandlers(addMobileMessage, getCollectionRecommendations);
     });
 
     mobileChatInput.addEventListener("keypress", e => {
@@ -1027,9 +1151,9 @@ export function initChat() {
       mobileChatGenreElem.innerHTML = "";
       const nowPlayingText = getNowPlayingText();
       const commands = [
-        { text: "/similar", description: "Recommend 3 tracks similar to the current track", command: () => nowPlayingText ? `Recommend 3 tracks similar to "${nowPlayingText}"` : "Recommend 3 similar tracks to the current track" },
+        { text: "/similar", description: "Recommend 3 tracks similar to the current track", command: () => "/similar" },
         // { text: "/new", description: "Suggest 3 new tracks in a similar genre", command: () => nowPlayingText ? `Suggest 3 new tracks in a similar genre to "${nowPlayingText}"` : "Suggest 3 new tracks in a similar genre" },
-        { text: "/facts", description: "List facts about the current track or artist", command: () => nowPlayingText ? `List facts about "${nowPlayingText}"` : "List facts about the current track or artist" },
+        { text: "/facts", description: "List facts about the current track or artist", command: () => "/facts" },
         // { text: "/info", description: "Show technical metadata about the current track", command: () => nowPlayingText ? `/info ${nowPlayingText}` : "/info" },
         // { text: "/img", description: "Show album cover of the playing track", command: () => "/img" },
         { text: "/discogs", description: "Get detailed info from Discogs about a track", command: () => "/discogs " },

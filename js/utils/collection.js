@@ -83,7 +83,7 @@ export function createMainCollectMenuHtml() {
   `;
 }
 
-export function setupCollectionMenuHandlers(addMessage, getChatBotResponse, formatBotResponse) {
+export function setupCollectionMenuHandlers(addMessage, getCollectionRecommendations) {
   setTimeout(() => {
     const msgDiv = document.querySelector("#chatMessages .chat-message.bot-message:last-child");
     if (!msgDiv) return;
@@ -138,11 +138,6 @@ export function setupCollectionMenuHandlers(addMessage, getChatBotResponse, form
           addMessage("bot", "Collection is empty.<br><br>");
           return;
         }
-        let prompt = "Based on this list of tracks, provide a brief (not more than 20 words) summary of the overall mood and main musical styles. Then suggest a playlist with no more than 5 recommended rare tracks that fit this mood and style. List only the artist and track, one per line:\n";
-        collection.forEach((t, i) => {
-          prompt += `${i + 1}. ${t.artist} - ${t.track}\n`;
-        });
-
         const typingIndicator = document.createElement("div");
         typingIndicator.classList.add("chat-message", "bot-message", "typing-indicator");
         typingIndicator.innerHTML = `<span class="dot-flash"></span>`;
@@ -150,11 +145,11 @@ export function setupCollectionMenuHandlers(addMessage, getChatBotResponse, form
         chatMessagesElem.appendChild(typingIndicator);
         chatMessagesElem.scrollTop = chatMessagesElem.scrollHeight;
 
-        const response = await getChatBotResponse([], prompt);
+        const response = await getCollectionRecommendations(collection);
 
         typingIndicator.remove();
 
-        if (response && response.content) addMessage("bot", formatBotResponse(response.content));
+        if (response && response.content) addMessage("bot", response.content);
       });
     });
   }, 100);
@@ -197,7 +192,7 @@ function showCollectionHtml(addMessage) {
   }, 50);
 }
 
-export function setupMobileCollectionHandlers(addMobileMessage, getChatBotResponse, formatBotResponse) {
+export function setupMobileCollectionHandlers(addMobileMessage, getCollectionRecommendations) {
   setTimeout(() => {
     const container = document.getElementById('mobileChatMessages');
     if (!container) return;
@@ -252,11 +247,6 @@ export function setupMobileCollectionHandlers(addMobileMessage, getChatBotRespon
           addMobileMessage("bot", "Collection is empty.<br><br>");
           return;
         }
-        let prompt = "Based on this list of tracks, provide (not more than 20 words) a brief summary of the overall mood and main musical styles. Then suggest a playlist with no more than 5 recommended rare tracks that fit this mood and style. List only the artist and track, one per line:\n";
-        collection.forEach((t, i) => {
-          prompt += `${i + 1}. ${t.artist} - ${t.track}\n`;
-        });
-
         const mobileChatMessagesElem = document.getElementById('mobileChatMessages');
         const typingIndicator = document.createElement("div");
         typingIndicator.classList.add("chat-message", "bot-message", "typing-indicator");
@@ -264,11 +254,11 @@ export function setupMobileCollectionHandlers(addMobileMessage, getChatBotRespon
         mobileChatMessagesElem.appendChild(typingIndicator);
         mobileChatMessagesElem.scrollTop = mobileChatMessagesElem.scrollHeight;
 
-        const response = await getChatBotResponse([], prompt);
+        const response = await getCollectionRecommendations(collection);
 
         typingIndicator.remove();
 
-        if (response && response.content) addMobileMessage("bot", formatBotResponse(response.content));
+        if (response && response.content) addMobileMessage("bot", response.content);
       });
     });
   }, 100);
