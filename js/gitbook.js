@@ -57,6 +57,14 @@ function asciiSeparator() {
   return '─'.repeat(50);
 }
 
+function formatBulletItem(item) {
+  const match = item.match(/^([^:]{2,60}):\s(.*)$/s);
+  if (match) {
+    return `→ <strong style="color:#00F2B8;">${match[1]}:</strong> ${match[2]}\n\n`;
+  }
+  return `→ ${item}\n\n`;
+}
+
 function renderContent(data) {
   const container = document.getElementById(CONTENT_ID);
   if (!container || !data) return;
@@ -81,27 +89,24 @@ function renderContent(data) {
 
     if (section.items) {
       section.items.forEach(item => {
-        container.innerHTML += `→ ${item}\n`;
+        container.innerHTML += formatBulletItem(item);
       });
-      container.innerHTML += '\n';
     }
 
     if (section.commands) {
       container.innerHTML += asciiSeparator() + '\n';
       container.innerHTML += 'CHAT COMMANDS\n\n';
       section.commands.forEach(cmd => {
-        container.innerHTML += `${cmd.command}: ${cmd.description}\n`;
+        container.innerHTML += `<strong style="color:#00F2B8;">${cmd.command}</strong> — ${cmd.description}\n\n`;
       });
-      container.innerHTML += '\n';
     }
 
     if (section.tips) {
       container.innerHTML += asciiSeparator() + '\n';
       container.innerHTML += 'USAGE TIPS\n\n';
       section.tips.forEach(tip => {
-        container.innerHTML += `→ ${tip}\n`;
+        container.innerHTML += formatBulletItem(tip);
       });
-      container.innerHTML += '\n';
     }
   });
 

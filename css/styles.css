@@ -671,6 +671,9 @@ body.dark .logo {
 
 #gitbookModal .manifesto-content {
   position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
   width: 90%;
   max-width: 800px;
   max-height: 80vh;
@@ -683,6 +686,12 @@ body.dark .logo {
   scrollbar-color: #00F2B8 #171C2B;
   font-family: 'Ruda', sans-serif;
   color: #ddd;
+  animation: gitbookSlideUp 0.4s ease;
+}
+
+@keyframes gitbookSlideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 #gitbookModal .manifesto-content::-webkit-scrollbar {
