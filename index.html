@@ -237,6 +237,35 @@
     </div>
   </div>
 
+  <div id="donateModal" class="manifesto-modal donate-modal">
+    <div class="manifesto-content donate-content">
+      <button class="manifesto-close" id="donateModalClose">&times;</button>
+      <h3 class="donate-title">Support FONY</h3>
+      <div class="mascot-stage donate-mascot-stage">
+        <img id="donateMascot" class="manifesto-mascot-big donate-mascot" src="/img/dark/about_icon.svg" alt="FONY mascot" width="150" height="150">
+        <div class="mascot-bubble" id="donateMascotBubble">
+          <span id="donateMascotBubbleText"></span>
+        </div>
+      </div>
+      <div class="donate-wallets">
+        <div class="donate-wallet">
+          <span class="donate-wallet-label">ERC-20 (ETH, USDT, Polygon)</span>
+          <div class="donate-wallet-row">
+            <span class="donate-wallet-address" id="donateErc20Address">0xaA01e4F453d5ae9903EebeABA803f3388D20d024</span>
+            <button class="donate-copy-btn" type="button" data-copy-target="donateErc20Address">Copy</button>
+          </div>
+        </div>
+        <div class="donate-wallet">
+          <span class="donate-wallet-label">Bitcoin</span>
+          <div class="donate-wallet-row">
+            <span class="donate-wallet-address" id="donateBtcAddress">bc1qhahnrra9q4jc0k6vr8tf9vs8wtmgf746jxnsfe</span>
+            <button class="donate-copy-btn" type="button" data-copy-target="donateBtcAddress">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <script type="module" src="/js/main.js"></script>
   <script type="module" src="/js/theme.js"></script>
@@ -248,6 +277,7 @@
 
   <script type="module" src="/js/utils/toggle-state.js"></script>
   <script type="module" src="/js/utils/favbutton.js"></script>
+  <script type="module" src="/js/donate-modal.js"></script>
 
   <div id="addPlaylistModal" class="add-playlist-modal" style="display:none;">
   <div class="add-playlist-content">

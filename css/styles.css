@@ -338,6 +338,7 @@ body:not(.dark) #walletTooltip {
 
 .mascot-bubble {
   position: absolute;
+  z-index: 0;
   left: 202px;
   top: 32%;
   max-width: calc(100% - 222px);
@@ -359,8 +360,10 @@ body:not(.dark) #walletTooltip {
 .mascot-bubble::after {
   content: "";
   position: absolute;
+  z-index: -1;
   left: -18px;
-  top: 26px;
+  top: 50%;
+  margin-top: -10px;
   transform: rotate(-24deg);
   transform-origin: right center;
   border-style: solid;
@@ -393,6 +396,104 @@ body:not(.dark) #walletTooltip {
 .manifesto-content.settings-view {
   max-width: 500px;
   padding: 1.2rem 1rem 1rem;
+}
+
+.donate-content {
+  max-width: 360px;
+  padding: 1.5rem;
+  font-family: 'Ruda', sans-serif;
+}
+
+.donate-title {
+  margin: 0 0 6px;
+  color: #00F2B8;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.donate-mascot-stage {
+  min-height: 130px;
+  margin: 0 0 14px;
+}
+
+.donate-mascot {
+  width: 120px;
+  height: 120px;
+}
+
+.donate-mascot-stage .mascot-bubble {
+  left: 132px;
+  max-width: calc(100% - 142px);
+  font-size: 0.85rem;
+  padding: 10px 14px;
+}
+
+.donate-wallets {
+  display: grid;
+  gap: 8px;
+}
+
+.donate-wallet-label {
+  display: block;
+  color: #00F2B8;
+  font-size: 0.78rem;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.donate-wallet-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 242, 184, 0.08);
+  border: 1px solid rgba(0, 242, 184, 0.3);
+  border-radius: 10px;
+  padding: 7px 9px;
+}
+
+.donate-wallet-address {
+  flex: 1;
+  min-width: 0;
+  font-family: monospace, monospace;
+  font-size: 0.74rem;
+  color: #fff;
+  overflow-wrap: break-word;
+}
+
+.donate-copy-btn {
+  flex-shrink: 0;
+  width: 52px;
+  box-sizing: border-box;
+  border: 1px solid #00F2B8;
+  background: transparent;
+  color: #00F2B8;
+  border-radius: 999px;
+  padding: 5px 0;
+  font-family: 'Ruda', sans-serif;
+  font-size: 0.74rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.donate-copy-btn:hover {
+  background: #00F2B8;
+  color: #171C2B;
+}
+
+.donate-copy-btn.copied {
+  background: #00F2B8;
+  color: #171C2B;
+}
+
+@media (max-width: 600px) {
+  .donate-wallet-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .donate-copy-btn {
+    width: 100%;
+  }
 }
 
 @keyframes slideUp {

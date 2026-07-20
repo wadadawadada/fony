@@ -12,6 +12,7 @@ function removePreloader() {
   const preloader = document.getElementById('preloader');
   if (!preloader) {
     revealApp();
+    document.dispatchEvent(new CustomEvent('preloaderRemoved'));
     return;
   }
 
@@ -21,6 +22,7 @@ function removePreloader() {
   const finish = () => {
     preloader.remove();
     revealApp();
+    document.dispatchEvent(new CustomEvent('preloaderRemoved'));
   };
 
   preloader.addEventListener('transitionend', finish, { once: true });
