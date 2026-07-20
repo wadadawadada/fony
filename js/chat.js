@@ -8,6 +8,7 @@ import { playPodcastOverRadio, fetchPodcastAudio, stopPodcast } from './utils/po
 
 const FONY_BACKEND_URL = window.FONY_BACKEND_URL || "https://fonyserver.up.railway.app";
 const TIPS_JSON_URL = "../json/fony_tips.json";
+const FONY_UPDATE_URL = "../update.md";
 
 let walletAddress = null;
 
@@ -43,14 +44,14 @@ async function loadChatConfig() {
   return chatConfig;
 }
 
-async function loadFonyUpdateFromGist() {
+async function loadFonyUpdate() {
   const now = Date.now();
   if (fonyUpdateCache && (now - lastFonyUpdateCheck < FONY_UPDATE_INTERVAL)) {
     return fonyUpdateCache;
   }
 
   try {
-    const res = await fetch(`${FONY_BACKEND_URL}/api/fony-update`);
+    const res = await fetch(`${FONY_UPDATE_URL}?t=${now}`);
     if (!res.ok) throw new Error('Failed to load');
     const text = await res.text();
     fonyUpdateCache = text;
@@ -100,6 +101,13 @@ function escapeHtml(str) {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
+}
+
+function linkifyText(str) {
+  return escapeHtml(str).replace(
+    /(https?:\/\/[^\s<]+)/g,
+    '<a href="$1" target="_blank" rel="noopener">$1</a>'
+  );
 }
 
 function addMessage(role, htmlContent, isFonyTip = false) {
@@ -847,8 +855,8 @@ function renderQuickLinks() {
 }
 
 function sendWelcomeMessage() {
-  loadFonyUpdateFromGist().then(text => {
-    const updateBlock = `<br><div style="margin-top:12px; font-size: 12px; color: #ffffffff; white-space: pre-line;">${escapeHtml(text)}</div>`;
+  loadFonyUpdate().then(text => {
+    const updateBlock = `<br><div style="margin-top:12px; font-size: 12px; color: #ffffffff; white-space: pre-line;">${linkifyText(text)}</div>`;
 
     const welcomeText = `
       <div style="line-height: 1.6;">
