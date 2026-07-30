@@ -692,7 +692,7 @@ if (userInput.trim().toLowerCase() === "/collection") {
   const messages = [{ role: "system", content: systemPrompt }, ...history];
   if (!isContinuation && userInput) messages.push({ role: "user", content: userInput });
   try {
-    const data = await requestChatCompletion(messages);
+    const data = await requestChatCompletion(messages, { maxTokens: 700, reasoningEffort: "minimal" });
     let botReply = data.choices?.[0]?.message?.content || "No response.";
     return { type: "text", content: botReply };
   } catch (error) {

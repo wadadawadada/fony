@@ -60,10 +60,16 @@
     font-size: 14px;
   }
 
-  #topRightButtons {
-    left: 5px;
+  .top-bar {
+    justify-content: center;
+  }
+
+  .top-bar-actions {
+    position: fixed;
+    top: 5px;
     right: 5px;
-    justify-content: space-between;
+    transform: none;
+    z-index: 1001;
   }
 
   #walletAddress,
