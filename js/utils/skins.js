@@ -1,4 +1,11 @@
+import { showDiscogsInfo } from '../nowplaying.js';
+
 let currentSkin = { left: null, right: null, albumArt: null };
+
+function getNowPlayingText() {
+  const elem = document.querySelector("#currentTrack .scrolling-text");
+  return elem ? elem.textContent.trim() : "";
+}
 
 function randomBetween(min, max) {
   return Math.random() * (max - min) + min;
@@ -490,6 +497,15 @@ function applyDefaultThemePanels() {
 export async function handleSkinsCommand(addMessage) {
   const existingContainer = document.getElementById("skinButtonsContainer");
   if (existingContainer) existingContainer.remove();
+
+  const nowPlaying = getNowPlayingText();
+  if (nowPlaying && window.currentAlbumArtTrack !== nowPlaying) {
+    try { await showDiscogsInfo(); } catch {}
+  } else if (!nowPlaying) {
+    window.currentAlbumArtUrl = null;
+    window.currentAlbumArtTrack = null;
+  }
+
   const albumArtUrl = window.currentAlbumArtUrl || null;
   const hasAlbumArt = !!albumArtUrl;
   const albumArtPart = hasAlbumArt

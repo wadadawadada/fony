@@ -90,6 +90,7 @@ export async function showDiscogsInfo() {
 
   if (!nowPlaying) {
     window.currentAlbumArtUrl = null;
+    window.currentAlbumArtTrack = null;
     return;
   }
 
@@ -109,6 +110,7 @@ export async function showDiscogsInfo() {
 
     const coverUrl = extractCoverFromDiscogsHtml(infoHtml);
     window.currentAlbumArtUrl = coverUrl || null;
+    window.currentAlbumArtTrack = nowPlaying;
     setAlbumCoverBackground(coverUrl);
     updateAlbumCoverAnimation();
 
@@ -175,6 +177,7 @@ export async function showDiscogsInfo() {
   } catch (e) {
     discogsContainer.innerHTML = `<i>Error loading info: ${e.message}</i>`;
     window.currentAlbumArtUrl = null;
+    window.currentAlbumArtTrack = null;
     setAlbumCoverBackground(null);
     updateAlbumCoverAnimation();
   }
