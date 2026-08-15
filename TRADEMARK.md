@@ -1,4 +1,4 @@
-# FONY Trademark and Branding Notice
+﻿# FONY Trademark and Branding Notice
 
 The name **FONY**, the **FONY logo**, and any original design elements
 (including visual themes, UI layouts, and animations) are intellectual property of **Block Ark Studios**.
@@ -11,6 +11,6 @@ You may refer to the project as “based on FONY” or “fork of FONY” — at
 
 ---
 
-© 2025 Block Ark Studios  
-Website: [https://fony.space](https://fony.space)  
+© 2026 Block Ark Studios  
+Website: [https://fony.fun](https://fony.fun)  
 Contact: wadada@keemail.me

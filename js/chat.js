@@ -1,4 +1,4 @@
-import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js";
+﻿import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js";
 import { fetchDiscogsTrackInfo } from './utils/discogs.js';
 import { handleSkinsCommand, reapplySkin } from './utils/skins.js';
 import { addTrackToCollection, createMainCollectMenuHtml, setupCollectionMenuHandlers, setupMobileCollectionHandlers, getCollection } from './utils/collection.js';
@@ -394,7 +394,7 @@ async function fetchCoverArt(artist, track) {
   const url = `https://musicbrainz.org/ws/2/recording/?query=${encodeURIComponent(query)}&fmt=json&limit=1`;
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'FONY-App/1.0 (contact@fony.space)' }
+      headers: { 'User-Agent': 'FONY-App/1.0 (contact@fony.fun)' }
     });
     if (!res.ok) return null;
 

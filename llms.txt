@@ -1,0 +1,57 @@
+# FONY
+
+> FONY is a browser-based music player combining free 24/7 internet radio streaming with Web3 NFT audio playback, an AI console, and discovery/customization tools — all in a single static web app, no account or subscription required.
+
+FONY streams dozens of genre-based internet radio stations directly in the browser, with live now-playing metadata, automatic stall recovery, shareable deep links (e.g. `fony.fun/techno` auto-plays that genre), and support for adding custom M3U playlists. It also lets users connect a wallet to stream audio from a curated set of NFT collections, includes an in-app AI chat console (track facts, mood-based station matching, Discogs lookups, genre-tuned equalizer presets), and offers theming, favorites, and a personal track collection.
+
+The main app at the root URL is a JavaScript single-page player; the pages below are static, human- and AI-readable reference content about the product and the genres it streams.
+
+## About
+
+- [About FONY — features, FAQ, and how it works](https://fony.fun/about.html)
+
+## Genre Reference (Fonypedia)
+
+A standalone music genre encyclopedia — one static page per genre with characteristic instruments, dominant styles, and notable artists by era, each linking directly into the matching live station in the player.
+
+- [Fonypedia — full genre index](https://fony.fun/fonypedia/index.html)
+- [African](https://fony.fun/fonypedia/african.html)
+- [Alternative](https://fony.fun/fonypedia/alternative.html)
+- [Asian](https://fony.fun/fonypedia/asian.html)
+- [Balkans](https://fony.fun/fonypedia/balkans.html)
+- [Blues](https://fony.fun/fonypedia/blues.html)
+- [Chillout](https://fony.fun/fonypedia/chillout.html)
+- [Classical](https://fony.fun/fonypedia/classical.html)
+- [Downtempo](https://fony.fun/fonypedia/downtempo.html)
+- [Drum & Bass](https://fony.fun/fonypedia/drum_and_bass.html)
+- [Dub](https://fony.fun/fonypedia/dub.html)
+- [Electronic](https://fony.fun/fonypedia/electronic.html)
+- [Funk](https://fony.fun/fonypedia/funk.html)
+- [Goa](https://fony.fun/fonypedia/goa.html)
+- [Hardcore](https://fony.fun/fonypedia/hardcore.html)
+- [Hip Hop](https://fony.fun/fonypedia/hip_hop.html)
+- [House](https://fony.fun/fonypedia/house.html)
+- [Industrial](https://fony.fun/fonypedia/industrial.html)
+- [Jazz](https://fony.fun/fonypedia/jazz.html)
+- [Jungle](https://fony.fun/fonypedia/jungle.html)
+- [Lounge](https://fony.fun/fonypedia/lounge.html)
+- [Meditation](https://fony.fun/fonypedia/meditation.html)
+- [Metal](https://fony.fun/fonypedia/metal.html)
+- [New Age](https://fony.fun/fonypedia/new_age.html)
+- [News](https://fony.fun/fonypedia/news1.html)
+- [Oriental](https://fony.fun/fonypedia/oriental.html)
+- [Spiritual](https://fony.fun/fonypedia/spiritual.html)
+- [Punk](https://fony.fun/fonypedia/punk.html)
+- [Rap](https://fony.fun/fonypedia/rap.html)
+- [Reggae](https://fony.fun/fonypedia/reggae.html)
+- [RnB](https://fony.fun/fonypedia/rnb.html)
+- [Techno](https://fony.fun/fonypedia/techno.html)
+- [World](https://fony.fun/fonypedia/world.html)
+
+## App
+
+- [Open the FONY player](https://fony.fun/)
+
+## Docs
+
+- [README — full feature list and architecture](https://github.com/wadadawadada/fony/blob/main/README.md)
