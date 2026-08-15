@@ -1164,6 +1164,7 @@ function setRadioListeners() {
       try {
         if (fBtn.classList.contains("active")) {
           fBtn.classList.remove("active");
+          fBtn.src = "/img/fav_list.svg";
           persistCurrentMode("radio");
           if (customSelect) customSelect.style.display = "";
           if (genreLabel) genreLabel.textContent = "Genre:";
@@ -1179,6 +1180,7 @@ function setRadioListeners() {
           }
         } else {
           fBtn.classList.add("active");
+          fBtn.src = "/img/radio.svg";
           persistCurrentMode("favorites");
           scheduleRadioSearchPoolRelease();
           if (customSelect) customSelect.style.display = "none";
@@ -1659,6 +1661,7 @@ async function restoreFavoritesPlayback() {
   if (!favoritesBtn) return;
 
   favoritesBtn.classList.add("active");
+  favoritesBtn.src = "/img/radio.svg";
   if (customSelect) customSelect.style.display = "none";
   if (genreLabel) genreLabel.textContent = "Favorites";
   persistCurrentMode("favorites");
@@ -2096,6 +2099,7 @@ window.onStationSelect = function(i) {
     const genreLabel = document.querySelector("label[for='customGenreSelect']");
     if(btn.classList.contains("active")){
       btn.classList.remove("active");
+      btn.src = "/img/fav_list.svg";
       if(customSelect) customSelect.style.display="";
       if(genreLabel) genreLabel.textContent="Genre:";
       persistCurrentMode("radio");
@@ -2109,6 +2113,7 @@ window.onStationSelect = function(i) {
       return;
     }
     btn.classList.add("active");
+    btn.src = "/img/radio.svg";
     if(customSelect) customSelect.style.display="none";
     if(genreLabel) genreLabel.textContent="Favorites";
     persistCurrentMode("favorites");

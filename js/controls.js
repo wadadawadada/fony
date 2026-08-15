@@ -127,6 +127,7 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
     const favBtn = document.getElementById("favoritesFilterBtn");
     if (favBtn && favBtn.classList.contains("active")) {
       favBtn.classList.remove("active");
+      favBtn.src = "/img/fav_list.svg";
       const customSelect = document.getElementById("customGenreSelect");
       const sIn = document.getElementById("searchInput");
       const genreLabel = document.querySelector("label[for='customGenreSelect']");
