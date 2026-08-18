@@ -1,16 +1,68 @@
-<svg width="114" height="34" viewBox="0 0 114 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect x="0.5" y="1.12915" width="112.382" height="31.3949" rx="15.6974" fill="url(#paint0_linear_2093_290)" stroke="#07F2B8"/>
-<rect width="7.75858" height="7.75858" transform="matrix(0.866025 0.5 -0.866025 0.5 38.0397 9.24146)" fill="#EFBDFD"/>
-<rect width="7.75858" height="7.75858" transform="matrix(0.866025 0.5 0 1 31.3206 13.1207)" fill="#E593FC"/>
-<rect width="7.75858" height="7.75858" transform="matrix(0.866025 -0.5 0 1 38.0397 17)" fill="#C665E1"/>
-<rect width="7.75858" height="7.75858" transform="matrix(0.866025 0.5 -0.866025 0.5 56.6602 9.24146)" fill="#BDFDEF"/>
-<rect width="7.75858" height="7.75858" transform="matrix(0.866025 0.5 0 1 49.9411 13.1207)" fill="#93FCE5"/>
-<rect width="7.75858" height="7.75858" transform="matrix(0.866025 -0.5 0 1 56.6602 17)" fill="#65E1C6"/>
-<rect width="7.75858" height="7.75858" transform="matrix(0.866025 0.5 -0.866025 0.5 75.2809 9.24146)" fill="#FDEFBD"/>
-<rect width="7.75858" height="7.75858" transform="matrix(0.866025 0.5 0 1 68.5617 13.1207)" fill="#FCE593"/>
-<rect width="7.75858" height="7.75858" transform="matrix(0.866025 -0.5 0 1 75.2809 17)" fill="#E1C665"/>
+<svg width="114" height="33" viewBox="0 0 114 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="dark_rnd">
+<rect id="button_horis" x="0.5" y="0.5" width="112.382" height="31.3949" rx="15.6974" fill="url(#paint0_linear_2366_218)" stroke="#07F2B8"/>
+<g id="cubes">
+<g id="right_cube">
+<g id="cube">
+<rect id="top-face" width="9.33536" height="9.33536" transform="matrix(0.866025 0.5 -0.866025 0.5 79.0847 6.32935)" fill="white"/>
+<rect id="left-face" width="9.33536" height="9.33536" transform="matrix(0.866025 0.5 0 1 71 10.9969)" fill="#D9D9D9"/>
+<rect id="right-face" width="9.33536" height="9.33536" transform="matrix(0.866025 -0.5 0 1 79.0847 15.6647)" fill="#B3B3B3"/>
+</g>
+<g id="dots">
+<circle id="base-face" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 0 1 74.034 16.5983)" fill="black"/>
+<circle id="base-face_2" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 0 1 71.7001 17.765)" fill="black"/>
+<circle id="base-face_3" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 0 1 76.3678 15.4313)" fill="black"/>
+<circle id="base-face_4" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 0 1 71.9335 13.0974)" fill="black"/>
+<circle id="base-face_5" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 0 1 76.3678 20.5657)" fill="black"/>
+<circle id="base-face_6" cx="0.933535" cy="0.933535" r="0.933535" transform="matrix(0.866025 -0.5 0 1 80.0478 16.5044)" fill="black"/>
+<circle id="base-face_7" cx="0.933535" cy="0.933535" r="0.933535" transform="matrix(0.866025 -0.5 0 1 82.2024 17.765)" fill="black"/>
+<circle id="base-face_8" cx="0.933535" cy="0.933535" r="0.933535" transform="matrix(0.866025 -0.5 0 1 84.5363 18.932)" fill="black"/>
+<circle id="base-face_9" cx="1.40032" cy="1.40032" r="1.40032" transform="matrix(0.866025 0.5 -0.866025 0.5 79.1059 9.36328)" fill="black"/>
+</g>
+</g>
+<g id="center_cube">
+<g id="cube_2">
+<rect id="top-face_2" width="9.33536" height="9.33536" transform="matrix(0.866025 0.5 -0.866025 0.5 57.0846 6.32935)" fill="white"/>
+<rect id="left-face_2" width="9.33536" height="9.33536" transform="matrix(0.866025 0.5 0 1 48.9999 10.9969)" fill="#D9D9D9"/>
+<rect id="right-face_2" width="9.33536" height="9.33536" transform="matrix(0.866025 -0.5 0 1 57.0846 15.6647)" fill="#B3B3B3"/>
+</g>
+<g id="dots_2">
+<circle id="base-face_10" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 0 1 54.6012 20.7992)" fill="black"/>
+<circle id="base-face_11" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 0 1 49.4668 17.765)" fill="black"/>
+<circle id="base-face_12" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 0 1 54.6012 18.2319)" fill="black"/>
+<circle id="base-face_13" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 0 1 49.4668 15.1979)" fill="black"/>
+<circle id="base-face_14" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 0 1 54.8346 15.6647)" fill="black"/>
+<circle id="base-face_15" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 0 1 49.7002 12.6306)" fill="black"/>
+<circle id="base-face_16" cx="0.933535" cy="0.933535" r="0.933535" transform="matrix(0.866025 -0.5 0 1 58.0478 16.5043)" fill="black"/>
+<circle id="base-face_17" cx="0.933535" cy="0.933535" r="0.933535" transform="matrix(0.866025 -0.5 0 1 62.7697 13.5641)" fill="black"/>
+<circle id="base-face_18" cx="0.933535" cy="0.933535" r="0.933535" transform="matrix(0.866025 -0.5 0 1 58.5687 21.2659)" fill="black"/>
+<circle id="base-face_19" cx="0.933535" cy="0.933535" r="0.933535" transform="matrix(0.866025 -0.5 0 1 62.5363 18.932)" fill="black"/>
+<circle id="base-face_20" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 -0.866025 0.5 53.1841 10.0635)" fill="black"/>
+<circle id="base-face_21" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 -0.866025 0.5 60.6524 10.0635)" fill="black"/>
+</g>
+</g>
+<g id="left_cube">
+<g id="cube_3">
+<rect id="top-face_3" width="9.33536" height="9.33536" transform="matrix(0.866025 0.5 -0.866025 0.5 35.0847 6.32935)" fill="white"/>
+<rect id="left-face_3" width="9.33536" height="9.33536" transform="matrix(0.866025 0.5 0 1 27 10.9969)" fill="#D9D9D9"/>
+<rect id="right-face_3" width="9.33536" height="9.33536" transform="matrix(0.866025 -0.5 0 1 35.0847 15.6647)" fill="#B3B3B3"/>
+</g>
+<g id="dots_3">
+<circle id="base-face_22" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(-0.866025 0.5 0 1 40.0528 16.5983)" fill="black"/>
+<circle id="base-face_23" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(-0.866025 0.5 0 1 42.3866 17.765)" fill="black"/>
+<circle id="base-face_24" cx="1.4003" cy="1.4003" r="1.4003" transform="matrix(0.866025 0.5 0 1 29.8006 15.8979)" fill="black"/>
+<circle id="base-face_25" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(-0.866025 0.5 0 1 37.7189 15.4313)" fill="black"/>
+<circle id="base-face_26" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(-0.866025 0.5 0 1 42.1532 13.0974)" fill="black"/>
+<circle id="base-face_27" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(-0.866025 0.5 0 1 37.7189 20.5657)" fill="black"/>
+<circle id="base-face_28" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 -0.866025 0.5 30.2506 10.0635)" fill="black"/>
+<circle id="base-face_29" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 -0.866025 0.5 35.1516 10.0635)" fill="black"/>
+<circle id="base-face_30" cx="0.933536" cy="0.933536" r="0.933536" transform="matrix(0.866025 0.5 -0.866025 0.5 39.8194 10.0635)" fill="black"/>
+</g>
+</g>
+</g>
+</g>
 <defs>
-<linearGradient id="paint0_linear_2093_290" x1="37.2763" y1="1.73856" x2="40.6818" y2="36.3909" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint0_linear_2366_218" x1="37.2763" y1="1.10941" x2="40.6818" y2="35.7617" gradientUnits="userSpaceOnUse">
 <stop stop-color="#171C2B"/>
 <stop offset="1" stop-color="#00533E"/>
 </linearGradient>
