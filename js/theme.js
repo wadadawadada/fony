@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   const icons = {
     playPauseBtn: document.getElementById('playPauseBtn'),
-    randomBtn: document.getElementById('randomBtn'),
     shuffleBtn: document.getElementById('shuffleBtn'),
     favBtn: document.getElementById('favBtn'),
     ffBtn: document.getElementById('ffBtn'),
@@ -31,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const iconVariants = {
     light: {
       playPauseBtn: '/img/play_button.svg',
-      randomBtn: '/img/random_button.svg',
       shuffleBtn: '/img/shuffle.svg',
       shuffleActiveBtn: '/img/shuffle_active.svg',
       favBtn: '/img/fav.svg',
@@ -46,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     dark: {
       playPauseBtn: '/img/dark/play_button.svg',
-      randomBtn: '/img/dark/random_button.svg',
       shuffleBtn: '/img/dark/shuffle.svg',
       shuffleActiveBtn: '/img/dark/shuffle_active.svg',
       favBtn: '/img/dark/fav.svg',
