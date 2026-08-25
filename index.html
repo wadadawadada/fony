@@ -355,6 +355,21 @@
   </div>
 </div>
 
+<div id="gifSearchModal" class="gif-search-modal" style="display:none;">
+  <div class="gif-search-content">
+    <button class="gif-search-close" id="gifSearchClose">&times;</button>
+    <h3>Add a GIF</h3>
+    <input type="text" id="gifSearchInput" class="gif-search-input" placeholder="Search GIPHY..." autocomplete="off" spellcheck="false">
+    <label class="gif-search-toggle" for="gifSearchTransparent">
+      <input type="checkbox" id="gifSearchTransparent">
+      transparent only (stickers)
+    </label>
+    <div class="gif-search-results" id="gifSearchResults"></div>
+  </div>
+</div>
+
+<script type="module" src="/js/utils/gifOverlays.js"></script>
+
 <div id="cookieBanner" style="position: fixed; bottom: 0; left: 0; right: 0; background: #171C2B; color: #00F2B8; padding: 16px; font-family: 'Ruda', sans-serif; font-size: 0.9rem; z-index: 9999; display: none; box-shadow: 0 -4px 8px rgba(0,0,0,0.2);">
   <div style="max-width: 960px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;">
     <span style="margin-right: 12px;">We use cookies for basic functionality and analytics. Do you agree?</span>

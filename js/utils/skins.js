@@ -1,4 +1,5 @@
 import { showDiscogsInfo } from '../nowplaying.js';
+import { openGifSearchModal } from './gifOverlays.js';
 
 let currentSkin = { left: null, right: null, albumArt: null };
 
@@ -522,6 +523,8 @@ export async function handleSkinsCommand(addMessage) {
         <button id="generateNewSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">generate new</button>
         <span style="color:#00F2B8;">|</span>
         <button id="resetSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">reset</button>
+        <span style="color:#00F2B8;">|</span>
+        <button id="addGifSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">gif</button>
       </div>
       ${albumArtPart}
     </div>
@@ -553,6 +556,13 @@ export async function handleSkinsCommand(addMessage) {
         e.preventDefault();
         applyDefaultThemePanels();
         addMessage("bot", "Skin reset to default!");
+      };
+    }
+    const addGifEl = document.getElementById("addGifSkinBtn");
+    if (addGifEl) {
+      addGifEl.onclick = (e) => {
+        e.preventDefault();
+        openGifSearchModal();
       };
     }
     const albumArtEl = document.getElementById("useAlbumArtBtn");

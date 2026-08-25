@@ -1043,6 +1043,229 @@ body:not(.dark) .add-playlist-content {
   text-transform: uppercase;
 }
 
+/* Gif Search Modal */
+.gif-search-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 33000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gif-search-content {
+  background: #171C2B;
+  border: 1px solid #00F2B8;
+  border-radius: 22px;
+  padding: 20px 20px 16px;
+  width: 420px;
+  max-width: 92vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  font-family: 'Ruda', sans-serif;
+  color: #fff;
+}
+
+body:not(.dark) .gif-search-content {
+  background: #f2f2f2;
+  border-color: #171C2B;
+  color: #171C2B;
+}
+
+.gif-search-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  line-height: 1;
+  padding: 0;
+}
+
+.gif-search-close:hover { opacity: 1; }
+
+.gif-search-content h3 {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #00F2B8;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.gif-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #00F2B8;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  margin-bottom: 12px;
+}
+
+.gif-search-results {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: #00F2B8 #262f49;
+}
+
+.gif-search-results::-webkit-scrollbar {
+  width: 8px;
+}
+
+.gif-search-results::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gif-search-results::-webkit-scrollbar-thumb {
+  background-color: #00F2B8;
+  border-radius: 10px;
+}
+
+.gif-search-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 0.82rem;
+  color: inherit;
+  opacity: 0.85;
+  cursor: pointer;
+  user-select: none;
+}
+
+.gif-search-toggle input {
+  accent-color: #00F2B8;
+  cursor: pointer;
+}
+
+.gif-search-result {
+  cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background: rgba(0, 242, 184, 0.08);
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease;
+  padding: 0;
+}
+
+.gif-search-result:hover {
+  border-color: #00F2B8;
+}
+
+.gif-search-result img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gif-search-status {
+  text-align: center;
+  padding: 20px 0;
+  opacity: 0.7;
+  font-size: 0.85rem;
+  grid-column: 1 / -1;
+}
+
+/* Gif overlays floating over the app interface */
+.gif-overlay-item {
+  position: fixed;
+  z-index: 8000;
+  cursor: grab;
+  touch-action: none;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+}
+
+.gif-overlay-item.dragging {
+  cursor: grabbing;
+}
+
+.gif-overlay-item img {
+  display: block;
+  width: 160px;
+  height: auto;
+  border-radius: 8px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.gif-overlay-close {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: #171C2B;
+  color: #00F2B8;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px #00F2B8;
+}
+
+.gif-overlay-item:hover .gif-overlay-close {
+  display: flex;
+}
+
+.gif-overlay-resize {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  display: none;
+  align-items: center;
+  gap: 2px;
+  background: #171C2B;
+  border-radius: 999px;
+  padding: 2px;
+  box-shadow: 0 0 0 2px #00F2B8;
+}
+
+.gif-overlay-item:hover .gif-overlay-resize {
+  display: flex;
+}
+
+.gif-overlay-resize button {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #00F2B8;
+  font-size: 13px;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gif-overlay-resize button:hover {
+  background: rgba(0, 242, 184, 0.2);
+}
+
 body:not(.dark) .add-playlist-content h3 { color: #171C2B; }
 
 .add-playlist-field {
