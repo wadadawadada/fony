@@ -108,7 +108,9 @@ export async function showDiscogsInfo() {
   try {
     const infoHtml = await fetchDiscogsTrackInfo(artist, track);
 
-    const coverUrl = extractCoverFromDiscogsHtml(infoHtml);
+    let coverUrl = extractCoverFromDiscogsHtml(infoHtml);
+    // Local files: fall back to the cover embedded in the file's tags.
+    if (!coverUrl && window.currentMode === 'local') coverUrl = window.__localCoverFallback || null;
     window.currentAlbumArtUrl = coverUrl || null;
     window.currentAlbumArtTrack = nowPlaying;
     setAlbumCoverBackground(coverUrl);
@@ -248,6 +250,12 @@ function setupNowPlayingToggle() {
 }
 
 let lastNowPlaying = "";
+
+// Force an immediate lookup instead of waiting for the 5s poll (local files).
+export function refreshNowPlaying() {
+  lastNowPlaying = "";
+  checkNowPlayingChange();
+}
 
 function checkNowPlayingChange() {
   const currentText = getNowPlayingText();

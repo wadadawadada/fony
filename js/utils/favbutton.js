@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (favBtn) {
     favBtn.addEventListener("click", () => {
-      if (!window.currentStationUrl) return;
+      if (!window.currentStationUrl || window.currentMode === "local") return;
       window.toggleFavorite(window.currentStationUrl);
     });
   }
