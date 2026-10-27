@@ -54,7 +54,10 @@ export async function getRoot(id) {
 
 // Throws AbortError if the user dismisses the picker.
 export async function addRoot() {
-  const handle = await window.showDirectoryPicker({ id: 'fony-local', mode: 'read' });
+  return addRootFromHandle(await window.showDirectoryPicker({ id: 'fony-local', mode: 'read' }));
+}
+
+export async function addRootFromHandle(handle) {
   const roots = await listRoots();
   for (const r of roots) {
     if (await r.handle.isSameEntry(handle)) return { root: r, existed: true };

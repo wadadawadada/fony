@@ -178,6 +178,57 @@ function sectionRow(text) {
   return li;
 }
 
+function dropZoneRow(big) {
+  const li = el('li', 'local-drop' + (big ? ' big' : ''));
+  li.innerHTML = `<span class="local-drop-plus">+</span><span class="local-drop-text"></span>`;
+  li.querySelector('.local-drop-text').textContent = big
+    ? 'Drop a music folder here, or click to choose one'
+    : 'Drop another folder here, or click to add';
+  li.onclick = addFolderFromPicker;
+  return li;
+}
+
+async function addFolder(getRoot) {
+  try {
+    const { root, existed } = await getRoot();
+    toast(existed ? `“${root.name}” is already in the library` : `Added “${root.name}”`);
+    setView({ kind: 'dir', rootId: root.id, path: [] });
+  } catch (err) {
+    if (err && err.name !== 'AbortError') toast('Could not open that folder');
+  }
+}
+
+function addFolderFromPicker() {
+  return addFolder(() => lib.addRoot());
+}
+
+function onDragOver(e) {
+  if (![...(e.dataTransfer?.types || [])].includes('Files')) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  ctx.scroller.classList.add('drag-over');
+}
+
+function onDragLeave(e) {
+  if (e.target === ctx.scroller || !ctx.scroller.contains(e.relatedTarget)) {
+    ctx.scroller.classList.remove('drag-over');
+  }
+}
+
+function onDrop(e) {
+  e.preventDefault();
+  ctx.scroller.classList.remove('drag-over');
+  // Handles must be requested synchronously, before the event ends.
+  const pending = [...e.dataTransfer.items]
+    .filter(i => i.kind === 'file' && i.getAsFileSystemHandle)
+    .map(i => i.getAsFileSystemHandle());
+  Promise.all(pending).then(async handles => {
+    const dirs = handles.filter(h => h && h.kind === 'directory');
+    if (!dirs.length) { toast('Drop a folder, not files'); return; }
+    for (const h of dirs) await addFolder(() => lib.addRootFromHandle(h));
+  });
+}
+
 function noticeRow(text, onClick) {
   const li = el('li', 'local-notice' + (onClick ? ' clickable' : ''));
   li.textContent = text;
@@ -229,9 +280,9 @@ function trackRow(st, index, queueFn, extraActions = []) {
 async function homeRows() {
   const rows = [];
   const roots = await lib.listRoots();
+  rows.push(dropZoneRow(!roots.length));
   rows.push(sectionRow('Folders'));
   const shownRoots = roots.filter(r => matches(r.name));
-  if (!roots.length) rows.push(noticeRow('No folders yet. Press the folder “+” button above to add a music folder.'));
   for (const root of shownRoots) {
     const granted = await lib.hasAccess(root);
     rows.push(row({
@@ -423,15 +474,12 @@ export function enterLocalMode(context) {
 
   const addBtn = document.getElementById('localAddFolderBtn');
   if (addBtn) {
-    addBtn.onclick = async () => {
-      try {
-        const { root, existed } = await lib.addRoot();
-        toast(existed ? `“${root.name}” is already in the library` : `Added “${root.name}”`);
-        setView({ kind: 'dir', rootId: root.id, path: [] });
-      } catch (err) {
-        if (err && err.name !== 'AbortError') toast('Could not open that folder');
-      }
-    };
+    addBtn.onclick = addFolderFromPicker;
+  }
+  if (ctx.scroller) {
+    ctx.scroller.addEventListener('dragover', onDragOver);
+    ctx.scroller.addEventListener('dragleave', onDragLeave);
+    ctx.scroller.addEventListener('drop', onDrop);
   }
 
   const input = document.getElementById('searchInput');
@@ -458,6 +506,12 @@ export function enterLocalMode(context) {
 }
 
 export function leaveLocalMode() {
+  if (ctx && ctx.scroller) {
+    ctx.scroller.removeEventListener('dragover', onDragOver);
+    ctx.scroller.removeEventListener('dragleave', onDragLeave);
+    ctx.scroller.removeEventListener('drop', onDrop);
+    ctx.scroller.classList.remove('drag-over');
+  }
   ctx = null;
   activeLi = null;
   closePopover();

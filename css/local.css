@@ -126,14 +126,18 @@
 
 #playlist li.local-new {
   opacity: 0.8;
-  border: 1px dashed rgba(23, 28, 43, 0.4);
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+  color: #fff;
   background: transparent;
   box-shadow: none;
 }
 
 #playlist li.local-section,
 #playlist li.local-notice,
-#playlist li.local-crumbs {
+#playlist li.local-crumbs,
+#playlist li.local-drop {
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
   background: transparent;
   box-shadow: none;
   scale: 1;
@@ -144,7 +148,7 @@
 #playlist li.local-notice:hover,
 #playlist li.local-crumbs:hover {
   background: transparent;
-  color: inherit;
+  color: #fff;
   scale: 1;
 }
 
@@ -361,4 +365,58 @@
 .local-help-close {
   width: 100%;
   margin-top: 4px;
+}
+
+/* Drop zone */
+#playlist li.local-drop {
+  justify-content: center;
+  gap: 12px;
+  padding: 14px;
+  border: 2px dashed rgba(255, 255, 255, 0.55);
+  background: transparent;
+  box-shadow: none;
+}
+
+#playlist li.local-drop.big {
+  flex-direction: column;
+  padding: 36px 14px;
+  gap: 6px;
+  text-align: center;
+}
+
+#playlist li.local-drop:hover {
+  border-color: #00F2B8;
+  background: rgba(0, 242, 184, 0.12);
+  color: #fff;
+  scale: 1;
+}
+
+.local-drop-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.local-drop.big .local-drop-plus {
+  width: 52px;
+  height: 52px;
+  font-size: 2.2rem;
+}
+
+.playlist-area.drag-over {
+  outline: 3px dashed #00F2B8;
+  outline-offset: -6px;
+  background: rgba(0, 242, 184, 0.12);
+}
+
+#playlist li.local-drop,
+#playlist li.local-drop * {
+  cursor: pointer;
 }
