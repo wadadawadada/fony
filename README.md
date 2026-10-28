@@ -14,6 +14,7 @@
   - [Radio Streaming](#radio-streaming)
   - [Genres & Playlists](#genres--playlists)
   - [Web3 / NFT Audio](#web3--nft-audio)
+  - [Local Files](#local-files)
   - [AI Console](#ai-console)
   - [Now Playing & Metadata](#now-playing--metadata)
   - [Equalizer & Visualizers](#equalizer--visualizers)
@@ -54,6 +55,16 @@
 - A Random button in Web3 mode picks a random collection and track; the last-played NFT track is restored on reload.
 
 > **Note:** this is a small allowlist of hand-picked collections, not general "connect any NFT" support, and playback is not currently gated by verified on-chain ownership for every collection — treat it as a curated Web3 audio showcase rather than a wallet-gated members-only feature.
+
+### Local Files
+
+- A fourth playback mode next to Genre, Favorites and Wallet: click the folder-with-plus icon in the top bar to play music straight from your computer. The icon turns into a radio icon while the mode is active — click it to go back to radio.
+- **Folder library:** add folders with the picker or by dragging them onto the panel. Folders are remembered between sessions (the browser asks you to re-allow access after a restart).
+- **Explorer:** browse folders and subfolders with breadcrumbs, play a single track, a folder (including subfolders) or a whole playlist, and click the active track to seek.
+- **Custom playlists:** create, rename, delete, reorder and remove tracks; add any track or folder with the "+" button. Playlists are stored locally in your browser, like the rest of FONY's data.
+- **Now playing:** tags (title, artist) are read from the files, and the same Discogs lookup used for radio finds the album art, falling back to the cover embedded in the file.
+- **Privacy:** files are never copied or uploaded — playback uses temporary in-memory links to files on disk with read-only access. Only the text "Artist - Title" is sent to look up cover art.
+- Desktop only, and requires the File System Access API (Chrome, Edge, Opera, or Brave with the flag enabled — the app shows how). Favorites remain radio-only.
 
 ### AI Console
 
@@ -136,6 +147,7 @@ Then open the served URL in your browser. AI console, Discogs lookups, and strea
 - The AI console, stream proxy, and Discogs lookups depend on an external backend service not included in this repository, so their behavior can't be fully controlled or audited from this codebase alone.
 - Web3 playback is a curated allowlist of a few NFT collections, not a general-purpose NFT player, and ownership is not strictly enforced for playback on every collection.
 - A couple of features present in the code (podcast narration, album-art lookup via MusicBrainz) are currently disabled in the UI and not user-reachable.
+- Local Files mode needs the File System Access API, so it is unavailable in Firefox and Safari and on mobile browsers.
 
 ## License & Trademark
 
