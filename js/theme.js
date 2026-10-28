@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     manifestoBtn: document.querySelector('#manifestoBtn img'),
     connectWalletBtn: document.getElementById('connectWalletBtn'),
     localModeIcon: document.getElementById('localModeIcon'),
+    settingsBtnIcon: document.getElementById('settingsBtnIcon'),
     logoutIcon: document.getElementById('logoutIcon')
   };
   const iconVariants = {
@@ -42,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
       manifestoBtn: '/img/about_icon.svg',
       connectWalletBtn: '/img/wallet.svg',
       localModeIcon: '/img/local.svg',
+      settingsBtnIcon: '/img/gear.svg',
       logoutIcon: '/img/logout.svg'
     },
     dark: {
@@ -57,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
       manifestoBtn: '/img/dark/about_icon.svg',
       connectWalletBtn: '/img/dark/wallet.svg',
       localModeIcon: '/img/dark/local.svg',
+      settingsBtnIcon: '/img/dark/gear.svg',
       logoutIcon: '/img/dark/logout.svg'
     }
   };

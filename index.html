@@ -83,6 +83,9 @@
           <button id="manifestoBtn" class="manifesto-button">
             <img src="/img/about_icon.svg" alt="About">
           </button>
+          <button id="settingsBtn" class="settings-button" title="Settings" aria-label="Settings">
+            <img src="/img/gear.svg" alt="Settings" id="settingsBtnIcon">
+          </button>
           <button id="themeToggle">
             <img src="/img/moon.svg" alt="Toggle Theme">
           </button>
@@ -165,6 +168,7 @@
 
 
       <div class="chat-container" id="chat">
+        <div id="chatResizeHandle" class="chat-resize-handle" title="Drag to resize"></div>
         <div id="chatHeader" class="chat-header">
           <span id="chatGenre"></span>
           <div id="chatUsernameContainer" class="chat-username-box">
@@ -282,6 +286,7 @@
   <script type="module" src="/js/equalizer.js"></script>
   <script type="module" src="/js/utils/eq-adjust.js"></script>
   <script type="module" src="/js/settings.js"></script>
+  <script src="/js/chat-resize.js"></script>
   <script type="module" src="/js/gitbook.js"></script>
   <script type="module" src="/js/nowplaying.js"></script>
 

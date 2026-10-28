@@ -553,6 +553,7 @@ body:not(.dark) #walletTooltip {
 
 .top-bar-actions .manifesto-button,
 .top-bar-actions #walletWrapper,
+.top-bar-actions .settings-button,
 .top-bar-actions #themeToggle {
   width: 22px;
   height: 22px;
@@ -1767,7 +1768,8 @@ body.dark #walletAddress {
   border-radius: 10px;
 }
 
-#themeToggle {
+#themeToggle,
+.settings-button {
   background: none;
   border: none;
   cursor: pointer;
@@ -1780,6 +1782,13 @@ body.dark #walletAddress {
 #themeToggle img {
   width: 20px;
   height: 20px;
+  transition: transform 0.3s ease;
+}
+
+.settings-button img {
+  width: 26px;
+  height: 26px;
+  margin: -2px;
   transition: transform 0.3s ease;
 }
 

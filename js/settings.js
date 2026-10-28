@@ -13,6 +13,10 @@ document.getElementById("manifestoBtn").addEventListener("click", function() {
   document.getElementById("manifestoModal").style.display = "block";
 });
 
+document.getElementById("settingsBtn").addEventListener("click", function() {
+  openSettingsModal();
+});
+
 document.getElementById("manifestoModal").addEventListener("click", function(e) {
   if (e.target.classList.contains("manifesto-close")) {
     var modalContent = document.querySelector("#manifestoModal .manifesto-content");

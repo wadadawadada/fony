@@ -407,3 +407,47 @@ border: none;
   color: #00F2B8;
   cursor: pointer;
 }
+/* drag the top edge of the console to change its height (desktop) */
+#chat {
+  position: relative;
+  min-height: 120px;
+}
+
+.chat-resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  cursor: ns-resize;
+  z-index: 2;
+  touch-action: none;
+}
+
+.chat-resize-handle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: 36px;
+  height: 3px;
+  margin-left: -18px;
+  border-radius: 2px;
+  background: rgba(0, 242, 184, 0.45);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.chat-resize-handle:hover::after,
+body.chat-resizing .chat-resize-handle::after {
+  opacity: 1;
+}
+
+body.chat-resizing {
+  cursor: ns-resize;
+  user-select: none;
+}
+
+@media (max-width: 1024px) {
+  .chat-resize-handle { display: none; }
+}

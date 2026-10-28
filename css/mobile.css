@@ -133,6 +133,12 @@
     height: 15px;
   }
 
+  .settings-button img {
+    width: 19px;
+    height: 19px;
+    margin: -2px;
+  }
+
   .station-label,
   .track-name {
     width: 60%;
