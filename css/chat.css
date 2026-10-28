@@ -451,3 +451,9 @@ body.chat-resizing {
 @media (max-width: 1024px) {
   .chat-resize-handle { display: none; }
 }
+
+body.chat-sized #chat {
+  flex: 0 0 auto;
+  height: var(--chat-h);
+  margin-top: auto;
+}

@@ -601,13 +601,13 @@ body:not(.dark) .add-playlist-field input:focus {
 .top-bar-actions button,
 .top-bar-actions #connectWalletBtn {
   opacity: 0.8;
-  transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .top-bar-actions button:hover,
 .top-bar-actions #connectWalletBtn:hover {
   opacity: 1;
-  transform: translateY(-1px);
+  transform: translateY(-3px);
 }
 
 #walletAddress {
