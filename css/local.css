@@ -20,8 +20,16 @@
   height: 22px;
 }
 
-.local-mode-button.active {
-  filter: drop-shadow(0 0 4px #00F2B8);
+/* In Local mode the folder icon turns into a "back to radio" icon. */
+.local-mode-button.active img {
+  content: url('/img/radio_dark.svg');
+  width: 25px;
+  height: 25px;
+  margin: -2px;
+}
+
+body.dark .local-mode-button.active img {
+  content: url('/img/radio.svg');
 }
 
 @media (max-width: 768px) {
@@ -419,4 +427,33 @@
 #playlist li.local-drop,
 #playlist li.local-drop * {
   cursor: pointer;
+}
+
+/* The active row is dark, so the default dark progress fill was only visible on hover. */
+#playlist li.local-row.active .progress {
+  background-color: rgba(0, 242, 184, 0.28);
+}
+
+#playlist li.local-row.active:hover .progress {
+  background-color: rgba(23, 28, 43, 0.35);
+}
+
+/* Confirm dialog */
+.local-confirm-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.local-confirm-row .local-pop-item,
+.local-confirm-row .local-pop-btn {
+  min-width: 90px;
+  text-align: center;
+}
+
+.local-pop-btn.danger {
+  background: #ff5470;
+  border-color: #ff5470;
+  color: #fff;
 }

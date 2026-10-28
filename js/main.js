@@ -588,7 +588,8 @@ function leaveLocalIfNeeded() {
   if (currentMode !== "local") return
   leaveLocalMode()
   window.__localCoverFallback = null
-  document.getElementById("localModeBtn")?.classList.remove("active")
+  const lb = document.getElementById("localModeBtn")
+  if (lb) { lb.classList.remove("active"); lb.title = "Local files" }
 }
 
 function switchToRadio(restorePlayback = true) {
@@ -774,7 +775,8 @@ function switchToLocal() {
   window.currentStationUrl = null
   clearDiscogsInfo()
   playlistElement.innerHTML = ""
-  document.getElementById("localModeBtn")?.classList.add("active")
+  const lb = document.getElementById("localModeBtn")
+  if (lb) { lb.classList.add("active"); lb.title = "Back to radio" }
   if (stationLabel) {
     const t = stationLabel.querySelector(".scrolling-text")
     if (t) t.textContent = "Local files"
@@ -882,7 +884,8 @@ if (localModeBtn) {
       showUnsupportedDialog()
       return
     }
-    if (currentMode !== "local") switchToLocal()
+    if (currentMode === "local") switchToRadio()
+    else switchToLocal()
   })
 }
 

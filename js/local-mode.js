@@ -172,6 +172,52 @@ function row({ icon, label, sub, onClick, actions = [], cls = '' }) {
   return li;
 }
 
+// In-app replacement for window.confirm().
+function confirmDialog({ title, text, okLabel = 'OK', danger = true }) {
+  return new Promise(resolve => {
+    document.querySelector('.local-help.confirm')?.remove();
+    const overlay = el('div', 'local-help confirm');
+    const box = el('div', 'local-help-box');
+    const h = el('h3', 'local-help-title');
+    h.textContent = title;
+    const p = el('p', 'local-help-text');
+    p.textContent = text;
+    const row = el('div', 'local-confirm-row');
+    const cancel = el('button', 'local-pop-item');
+    cancel.type = 'button';
+    cancel.textContent = 'Cancel';
+    const ok = el('button', 'local-pop-btn' + (danger ? ' danger' : ''));
+    ok.type = 'button';
+    ok.textContent = okLabel;
+    const done = v => {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey, true);
+      resolve(v);
+    };
+    const onKey = e => {
+      if (e.key === 'Escape') { e.stopPropagation(); done(false); }
+      if (e.key === 'Enter') { e.stopPropagation(); done(true); }
+    };
+    cancel.onclick = () => done(false);
+    ok.onclick = () => done(true);
+    overlay.addEventListener('mousedown', e => { if (e.target === overlay) done(false); });
+    document.addEventListener('keydown', onKey, true);
+    row.append(cancel, ok);
+    box.append(h, p, row);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    ok.focus();
+  });
+}
+
+function confirmDeletePlaylist(pl) {
+  return confirmDialog({
+    title: 'Delete playlist?',
+    text: `“${pl.name}” will be deleted. Your music files are not affected.`,
+    okLabel: 'Delete'
+  });
+}
+
 function sectionRow(text) {
   const li = el('li', 'local-section');
   li.textContent = text;
@@ -280,8 +326,8 @@ function trackRow(st, index, queueFn, extraActions = []) {
 async function homeRows() {
   const rows = [];
   const roots = await lib.listRoots();
-  rows.push(dropZoneRow(!roots.length));
   rows.push(sectionRow('Folders'));
+  if (!roots.length) rows.push(dropZoneRow(true));
   const shownRoots = roots.filter(r => matches(r.name));
   for (const root of shownRoots) {
     const granted = await lib.hasAccess(root);
@@ -297,13 +343,21 @@ async function homeRows() {
         [ICON.play, 'Play folder', () => playFolder(root, [])],
         [ICON.list, 'Add folder to playlist', b => pickPlaylist(b, () => lib.walkTracks(root, []))],
         [ICON.trash, 'Remove folder from library', async () => {
-          if (!confirm(`Remove “${root.name}” from the library? Files on disk stay untouched.`)) return;
+          const ok = await confirmDialog({
+            title: 'Remove folder?',
+            text: `“${root.name}” will be removed from your library. Files on disk stay untouched.`,
+            okLabel: 'Remove'
+          });
+          if (!ok) return;
           await lib.removeRoot(root.id);
           render();
         }]
       ]
     }));
   }
+
+  // With folders present, the compact drop zone sits under the last folder.
+  if (roots.length) rows.push(dropZoneRow(false));
 
   rows.push(sectionRow('Playlists'));
   const playlists = lib.loadPlaylists().filter(p => matches(p.name));
@@ -319,8 +373,8 @@ async function homeRows() {
           const name = await askName(b, { title: 'Rename playlist', value: pl.name });
           if (name) { lib.renamePlaylist(pl.id, name); render(); }
         }],
-        [ICON.trash, 'Delete playlist', () => {
-          if (confirm(`Delete playlist “${pl.name}”?`)) { lib.deletePlaylist(pl.id); render(); }
+        [ICON.trash, 'Delete playlist', async () => {
+          if (await confirmDeletePlaylist(pl)) { lib.deletePlaylist(pl.id); render(); }
         }]
       ]
     }));
@@ -403,8 +457,8 @@ async function playlistRows() {
         const name = await askName(b, { title: 'Rename playlist', value: pl.name });
         if (name) { lib.renamePlaylist(pl.id, name); render(); }
       }],
-      [ICON.trash, 'Delete playlist', () => {
-        if (confirm(`Delete playlist “${pl.name}”?`)) { lib.deletePlaylist(pl.id); setView({ kind: 'home' }); }
+      [ICON.trash, 'Delete playlist', async () => {
+        if (await confirmDeletePlaylist(pl)) { lib.deletePlaylist(pl.id); setView({ kind: 'home' }); }
       }]
     ]
   )];
