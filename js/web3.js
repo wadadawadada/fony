@@ -3,6 +3,50 @@ import { contractConfigs } from "./web3/contracts.js";
 
 const TRACKS_MODE = "all";
 
+// ipfs.io alone rate-limits (HTTP 429) and then nothing loads. Metadata is
+// fetched through the first gateway that answers; the track and cover URLs of
+// that token are served from the same gateway.
+const IPFS_GATEWAYS = [
+  "https://ipfs.io/ipfs/",
+  "https://gateway.pinata.cloud/ipfs/",
+  "https://w3s.link/ipfs/",
+  "https://dweb.link/ipfs/"
+];
+const IPFS_URL = /^https:\/\/[^/]+\/ipfs\/(.+)$/;
+let preferredGateway = null;
+
+function viaGateway(url, base) {
+  const m = base && url ? url.match(IPFS_URL) : null;
+  return m ? base + m[1] : url;
+}
+
+async function fetchMetadata(url) {
+  const m = url.match(IPFS_URL);
+  if (!m) {
+    const response = await fetch(url);
+    return response.ok ? { response, base: null } : { response: null, base: null };
+  }
+  const order = preferredGateway
+    ? [preferredGateway, ...IPFS_GATEWAYS.filter(g => g !== preferredGateway)]
+    : IPFS_GATEWAYS;
+  for (const base of order) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch(base + m[1], { signal: controller.signal });
+      if (response.ok) {
+        preferredGateway = base;
+        return { response, base };
+      }
+    } catch (_) {
+      // try the next gateway
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  return { response: null, base: null };
+}
+
 export async function connectWallet() {
   if (!window.ethereum) {
     throw new Error("MetaMask not installed");
@@ -45,13 +89,13 @@ async function loadNFTTracks(account, contractAddress) {
       }
       let tokenURI = await contract[config.metadataMethod](tokenId);
       tokenURI = config.extraProcessing(tokenURI);
-      const response = await fetch(tokenURI);
-      if (!response.ok) continue;
+      const { response, base } = await fetchMetadata(tokenURI);
+      if (!response) continue;
       const metadata = await response.json();
       let trackUrl = metadata.animation_url;
-      if (trackUrl) trackUrl = config.extraProcessing(trackUrl);
+      if (trackUrl) trackUrl = viaGateway(config.extraProcessing(trackUrl), base);
       let cover = metadata.image;
-      if (cover) cover = config.extraProcessing(cover);
+      if (cover) cover = viaGateway(config.extraProcessing(cover), base);
       const songTitle = metadata.name || "Unknown Track";
       let artist = metadata.artist;
       if (!artist && Array.isArray(metadata.attributes)) {
