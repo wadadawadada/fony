@@ -21,15 +21,15 @@ const IOR = 1.5;
 
 // selector, look. bezel > 0 is px; bezel < 0 is a fraction of the shorter half-side.
 const SHAPES = [
-  ['.left-panel, .right-panel', { bezel: 44, thick: 26, strength: 0.5, frost: 14, tint: 0.05, color: [0.9, 0.95, 1], shadow: 46, spec: 0.35 }],
-  ['.playlist-area', { bezel: 34, thick: 36, strength: 0.95, frost: 5, tint: 0.07, color: [0.9, 0.95, 1], shadow: 30, spec: 0.9 }],
-  ['.chat-container', { bezel: 30, thick: 32, strength: 0.9, frost: 8, tint: 0.34, color: [0.02, 0.03, 0.14], shadow: 30, spec: 0.8 }],
-  ['.screen', { bezel: -0.55, thick: 26, strength: 1.0, frost: 4, tint: 0.3, color: [0.02, 0.03, 0.14], shadow: 22, spec: 1.0 }],
+  ['.left-panel, .right-panel', { bezel: 26, thick: 20, strength: 0.5, frost: 14, tint: 0.05, color: [0.9, 0.95, 1], shadow: 46, spec: 0.35 }],
+  ['.playlist-area', { bezel: 20, thick: 26, strength: 0.95, frost: 5, tint: 0.07, color: [0.9, 0.95, 1], shadow: 30, spec: 0.9 }],
+  ['.chat-container', { bezel: 18, thick: 24, strength: 0.9, frost: 8, tint: 0.34, color: [0.02, 0.03, 0.14], shadow: 30, spec: 0.8 }],
+  ['.screen', { bezel: -0.35, thick: 20, strength: 1.0, frost: 4, tint: 0.3, color: [0.02, 0.03, 0.14], shadow: 22, spec: 1.0 }],
   // round buttons are glass beads: the whole radius is bevel, so they refract like a sphere
-  ['.player-btn:not(.play-btn), #addPlaylistBtn', { bezel: -0.8, thick: 40, strength: 1.0, frost: 0, tint: 0.07, color: [0.9, 0.95, 1], shadow: 0, spec: 0.9 }],
-  ['.center-circle:not(.has-cover) .play-btn', { bezel: -0.8, thick: 56, strength: 1.05, frost: 0, tint: 0.32, color: [0.0, 0.95, 0.72], shadow: 0, spec: 1.0 }],
-  ['.chat-send-btn img', { bezel: -0.7, thick: 26, strength: 1.0, frost: 0, tint: 0.3, color: [0.0, 0.95, 0.72], shadow: 0, spec: 1.1 }],
-  ['.genre-select-header, .genre-search', { bezel: -0.6, thick: 22, strength: 1.0, frost: 0, tint: 0.09, color: [0.9, 0.95, 1], shadow: 0, spec: 1.1 }]
+  ['.player-btn:not(.play-btn), #addPlaylistBtn', { bezel: -0.28, hoverBezel: -1.0, thick: 26, strength: 1.0, frost: 0, tint: 0.07, color: [0.9, 0.95, 1], shadow: 0, spec: 0.9 }],
+  ['.center-circle:not(.has-cover) .play-btn', { bezel: -0.28, hoverBezel: -1.0, thick: 34, strength: 1.05, frost: 0, tint: 0.32, color: [0.0, 0.95, 0.72], shadow: 0, spec: 1.0 }],
+  ['.chat-send-btn img', { bezel: -0.28, hoverBezel: -1.0, thick: 18, strength: 1.0, frost: 0, tint: 0.3, color: [0.0, 0.95, 0.72], shadow: 0, spec: 1.1 }],
+  ['.genre-select-header, .genre-search', { bezel: -0.4, thick: 18, strength: 1.0, frost: 0, tint: 0.09, color: [0.9, 0.95, 1], shadow: 0, spec: 1.1 }]
 ];
 
 const VERT = `
@@ -203,6 +203,7 @@ let texMix = 0;
 let texTarget = 0;
 let texScale = [1, 1];
 let sceneToken = 0;
+const hoverAmount = new WeakMap();
 const mouse = { x: 0, y: 0, tx: 0, ty: 0, moved: false };
 const buffers = {
   rect: new Float32Array(MAX * 4),
@@ -312,10 +313,19 @@ function upload(time) {
     const r = it.el.getBoundingClientRect();
     if (r.width < 3 || r.height < 3 || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
     const l = it.look;
+    let bezel = l.bezel;
+    if (l.hoverBezel !== undefined) {
+      // slide the bevel edge towards the centre while hovered, and back again
+      let h = hoverAmount.get(it.el) || 0;
+      h += ((it.el.matches(':hover') ? 1 : 0) - h) * 0.16;
+      if (Math.abs(h) < 0.002) h = 0;
+      hoverAmount.set(it.el, h);
+      bezel = l.bezel + (l.hoverBezel - l.bezel) * h;
+    }
     const hw = (r.width / 2) * dpr;
     const hh = (r.height / 2) * dpr;
     buffers.rect.set([(r.left + r.width / 2) * dpr, (r.top + r.height / 2) * dpr, hw, hh], n * 4);
-    buffers.a.set([Math.min(it.radius * dpr, hw, hh), l.bezel > 0 ? l.bezel * dpr : l.bezel, l.thick * dpr, l.strength], n * 4);
+    buffers.a.set([Math.min(it.radius * dpr, hw, hh), bezel > 0 ? bezel * dpr : bezel, l.thick * dpr, l.strength], n * 4);
     buffers.b.set([l.frost * dpr, l.tint, l.shadow * dpr, l.spec], n * 4);
     buffers.c.set(l.color, n * 3);
     n++;
