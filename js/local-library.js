@@ -126,6 +126,19 @@ export async function walkTracks(root, path) {
   return out;
 }
 
+// Every folder under root/path that directly holds audio files, with its file
+// names. Used to pick "a random folder" before "a random song".
+export async function collectFolders(root, path) {
+  const out = [];
+  async function rec(h, p) {
+    const { dirs, files } = await readEntries(h);
+    if (files.length) out.push({ rootId: root.id, path: p, files });
+    for (const d of dirs) await rec(await h.getDirectoryHandle(d), [...p, d]);
+  }
+  await rec(await dirHandle(root, path), path);
+  return out;
+}
+
 export async function getFile(rootId, path) {
   const root = await getRoot(rootId);
   if (!root) throw new Error('Folder was removed');
@@ -133,6 +146,78 @@ export async function getFile(rootId, path) {
   const dir = await dirHandle(root, path.slice(0, -1));
   const fh = await dir.getFileHandle(path[path.length - 1]);
   return fh.getFile();
+}
+
+// ---- track durations ---------------------------------------------------
+// Read lazily (only for rows on screen) from the file's metadata and cached in
+// localStorage, validated by file size + modified time so edits are picked up.
+
+const DURATIONS_KEY = 'localDurations';
+const DURATIONS_MAX = 6000;
+let durationCache = null;
+let durationSaveTimer = null;
+
+function durations() {
+  if (!durationCache) {
+    try { durationCache = JSON.parse(localStorage.getItem(DURATIONS_KEY) || '{}') || {}; } catch { durationCache = {}; }
+  }
+  return durationCache;
+}
+
+function saveDurationsSoon() {
+  clearTimeout(durationSaveTimer);
+  durationSaveTimer = setTimeout(() => {
+    const cache = durations();
+    const keys = Object.keys(cache);
+    if (keys.length > DURATIONS_MAX) keys.slice(0, keys.length - DURATIONS_MAX).forEach(k => delete cache[k]);
+    try { localStorage.setItem(DURATIONS_KEY, JSON.stringify(cache)); } catch {}
+  }, 1000);
+}
+
+function probeDuration(file) {
+  return new Promise(resolve => {
+    const audio = new Audio();
+    const url = URL.createObjectURL(file);
+    let finished = false;
+    const done = value => {
+      if (finished) return;
+      finished = true;
+      audio.removeAttribute('src');
+      audio.load();
+      URL.revokeObjectURL(url);
+      resolve(value);
+    };
+    audio.preload = 'metadata';
+    audio.onloadedmetadata = () => done(isFinite(audio.duration) ? audio.duration : null);
+    audio.onerror = () => done(null);
+    setTimeout(() => done(null), 8000);
+    audio.src = url;
+  });
+}
+
+// Seconds, or null when unknown. Never asks for folder permission.
+export async function getDuration(station) {
+  const root = await getRoot(station.rootId);
+  if (!root || !(await hasAccess(root))) return null;
+  let file;
+  try { file = await getFile(station.rootId, station.path); } catch { return null; }
+  const key = station.rootId + '/' + station.path.join('/');
+  const hit = durations()[key];
+  if (hit && hit.s === file.size && hit.m === file.lastModified) return hit.d;
+  const seconds = await probeDuration(file);
+  if (seconds) {
+    durations()[key] = { d: Math.round(seconds), s: file.size, m: file.lastModified };
+    saveDurationsSoon();
+  }
+  return seconds ? Math.round(seconds) : null;
+}
+
+export function formatDuration(total) {
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = n => String(n).padStart(2, '0');
+  return h ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
 // ---- stations ---------------------------------------------------------
@@ -302,6 +387,37 @@ export function moveTrack(id, from, to) {
     const [t] = pl.tracks.splice(from, 1);
     pl.tracks.splice(to, 0, t);
   });
+}
+
+// ---- local favorites (localStorage) -----------------------------------
+
+const FAVORITES_KEY = 'localFavorites';
+const trackKey = t => t.rootId + '/' + t.path.join('/');
+
+export function loadFavorites() {
+  try {
+    const v = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+}
+
+export function isFavorite(track) {
+  const key = trackKey(track);
+  return loadFavorites().some(t => trackKey(t) === key);
+}
+
+// Returns true when the track is a favorite after the call.
+export function toggleFavorite(track) {
+  const list = loadFavorites();
+  const key = trackKey(track);
+  const idx = list.findIndex(t => trackKey(t) === key);
+  if (idx >= 0) list.splice(idx, 1);
+  else list.push({ rootId: track.rootId, path: track.path, addedAt: Date.now() });
+  localStorage.setItem(FAVORITES_KEY, JSON.stringify(list));
+  document.dispatchEvent(new Event('localFavoritesChanged'));
+  return idx < 0;
 }
 
 // ---- last browsed view ------------------------------------------------

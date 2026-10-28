@@ -431,11 +431,11 @@ body.dark .local-mode-button.active img {
 
 /* The active row is dark, so the default dark progress fill was only visible on hover. */
 #playlist li.local-row.active .progress {
-  background-color: rgba(0, 242, 184, 0.28);
+  background-color: rgba(0, 242, 184, 0.34);
 }
 
 #playlist li.local-row.active:hover .progress {
-  background-color: rgba(23, 28, 43, 0.35);
+  background-color: rgba(0, 242, 184, 0.42);
 }
 
 /* Confirm dialog */
@@ -456,4 +456,40 @@ body.dark .local-mode-button.active img {
   background: #ff5470;
   border-color: #ff5470;
   color: #fff;
+}
+
+/* favorite hearts */
+#playlist li .local-act.fav-on {
+  color: #ff5c8a;
+}
+
+#playlist li.local-fav-row .local-ico {
+  color: #ff5c8a;
+}
+
+/* Breadcrumb / action bar stays pinned while the list scrolls under it */
+#playlist li.local-crumbs,
+#playlist li.local-crumbs:hover {
+  position: sticky;
+  top: 6px;
+  z-index: 10;
+  margin-bottom: 6px;
+  padding: 8px 12px;
+  background: rgba(18, 22, 36, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* track length, right-aligned after the hover actions */
+#playlist li .local-dur {
+  flex: 0 0 auto;
+  min-width: 44px;
+  margin-left: 6px;
+  text-align: right;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
 }

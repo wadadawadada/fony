@@ -54,6 +54,7 @@
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="/css/player.css">
   <link rel="stylesheet" href="/css/chat.css">
+  <link rel="stylesheet" href="/css/design.css">
   <link rel="stylesheet" href="/css/local.css">
   <link rel="stylesheet" href="/css/mobile.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -111,39 +112,9 @@
         <div class="left-stack">
           <img src="/img/shuffle.svg" alt="Shuffle" id="shuffleBtn" class="player-btn">
           <img src="/img/rr.svg" alt="Previous" id="rrBtn" class="player-btn">
-          <svg id="randomBtn" class="player-btn dice-btn" width="114" height="33" viewBox="0 0 114 33" fill="none" xmlns="http://www.w3.org/2000/svg" role="button" aria-label="Random station">
-            <rect class="dice-bg" x="0.5" y="0.5" width="112.382" height="31.3949" rx="15.6974" fill="url(#dice-grad)" stroke="var(--dice-border, none)" stroke-width="1"/>
-            <g class="die" data-die="0" data-anchor-x="35.0847">
-              <g class="cube">
-                <rect class="face face-top" width="9.33536" height="9.33536" transform="matrix(0.866025 0.5 -0.866025 0.5 35.0847 6.32935)"/>
-                <rect class="face face-left" width="9.33536" height="9.33536" transform="matrix(0.866025 0.5 0 1 27 10.9969)"/>
-                <rect class="face face-right" width="9.33536" height="9.33536" transform="matrix(0.866025 -0.5 0 1 35.0847 15.6647)"/>
-              </g>
-              <g class="dots"></g>
-            </g>
-            <g class="die" data-die="1" data-anchor-x="57.0846">
-              <g class="cube">
-                <rect class="face face-top" width="9.33536" height="9.33536" transform="matrix(0.866025 0.5 -0.866025 0.5 57.0846 6.32935)"/>
-                <rect class="face face-left" width="9.33536" height="9.33536" transform="matrix(0.866025 0.5 0 1 48.9999 10.9969)"/>
-                <rect class="face face-right" width="9.33536" height="9.33536" transform="matrix(0.866025 -0.5 0 1 57.0846 15.6647)"/>
-              </g>
-              <g class="dots"></g>
-            </g>
-            <g class="die" data-die="2" data-anchor-x="79.0847">
-              <g class="cube">
-                <rect class="face face-top" width="9.33536" height="9.33536" transform="matrix(0.866025 0.5 -0.866025 0.5 79.0847 6.32935)"/>
-                <rect class="face face-left" width="9.33536" height="9.33536" transform="matrix(0.866025 0.5 0 1 71 10.9969)"/>
-                <rect class="face face-right" width="9.33536" height="9.33536" transform="matrix(0.866025 -0.5 0 1 79.0847 15.6647)"/>
-              </g>
-              <g class="dots"></g>
-            </g>
-            <defs>
-              <linearGradient id="dice-grad" x1="37.2763" y1="1.10941" x2="40.6818" y2="35.7617" gradientUnits="userSpaceOnUse">
-                <stop class="grad-stop-1"/>
-                <stop class="grad-stop-2" offset="1"/>
-              </linearGradient>
-            </defs>
-          </svg>
+          <button id="randomBtn" class="player-btn random-btn" type="button" aria-label="Random station">
+            <svg class="die-face" viewBox="0 0 24 24" aria-hidden="true"><rect class="die-body" x="3" y="3" width="18" height="18" rx="5"/><circle class="pip" cx="8" cy="8" r="1.8"/><circle class="pip" cx="12" cy="8" r="1.8"/><circle class="pip" cx="16" cy="8" r="1.8"/><circle class="pip" cx="8" cy="12" r="1.8"/><circle class="pip" cx="12" cy="12" r="1.8"/><circle class="pip" cx="16" cy="12" r="1.8"/><circle class="pip" cx="8" cy="16" r="1.8"/><circle class="pip" cx="12" cy="16" r="1.8"/><circle class="pip" cx="16" cy="16" r="1.8"/></svg>
+          </button>
         </div>
         <div class="center-circle">
           <img src="/img/play_ellipse.svg" alt="Ellipse" class="play-ellipse">
@@ -307,6 +278,7 @@
   <script type="module" src="/js/main.js"></script>
   <script type="module" src="/js/theme.js"></script>
   <script type="module" src="/js/dice.js"></script>
+  <script type="module" src="/js/player-fx.js"></script>
   <script type="module" src="/js/equalizer.js"></script>
   <script type="module" src="/js/utils/eq-adjust.js"></script>
   <script type="module" src="/js/settings.js"></script>

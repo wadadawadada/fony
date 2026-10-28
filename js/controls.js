@@ -21,54 +21,46 @@ export function updateShuffleButton(shuffleActive, shuffleBtn) {
 }
 
 function updateVolumeScale(volume) {
-  const numLevels = 13;
-  const activeCount = Math.floor(volume * numLevels);
-  for (let i = 1; i <= numLevels; i++) {
-    const levelElem = document.getElementById(i.toString());
-    if (levelElem) {
-      levelElem.style.transition = "fill 0.3s ease";
-      levelElem.setAttribute("fill", (i <= activeCount) ? "#00F2B8" : "#3C3C3C");
-    }
-  }
+  const bars = document.querySelectorAll('.volume-scale rect');
+  const activeCount = Math.round(volume * bars.length);
+  bars.forEach((bar, i) => {
+    const on = i < activeCount;
+    bar.classList.toggle('on', on);
+    bar.setAttribute('fill', on ? '#00F2B8' : '#3C3C3C');
+  });
 }
 
 export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, defaultVolume) {
   let isDragging = false;
 
-  function updateVolume(clientX) {
+  // Layout width (offsetWidth) ignores CSS transforms, the bounding rect does
+  // not. Their ratio is the scale applied by e.g. .player-controls.chat-collapsed,
+  // so the knob stays correct whether or not the console is collapsed.
+  function metrics() {
     const rect = volumeSlider.getBoundingClientRect();
-    const leftMargin = rect.width * 0.06;
-    const rightMargin = rect.width * 0.06;
-    const effectiveWidth = rect.width - leftMargin - rightMargin;
-    let pos = clientX - rect.left;
-    pos = Math.max(leftMargin, Math.min(pos, rect.width - rightMargin));
+    const width = volumeSlider.offsetWidth || rect.width;
+    const scale = width ? rect.width / width : 1;
+    return { rect, width, scale: scale || 1, margin: width * 0.06 };
+  }
 
-    // Получаем масштаб (scale) .player-controls, если применён
-    const playerControls = document.querySelector('.player-controls');
-    let scale = 1;
-    if (playerControls) {
-      const style = window.getComputedStyle(playerControls);
-      const transform = style.transform || style.webkitTransform;
-      if (transform && transform !== 'none') {
-        const match = transform.match(/^matrix\(([^,]+),/);
-        if (match) {
-          scale = parseFloat(match[1]);
-        }
-      }
-    }
+  function placeKnob(pos, width, margin, volume) {
+    volumeKnob.style.left = pos + "px";
+    volumeSlider.style.setProperty('--vol-px', pos + "px");
+    updateVolumeScale(volume);
+  }
 
-    // Корректируем позицию бегунка с учетом масштаба
-    pos = pos / scale;
-
-    const newVolume = (pos - leftMargin) / effectiveWidth;
+  function updateVolume(clientX) {
+    const { rect, width, scale, margin } = metrics();
+    const pos = Math.max(margin, Math.min((clientX - rect.left) / scale, width - margin));
+    const newVolume = (pos - margin) / (width - margin * 2);
     audioPlayer.volume = newVolume;
     defaultVolume.value = newVolume;
-    volumeKnob.style.left = pos + "px";
-    updateVolumeScale(newVolume);
+    placeKnob(pos, width, margin, newVolume);
   }
 
   volumeKnob.addEventListener('mousedown', (e) => {
     isDragging = true;
+    volumeSlider.classList.add('dragging');
     e.preventDefault();
   });
   document.addEventListener('mousemove', (e) => {
@@ -78,6 +70,7 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
   });
   document.addEventListener('mouseup', () => {
     isDragging = false;
+    volumeSlider.classList.remove('dragging');
   });
 
   volumeKnob.addEventListener('touchstart', (e) => {
@@ -95,26 +88,9 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
   });
 
   window.addEventListener('load', () => {
-    const rect = volumeSlider.getBoundingClientRect();
-    const pos = defaultVolume.value * rect.width;
-
-    const playerControls = document.querySelector('.player-controls');
-    let scale = 1;
-    if (playerControls) {
-      const style = window.getComputedStyle(playerControls);
-      const transform = style.transform || style.webkitTransform;
-      if (transform && transform !== 'none') {
-        const match = transform.match(/^matrix\(([^,]+),/);
-        if (match) {
-          scale = parseFloat(match[1]);
-        }
-      }
-    }
-
-    const adjustedPos = pos / scale;
-
-    volumeKnob.style.left = adjustedPos + "px";
-    updateVolumeScale(defaultVolume.value);
+    const { width, margin } = metrics();
+    const volume = defaultVolume.value;
+    placeKnob(margin + volume * (width - margin * 2), width, margin, volume);
   });
 }
 
@@ -124,6 +100,7 @@ export function initVolumeControl(audioPlayer, volumeSlider, volumeKnob, default
   const randomBtn = document.getElementById('randomBtn');
   if (!randomBtn) return;
   randomBtn.addEventListener("click", () => {
+    if (window.currentMode === "local") return; // handled by the local explorer
     const favBtn = document.getElementById("favoritesFilterBtn");
     if (favBtn && favBtn.classList.contains("active")) {
       favBtn.classList.remove("active");

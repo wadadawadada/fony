@@ -32,12 +32,19 @@ export function fadeAudioIn(audioPlayer, defaultVolume, duration) {
 function addTooltip(buttonId, tooltipText, position) {
   const button = document.getElementById(buttonId);
   if (!button) return;
-  let tooltip;
+  // One tooltip element per button, created lazily and reused. Button
+  // animations (flip, kick, heart pop) can fire mouseleave/mouseenter in quick
+  // succession; creating a new element on every enter used to orphan the old
+  // one, which then stayed on screen forever.
+  let tooltip = null;
+  let hideTimer = null;
+  let holdTimer = null;
   const offsetX = 4;
-  function showTooltip() {
+
+  function ensureTooltip() {
+    if (tooltip && tooltip.isConnected) return tooltip;
     tooltip = document.createElement("div");
     tooltip.className = "custom-tooltip";
-    tooltip.textContent = tooltipText;
     tooltip.style.position = "absolute";
     tooltip.style.fontFamily = "'Ruda', sans-serif";
     tooltip.style.fontSize = "12px";
@@ -45,72 +52,81 @@ function addTooltip(buttonId, tooltipText, position) {
     tooltip.style.pointerEvents = "none";
     tooltip.style.whiteSpace = "nowrap";
     tooltip.style.opacity = "0";
-    tooltip.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+    tooltip.style.transition = "opacity 0.3s ease, transform 0.3s ease";
     document.body.appendChild(tooltip);
+    return tooltip;
+  }
+
+  function place() {
     const rect = button.getBoundingClientRect();
     tooltip.style.top = "0px";
     tooltip.style.left = "0px";
     const tooltipRect = tooltip.getBoundingClientRect();
     let top, left;
     if (position === "top") {
-      top = rect.top - tooltipRect.height - 2;
+      top = rect.top - tooltipRect.height - 14;
       left = rect.left + (rect.width - tooltipRect.width) / 2 + offsetX;
     } else if (position === "left") {
       top = rect.top + (rect.height - tooltipRect.height) / 2;
-      left = rect.left - tooltipRect.width - 8 + offsetX;
+      left = rect.left - tooltipRect.width - 14 + offsetX;
     } else if (position === "right") {
       top = rect.top + (rect.height - tooltipRect.height) / 2;
-      left = rect.right + 8 + offsetX;
+      left = rect.right + 14 + offsetX;
     } else {
-      top = rect.top - tooltipRect.height - 8;
+      top = rect.top - tooltipRect.height - 14;
       left = rect.left + (rect.width - tooltipRect.width) / 2 + offsetX;
     }
-    tooltip.style.top = top + "px";
-    tooltip.style.left = left + "px";
+    tooltip.style.top = top + window.scrollY + "px";
+    tooltip.style.left = left + window.scrollX + "px";
+  }
+
+  function removeTooltip() {
+    clearTimeout(hideTimer);
+    clearTimeout(holdTimer);
+    if (tooltip) tooltip.remove();
+    tooltip = null;
+  }
+
+  function showTooltip(text) {
+    clearTimeout(hideTimer);
+    ensureTooltip();
+    // the label can depend on the current mode (see the random button)
+    tooltip.textContent = text ?? (typeof tooltipText === "function" ? tooltipText() : tooltipText);
+    place();
     requestAnimationFrame(() => {
+      if (!tooltip) return;
       tooltip.style.opacity = "1";
       tooltip.style.transform = "translateY(0)";
     });
   }
+
   function hideTooltip() {
-    if (tooltip) {
-      tooltip.style.opacity = "0";
-      setTimeout(() => {
-        if (tooltip && tooltip.parentElement) {
-          tooltip.parentElement.removeChild(tooltip);
-          tooltip = null;
-        }
-      }, 500);
-    }
+    clearTimeout(holdTimer);
+    if (!tooltip) return;
+    tooltip.style.opacity = "0";
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(removeTooltip, 350);
   }
-  button.addEventListener("mouseenter", showTooltip);
+
+  button.addEventListener("mouseenter", () => showTooltip());
   button.addEventListener("mouseleave", hideTooltip);
+  // never leave one behind if the pointer is gone or the tab loses focus
+  window.addEventListener("blur", removeTooltip);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) removeTooltip(); });
+
   if (buttonId === "favBtn") {
     button.addEventListener("click", () => {
-      if (tooltip) {
-        tooltip.style.transition = "opacity 0.3s ease";
-        tooltip.style.opacity = "0";
-        setTimeout(() => {
-          tooltip.textContent = "Added!";
-          tooltip.style.opacity = "1";
-          setTimeout(() => {
-            tooltip.style.opacity = "0";
-            setTimeout(() => {
-              if (tooltip && tooltip.parentElement) {
-                tooltip.parentElement.removeChild(tooltip);
-                tooltip = null;
-              }
-            }, 500);
-          }, 2000);
-        }, 300);
-      }
+      if (!tooltip) return;
+      showTooltip("Added!");
+      clearTimeout(holdTimer);
+      holdTimer = setTimeout(hideTooltip, 1500);
     });
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-    addTooltip("randomBtn", "Random Station", "top");
+    addTooltip("randomBtn", () => (window.currentMode === "local" ? "Random Track" : "Random Station"), "left");
     addTooltip("shuffleBtn", "Shuffle", "left");
     addTooltip("favBtn", "+ Favorites", "right");
   }

@@ -13,6 +13,8 @@ const ICON = {
   edit: svg('<path d="M4 20h4L19 9l-4-4L4 16z"/>'),
   up: svg('<path d="M6 15l6-6 6 6"/>'),
   down: svg('<path d="M6 9l6 6 6-6"/>'),
+  heart: svg('<path d="M12 20.5s-7.5-4.6-9.2-9.2C1.6 8 3.4 5 6.6 5c1.9 0 3.5 1 5.4 3 1.9-2 3.5-3 5.4-3 3.2 0 5 3 3.8 6.3-1.7 4.6-9.2 9.2-9.2 9.2z"/>'),
+  heartFill: svg('<path fill="currentColor" d="M12 20.5s-7.5-4.6-9.2-9.2C1.6 8 3.4 5 6.6 5c1.9 0 3.5 1 5.4 3 1.9-2 3.5-3 5.4-3 3.2 0 5 3 3.8 6.3-1.7 4.6-9.2 9.2-9.2 9.2z"/>'),
   lock: svg('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>')
 };
 
@@ -22,6 +24,10 @@ let query = '';
 let renderToken = 0;
 let activeLi = null;
 let popEl = null;
+let durationObserver = null;
+let durationQueue = [];
+let durationActive = 0;
+const DURATION_CONCURRENCY = 2;
 
 const audio = () => document.getElementById('audioPlayer');
 
@@ -36,7 +42,7 @@ function matches(text) {
   return !query || text.toLowerCase().includes(query);
 }
 
-function setView(next) {
+function setView(next, { reveal = false } = {}) {
   view = next;
   query = '';
   const input = document.getElementById('searchInput');
@@ -44,7 +50,7 @@ function setView(next) {
   const clear = document.getElementById('clearSearch');
   if (clear) clear.style.display = 'none';
   lib.saveLastView(view);
-  render(true);
+  render(true, reveal);
 }
 
 // ---- small UI helpers -------------------------------------------------
@@ -304,7 +310,16 @@ function trackRow(st, index, queueFn, extraActions = []) {
     icon: ICON.note,
     label: st.title,
     cls: 'local-track',
-    actions: [[ICON.plus, 'Add to playlist', b => pickPlaylist(b, async () => [{ rootId: st.rootId, path: st.path }])], ...extraActions],
+    actions: [
+      [lib.isFavorite(st) ? ICON.heartFill : ICON.heart, 'Favorite', b => {
+        const on = lib.toggleFavorite({ rootId: st.rootId, path: st.path });
+        b.innerHTML = on ? ICON.heartFill : ICON.heart;
+        b.classList.toggle('fav-on', on);
+        toast(on ? 'Added to favorites' : 'Removed from favorites');
+      }],
+      [ICON.plus, 'Add to playlist', b => pickPlaylist(b, async () => [{ rootId: st.rootId, path: st.path }])],
+      ...extraActions
+    ],
     onClick: e => {
       if (st.url === window.currentStationUrl && audio().duration) {
         // Clicking the active row seeks, like NFT tracks do.
@@ -317,8 +332,43 @@ function trackRow(st, index, queueFn, extraActions = []) {
     }
   });
   li.dataset.url = st.url;
+  li._station = st;
+  li.appendChild(el('span', 'local-dur'));
   if (st.url === window.currentStationUrl) li.classList.add('active');
+  if (lib.isFavorite(st)) li.querySelector('.local-act[title="Favorite"]')?.classList.add('fav-on');
   return li;
+}
+
+// ---- durations (lazy, only rows that scroll into view) -------------------
+
+function pumpDurations() {
+  while (durationActive < DURATION_CONCURRENCY && durationQueue.length) {
+    const li = durationQueue.shift();
+    if (!li.isConnected) continue;
+    durationActive++;
+    lib.getDuration(li._station).then(seconds => {
+      const cell = li.querySelector('.local-dur');
+      if (cell && seconds) cell.textContent = lib.formatDuration(seconds);
+    }).catch(() => {}).finally(() => {
+      durationActive--;
+      pumpDurations();
+    });
+  }
+}
+
+function watchDurations() {
+  if (durationObserver) durationObserver.disconnect();
+  durationQueue = [];
+  if (!ctx) return;
+  durationObserver = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      durationObserver.unobserve(entry.target);
+      durationQueue.push(entry.target);
+    }
+    pumpDurations();
+  }, { root: ctx.scroller, rootMargin: '200px' });
+  ctx.list.querySelectorAll('li.local-track').forEach(li => durationObserver.observe(li));
 }
 
 // ---- views ------------------------------------------------------------
@@ -360,6 +410,17 @@ async function homeRows() {
   if (roots.length) rows.push(dropZoneRow(false));
 
   rows.push(sectionRow('Playlists'));
+  const favs = lib.loadFavorites();
+  if (matches('favorites')) {
+    rows.push(row({
+      icon: ICON.heartFill,
+      label: 'Favorites',
+      sub: `${favs.length} track${favs.length === 1 ? '' : 's'}`,
+      cls: 'local-fav-row',
+      onClick: () => setView({ kind: 'favorites' }),
+      actions: [[ICON.play, 'Play favorites', () => playFavorites()]]
+    }));
+  }
   const playlists = lib.loadPlaylists().filter(p => matches(p.name));
   for (const pl of playlists) {
     rows.push(row({
@@ -473,7 +534,7 @@ async function playlistRows() {
       [ICON.trash, 'Remove from playlist', () => { lib.removeTrack(pl.id, e.index); render(); }]
     ]);
     // "Add to playlist" makes little sense inside a playlist; swap it for reorder/remove.
-    li.querySelector('.local-act')?.remove();
+    li.querySelector('.local-act[title="Add to playlist"]')?.remove();
     rows.push(li);
   });
   if (!shown.length) {
@@ -482,12 +543,32 @@ async function playlistRows() {
   return rows;
 }
 
-async function render(resetScroll = false) {
+async function favoritesRows() {
+  const roots = await lib.listRoots();
+  const rootName = id => (roots.find(r => r.id === id) || {}).name || '';
+  const rows = [crumbsRow(
+    [{ label: 'Library', onClick: () => setView({ kind: 'home' }) }, { label: 'Favorites' }],
+    [[ICON.play, 'Play favorites', () => playFavorites()]]
+  )];
+  const shown = lib.loadFavorites()
+    .map(t => lib.makeStation(t, rootName(t.rootId)))
+    .filter(st => matches(st.title));
+  shown.forEach((st, i) => rows.push(trackRow(st, i, () => ({ stations: shown, start: i }))));
+  if (!shown.length) {
+    rows.push(noticeRow(query ? 'Nothing found.' : 'No favorites yet. Press the heart on a track, or the heart button in the player.'));
+  }
+  return rows;
+}
+
+async function render(resetScroll = false, revealActive = false) {
   if (!ctx) return;
   const token = ++renderToken;
   let rows;
   try {
-    rows = view.kind === 'dir' ? await dirRows() : view.kind === 'playlist' ? await playlistRows() : await homeRows();
+    rows = view.kind === 'dir' ? await dirRows()
+      : view.kind === 'playlist' ? await playlistRows()
+      : view.kind === 'favorites' ? await favoritesRows()
+      : await homeRows();
   } catch (err) {
     console.warn('Local explorer error:', err);
     rows = [noticeRow('Something went wrong while reading the library.')];
@@ -495,7 +576,10 @@ async function render(resetScroll = false) {
   if (token !== renderToken || !ctx) return;
   ctx.list.replaceChildren(...rows);
   activeLi = ctx.list.querySelector('li.active[data-url]');
+  watchDurations();
   if (resetScroll && ctx.scroller) ctx.scroller.scrollTo({ top: 0 });
+  // after a random pick, bring the playing track into view inside its folder
+  if (revealActive && activeLi) activeLi.scrollIntoView({ block: 'center' });
 }
 
 // ---- play helpers -----------------------------------------------------
@@ -518,6 +602,58 @@ async function playPlaylist(id) {
   ctx.playQueue(pl.tracks.map(t => lib.makeStation(t, (roots.find(r => r.id === t.rootId) || {}).name || '')), 0);
 }
 
+async function playFavorites() {
+  const favs = lib.loadFavorites();
+  if (!favs.length) { toast('No favorites yet'); return; }
+  const roots = await lib.listRoots();
+  ctx.playQueue(favs.map(t => lib.makeStation(t, (roots.find(r => r.id === t.rootId) || {}).name || '')), 0);
+}
+
+// Random pick for the "Random track" button.
+// - Playlist / favorites view: a random track from that list.
+// - Folder browser (home or any folder): a random FOLDER (anywhere below the
+//   current one, or in the whole library from home), then a random song in it.
+//   That folder becomes the queue so playback carries on through the album.
+export async function playRandom() {
+  if (!ctx) return;
+  const roots = await lib.listRoots();
+  const nameOf = id => (roots.find(r => r.id === id) || {}).name || '';
+  const pick = list => list[Math.floor(Math.random() * list.length)];
+  let queue = [];
+  let folderPick = null;
+  try {
+    if (view.kind === 'playlist' || view.kind === 'favorites') {
+      queue = view.kind === 'playlist' ? (lib.getPlaylist(view.id) || { tracks: [] }).tracks : lib.loadFavorites();
+    } else {
+      const scopes = [];
+      if (view.kind === 'dir') {
+        const root = await lib.getRoot(view.rootId);
+        if (root) scopes.push({ root, path: view.path });
+      } else {
+        roots.forEach(root => scopes.push({ root, path: [] }));
+      }
+      const folders = [];
+      for (const { root, path } of scopes) {
+        if (!(await lib.hasAccess(root)) && !(await lib.requestAccess(root))) continue;
+        folders.push(...await lib.collectFolders(root, path));
+      }
+      if (folders.length) {
+        const folder = pick(folders);
+        folderPick = folder;
+        queue = folder.files.map(name => ({ rootId: folder.rootId, path: [...folder.path, name] }));
+      }
+    }
+  } catch {
+    toast('Could not read the library');
+    return;
+  }
+  if (!queue.length) { toast('Nothing to play here yet. Add a folder first.'); return; }
+  const start = Math.floor(Math.random() * queue.length);
+  ctx.playQueue(queue.map(t => lib.makeStation(t, nameOf(t.rootId))), start);
+  // folder browser: jump into the album the track came from
+  if (folderPick) setView({ kind: 'dir', rootId: folderPick.rootId, path: folderPick.path }, { reveal: true });
+}
+
 // ---- public API -------------------------------------------------------
 
 export function enterLocalMode(context) {
@@ -530,6 +666,7 @@ export function enterLocalMode(context) {
   if (addBtn) {
     addBtn.onclick = addFolderFromPicker;
   }
+  document.addEventListener('localFavoritesChanged', onFavoritesChanged);
   if (ctx.scroller) {
     ctx.scroller.addEventListener('dragover', onDragOver);
     ctx.scroller.addEventListener('dragleave', onDragLeave);
@@ -559,7 +696,15 @@ export function enterLocalMode(context) {
   render(true);
 }
 
+function onFavoritesChanged() {
+  if (ctx) render();
+}
+
 export function leaveLocalMode() {
+  if (durationObserver) durationObserver.disconnect();
+  durationObserver = null;
+  durationQueue = [];
+  document.removeEventListener('localFavoritesChanged', onFavoritesChanged);
   if (ctx && ctx.scroller) {
     ctx.scroller.removeEventListener('dragover', onDragOver);
     ctx.scroller.removeEventListener('dragleave', onDragLeave);

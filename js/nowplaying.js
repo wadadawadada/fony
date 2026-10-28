@@ -48,10 +48,8 @@ function updateAlbumCoverAnimation() {
   }
   const audioPlayer = document.getElementById('audioPlayer');
   const bg = ensureAlbumCoverBg();
-  const chatContainer = document.getElementById('chat');
   if (!audioPlayer || !bg) return;
-  const chatIsOpen = chatContainer && window.getComputedStyle(chatContainer).display !== 'none';
-  if (!audioPlayer.paused && bg.style.backgroundImage && !chatIsOpen) {
+  if (!audioPlayer.paused && bg.style.backgroundImage) {
     bg.classList.add('visible');
   } else {
     bg.classList.remove('visible');
@@ -221,7 +219,7 @@ function setupNowPlayingToggle() {
       discogsContainer.style.display = "none";
       discogsContainer.innerHTML = "";
     }
-    clearDiscogsInfo();
+    // the album cover stays: it is shown with the console open too
   }
 
   if (toggleBtn) {
@@ -375,7 +373,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   function onChatVisibilityChange(){
     const bg=getBg();if(!bg)return;
-    if(isChatOpen()){bg.style.backgroundImage="";bg.classList.remove("visible")}
+    if(isChatOpen()){if(!hasRealCover()){bg.style.backgroundImage="";bg.classList.remove("visible")}}
     else{applyState()}
   }
 
@@ -497,4 +495,25 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   setInterval(applyMobileDiscogsCollapse, 700);
+})();
+
+
+///// Shrink the play button while a real album cover is visible
+
+(() => {
+  const PLACEHOLDER = /(cd|vinyl|reel)\.svg/;
+  function sync() {
+    const circle = document.querySelector('.center-circle');
+    const bg = circle && circle.querySelector('.album-cover-bg');
+    if (!circle || !bg) return;
+    const image = bg.style.backgroundImage || '';
+    const hasCover = !!image && !PLACEHOLDER.test(image) && bg.classList.contains('visible');
+    circle.classList.toggle('has-cover', hasCover);
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    const bg = ensureAlbumCoverBg();
+    if (!bg) return;
+    new MutationObserver(sync).observe(bg, { attributes: true, attributeFilter: ['style', 'class'] });
+    sync();
+  });
 })();

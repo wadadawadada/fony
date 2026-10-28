@@ -6,8 +6,8 @@ import { getStreamMetadata, secureUrl } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
 import { connectWallet, getNFTContractList, connectAndLoadWalletNFTs } from './web3.js'
 import { clearDiscogsInfo, refreshNowPlaying } from './nowplaying.js'
-import { isLocalSupported, prepareTrack } from './local-library.js'
-import { enterLocalMode, leaveLocalMode, syncActive as syncLocalActive, setLocalProgress, showUnsupportedDialog } from './local-mode.js'
+import { isLocalSupported, prepareTrack, isFavorite as isLocalFavorite, toggleFavorite as toggleLocalFavoriteTrack } from './local-library.js'
+import { enterLocalMode, leaveLocalMode, syncActive as syncLocalActive, setLocalProgress, showUnsupportedDialog, playRandom as playLocalRandom } from './local-mode.js'
 import { initCustomGenreSelect, setSelectedGenre, getSelectedGenre } from './custom-genre-select.js';
 import { loadCustomPlaylists, saveCustomPlaylist, deleteCustomPlaylist, normalizePlaylistUrl, suggestNameFromUrl } from './custom-playlists.js';
 import { loadMergedPlaylistFolder as fetchMergedPlaylistFolder } from './merged-playlist-catalog.js';
@@ -777,6 +777,8 @@ function switchToLocal() {
   playlistElement.innerHTML = ""
   const lb = document.getElementById("localModeBtn")
   if (lb) { lb.classList.add("active"); lb.title = "Back to radio" }
+  const heart = document.getElementById("favBtn")
+  if (heart) heart.src = (localStorage.getItem("theme") === "dark" ? "/img/dark/" : "/img/") + "fav.svg"
   if (stationLabel) {
     const t = stationLabel.querySelector(".scrolling-text")
     if (t) t.textContent = "Local files"
@@ -815,12 +817,32 @@ function switchToLocal() {
 
 let localPlayToken = 0
 
+// The heart button in the player works on the playing local track.
+function syncLocalFavIcon() {
+  if (currentMode !== "local") return
+  const heart = document.getElementById("favBtn")
+  const st = currentPlaylist[currentTrackIndex]
+  if (!heart || !st || !st.local) return
+  const prefix = localStorage.getItem("theme") === "dark" ? "/img/dark/" : "/img/"
+  heart.src = prefix + (isLocalFavorite(st) ? "fav_active.svg" : "fav.svg")
+}
+
+window.toggleLocalFavorite = function () {
+  const st = currentPlaylist[currentTrackIndex]
+  if (currentMode !== "local" || !st || !st.local) return
+  toggleLocalFavoriteTrack({ rootId: st.rootId, path: st.path })
+  syncLocalFavIcon()
+}
+document.addEventListener("localFavoritesChanged", syncLocalFavIcon)
+document.addEventListener("themeChanged", () => setTimeout(syncLocalFavIcon, 0))
+
 async function playLocalStation(st, i) {
   const token = ++localPlayToken
   if (playCheckTimer) { clearTimeout(playCheckTimer); playCheckTimer = null }
   if (window.playTimerInterval) { clearInterval(window.playTimerInterval); window.playTimerInterval = null }
   window.__localCoverFallback = null
   syncLocalActive()
+  syncLocalFavIcon()
   if (stationLabel) {
     const t = stationLabel.querySelector(".scrolling-text")
     if (t) t.textContent = st.folderName || "Local files"
@@ -1746,6 +1768,10 @@ if (shuffleBtn) {
 
 if (randomBtn) {
   randomBtn.addEventListener("click", () => {
+    if (currentMode === "local") {
+      fadeAudioOut(audioPlayer, 500, () => playLocalRandom())
+      return
+    }
     if (currentMode === "web3") {
       fadeAudioOut(audioPlayer, 500, async () => {
         const contracts = await getNFTContractList();
@@ -1973,6 +1999,38 @@ const resizer = document.getElementById('resizer');
 let isResizing = false;
 let startX;
 let startLeftWidthPercent;
+let lastLeftWidthPercent = null;
+
+const PANEL_WIDTH_KEY = 'panelWidthPercent';
+const isDesktopLayout = () => window.innerWidth > 768;
+
+function setPanelWidth(percent) {
+  leftPanel.style.width = `${percent}%`;
+  rightPanel.style.width = `${100 - percent}%`;
+  resizer.style.left = `calc(${percent}% - ${resizer.offsetWidth / 2}px)`;
+}
+
+function clearPanelWidth() {
+  leftPanel.style.width = '';
+  rightPanel.style.width = '';
+  resizer.style.left = '';
+}
+
+function getSavedPanelWidth() {
+  const v = parseFloat(localStorage.getItem(PANEL_WIDTH_KEY));
+  // clamp instead of rejecting: a drag to the limit can be stored as 39.99 / 70.01
+  return Number.isFinite(v) ? Math.min(70, Math.max(40, v)) : null;
+}
+
+// Restore the width the user dragged to. Inline widths would break the stacked
+// mobile layout, so they are only applied on desktop and cleared otherwise.
+function applySavedPanelWidth() {
+  const saved = getSavedPanelWidth();
+  if (saved !== null && isDesktopLayout()) setPanelWidth(saved);
+  else clearPanelWidth();
+}
+applySavedPanelWidth();
+window.addEventListener('resize', applySavedPanelWidth);
 
 resizer.addEventListener('mousedown', (e) => {
   isResizing = true;
@@ -1980,6 +2038,12 @@ resizer.addEventListener('mousedown', (e) => {
   startLeftWidthPercent = (leftPanel.offsetWidth / container.clientWidth) * 100;
   document.body.style.cursor = 'ew-resize';
   document.body.style.userSelect = 'none';
+});
+
+// double-click the divider to go back to the default width
+resizer.addEventListener('dblclick', () => {
+  localStorage.removeItem(PANEL_WIDTH_KEY);
+  clearPanelWidth();
 });
 
 document.addEventListener('mousemove', (e) => {
@@ -1990,12 +2054,14 @@ document.addEventListener('mousemove', (e) => {
   let newLeftWidthPercent = startLeftWidthPercent + dxPercent;
   if (newLeftWidthPercent < 40) newLeftWidthPercent = 40;
   if (newLeftWidthPercent > 70) newLeftWidthPercent = 70;
-  leftPanel.style.width = `${newLeftWidthPercent}%`;
-  rightPanel.style.width = `${100 - newLeftWidthPercent}%`;
-  resizer.style.left = `calc(${newLeftWidthPercent}% - ${resizer.offsetWidth / 2}px)`;
+  lastLeftWidthPercent = newLeftWidthPercent;
+  setPanelWidth(newLeftWidthPercent);
 });
 
 document.addEventListener('mouseup', () => {
+  if (isResizing && lastLeftWidthPercent !== null) {
+    localStorage.setItem(PANEL_WIDTH_KEY, lastLeftWidthPercent.toFixed(2));
+  }
   isResizing = false;
   document.body.style.cursor = '';
   document.body.style.userSelect = '';

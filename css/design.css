@@ -1,0 +1,1109 @@
+/* FONY design layer.
+ *
+ * Loaded after the base stylesheets: it defines the design tokens and restyles
+ * the surfaces on top of them. Layout/structure lives in styles.css and
+ * player.css; this file only changes how things look.
+ */
+
+:root {
+  /* brand */
+  --accent: #00F2B8;
+  --ink: #171C2B;
+
+  /* type */
+  --font-ui: 'Ruda', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+
+  /* shape */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  /* spacing (4px grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+
+  /* elevation */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-2: 0 6px 18px rgba(0, 0, 0, 0.22);
+  --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.32);
+
+  /* glass surface used over the colourful right panel */
+  --glass-bg: rgba(18, 22, 36, 0.38);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --row-hover: rgba(255, 255, 255, 0.10);
+  --row-active: rgba(18, 22, 36, 0.72);
+  --row-divider: rgba(255, 255, 255, 0.07);
+  --on-glass: #fff;
+  --on-glass-muted: rgba(255, 255, 255, 0.62);
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --t-fast: 140ms;
+  --t-med: 220ms;
+}
+
+/* ---------- typography ---------- */
+
+.right-panel,
+.right-panel input,
+.right-panel select,
+.right-panel button,
+#playlist li,
+#playlist li span,
+.genre-select-header,
+.genre-select-dropdown {
+  font-family: var(--font-ui);
+}
+
+.genre-box {
+  font-size: var(--text-lg);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+}
+
+.genre-box label {
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.genre-select-header {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  text-decoration: none;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+}
+
+.genre-select-header:hover {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+/* ---------- search pill ---------- */
+
+.genre-search {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background-color: rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-pill);
+  padding: 7px 28px 7px 14px;
+  font-size: var(--text-sm);
+  transition: border-color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+
+.genre-search::placeholder {
+  font-family: var(--font-ui);
+  color: var(--on-glass-muted);
+  padding-left: 0;
+}
+
+.genre-search:focus {
+  border-color: var(--accent);
+  background-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 0 3px rgba(0, 242, 184, 0.22);
+}
+
+/* ---------- right panel: glass list surface ---------- */
+
+.playlist-area {
+  border-radius: var(--radius-lg);
+  padding: var(--space-2);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: var(--shadow-2);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+}
+
+#playlist {
+  padding: var(--space-1);
+}
+
+/* Scrollbar: inset from the rounded corners instead of hugging the edge.
+ * (Standard scrollbar-* properties would disable the webkit styling.) */
+.playlist-area {
+  scrollbar-width: auto;
+  scrollbar-color: auto;
+}
+
+.playlist-area::-webkit-scrollbar {
+  width: 16px;
+}
+
+.playlist-area::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 20px 0;
+}
+
+.playlist-area::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.38);
+  background-clip: content-box;
+  border: 5px solid transparent;
+  border-radius: var(--radius-pill);
+  min-height: 40px;
+}
+
+.playlist-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.7);
+  background-clip: content-box;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .playlist-area {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+  }
+}
+
+/* ---------- station rows ---------- */
+
+#playlist li,
+#playlist li.draggable-favorite {
+  background-color: transparent;
+  color: var(--on-glass);
+  border: none;
+  border-bottom: 1px solid var(--row-divider);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  margin-bottom: 0;
+  padding: 11px var(--space-4);
+  gap: var(--space-3);
+  font-size: var(--text-md);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  scale: 1;
+  transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+#playlist li:last-child {
+  border-bottom-color: transparent;
+}
+
+#playlist li:hover,
+#playlist li.radio-mode:hover,
+#playlist li.web3-mode:hover,
+#playlist li.draggable-favorite:hover {
+  background-color: var(--row-hover);
+  color: var(--on-glass);
+  scale: 1;
+}
+
+/* now-playing row: dark chip with an accent bar */
+#playlist li.active,
+#playlist li.draggable-favorite.active {
+  background-color: var(--row-active);
+  color: var(--accent);
+  font-weight: 600;
+  border-color: rgba(0, 242, 184, 0.40);
+  box-shadow: var(--shadow-1);
+}
+
+/* radio stations: the broadcast icon (same one as in the player screen) */
+#playlist li.active:not(.local-row)::before {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin-left: -2px;
+  border-radius: 0;
+  background: var(--accent);
+  -webkit-mask: url("/img/stream_icon.svg") center / contain no-repeat;
+  mask: url("/img/stream_icon.svg") center / contain no-repeat;
+}
+
+/* playing indicator: small accent dot in front of the title (local files) */
+#playlist li.active::before {
+  content: "";
+  flex: 0 0 8px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--accent);
+  z-index: 1;
+}
+
+#playlist li.active:hover {
+  background-color: var(--row-active);
+  color: var(--accent);
+}
+
+#playlist li.active::after {
+  content: none;
+}
+
+#playlist li .progress,
+#playlist li.radio-mode .progress,
+#playlist li.web3-mode .progress {
+  background-color: rgba(0, 242, 184, 0.24);
+  /* the row clips it (overflow:hidden), so the fill follows the row's rounded
+   * corners on the left and ends in a straight edge instead of a lens shape */
+  border-radius: 0;
+}
+
+#playlist li {
+  overflow: hidden;
+}
+
+#playlist li .title-ellipsis {
+  min-width: 0;
+}
+
+#playlist li.active .remove-btn,
+#playlist li.active:hover .remove-btn {
+  color: var(--accent);
+  background-color: transparent;
+}
+
+#playlist li:hover .remove-btn {
+  color: var(--on-glass);
+}
+
+/* http badge: quieter */
+#playlist li > span[style*="rgba(14, 139, 106"] {
+  color: var(--on-glass-muted) !important;
+  font-size: var(--text-xs) !important;
+  border: 1px solid var(--row-divider);
+  border-radius: var(--radius-pill);
+  padding: 0 6px;
+}
+
+#playlistLoader {
+  color: var(--on-glass);
+}
+
+/* ---------- now-playing screen ---------- */
+
+.screen {
+  background: linear-gradient(180deg, #1b2136 0%, #131829 100%);
+  border: 1px solid rgba(0, 242, 184, 0.45);
+  border-radius: var(--radius-pill);
+  padding: 14px 22px;
+  box-shadow: var(--shadow-2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.screen::after {
+  display: none;
+}
+
+.station-label,
+.track-name {
+  font-family: var(--font-ui);
+}
+
+.station-label {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.track-name {
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.track-name a {
+  font-weight: 500;
+}
+
+.play-timer {
+  font-size: 1.9rem;
+  color: #fff;
+  opacity: 0.95;
+}
+
+/* ---------- console (chat) ---------- */
+
+.chat-container {
+  border-radius: var(--radius-lg);
+  outline: 1px solid rgba(0, 242, 184, 0.45);
+  outline-offset: -1px;
+  background: linear-gradient(180deg, #171c2d 0%, #121626 100%);
+  box-shadow: var(--shadow-3);
+}
+
+.chat-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--accent);
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+/* quick commands: plain text links, no boxes */
+#chatGenre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-4);
+}
+
+#chatGenre a,
+#chatGenre span {
+  color: var(--accent) !important;
+  font-size: var(--text-sm);
+  margin: 0 !important;
+  padding: 2px 0;
+  text-decoration: none !important;
+  opacity: 0.8;
+  transition: opacity var(--t-fast) var(--ease);
+}
+
+#chatGenre a:hover {
+  opacity: 1;
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+
+.chat-username-box {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.chat-username-box:hover {
+  color: #fff;
+}
+
+.chat-messages {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  font-weight: 400;
+  padding: var(--space-3) var(--space-4);
+  margin: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 242, 184, 0.4) transparent;
+}
+
+.chat-messages a {
+  color: var(--accent);
+}
+
+.chat-messages a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.chat-input-box {
+  background: transparent;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: var(--space-3) var(--space-4);
+  height: auto;
+  margin: 0;
+  gap: var(--space-2);
+}
+
+.chat-input-box input[type="text"] {
+  height: 36px;
+  box-sizing: border-box;
+  padding: 0 var(--space-4);
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 242, 184, 0.35);
+  border-radius: var(--radius-pill);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  outline: none;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease);
+}
+
+.chat-input-box input[type="text"]:focus {
+  border-color: var(--accent);
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(0, 242, 184, 0.2);
+}
+
+#chatInput::placeholder {
+  color: var(--on-glass-muted);
+}
+
+.chat-send-btn {
+  margin-left: 0;
+}
+
+.chat-send-btn img {
+  height: 36px;
+}
+
+/* ---------- shared focus ring (keyboard) ---------- */
+
+:where(button, a, [role="button"], select, input):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- modals ---------- */
+
+.add-playlist-modal,
+.gif-search-modal,
+.local-help {
+  background: rgba(8, 11, 20, 0.62);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.manifesto-modal {
+  background-color: rgba(8, 11, 20, 0.5);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.add-playlist-content,
+.gif-search-content,
+.manifesto-content,
+#gitbookModal .manifesto-content,
+.local-help-box {
+  font-family: var(--font-ui);
+  background: linear-gradient(180deg, #1a2033 0%, #131829 100%);
+  border: 1px solid rgba(0, 242, 184, 0.35);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+}
+
+body:not(.dark) .add-playlist-content,
+body:not(.dark) .gif-search-content {
+  background: #f6f7f9;
+  border-color: rgba(23, 28, 43, 0.18);
+  color: var(--ink);
+}
+
+.manifesto-content {
+  font-family: var(--font-ui);
+}
+
+.add-playlist-content h3,
+.gif-search-content h3 {
+  font-size: var(--text-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+.add-playlist-field label {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  opacity: 0.7;
+}
+
+.add-playlist-field input,
+.gif-search-input {
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  padding: 10px var(--space-3);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+
+.add-playlist-field input:focus,
+.gif-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 242, 184, 0.2);
+}
+
+body:not(.dark) .add-playlist-field input:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(23, 28, 43, 0.12);
+}
+
+.add-playlist-close,
+.gif-search-close,
+.manifesto-close {
+  border-radius: var(--radius-pill);
+  transition: opacity var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease);
+}
+
+.add-playlist-close:hover,
+.gif-search-close:hover,
+.manifesto-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* primary / secondary buttons */
+.add-playlist-save,
+.save-settings-btn,
+.local-pop-btn,
+.settings-btn,
+.donate-copy-btn {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  transition: transform var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease);
+}
+
+.save-settings-btn:hover,
+.add-playlist-save:hover {
+  scale: 1;
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.settings-btn {
+  font-size: var(--text-sm);
+  padding: 9px var(--space-4);
+}
+
+.settings-btn:hover {
+  background-color: rgba(0, 242, 184, 0.12);
+}
+
+.settings-btn-danger:hover {
+  background-color: rgba(255, 95, 124, 0.12);
+}
+
+/* ---------- genre dropdown ---------- */
+
+.genre-select-dropdown {
+  background: rgba(18, 22, 36, 0.92);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-3);
+  margin-top: var(--space-2);
+}
+
+.genre-select-item {
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  font-weight: 500;
+  padding: 9px var(--space-3);
+}
+
+.genre-select-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.genre-select-item.selected {
+  background-color: rgba(0, 242, 184, 0.16);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ---------- top bar ---------- */
+
+.top-bar-actions {
+  gap: 10px;
+}
+
+.top-bar-actions button,
+.top-bar-actions #connectWalletBtn {
+  opacity: 0.8;
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+
+.top-bar-actions button:hover,
+.top-bar-actions #connectWalletBtn:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+#walletAddress {
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+/* ---------- popovers, toast ---------- */
+
+.local-pop,
+.local-toast {
+  font-family: var(--font-ui);
+}
+
+.local-pop {
+  border-color: rgba(0, 242, 184, 0.35);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-3);
+}
+
+.local-pop-item,
+.local-pop-input {
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- loading + motion ---------- */
+
+/* dim the list while a playlist is loading instead of showing it half-rendered */
+.playlist-area:has(#playlistLoader:not(.hidden)) #playlist {
+  opacity: 0.35;
+  transition: opacity var(--t-med) var(--ease);
+}
+
+#playlist {
+  transition: opacity var(--t-med) var(--ease);
+}
+
+#playlistLoader:not(.hidden) {
+  background: var(--row-active);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-2);
+  padding: var(--space-2) var(--space-5);
+  font-family: var(--font-ui);
+}
+
+.left-panel,
+.right-panel {
+  transition: background-color 0.5s ease, background 0.5s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ======================================================================
+ * Player buttons (desktop). The SVGs in /img are glyph-only; the round
+ * button surface, depth, glow and motion are all drawn here.
+ * ====================================================================== */
+
+:root {
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media all {
+  .player-btn {
+    --btn-bg: linear-gradient(145deg, #ffffff 0%, #e6e9f0 100%);
+    --btn-edge: rgba(23, 28, 43, 0.08);
+    --btn-shadow: 0 10px 22px rgba(23, 28, 43, 0.14), 0 2px 5px rgba(23, 28, 43, 0.10);
+    --btn-hl: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -2px 4px rgba(23, 28, 43, 0.05);
+    --btn-glow: 0 0 0 1px rgba(0, 170, 130, 0.5), 0 12px 24px rgba(23, 28, 43, 0.18);
+
+    box-sizing: border-box;
+    padding: calc(var(--btn-size, 40px) * 0.21);
+    border-radius: 50%;
+    background: var(--btn-bg);
+    border: 1px solid var(--btn-edge);
+    box-shadow: var(--btn-shadow), var(--btn-hl);
+    filter: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.35s var(--spring), box-shadow 0.25s var(--ease), background 0.25s var(--ease);
+  }
+
+  body.dark .player-btn {
+    --btn-bg: linear-gradient(145deg, #252d47 0%, #161b2d 100%);
+    --btn-edge: rgba(0, 242, 184, 0.30);
+    --btn-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 2px 5px rgba(0, 0, 0, 0.35);
+    --btn-hl: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+    --btn-glow: 0 0 0 1px rgba(0, 242, 184, 0.55), 0 12px 26px rgba(0, 0, 0, 0.45);
+  }
+
+  /* hover/press motion is desktop-only: on mobile the play button is centred
+   * with its own transform (see mobile.css) which these would clobber */
+  @media (min-width: 769px) {
+    .player-btn:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: var(--btn-glow), var(--btn-hl);
+      filter: none;
+    }
+
+    .player-btn:active {
+      animation: none;
+      transform: translateY(0) scale(0.92);
+      transition-duration: 0.08s;
+      box-shadow: var(--btn-shadow), inset 0 3px 8px rgba(0, 0, 0, 0.18);
+    }
+  }
+
+  /* toggled-on shuffle */
+  #shuffleBtn.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 14px rgba(0, 242, 184, 0.35), var(--btn-hl);
+  }
+
+  /* big play / pause */
+  .player-btn.play-btn,
+  body.dark .player-btn.play-btn {
+    --btn-bg: linear-gradient(145deg, #2dffd0 0%, #00d6a2 100%);
+    --btn-edge: rgba(255, 255, 255, 0.35);
+    --btn-shadow: 0 10px 22px rgba(0, 0, 0, 0.22), 0 2px 5px rgba(0, 0, 0, 0.14);
+    --btn-hl: inset 0 2px 0 rgba(255, 255, 255, 0.55), inset 0 -4px 10px rgba(0, 120, 90, 0.35);
+    --btn-glow: 0 14px 28px rgba(0, 0, 0, 0.26), 0 2px 6px rgba(0, 0, 0, 0.16);
+    padding: calc(var(--btn-size, 120px) * 0.27);
+    z-index: 2;
+  }
+
+  /* button sizes (padding scales with them); expanded mode enlarges them */
+  #playPauseBtn { --btn-size: 120px; }
+  #ffBtn, #rrBtn { --btn-size: 65px; }
+  #shuffleBtn, #favBtn { --btn-size: 38px; }
+  .player-controls.expanded #ffBtn,
+  .player-controls.expanded #rrBtn { --btn-size: 90px; }
+  .player-controls.expanded #playPauseBtn { --btn-size: 160px; }
+
+  /* the decorative ring around play: calmer */
+  .play-ellipse {
+    opacity: 0.7;
+  }
+
+  /* ---- one-shot motion, toggled by js/player-fx.js (desktop only) ---- */
+
+  @media (min-width: 769px) {
+    .player-btn.fx-pop { animation: fx-pop 0.45s var(--spring); }
+    .player-btn.fx-kick-r { animation: fx-kick-r 0.45s var(--spring); }
+    .player-btn.fx-kick-l { animation: fx-kick-l 0.45s var(--spring); }
+    .player-btn.fx-flip { animation: fx-flip 0.6s var(--spring); }
+    .player-btn.fx-heart { animation: fx-heart 0.6s var(--spring); }
+  }
+}
+
+@keyframes fx-pop {
+  0% { transform: scale(0.8); }
+  55% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fx-kick-r {
+  0% { transform: translateX(0); }
+  35% { transform: translateX(9px) scale(1.04); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes fx-kick-l {
+  0% { transform: translateX(0); }
+  35% { transform: translateX(-9px) scale(1.04); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes fx-flip {
+  0% { transform: rotate(0) scale(1); }
+  50% { transform: rotate(180deg) scale(1.12); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes fx-heart {
+  0% { transform: scale(1); }
+  25% { transform: scale(0.8); }
+  55% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+
+/* click ripple + heart sparks (spawned on body by js/player-fx.js) */
+.fx-ripple {
+  position: fixed;
+  z-index: 40000;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 0.7;
+  animation: fx-ripple 0.7s var(--ease) forwards;
+}
+
+@keyframes fx-ripple {
+  to { transform: translate(-50%, -50%) scale(2.1); opacity: 0; }
+}
+
+.fx-spark {
+  position: fixed;
+  z-index: 40000;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: #ff5c8a;
+  pointer-events: none;
+  animation: fx-spark 0.7s var(--ease) forwards;
+}
+
+@keyframes fx-spark {
+  to { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+}
+
+/* ======================================================================
+ * Random-station button (single die) and volume control
+ * ====================================================================== */
+
+.player-btn.random-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+body.dark .player-btn.random-btn {
+  color: var(--accent);
+}
+
+.random-btn .die-face {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  overflow: visible;
+  transition: transform 0.4s var(--spring);
+}
+
+.random-btn .die-body {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.random-btn .pip {
+  fill: currentColor;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 0.12s, transform 0.18s var(--spring);
+}
+
+.random-btn .pip.off {
+  opacity: 0;
+  transform: scale(0.3);
+}
+
+.random-btn:hover .die-face {
+  transform: rotate(-14deg) scale(1.12);
+}
+
+.random-btn.is-rolling .die-face {
+  animation: die-roll 0.65s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+
+@keyframes die-roll {
+  0% { transform: translateY(0) rotate(0) scale(1); }
+  30% { transform: translateY(-7px) rotate(200deg) scale(1.2); }
+  60% { transform: translateY(0) rotate(400deg) scale(0.92); }
+  80% { transform: translateY(-2px) rotate(350deg) scale(1.05); }
+  100% { transform: translateY(0) rotate(360deg) scale(1); }
+}
+
+/* ---------- volume ---------- */
+
+.volume-scale rect {
+  fill: rgba(23, 28, 43, 0.16) !important;
+  rx: 2px;
+  transition: fill 0.25s var(--ease), filter 0.25s var(--ease);
+}
+
+body.dark .volume-scale rect {
+  fill: rgba(255, 255, 255, 0.14) !important;
+}
+
+.volume-scale rect.on,
+body.dark .volume-scale rect.on {
+  fill: var(--accent) !important;
+  filter: drop-shadow(0 0 4px rgba(0, 242, 184, 0.55));
+}
+
+.volume-scale #vol {
+  opacity: 1;
+}
+
+.volume-slider {
+  --vol-px: 0px;
+}
+
+.volume-slider .volume-line {
+  height: 9px;
+  width: 113px;
+}
+
+/* accent fill from the left edge up to the knob */
+.volume-slider::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 6px;
+  width: var(--vol-px);
+  transform: translateY(-50%);
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(0, 242, 184, 0.55), var(--accent));
+  box-shadow: 0 0 10px rgba(0, 242, 184, 0.4);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.volume-slider .volume-knob {
+  width: 14px;
+  height: 30px;
+  box-sizing: border-box;
+  padding: 0;
+  object-fit: contain;
+  top: 50%;
+  z-index: 2;
+  border-radius: 7px;
+  background: linear-gradient(145deg, #ffffff 0%, #e3e7ee 100%);
+  border: 1px solid rgba(23, 28, 43, 0.12);
+  box-shadow: 0 4px 10px rgba(23, 28, 43, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  filter: none;
+  transition: transform 0.25s var(--spring), box-shadow 0.2s var(--ease);
+}
+
+body.dark .volume-slider .volume-knob {
+  background: linear-gradient(145deg, #2a3350 0%, #161b2d 100%);
+  border-color: rgba(0, 242, 184, 0.45);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.volume-slider .volume-knob:hover,
+.volume-slider.dragging .volume-knob {
+  transform: translate(-50%, -50%) scale(1.2);
+  box-shadow: 0 0 0 4px rgba(0, 242, 184, 0.3), 0 6px 16px rgba(0, 242, 184, 0.35);
+  filter: none;
+}
+
+.volume-slider.dragging .volume-knob {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+/* icon-only random button */
+@media (min-width: 769px) {
+  #randomBtn.random-btn {
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border-radius: 50%;
+  }
+}
+
+/* Symmetric control columns: both stacks share one width (the volume slider's)
+ * so the play button sits exactly in the middle, and the bottom items line up. */
+@media (min-width: 769px) {
+  .left-stack,
+  .right-stack {
+    width: 113px;
+  }
+
+  .volume-container {
+    margin-top: -14px;
+  }
+}
+
+/* button tooltips (created in js/player.js) */
+.custom-tooltip {
+  font-family: var(--font-ui) !important;
+  font-size: var(--text-xs) !important;
+  font-weight: 600;
+  color: var(--accent) !important;
+  background: rgba(18, 22, 36, 0.92);
+  border: 1px solid rgba(0, 242, 184, 0.35);
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  box-shadow: var(--shadow-2);
+  z-index: 41000;
+}
+
+/* share icon on the active row: readable instead of dark-on-dark */
+#playlist li.active img[alt="Share station"] {
+  filter: brightness(0) invert(1);
+  opacity: 0.55;
+  transition: opacity var(--t-fast) var(--ease);
+}
+
+#playlist li.active img[alt="Share station"]:hover {
+  opacity: 1;
+}
+
+/* progress on the playing row stays clearly visible, hovered or not */
+#playlist li.active .progress {
+  background-color: rgba(0, 242, 184, 0.34);
+}
+
+#playlist li.active:hover .progress {
+  background-color: rgba(0, 242, 184, 0.42);
+}
+
+/* mobile: compact round random button (mobile.css positions it) */
+@media (max-width: 768px) {
+  /* horizontal pill: die + label (the label is mobile-only, desktop is icon-only) */
+  #randomBtn.random-btn {
+    width: 132px;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: var(--radius-pill);
+    top: 160px;
+  }
+
+  /* mobile.css gives the right panel 40px of top padding; the genre row needs far less */
+  /* mobile.css loads after this file, so these need the extra specificity */
+  .container .right-panel {
+    padding-top: 14px;
+  }
+
+  /* console is not offered on mobile: hide both open buttons */
+  #mobileChatToggleBtn,
+  #chatToggleBtn {
+    display: none !important;
+  }
+
+  /* room for the lowered random button */
+  .left-panel .player-controls {
+    margin-bottom: 34px;
+  }
+
+  #randomBtn.random-btn::after {
+    content: "Random";
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 768px) {
+  /* mobile.css clamps the placeholder to 6ch and the active title to width-160px */
+  .right-panel .genre-search::placeholder {
+    width: auto;
+  }
+
+  #playlist li.active .title-ellipsis {
+    max-width: calc(100% - 64px);
+  }
+}
+
+/* scrollIntoView() snaps the playing row to the edge; keep a margin so it
+ * lands with the same breathing room as the first row at the top. */
+#playlist li {
+  scroll-margin-top: 12px;
+  scroll-margin-bottom: 12px;
+}
+
+/* With a real album cover showing, the play button shrinks so the art is visible. */
+@media (min-width: 769px) {
+  .center-circle .play-btn {
+    transition: transform 0.35s var(--spring), box-shadow 0.25s var(--ease), background 0.25s var(--ease),
+                width 0.5s var(--ease), height 0.5s var(--ease), top 0.5s var(--ease), left 0.5s var(--ease);
+  }
+
+  .center-circle.has-cover #playPauseBtn {
+    --btn-size: 72px;
+    width: 72px;
+    height: 72px;
+    top: 64px;
+    left: 64px;
+  }
+}
+
+/* overflow-x:hidden on the list made it a scroll container of its own, which
+ * stops position:sticky (local breadcrumb bar) from working against the real
+ * scroller. clip hides the same overflow without creating a scroll container. */
+#playlist {
+  overflow-x: clip;
+  overflow-y: visible;
+}
