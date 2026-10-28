@@ -1,0 +1,488 @@
+/* FONY liquid glass theme (body.glass, which also carries body.dark so the
+ * light-on-dark icons and text colours keep working).
+ *
+ * Scene: a slowly drifting colour field (#glassBackdrop, built in js/theme.js).
+ * Glass: translucent surfaces that blur + saturate what is behind them, bend it
+ * near the edges (SVG displacement filter, Chromium only; other browsers get
+ * the blur), and are lit with a specular rim and a soft cursor-following light.
+ *
+ * Backdrop-filter does not nest (a glass parent hides the scene from its glass
+ * children), so the two panels are plain translucent cards and the glass
+ * objects (screen, buttons, console, list) sit inside them.
+ */
+
+#glassBackdrop {
+  display: none;
+}
+
+body.glass {
+  --glass-tint: rgba(255, 255, 255, 0.10);
+  --glass-tint-deep: rgba(12, 16, 52, 0.34);
+  --glass-rim: rgba(255, 255, 255, 0.55);
+  --glass-rim-soft: rgba(255, 255, 255, 0.16);
+  --glass-blur: blur(20px) saturate(185%) brightness(1.06);
+  --glass-shadow: 0 26px 60px rgba(4, 6, 36, 0.38), 0 6px 16px rgba(4, 6, 36, 0.22);
+  --glass-spec:
+    inset 0 1.5px 0 var(--glass-rim),
+    inset 1.5px 0 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1.5px 0 rgba(255, 255, 255, 0.10),
+    inset -1.5px 0 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 26px rgba(255, 255, 255, 0.07),
+    inset 0 -22px 34px -20px rgba(120, 200, 255, 0.22);
+  --cursor-light: radial-gradient(380px circle at var(--mx, 30%) var(--my, 0%), rgba(255, 255, 255, 0.17), transparent 60%) fixed;
+
+  --glass-bg: var(--glass-tint);
+  --glass-border: rgba(255, 255, 255, 0.26);
+  --row-hover: rgba(255, 255, 255, 0.13);
+  --row-active: rgba(255, 255, 255, 0.24);
+  --row-divider: rgba(255, 255, 255, 0.10);
+  --on-glass: #fff;
+  --on-glass-muted: rgba(255, 255, 255, 0.72);
+
+  background-color: #090c24;
+  color: #fff;
+}
+
+html:has(body.glass) {
+  background-color: #090c24;
+}
+
+/* ---------- scene ---------- */
+
+body.glass #glassBackdrop {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    var(--glass-backdrop, radial-gradient(120% 90% at 15% 0%, #1b2a8f 0%, transparent 55%),
+      radial-gradient(110% 90% at 100% 100%, #6a1fa3 0%, transparent 55%),
+      linear-gradient(160deg, #0b1038 0%, #0a1a3f 50%, #12093a 100%));
+}
+
+/* skins / album art are blurred into a scene; the orbs would just muddy them */
+body.glass.glass-skinned #glassBackdrop {
+  filter: blur(26px) saturate(1.35) brightness(0.82);
+  transform: scale(1.12);
+}
+
+body.glass.glass-skinned #glassBackdrop i {
+  display: none;
+}
+
+#glassBackdrop i {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.gb-orb {
+  filter: blur(70px);
+  opacity: 0.85;
+}
+
+.gb-1 {
+  width: 46vmax; height: 46vmax; left: -12vmax; top: -14vmax;
+  background: radial-gradient(circle, #00f2b8 0%, rgba(0, 242, 184, 0) 68%);
+  animation: gb-drift-a 38s ease-in-out infinite alternate;
+}
+
+.gb-2 {
+  width: 52vmax; height: 52vmax; right: -16vmax; top: 8vmax;
+  background: radial-gradient(circle, #7a5cff 0%, rgba(122, 92, 255, 0) 68%);
+  animation: gb-drift-b 46s ease-in-out infinite alternate;
+}
+
+.gb-3 {
+  width: 40vmax; height: 40vmax; left: 18vmax; bottom: -18vmax;
+  background: radial-gradient(circle, #ff4fa3 0%, rgba(255, 79, 163, 0) 68%);
+  animation: gb-drift-c 42s ease-in-out infinite alternate;
+}
+
+.gb-4 {
+  width: 30vmax; height: 30vmax; right: 10vmax; bottom: -8vmax;
+  background: radial-gradient(circle, #ffb347 0%, rgba(255, 179, 71, 0) 68%);
+  opacity: 0.55;
+  animation: gb-drift-a 52s ease-in-out infinite alternate-reverse;
+}
+
+/* sharp glossy spheres: they are what the glass visibly refracts */
+.gb-sphere {
+  box-shadow: inset -12px -16px 30px rgba(0, 0, 40, 0.35), inset 10px 12px 24px rgba(255, 255, 255, 0.35);
+}
+
+.gb-5 {
+  width: 11vmax; height: 11vmax; left: 1.5%; top: 24%;
+  background: radial-gradient(circle at 32% 28%, #9ffff0 0%, #00d9b1 38%, #0a7c9b 100%);
+  animation: gb-float-a 24s ease-in-out infinite alternate;
+}
+
+.gb-6 {
+  width: 13vmax; height: 13vmax; right: 12%; bottom: 10%;
+  background: radial-gradient(circle at 32% 28%, #ffd2f0 0%, #ff5fb4 40%, #7b2bd0 100%);
+  animation: gb-float-b 28s ease-in-out infinite alternate;
+}
+
+@keyframes gb-drift-a {
+  to { transform: translate3d(14vmax, 10vmax, 0) scale(1.15); }
+}
+
+@keyframes gb-drift-b {
+  to { transform: translate3d(-18vmax, 6vmax, 0) scale(0.9); }
+}
+
+@keyframes gb-drift-c {
+  to { transform: translate3d(16vmax, -12vmax, 0) scale(1.2); }
+}
+
+@keyframes gb-float-a {
+  to { transform: translate3d(8vmax, -16vmax, 0) rotate(40deg); }
+}
+
+@keyframes gb-float-b {
+  to { transform: translate3d(-28vmax, -24vmax, 0) rotate(-30deg); }
+}
+
+/* ---------- layout: two floating cards ---------- */
+
+body.glass .container {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  padding: 16px;
+  gap: 16px;
+  background: transparent;
+}
+
+/* drag handle sits in the gap between the cards (positioned by js/main.js) */
+body.glass #resizer {
+  width: 16px;
+  margin-left: -10px;
+}
+
+body.glass .left-panel,
+body.glass .right-panel {
+  border-radius: 34px;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.04) 45%, rgba(255, 255, 255, 0.08) 100%);
+  border: 1px solid;
+  border-color: rgba(255, 255, 255, 0.40) rgba(255, 255, 255, 0.16) rgba(255, 255, 255, 0.10) rgba(255, 255, 255, 0.26);
+  box-shadow: var(--glass-shadow), inset 0 1.5px 0 rgba(255, 255, 255, 0.35), inset 0 0 40px rgba(255, 255, 255, 0.04);
+  color: #fff;
+}
+
+body.glass .left-panel {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+body.glass .right-panel {
+  flex: 0 1 auto;
+  min-width: 0;
+  scrollbar-width: none;
+}
+
+body.glass .right-panel::-webkit-scrollbar {
+  display: none;
+}
+
+body.glass .logo {
+  color: #fff;
+  text-shadow: 0 0 18px rgba(0, 242, 184, 0.65), 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* ---------- glass surfaces ---------- */
+
+body.glass .screen,
+body.glass .chat-container,
+body.glass .playlist-area,
+body.glass .genre-select-dropdown,
+body.glass .genre-select-header,
+body.glass .genre-search,
+body.glass #addPlaylistBtn,
+body.glass .favorites-sort select,
+body.glass #walletTooltip,
+body.glass .local-pop,
+body.glass .custom-tooltip,
+body.glass .add-playlist-content,
+body.glass .gif-search-content,
+body.glass .manifesto-content,
+body.glass .local-help-box,
+body.glass #playlistLoader:not(.hidden) {
+  border: 1px solid;
+  border-color: rgba(255, 255, 255, 0.46) rgba(255, 255, 255, 0.18) rgba(255, 255, 255, 0.10) rgba(255, 255, 255, 0.28);
+  box-shadow: var(--glass-shadow), var(--glass-spec);
+  outline: none;
+  color: #fff;
+}
+
+/* big surfaces: full liquid treatment (edge refraction + light) */
+body.glass .playlist-area,
+body.glass .chat-container {
+  background:
+    var(--cursor-light),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.06) 38%, rgba(255, 255, 255, 0.03) 62%, rgba(255, 255, 255, 0.13) 100%);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  backdrop-filter: url(#fony-lg) var(--glass-blur);
+  border-radius: 28px;
+}
+
+body.glass .chat-container {
+  background:
+    var(--cursor-light),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 50%, rgba(255, 255, 255, 0.09) 100%),
+    var(--glass-tint-deep);
+}
+
+body.glass .screen {
+  background:
+    var(--cursor-light),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.04) 100%),
+    rgba(10, 14, 48, 0.30);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  backdrop-filter: url(#fony-lg-soft) var(--glass-blur);
+}
+
+body.glass .genre-select-dropdown,
+body.glass #walletTooltip,
+body.glass .local-pop,
+body.glass .custom-tooltip,
+body.glass #playlistLoader:not(.hidden) {
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.05)),
+    rgba(14, 18, 56, 0.46);
+  -webkit-backdrop-filter: blur(26px) saturate(190%);
+  backdrop-filter: blur(26px) saturate(190%);
+}
+
+body.glass .genre-select-header,
+body.glass .genre-search,
+body.glass #addPlaylistBtn,
+body.glass .favorites-sort select {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.07));
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  backdrop-filter: blur(14px) saturate(170%);
+  box-shadow: var(--glass-spec);
+  color: #fff;
+}
+
+body.glass .genre-select-header:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.30), rgba(255, 255, 255, 0.12));
+}
+
+body.glass .genre-search::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.glass .genre-search:focus {
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: var(--glass-spec), 0 0 0 3px rgba(255, 255, 255, 0.22);
+}
+
+/* scrollbar */
+body.glass .playlist-area::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.5);
+  background-clip: content-box;
+}
+
+body.glass .playlist-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.85);
+  background-clip: content-box;
+}
+
+/* ---------- list rows ---------- */
+
+body.glass #playlist li,
+body.glass #playlist li.draggable-favorite {
+  color: #fff;
+  border-bottom-color: rgba(255, 255, 255, 0.10);
+  text-shadow: 0 1px 8px rgba(5, 8, 40, 0.35);
+}
+
+body.glass #playlist li:hover,
+body.glass #playlist li.radio-mode:hover,
+body.glass #playlist li.web3-mode:hover,
+body.glass #playlist li.draggable-favorite:hover {
+  background-color: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+body.glass #playlist li.active,
+body.glass #playlist li.draggable-favorite.active,
+body.glass #playlist li.active:hover {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.14));
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 8px 20px rgba(5, 8, 40, 0.28);
+  text-shadow: 0 1px 6px rgba(5, 8, 40, 0.4);
+}
+
+body.glass #playlist li .progress,
+body.glass #playlist li.radio-mode .progress,
+body.glass #playlist li.web3-mode .progress,
+body.glass #playlist li.active .progress {
+  background-color: rgba(0, 242, 184, 0.30);
+}
+
+body.glass #playlist li.active:not(.local-row)::before,
+body.glass #playlist li.active::before {
+  filter: drop-shadow(0 0 6px rgba(0, 242, 184, 0.9));
+}
+
+/* ---------- player ---------- */
+
+body.glass .player-btn {
+  --btn-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.10) 55%, rgba(255, 255, 255, 0.22) 100%);
+  --btn-edge: rgba(255, 255, 255, 0.50);
+  --btn-shadow: 0 12px 26px rgba(4, 6, 36, 0.36), 0 2px 6px rgba(4, 6, 36, 0.22);
+  --btn-hl: inset 0 1.5px 0 rgba(255, 255, 255, 0.85), inset 0 -2px 6px rgba(255, 255, 255, 0.14), inset 0 0 14px rgba(255, 255, 255, 0.12);
+  --btn-glow: 0 0 0 1px rgba(255, 255, 255, 0.7), 0 0 22px rgba(255, 255, 255, 0.35), 0 14px 28px rgba(4, 6, 36, 0.38);
+  -webkit-backdrop-filter: blur(10px) saturate(190%);
+  backdrop-filter: blur(10px) saturate(190%);
+}
+
+body.glass .player-btn.play-btn {
+  --btn-bg: linear-gradient(145deg, rgba(120, 255, 228, 0.80) 0%, rgba(0, 220, 170, 0.50) 55%, rgba(60, 255, 215, 0.66) 100%);
+  --btn-edge: rgba(255, 255, 255, 0.65);
+  --btn-shadow: 0 14px 30px rgba(0, 40, 60, 0.38), 0 0 34px rgba(0, 242, 184, 0.32);
+  --btn-hl: inset 0 2px 0 rgba(255, 255, 255, 0.85), inset 0 -5px 12px rgba(255, 255, 255, 0.20), inset 0 0 20px rgba(255, 255, 255, 0.18);
+  --btn-glow: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 40px rgba(0, 242, 184, 0.55), 0 16px 30px rgba(0, 40, 60, 0.4);
+}
+
+body.glass .player-btn.random-btn {
+  color: #fff;
+}
+
+body.glass #shuffleBtn.active {
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 1px #fff, 0 0 18px rgba(255, 255, 255, 0.55), var(--btn-hl);
+}
+
+body.glass .play-ellipse {
+  opacity: 0.35;
+}
+
+body.glass .volume-scale rect {
+  fill: rgba(255, 255, 255, 0.22) !important;
+}
+
+body.glass .volume-scale rect.on {
+  fill: #fff !important;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
+}
+
+body.glass .volume-slider::before {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.45), #fff);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.55);
+}
+
+body.glass .volume-slider .volume-knob {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.35));
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 14px rgba(4, 6, 36, 0.4), inset 0 1px 0 #fff;
+}
+
+/* ---------- console ---------- */
+
+body.glass .chat-header,
+body.glass .chat-input-box {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+body.glass .chat-input-box input[type="text"] {
+  background-color: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.34);
+  box-shadow: inset 0 1px 3px rgba(4, 6, 36, 0.25);
+}
+
+body.glass .chat-input-box input[type="text"]:focus {
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 1px 3px rgba(4, 6, 36, 0.25), 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+/* send button: the pill is baked into the stock image, so swap in the bare arrow */
+body.glass .chat-send-btn img {
+  content: url('/img/glass_send.svg');
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: linear-gradient(145deg, rgba(0, 242, 184, 0.5), rgba(0, 242, 184, 0.18));
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.7), 0 8px 18px rgba(4, 6, 36, 0.3);
+}
+
+/* ---------- modals ---------- */
+
+body.glass .manifesto-modal,
+body.glass .add-playlist-modal,
+body.glass .gif-search-modal,
+body.glass .local-help {
+  background: rgba(8, 10, 44, 0.38);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+}
+
+body.glass .add-playlist-content,
+body.glass .gif-search-content,
+body.glass .manifesto-content,
+body.glass #gitbookModal .manifesto-content,
+body.glass .local-help-box {
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.14) 100%),
+    rgba(16, 20, 64, 0.42);
+  -webkit-backdrop-filter: blur(34px) saturate(200%);
+  backdrop-filter: blur(34px) saturate(200%);
+  border-radius: 30px;
+}
+
+body.glass .add-playlist-field input,
+body.glass .gif-search-input {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #fff;
+}
+
+body.glass .settings-btn,
+body.glass .donate-copy-btn {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.07));
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+/* ---------- top bar ---------- */
+
+body.glass .top-bar-actions button,
+body.glass .top-bar-actions #connectWalletBtn {
+  opacity: 0.9;
+  filter: drop-shadow(0 1px 4px rgba(4, 6, 36, 0.4));
+}
+
+body.glass #walletAddress {
+  color: #fff;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 768px) {
+  body.glass .container {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  body.glass .left-panel,
+  body.glass .right-panel {
+    flex: 0 0 auto;
+    border-radius: 26px;
+  }
+
+  body.glass .right-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+}

@@ -778,7 +778,7 @@ function switchToLocal() {
   const lb = document.getElementById("localModeBtn")
   if (lb) { lb.classList.add("active"); lb.title = "Back to radio" }
   const heart = document.getElementById("favBtn")
-  if (heart) heart.src = (localStorage.getItem("theme") === "dark" ? "/img/dark/" : "/img/") + "fav.svg"
+  if (heart) heart.src = (["dark", "glass"].includes(localStorage.getItem("theme")) ? "/img/dark/" : "/img/") + "fav.svg"
   if (stationLabel) {
     const t = stationLabel.querySelector(".scrolling-text")
     if (t) t.textContent = "Local files"
@@ -823,7 +823,7 @@ function syncLocalFavIcon() {
   const heart = document.getElementById("favBtn")
   const st = currentPlaylist[currentTrackIndex]
   if (!heart || !st || !st.local) return
-  const prefix = localStorage.getItem("theme") === "dark" ? "/img/dark/" : "/img/"
+  const prefix = ["dark", "glass"].includes(localStorage.getItem("theme")) ? "/img/dark/" : "/img/"
   heart.src = prefix + (isLocalFavorite(st) ? "fav_active.svg" : "fav.svg")
 }
 

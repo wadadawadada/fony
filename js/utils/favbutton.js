@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateFavBtnIcon(url) {
-    const prefix = localStorage.getItem("theme") === "dark" ? "/img/dark/" : "/img/";
+    const prefix = ["dark", "glass"].includes(localStorage.getItem("theme")) ? "/img/dark/" : "/img/";
     const favs = getFavorites();
     favBtn.src = favs.some(f => f.url === url) ? prefix + "fav_active.svg" : prefix + "fav.svg";
   }
@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("themeChanged", () => {
     setTimeout(() => {
-      const prefix = localStorage.getItem("theme") === "dark" ? "/img/dark/" : "/img/";
+      const prefix = ["dark", "glass"].includes(localStorage.getItem("theme")) ? "/img/dark/" : "/img/";
       const favs = getFavorites();
       const url = window.currentStationUrl || "";
       favBtn.src = favs.some(f => f.url === url) ? prefix + "fav_active.svg" : prefix + "fav.svg";

@@ -4,6 +4,26 @@ import { generateSkin } from './skin-gen.js';
 
 let currentSkin = { left: null, right: null, albumArt: null };
 
+const isGlass = () => document.body.classList.contains("glass");
+
+// In the glass theme a skin paints the scene behind the glass, not the panels.
+function setGlassBackdrop(value, sceneCss) {
+  window.__glassSceneCss = value ? (sceneCss || value) : null;
+  document.dispatchEvent(new CustomEvent("glassScene", { detail: { css: window.__glassSceneCss } }));
+  if (value) document.body.style.setProperty("--glass-backdrop", value);
+  else document.body.style.removeProperty("--glass-backdrop");
+  document.body.classList.toggle("glass-skinned", !!value);
+}
+
+function clearPanelInline(leftPanel, rightPanel) {
+  for (const panel of [leftPanel, rightPanel]) {
+    panel.style.background = "";
+    panel.style.backgroundColor = "";
+    panel.style.color = "";
+    panel.style.transition = "";
+  }
+}
+
 function getNowPlayingText() {
   const elem = document.querySelector("#currentTrack .scrolling-text");
   return elem ? elem.textContent.trim() : "";
@@ -12,6 +32,11 @@ function getNowPlayingText() {
 function applyAlbumArtSkin(artUrl) {
   const leftPanel = document.querySelector(".left-panel");
   if (!leftPanel || !artUrl) return;
+  if (isGlass()) {
+    setGlassBackdrop(`url('${artUrl}') center / cover no-repeat`);
+    currentSkin.albumArt = artUrl;
+    return;
+  }
   const isDark = document.body.classList.contains("dark");
   const overlay = isDark ? "rgba(23,28,43,0.6)" : "rgba(242,242,242,0.6)";
   leftPanel.style.transition = "background 1s ease";
@@ -24,6 +49,14 @@ function applySkinStyles(leftStyle, rightStyle, isDark) {
   const leftPanel = document.querySelector(".left-panel");
   const rightPanel = document.querySelector(".right-panel");
   if (!leftPanel || !rightPanel) return;
+  if (isGlass()) {
+    clearPanelInline(leftPanel, rightPanel);
+    setGlassBackdrop(rightStyle.trim(), leftStyle);
+    currentSkin.left = leftStyle;
+    currentSkin.right = rightStyle;
+    return;
+  }
+  setGlassBackdrop(null);
   leftPanel.style.background = leftStyle.trim();
   leftPanel.style.color = isDark ? "#eee" : "#222";
   leftPanel.style.transition = "background 1s ease";
@@ -38,7 +71,7 @@ function applySkinStyles(leftStyle, rightStyle, isDark) {
 
 function saveSkinToStorage() {
   localStorage.setItem("savedSkin", JSON.stringify(currentSkin));
-  localStorage.setItem("skinTheme", document.body.classList.contains('dark') ? "dark" : "light");
+  localStorage.setItem("skinTheme", isGlass() ? "glass" : document.body.classList.contains('dark') ? "dark" : "light");
 }
 
 function loadSkinFromStorage() {
@@ -70,6 +103,10 @@ function resetPanelStyles() {
   rightPanel.style.color = "";
   rightPanel.style.transition = "";
   if (container) container.style.background = "";
+  if (isGlass()) {
+    setGlassBackdrop(null);
+    return;
+  }
   const isDark = document.body.classList.contains("dark");
   if (isDark) {
     leftPanel.style.backgroundColor = "#171C2B";
@@ -232,6 +269,7 @@ function clearSkinStyles() {
     rightPanel.style.color = "";
     rightPanel.style.transition = "";
   }
+  setGlassBackdrop(null);
   localStorage.removeItem("savedSkin");
   localStorage.removeItem("skinTheme");
   currentSkin.left = null;

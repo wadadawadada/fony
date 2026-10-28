@@ -108,4 +108,20 @@
 
   restore();
   window.addEventListener("resize", restore);
+
+  // The player block changes height on its own (the equalizer bars appear when a
+  // track starts, the graphic equalizer enlarges them), and the fit above was
+  // measured before that: re-fit so the controls never run into the console.
+  if (window.ResizeObserver) {
+    var fitRaf = 0;
+    var ro = new ResizeObserver(function () {
+      if (fitRaf) return;
+      fitRaf = requestAnimationFrame(function () {
+        fitRaf = 0;
+        if (!currentH || chat.style.display === "none" || window.innerWidth <= 1024) return;
+        apply(currentH);
+      });
+    });
+    shrinkable.forEach(function (el) { ro.observe(el); });
+  }
 })();

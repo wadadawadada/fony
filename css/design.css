@@ -1092,11 +1092,84 @@ body.dark .volume-slider .volume-knob {
   }
 
   .center-circle.has-cover #playPauseBtn {
-    --btn-size: 72px;
-    width: 72px;
-    height: 72px;
-    top: 64px;
-    left: 64px;
+    --btn-size: 34px;
+    width: 34px;
+    height: 34px;
+    top: 83px;
+    left: 83px;
+  }
+}
+
+/* small disc, big glyph: far less padding than the normal 27% */
+.center-circle.has-cover #playPauseBtn {
+  padding: calc(var(--btn-size, 34px) * 0.1);
+}
+
+/* hover/press: grow and shrink in place, no lift (the glyph used to slide up) */
+@media (min-width: 769px) {
+  .center-circle.has-cover #playPauseBtn:hover {
+    transform: scale(1.08);
+  }
+
+  .center-circle.has-cover #playPauseBtn:active {
+    transform: scale(0.94);
+  }
+}
+
+/* Glass theme, cover showing: white glyph on a small glass disc. The disc is a
+ * pseudo-element on the circle: the glyph needs a filter to turn white, which
+ * would whiten a dark disc drawn on the button itself. Other themes simply
+ * keep their own (smaller) play button, see above. */
+body.glass .center-circle.has-cover #playPauseBtn {
+  background: none;
+  border-color: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  filter: brightness(0) invert(1);
+}
+
+body.glass .center-circle.has-cover #playPauseBtn:hover,
+body.glass .center-circle.has-cover #playPauseBtn:active {
+  box-shadow: none;
+}
+
+body.glass .center-circle.has-cover::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 34px;
+  height: 34px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  /* clear glass, not frosted: barely any blur, so the art stays sharp through it */
+  background:
+    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.30), rgba(255, 255, 255, 0.04) 52%, rgba(255, 255, 255, 0.20)),
+    rgba(10, 14, 40, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1.5px 3px rgba(255, 255, 255, 0.28),
+    inset 0 0 8px rgba(255, 255, 255, 0.22),
+    0 6px 14px rgba(0, 0, 0, 0.30);
+  -webkit-backdrop-filter: blur(1.5px) saturate(190%) brightness(1.12);
+  backdrop-filter: blur(1.5px) saturate(190%) brightness(1.12);
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .center-circle.has-cover #playPauseBtn {
+    --btn-size: 42px;
+    width: 42px;
+    height: 42px;
+  }
+
+  body.glass .center-circle.has-cover::after {
+    width: 42px;
+    height: 42px;
   }
 }
 

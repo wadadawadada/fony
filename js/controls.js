@@ -1,5 +1,5 @@
 export function updatePlayPauseButton(audioPlayer, playPauseBtn) {
-  const isDark = localStorage.getItem('theme') === 'dark';
+  const isDark = ['dark', 'glass'].includes(localStorage.getItem('theme'));
   const prefix = isDark ? '/img/dark/' : '/img/';
   if (audioPlayer.paused) {
     playPauseBtn.src = prefix + 'play_button.svg';
@@ -9,7 +9,7 @@ export function updatePlayPauseButton(audioPlayer, playPauseBtn) {
 }
 
 export function updateShuffleButton(shuffleActive, shuffleBtn) {
-  const isDark = localStorage.getItem('theme') === 'dark';
+  const isDark = ['dark', 'glass'].includes(localStorage.getItem('theme'));
   const prefix = isDark ? '/img/dark/' : '/img/';
   if (shuffleActive) {
     shuffleBtn.src = prefix + 'shuffle_active.svg';
