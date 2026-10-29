@@ -17,13 +17,14 @@
 // If WebGL is unavailable the CSS glass in css/glass.css stays in charge.
 
 const MAX = 28;
+const TEX_SIZE = 2048;
 
 // global look
-const GLOBALS = { ior: 1.5, dispersion: 0.035, rim: 0.03, edge: 0.75, lightFollow: 2.3, texDim: 0.4 };
+const GLOBALS = { ior: 1.5, dispersion: 0.035, rim: 0.03, edge: 0.75, lightFollow: 2.3, texDim: 0.37, blurScale: 0.55, blurTaps: 11, blurLod: 1, blurJitter: 0.45 };
 
 // selector, look. bezel > 0 is px; bezel < 0 is a fraction of the shorter half-side.
 const SHAPES = [
-  ['.left-panel, .right-panel', { bezel: 13, thick: 6, strength: 0.63, frost: 14, tint: 0.05, color: [0.9, 0.95, 1], shadow: 46, spec: 1.51 }],
+  ['.left-panel, .right-panel', { bezel: 13, thick: 6, strength: 0.63, frost: 21, tint: 0.05, color: [0.9, 0.95, 1], shadow: 46, spec: 1.51 }],
   ['.playlist-area', { bezel: 10, thick: 78, strength: 1.33, frost: 0, tint: 0.07, color: [0.9, 0.95, 1], shadow: 30, spec: 0.76 }],
   ['.chat-container:not(.mobile-chat-container)', { bezel: 81, thick: 9, strength: 0.78, frost: 0, tint: 0.34, color: [0.02, 0.03, 0.14], shadow: 30, spec: 1.77 }],
   ['.screen', { bezel: -1, thick: 3, strength: 0.32, frost: 8, tint: 0.3, color: [0.02, 0.03, 0.14], shadow: 22, spec: 1.69 }],
@@ -45,12 +46,14 @@ void main() { gl_Position = vec4(aPos, 0.0, 1.0); }
 const FRAG = `
 precision highp float;
 #define MAX ${MAX}
+#define TEX_SIZE ${TEX_SIZE}.0
 
 uniform vec2 uRes;
 uniform float uTime;
 uniform vec2 uMouse;
 uniform vec4 uG;   // refraction index, dispersion, rim glow, edge line
 uniform vec2 uH;   // cursor light follow, cover dimming
+uniform vec4 uBl;  // blur: radius scale, taps, mip level scale, per-pixel jitter
 uniform int uCount;
 uniform vec4 uRect[MAX];   // centre x, centre y, half w, half h (px)
 uniform vec4 uA[MAX];      // corner radius, bezel, thickness, strength
@@ -83,6 +86,8 @@ vec3 sphere(vec2 q, vec2 c, float r, vec3 base, vec3 bg) {
   return mix(bg, col, smoothstep(1.0, 0.45, sqrt(l)));
 }
 
+float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+
 vec3 scene(vec2 px, float vis, float blur) {
   vec2 uv = px / uRes;
   float asp = uRes.x / uRes.y;
@@ -104,14 +109,32 @@ vec3 scene(vec2 px, float vis, float blur) {
   sph = mix(c, sph, vis);
   c = mix(sph, c, uTexMix);
 
-  // frost = a mipmap level (a real, smooth blur: no ghost copies)
-  float lod = log2(1.0 + blur * 2.5 * 1024.0 / uRes.x);
-  vec3 tex = texture2D(uTex, (uv - 0.5) * uTexScale + 0.5, lod).rgb;
+  // frost: a disc of taps (Vogel spiral, rotated per pixel) read from a matching
+  // mip level, so the blur is smooth instead of blocky or banded
+  vec2 tc = (uv - 0.5) * uTexScale + 0.5;
+  vec3 tex;
+  if (blur > 0.5) {
+    float rad = blur * uBl.x;
+    vec2 k = uTexScale / uRes;
+    float texelsPerPx = TEX_SIZE * uTexScale.x / uRes.x;
+    float lod = max(log2(max(rad * uBl.z * texelsPerPx, 1.0)), 0.0);
+    float a0 = hash(px) * 6.2831853 * uBl.w;
+    vec3 acc = vec3(0.0);
+    for (int i = 0; i < 24; i++) {
+      if (float(i) >= uBl.y) break;
+      float fi = float(i) + 0.5;
+      float r = sqrt(fi / uBl.y) * rad;
+      float a = fi * 2.3999632 + a0;
+      acc += texture2D(uTex, tc + vec2(cos(a), sin(a)) * r * k, lod).rgb;
+    }
+    tex = acc / uBl.y;
+  } else {
+    tex = texture2D(uTex, tc).rgb;
+  }
   c = mix(c, tex * uH.y, uTexMix);
   return c;
 }
 
-float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 
 void main() {
   vec2 frag = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y);
@@ -253,7 +276,7 @@ function init() {
   gl.enableVertexAttribArray(aPos);
   gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
-  for (const n of ['uRes', 'uTime', 'uMouse', 'uG', 'uH', 'uCount', 'uRect', 'uA', 'uB', 'uC', 'uTex', 'uTexMix', 'uTexScale']) {
+  for (const n of ['uRes', 'uTime', 'uMouse', 'uG', 'uH', 'uBl', 'uCount', 'uRect', 'uA', 'uB', 'uC', 'uTex', 'uTexMix', 'uTexScale']) {
     loc[n] = gl.getUniformLocation(prog, n);
   }
   tex = gl.createTexture();
@@ -360,6 +383,7 @@ function draw(now) {
   gl.uniform2f(loc.uMouse, mouse.x * dpr, mouse.y * dpr);
   gl.uniform4f(loc.uG, GLOBALS.ior, GLOBALS.dispersion, GLOBALS.rim, GLOBALS.edge);
   gl.uniform2f(loc.uH, GLOBALS.lightFollow, GLOBALS.texDim);
+  gl.uniform4f(loc.uBl, GLOBALS.blurScale, Math.max(1, Math.round(GLOBALS.blurTaps)), GLOBALS.blurLod, GLOBALS.blurJitter);
   gl.uniform1f(loc.uTexMix, texMix);
   gl.uniform2f(loc.uTexScale, texScale[0], texScale[1]);
   upload();
@@ -371,6 +395,7 @@ function draw(now) {
 function start() {
   if (running) return;
   if (!init()) return;
+
 
   running = true;
   canvas.style.display = 'block';
@@ -401,9 +426,11 @@ function applySceneCss(css) {
       if (token !== sceneToken || !gl) return;
       try {
         const c = document.createElement('canvas');
-        c.width = 1024;
-        c.height = 1024;
-        c.getContext('2d').drawImage(img, 0, 0, 1024, 1024);
+        c.width = TEX_SIZE;
+        c.height = TEX_SIZE;
+        const cx = c.getContext('2d');
+        cx.imageSmoothingQuality = 'high';
+        cx.drawImage(img, 0, 0, TEX_SIZE, TEX_SIZE);
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
         gl.generateMipmap(gl.TEXTURE_2D);
@@ -428,7 +455,7 @@ function applySceneCss(css) {
   // WebGL can only sample images the server allows cross-origin. Cover art hosts
   // (Discogs) usually do not, so fall back to a CORS-enabled image proxy.
   const proxied = /^https?:\/\//i.test(url)
-    ? () => load('https://images.weserv.nl/?w=1024&output=jpg&url=' + encodeURIComponent(url.replace(/^https?:\/\//i, '')))
+    ? () => load('https://images.weserv.nl/?w=2048&output=jpg&url=' + encodeURIComponent(url.replace(/^https?:\/\//i, '')))
     : null;
   load(url, proxied);
 }
