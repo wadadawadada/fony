@@ -22,13 +22,6 @@ let conversationHistory = [];
 let fonyTipsData = null;
 let chatConfig = null;
 
-let fonyTipsState = {
-  mode: null,
-  remainingFeatures: [],
-  shownFeaturesCount: 3,
-  history: []
-};
-
 let isContinuation = false;
 
 
@@ -190,58 +183,140 @@ function scrollToCenter(element) {
   chatMessagesElem.scrollTop = scrollTopCurrent + desiredOffset;
 }
 
-async function sendFonyTipsIntro() {
-  const tipsData = await loadFonyTips();
-  if (!tipsData) {
-    addMessage("bot", "Sorry, tips data is unavailable now.", true);
-    return;
-  }
-  fonyTipsState.mode = 'list';
-  fonyTipsState.remainingFeatures = [...tipsData.features];
-  fonyTipsState.history = [];
-  const introText = `Welcome to FONY tips! ${tipsData.description}<br>I will show you features in groups of ${fonyTipsState.shownFeaturesCount}. Choose one to learn more.`;
-  addMessage("bot", introText, true);
-  showFeatureChoices();
+// ---- FONY tips ------------------------------------------------------------
+// One implementation for the desktop and the phone console: replies go through
+// addMessage (which routes to the open console) and the links are handled by a
+// single delegated click listener.
+
+const isPhone = () => window.matchMedia("(max-width: 768px)").matches;
+let lastTipKey = null;
+
+function visibleTips(cat) {
+  return cat.tips.filter(t => !(isPhone() ? t.desktop : t.mobileOnly));
 }
 
-function showFeatureChoices() {
-  if (fonyTipsState.remainingFeatures.length === 0) {
-    addMessage("bot", "You've seen all features! To repeat, type [fony tips].", true);
-    fonyTipsState.mode = null;
+// Tip text can hold links: [[ui:name|label]] clicks the real control, [[cmd:/x|label]] runs a command.
+const TIP_UI = {
+  theme: () => clickControl("#themeToggle"),
+  settings: () => clickControl("#settingsBtn"),
+  local: () => clickControl("#localModeBtn"),
+  addPlaylist: () => clickControl("#addPlaylistBtn"),
+  random: () => clickControl("#randomBtn"),
+  shuffle: () => clickControl("#shuffleBtn"),
+  favorites: () => clickControl("#favoritesFilterBtn"),
+  wallet: () => clickControl("#connectWalletBtn"),
+  genre: () => clickControl("#genreSelectHeader"),
+  visualizer: () => clickControl(".equalizer-container"),
+  search: () => {
+    const el = document.getElementById("searchInput");
+    if (!el || !el.getClientRects().length) return false;
+    el.focus();
+    return true;
+  },
+  console: () => clickControl("#chatUsernameContainer") || clickControl("#chatToggleBtn")
+};
+
+function clickControl(selector) {
+  const el = document.querySelector(selector);
+  if (!el || !el.getClientRects().length) return false;
+  el.click();
+  return true;
+}
+
+function richTipText(text) {
+  return escapeHtml(text).replace(/\[\[(ui|cmd):([^|\]]+)\|([^\]]+)\]\]/g, (m, kind, target, label) =>
+    kind === "ui"
+      ? `<a href="#" class="tips-act" data-tips-ui="${target}">${label}</a>`
+      : `<a href="#" class="tips-act" data-tips-cmd="${target}">${label}</a>`
+  );
+}
+
+function runTipUi(name) {
+  const fn = TIP_UI[name];
+  if (!fn || !fn()) addMessage("bot", "That control isn't available here.", true);
+}
+
+function tipHtml(t) {
+  const tries = (t.try || [])
+    .map(x => `<a href="#" class="tips-try" data-tips-cmd="${escapeHtml(x.command)}">▶ ${escapeHtml(x.label)}</a>`)
+    .join(" ");
+  return `<div class="tips-item"><strong>${escapeHtml(t.title)}</strong><br>${richTipText(t.text)}${tries ? `<div class="tips-actions">${tries}</div>` : ""}</div>`;
+}
+
+function tipChips(items) {
+  return `<div class="tips-chips">${items.join("")}</div>`;
+}
+
+const chip = (attrs, label) => `<a href="#" class="tips-chip" ${attrs}>${label}</a>`;
+
+async function showFonyTips() {
+  const data = await loadFonyTips();
+  if (!data || !data.categories) {
+    addMessage("bot", "Sorry, tips are unavailable right now.", true);
     return;
   }
-  const chunk = fonyTipsState.remainingFeatures.slice(0, fonyTipsState.shownFeaturesCount);
-  const htmlLinks = chunk.map((f, idx) => `<a href="#" class="fony-tip-feature" data-index="${idx}">${escapeHtml(f.name)}</a>`).join(" | ");
+  const cats = data.categories.filter(c => !(isPhone() && c.desktop));
+  const chips = cats.map(c => chip(`data-tips-cat="${escapeHtml(c.id)}"`, `${c.icon} ${escapeHtml(c.title)}`));
+  chips.push(chip("data-tips-random", "🎲 Random tip"));
+  addMessage("bot", `<strong>${escapeHtml(data.title)}</strong><br>${escapeHtml(data.intro)}${tipChips(chips)}`, true);
+}
 
-  const messages = document.querySelectorAll("#chatMessages .chat-message.bot-message.fony-tips-message");
-  if (messages.length > 0) {
-    const lastBotMsg = messages[messages.length - 1];
-    const contentDiv = lastBotMsg.querySelector(".message-content");
-    if (contentDiv) {
-      contentDiv.innerHTML += `<br><br>Select a feature to learn more:<br>${htmlLinks}`;
-    }
+async function showTipsCategory(id) {
+  const data = await loadFonyTips();
+  const cat = data && data.categories.find(c => c.id === id);
+  if (!cat) return;
+  const tips = visibleTips(cat);
+  const body = tips.map(tipHtml).join("");
+  addMessage(
+    "bot",
+    `<strong>${cat.icon} ${escapeHtml(cat.title)}</strong> — ${escapeHtml(cat.summary)}${body}${tipChips([chip("data-tips-random", "🎲 Random tip"), chip("data-tips-home", "← All topics")])}`,
+    true
+  );
+}
+
+async function showRandomTip() {
+  const data = await loadFonyTips();
+  if (!data) return;
+  const pool = [];
+  data.categories.forEach(c => {
+    if (isPhone() && c.desktop) return;
+    visibleTips(c).forEach(t => pool.push({ cat: c, tip: t }));
+  });
+  if (!pool.length) return;
+  let pick;
+  do { pick = pool[Math.floor(Math.random() * pool.length)]; }
+  while (pool.length > 1 && `${pick.cat.id}:${pick.tip.title}` === lastTipKey);
+  lastTipKey = `${pick.cat.id}:${pick.tip.title}`;
+  addMessage(
+    "bot",
+    `<strong>${pick.cat.icon} ${escapeHtml(pick.cat.title)}</strong>${tipHtml(pick.tip)}${tipChips([chip("data-tips-random", "🎲 Another tip"), chip(`data-tips-cat="${escapeHtml(pick.cat.id)}"`, `More: ${escapeHtml(pick.cat.title)}`), chip("data-tips-home", "← All topics")])}`,
+    true
+  );
+}
+
+function runTipCommand(cmd) {
+  const box = document.getElementById("mobileChatContainer");
+  if (box && box.style.display === "flex") {
+    const input = document.getElementById("mobileChatInput");
+    const send = document.getElementById("mobileChatSendBtn");
+    if (input && send) { input.value = cmd; send.click(); }
   } else {
-    addMessage("bot", `Select a feature to learn more:<br>${htmlLinks}`, true);
+    chatInput.value = cmd;
+    sendMessage();
   }
-
-  setTimeout(() => {
-    document.querySelectorAll(".fony-tip-feature").forEach(link => {
-      link.addEventListener("click", e => {
-        e.preventDefault();
-        showFeatureDetails(parseInt(e.target.dataset.index, 10));
-      });
-    });
-  }, 100);
 }
 
-function showFeatureDetails(idx) {
-  const f = fonyTipsState.remainingFeatures[idx];
-  if (!f) return;
-  addMessage("bot", `<strong>${escapeHtml(f.name)}</strong><br>${escapeHtml(f.description)}`, true);
-  fonyTipsState.history.push(f);
-  fonyTipsState.remainingFeatures.splice(idx, 1);
-  showFeatureChoices();
-}
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-tips-cat], [data-tips-random], [data-tips-home], [data-tips-cmd], [data-tips-ui]");
+  if (!el) return;
+  e.preventDefault();
+  if (el.hasAttribute("data-tips-cat")) showTipsCategory(el.getAttribute("data-tips-cat"));
+  else if (el.hasAttribute("data-tips-random")) showRandomTip();
+  else if (el.hasAttribute("data-tips-home")) showFonyTips();
+  else if (el.hasAttribute("data-tips-cmd")) runTipCommand(el.getAttribute("data-tips-cmd"));
+  // deferred: outside-click handlers (dropdowns, popovers) must see this click end first
+  else if (el.hasAttribute("data-tips-ui")) setTimeout(() => runTipUi(el.getAttribute("data-tips-ui")), 0);
+});
 
 async function requestChatCompletion(messages, options = {}) {
   const resp = await fetch(`${FONY_BACKEND_URL}/api/openai/chat`, {
@@ -680,13 +755,8 @@ if (userInput.trim().toLowerCase() === "/collection") {
 
 
   if (userInput.trim().toLowerCase() === "[fony tips]") {
-    fonyTipsState.mode = 'list';
-    await sendFonyTipsIntro();
+    await showFonyTips();
     return null;
-  }
-
-  if (fonyTipsState.mode === 'list') {
-    fonyTipsState.mode = null;
   }
 
   const nowPlayingText = getNowPlayingText();
@@ -1092,9 +1162,7 @@ export function initChat() {
       mobileChatSendBtn.disabled = false;
       if (typingIndicator && typingIndicator.parentElement) typingIndicator.remove();
 
-      if (botReply === null && fonyTipsState.mode === 'list') {
-        sendFonyTipsIntroMobile();
-      } else if (botReply) {
+      if (botReply) {
         if (typeof botReply === "object") {
           if (botReply.type === "image" || botReply.type === "discogs" || botReply.type === "html") {
             addMobileMessage("bot", botReply.content);
@@ -1164,49 +1232,6 @@ export function initChat() {
         a.addEventListener("mouseleave", () => { mobileChatInput.placeholder = "Enter message..."; });
         mobileChatGenreElem.appendChild(a);
       });
-    }
-
-    async function sendFonyTipsIntroMobile() {
-      const tipsData = await loadFonyTips();
-      if (!tipsData) {
-        addMobileMessage("bot", "Sorry, tips data is unavailable now.");
-        return;
-      }
-      fonyTipsState.mode = 'list';
-      fonyTipsState.remainingFeatures = [...tipsData.features];
-      fonyTipsState.history = [];
-      const introText = `Welcome to FONY tips! ${tipsData.description}<br>I will show you features in groups of ${fonyTipsState.shownFeaturesCount}. Choose one to learn more.`;
-      addMobileMessage("bot", introText);
-      showFeatureChoicesMobile();
-    }
-
-    function showFeatureChoicesMobile() {
-      if (fonyTipsState.remainingFeatures.length === 0) {
-        addMobileMessage("bot", "You've seen all features! To repeat, type [fony tips].");
-        fonyTipsState.mode = null;
-        return;
-      }
-      const chunk = fonyTipsState.remainingFeatures.slice(0, fonyTipsState.shownFeaturesCount);
-      const htmlLinks = chunk.map((f, idx) => `<a href="#" class="fony-tip-feature-mobile" data-index="${idx}">${escapeHtml(f.name)}</a>`).join(" | ");
-      addMobileMessage("bot", `Select a feature to learn more:<br>${htmlLinks}`);
-
-      setTimeout(() => {
-        document.querySelectorAll(".fony-tip-feature-mobile").forEach(link => {
-          link.addEventListener("click", e => {
-            e.preventDefault();
-            showFeatureDetailsMobile(parseInt(e.target.dataset.index, 10));
-          });
-        });
-      }, 100);
-    }
-
-    function showFeatureDetailsMobile(idx) {
-      const f = fonyTipsState.remainingFeatures[idx];
-      if (!f) return;
-      addMobileMessage("bot", `<strong>${escapeHtml(f.name)}</strong><br>${escapeHtml(f.description)}`);
-      fonyTipsState.history.push(f);
-      fonyTipsState.remainingFeatures.splice(idx, 1);
-      showFeatureChoicesMobile();
     }
   }
 }

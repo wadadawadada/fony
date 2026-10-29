@@ -498,7 +498,7 @@ window.addEventListener("DOMContentLoaded", () => {
 })();
 
 
-///// Shrink the play button while a real album cover is visible
+///// Shrink the play button while a real album cover or a placeholder disc is visible
 
 (() => {
   const PLACEHOLDER = /(cd|vinyl|reel)\.svg/;
@@ -509,6 +509,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const image = bg.style.backgroundImage || '';
     const hasCover = !!image && !PLACEHOLDER.test(image) && bg.classList.contains('visible');
     circle.classList.toggle('has-cover', hasCover);
+    // a placeholder disc (CD / record / reel) is showing: same small button as with a cover
+    circle.classList.toggle('has-disc', !hasCover && PLACEHOLDER.test(image) && bg.classList.contains('visible'));
   }
   document.addEventListener('DOMContentLoaded', () => {
     const bg = ensureAlbumCoverBg();

@@ -1,156 +1,180 @@
 {
-  "title": "FONY Web3 Music Player - Comprehensive Knowledge Base",
-  "description": "Detailed information, features, tips, and commands to optimize your experience with FONY - the next-gen Web3 music player combining internet radio and NFT audio integration.",
-
-  "applicationOverview": {
-    "summary": "FONY combines free 24/7 internet radio streaming with NFT-based audio collectibles, wrapped in a user-friendly Web3 interface featuring smart playlists, AI-powered music advisor, and discovery tools to enhance your listening experience.",
-    "platforms": ["Desktop browsers", "Mobile browsers"],
-    "technologies": ["Web3 (Ethereum)", "IPFS/Arweave", "Web Audio API", "OpenAI integration", "Discogs API integration", "YouTube/Spotify/Tidal search links"]
-  },
-
-  "features": [
+  "title": "FONY tips",
+  "intro": "FONY is a free internet radio and Web3 music player with an AI console, local files, skins and a liquid-glass theme. Pick a topic, or grab a random tip.",
+  "categories": [
     {
-      "name": "Internet Radio Streaming",
-      "description": "Access thousands of curated radio stations across various genres worldwide, with seamless streaming and metadata display."
+      "id": "listen",
+      "icon": "📻",
+      "title": "Listening",
+      "summary": "Stations, search and favorites.",
+      "tips": [
+        {
+          "title": "Pick a genre",
+          "text": "Open the [[ui:genre|genre menu]] and choose a style: each one is a live 24/7 station list. Type in the [[ui:search|search box]] to filter the genre, or to search across every genre at once."
+        },
+        {
+          "title": "Random and shuffle",
+          "text": "The [[ui:random|dice button]] jumps to a random genre and station. [[ui:shuffle|Shuffle]] plays stations of the current list in random order; next and previous skip."
+        },
+        {
+          "title": "Favorites",
+          "text": "Tap the heart on a station to keep it. Open the [[ui:favorites|favorites list]] and sort it by your own drag order, date added, genre or A–Z. Drag rows to reorder."
+        },
+        {
+          "title": "Add your own playlist",
+          "text": "Press [[ui:addPlaylist|+]] next to the genre menu and paste any M3U link, or browse the community catalog. Custom playlists are saved in your browser and sit next to the built-in genres."
+        },
+        {
+          "title": "Share a station",
+          "desktop": true,
+          "text": "Use the share icon on the playing row to copy a link straight to that station. Opening a link like fony.fun/techno starts that genre right away."
+        },
+        {
+          "title": "Dead streams fix themselves",
+          "text": "If a stream goes silent, FONY detects it and skips to the next station; stations that keep failing get hidden."
+        }
+      ]
     },
     {
-      "name": "NFT Audio Integration",
-      "description": "Connect your Ethereum-compatible wallet to access and play your owned NFT audio collectibles with metadata and cover art fetched from IPFS or Arweave."
+      "id": "local",
+      "icon": "📂",
+      "title": "Local files",
+      "summary": "Play music from your own computer.",
+      "desktop": true,
+      "tips": [
+        {
+          "title": "Turn it on",
+          "text": "Click the [[ui:local|folder icon]] in the top bar to enter Local mode; it turns into a radio icon, click that to go back to radio. Needs desktop Chrome, Edge, Opera or Brave."
+        },
+        {
+          "title": "Add folders",
+          "text": "Add folders with the picker or drag them onto the list. FONY remembers them; after a browser restart it asks you to re-allow access."
+        },
+        {
+          "title": "Browse and play",
+          "text": "Navigate folders with the breadcrumbs. Play one track, a whole folder (subfolders included) or a playlist, and click the active track to seek."
+        },
+        {
+          "title": "Playlists",
+          "text": "Create, rename and reorder your own playlists, and add any track or folder with the + button. Everything stays in your browser."
+        },
+        {
+          "title": "Your files stay yours",
+          "text": "Files are never copied or uploaded. Only the text “Artist - Title” is sent to look up cover art, and the cover embedded in the file is used if Discogs has none."
+        }
+      ]
     },
     {
-      "name": "Playback Controls",
-      "description": "Use intuitive controls: Play/Pause, Next, Previous, Shuffle, Random, and Volume with smooth dragging and animated buttons."
+      "id": "console",
+      "icon": "💬",
+      "title": "Console & commands",
+      "summary": "Ask the AI, look things up, tune the sound.",
+      "tips": [
+        {
+          "title": "/similar and /facts",
+          "text": "[[cmd:/similar|/similar]] suggests tracks like the one playing; [[cmd:/facts|/facts]] tells you something about the artist or the track."
+        },
+        {
+          "title": "/discogs",
+          "text": "[[cmd:/discogs|/discogs]] shows release details from Discogs for the current track: year, label, country, genre and cover, with quick YouTube, Spotify and Tidal links."
+        },
+        {
+          "title": "/mood",
+          "text": "Describe a vibe with [[cmd:/mood|/mood]], like “90s rock” or “something chill”, and FONY finds a live station that fits right now."
+        },
+        {
+          "title": "/collection",
+          "text": "Save the playing track to your personal collection with [[cmd:/collection|/collection]] and get AI recommendations built from it."
+        },
+        {
+          "title": "/equalizer",
+          "text": "[[cmd:/equalizer|/equalizer]] applies a genre-tuned EQ preset to the sound, or toggles the Analog FX mode for a warm old-radio feel."
+        },
+        {
+          "title": "Resize or hide the console",
+          "desktop": true,
+          "text": "Drag the top edge of the console to make it taller. The player controls shrink to make room and, when it gets tight, switch to a single row. The “–” in its corner [[ui:console|folds it away]]; the >_ button brings it back."
+        },
+        {
+          "title": "Console on your phone",
+          "mobileOnly": true,
+          "text": "Tap the >_ button in the corner of the screen to open the console as a panel, and tap outside it to close."
+        }
+      ]
     },
     {
-      "name": "Real-Time Equalizer Visualization",
-      "description": "Visualize audio frequency bands dynamically with animated diods responding to the music."
+      "id": "look",
+      "icon": "🎨",
+      "title": "Look & feel",
+      "summary": "Themes, skins, covers and visualizers.",
+      "tips": [
+        {
+          "title": "Three themes",
+          "text": "The [[ui:theme|button in the top bar]] cycles light, dark and liquid glass, and its icon shows the theme you are in. Liquid glass bends the light like real glass; it looks best in Chrome, Edge and Opera, other browsers get a softer version."
+        },
+        {
+          "title": "Skins",
+          "text": "[[cmd:/skins|/skins]] generates a fresh procedural background. Save the one you like, reset to the default, drop in a GIF, or use the current album art. Skins work on top of any theme, and in liquid glass they become the scene behind the glass."
+        },
+        {
+          "title": "Album art",
+          "text": "The cover found on Discogs shows up behind the play button; with a cover the button shrinks so the art stays visible. Use it as your skin from /skins."
+        },
+        {
+          "title": "Visualizers",
+          "desktop": true,
+          "text": "Click the [[ui:visualizer|animated bars]] above the controls to switch between five styles: bars, line, fish, lava and sheep."
+        },
+        {
+          "title": "Resize the panels",
+          "desktop": true,
+          "text": "Drag the divider between the player and the list to change their width; double-click it to go back to the default."
+        }
+      ]
     },
     {
-      "name": "AI Music Advisor & Discovery Tools",
-      "description": "Get personalized music recommendations, similar tracks, facts, and new releases with AI-driven commands to explore music effortlessly."
+      "id": "web3",
+      "icon": "🪙",
+      "title": "Web3 & NFT audio",
+      "summary": "Wallet and collectible tracks.",
+      "tips": [
+        {
+          "title": "Connect a wallet",
+          "text": "[[ui:wallet|Connect a MetaMask-compatible wallet]] to play audio from a hand-picked set of NFT collections on Ethereum and Soneum."
+        },
+        {
+          "title": "Seek in NFT tracks",
+          "text": "NFT tracks have a fixed length, so unlike radio you can scrub through them. The Random button in this mode picks a collection and a track."
+        }
+      ]
     },
     {
-      "name": "Search Within Genres",
-      "description": "Filter stations instantly by typing in the search box while browsing a genre."
+      "id": "settings",
+      "icon": "⚙️",
+      "title": "Settings & data",
+      "summary": "Layout, filters and backups.",
+      "tips": [
+        {
+          "title": "Open settings",
+          "text": "Use the [[ui:settings|gear in the top bar]]. You can hide stations that stream over plain http and switch to a left-handed layout that mirrors the screen."
+        },
+        {
+          "title": "Backup and restore",
+          "text": "Everything FONY remembers (favorites, playlists, skins, collection) lives in your browser. Back it up to a file, restore it on another device, or reset the app from the same dialog."
+        }
+      ]
     },
     {
-      "name": "Favorites Management",
-      "description": "Mark stations as favorites, manage them easily, and quickly access your preferred streams."
-    },
-    {
-      "name": "Theme Support",
-      "description": "Toggle between light and dark themes with adaptive icon sets for improved UX."
-    },
-    {
-      "name": "Responsive UI with Resizer",
-      "description": "Adjust the split view between player and playlist panels via a draggable resizer, adaptable to screen size."
-    },
-    {
-      "name": "Secure Streaming and Metadata Fetching",
-      "description": "Streams are proxied securely if using http sources, with ICY metadata fetching for current track display and Google search integration for track info."
-    },
-    {
-      "name": "OpenAI-Powered Chat Commands",
-      "description": "Use chat commands like /similar and /facts to get AI-generated music recommendations and track details."
-    },
-    {
-      "name": "Discogs Integration with Rich Track Info",
-      "description": "Fetch detailed track and release info from Discogs, including album art, label, genre, country, and year."
-    },
-    {
-      "name": "YouTube, Spotify & Tidal Search Links",
-      "description": "Quick links to search the current track on YouTube, Spotify, and Tidal directly from the chat for easy access to music."
-    },
-    {
-  "name": "Donation & Support",
-  "description": "Support FONY development\n\nERC-20 Tokens (ETH, USDT, Polygon):\n0xaA01e4F453d5ae9903EebeABA803f3388D20d024\n\nBitcoin:\nbc1qhahnrra9q4jc0k6vr8tf9vs8wtmgf746jxnsfe"
-}
-  ],
-
-  "tips": [
-    {
-      "command": "/similar",
-      "usage": "Find 5 similar tracks from other artists based on the currently playing track.",
-      "example": "/similar artist:Coldplay track:Yellow"
-    },
-    {
-      "command": "/facts",
-      "usage": "Get interesting facts about the current artist or track.",
-      "note": "Emojis may be included for better engagement."
-    },
-    {
-      "command": "/discogs",
-      "usage": "Get detailed release info from Discogs with album art, label, genre, and year."
-    },
-    {
-      "command": "[fony tips]",
-      "usage": "Show detailed tips and feature highlights about the FONY application."
-    },
-    {
-      "command": "/donate",
-      "usage": "Learn how to support the ongoing development of FONY via cryptocurrency donations."
-    },
-    {
-      "tip": "Use the shuffle button to randomly play stations within a genre to discover new music effortlessly."
-    },
-    {
-      "tip": "Mark your favorite stations by clicking the heart icon for quick access later."
-    },
-    {
-      "tip": "Connect your Ethereum wallet to access and play your NFT audio collectibles directly."
-    },
-    {
-      "tip": "Enjoy the animated equalizer for a visual representation of the audio frequencies."
-    },
-    {
-      "tip": "Use the search box to filter stations inside a genre quickly without scrolling."
+      "id": "support",
+      "icon": "💖",
+      "title": "Support FONY",
+      "summary": "Keep the project going.",
+      "tips": [
+        {
+          "title": "Donate",
+          "text": "FONY is free. If you enjoy it, [[cmd:/donate|/donate]] shows the crypto addresses to support its development."
+        }
+      ]
     }
-  ],
-
-  "commands": [
-    {
-      "command": "/similar",
-      "description": "Shows tracks similar to the current one."
-    },
-    {
-      "command": "/facts",
-      "description": "Provides facts about the current artist or track."
-    },
-    {
-      "command": "/discogs",
-      "description": "Displays detailed info from Discogs about the current track."
-    },
-    {
-      "command": "/donate",
-      "description": "Shows donation info to support FONY development."
-    },
-    {
-      "command": "[fony tips]",
-      "description": "Displays tips and tricks about FONY usage."
-    }
-  ],
-
-  "settings": {
-    "httpStations": {
-      "description": "Option to show stations with http streams (not secure).",
-      "default": false
-    },
-    "leftHandedMode": {
-      "description": "Switches the layout to left-handed mode by reversing panels.",
-      "default": false
-    }
-  },
-
-  "technicalDetails": {
-    "volumeControl": "Volume adjustable by dragging the knob on the volume slider, with visual feedback.",
-    "equalizer": "Uses Web Audio API AnalyserNode with 30 bars representing frequency bands for real-time animation.",
-    "buffering": "Streams proxied for http, buffering state managed with visual progress in playlist items.",
-    "web3": {
-      "walletConnect": "Connect via MetaMask or compatible Ethereum wallet.",
-      "nftContracts": "Supports predefined NFT contracts with metadata fetching via IPFS or Arweave gateways.",
-      "trackPlayback": "NFT tracks streamed similarly to radio, with track metadata and cover art displayed."
-    },
-    "chat": "Built-in chat with OpenAI backend for advanced queries and user engagement.",
-    "responsiveDesign": "UI adapts to screen size with specific behavior for mobile devices."
-  }
+  ]
 }

@@ -1102,7 +1102,8 @@ body.dark .volume-slider .volume-knob {
                 width 0.5s var(--ease), height 0.5s var(--ease), top 0.5s var(--ease), left 0.5s var(--ease);
   }
 
-  .center-circle.has-cover #playPauseBtn {
+  .center-circle.has-cover #playPauseBtn,
+  .center-circle.has-disc #playPauseBtn {
     --btn-size: 34px;
     width: 34px;
     height: 34px;
@@ -1112,17 +1113,20 @@ body.dark .volume-slider .volume-knob {
 }
 
 /* small disc, big glyph: far less padding than the normal 27% */
-.center-circle.has-cover #playPauseBtn {
+.center-circle.has-cover #playPauseBtn,
+.center-circle.has-disc #playPauseBtn {
   padding: calc(var(--btn-size, 34px) * 0.1);
 }
 
 /* hover/press: grow and shrink in place, no lift (the glyph used to slide up) */
 @media (min-width: 769px) {
-  .center-circle.has-cover #playPauseBtn:hover {
+  .center-circle.has-cover #playPauseBtn:hover,
+  .center-circle.has-disc #playPauseBtn:hover {
     transform: scale(1.08);
   }
 
-  .center-circle.has-cover #playPauseBtn:active {
+  .center-circle.has-cover #playPauseBtn:active,
+  .center-circle.has-disc #playPauseBtn:active {
     transform: scale(0.94);
   }
 }
@@ -1172,7 +1176,8 @@ body.glass .center-circle.has-cover::after {
 }
 
 @media (max-width: 768px) {
-  .center-circle.has-cover #playPauseBtn {
+  .center-circle.has-cover #playPauseBtn,
+  .center-circle.has-disc #playPauseBtn {
     --btn-size: 42px;
     width: 42px;
     height: 42px;
@@ -1231,4 +1236,105 @@ body.glass .center-circle.has-cover::after {
     width: 52px;
     height: 52px;
   }
+}
+
+/* ---------- FONY tips (console) ---------- */
+
+.chat-messages .tips-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chat-messages a.tips-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid rgba(0, 242, 184, 0.5);
+  border-radius: var(--radius-pill);
+  background: rgba(0, 242, 184, 0.08);
+  color: var(--accent);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  transition: background-color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+
+.chat-messages a.tips-chip:hover {
+  background: rgba(0, 242, 184, 0.22);
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.chat-messages .tips-item {
+  margin-top: 12px;
+  padding-left: 10px;
+  border-left: 2px solid rgba(0, 242, 184, 0.4);
+  line-height: 1.5;
+}
+
+.chat-messages .tips-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.chat-messages a.tips-try {
+  color: var(--accent);
+  font-size: var(--text-sm);
+}
+
+.chat-messages a.tips-act {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.chat-messages a.tips-act:hover {
+  text-decoration-style: solid;
+}
+
+/* ---------- placeholder discs (no album art) ----------
+ * The art is cd.svg / vinyl.svg / reel.svg as the background of .album-cover-bg.
+ * A centre piece is drawn on top of each, inside the same spinning element and
+ * below the play/pause button: the clear hub ring of a CD, the paper label of a
+ * record, the spindle hub of a reel. No holes: the button glyph sits there. */
+
+.album-cover-bg[style*="cd.svg"]::after,
+.album-cover-bg[style*="vinyl.svg"]::after,
+.album-cover-bg[style*="reel.svg"]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* CD: the clear plastic hub ring */
+.album-cover-bg[style*="cd.svg"]::after {
+  width: 28%;
+  height: 28%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0 62%, rgba(255, 255, 255, 0.5) 63% 67%, transparent 69%);
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.35);
+}
+
+/* record: paper label */
+.album-cover-bg[style*="vinyl.svg"]::after {
+  width: 34%;
+  height: 34%;
+  background:
+    radial-gradient(circle, transparent 0 56%, rgba(0, 0, 0, 0.25) 57% 59%, transparent 60%),
+    radial-gradient(circle at 35% 30%, #4dffd9 0%, #00d9a6 45%, #00916f 100%);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45), inset 0 0 8px rgba(0, 0, 0, 0.35);
+}
+
+/* reel: metal spindle hub */
+.album-cover-bg[style*="reel.svg"]::after {
+  width: 26%;
+  height: 26%;
+  background: radial-gradient(circle, #d6d6d6 0 62%, #8d8d8d 63% 72%, #3a3a3a 73% 100%);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.4);
 }
