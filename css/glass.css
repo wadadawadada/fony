@@ -431,6 +431,30 @@ body.glass .mobile-chat-container {
   border-radius: 26px;
 }
 
+/* desktop console button (shown when the console is collapsed). chat.js sets its
+ * colours inline, hence !important. */
+body.glass #chatToggleBtn {
+  width: 44px;
+  height: 44px;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.10)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  color: #fff !important;
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.7), 0 8px 18px rgba(4, 6, 36, 0.3);
+}
+
+body.glass #chatToggleBtn .tooltip-text {
+  background: rgba(14, 18, 56, 0.72);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 18px rgba(4, 6, 36, 0.3);
+}
+
 /* phone console button */
 body.glass #mobileChatToggleBtn {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.10));

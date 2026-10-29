@@ -28,7 +28,7 @@ const SHAPES = [
   ['.chat-container:not(.mobile-chat-container)', { bezel: 81, thick: 9, strength: 0.78, frost: 0, tint: 0.34, color: [0.02, 0.03, 0.14], shadow: 30, spec: 1.77 }],
   ['.screen', { bezel: -1, thick: 3, strength: 0.32, frost: 8, tint: 0.3, color: [0.02, 0.03, 0.14], shadow: 22, spec: 1.69 }],
   // round buttons are glass beads: the whole radius is bevel, so they refract like a sphere
-  ['.player-btn:not(.play-btn), #addPlaylistBtn', { bezel: -0.92, hoverBezel: -1, thick: 5, strength: 1, frost: 0, tint: 0.07, color: [0.9, 0.95, 1], shadow: 0, spec: 1.41 }],
+  ['.player-btn:not(.play-btn), #addPlaylistBtn, #chatToggleBtn', { bezel: -0.92, hoverBezel: -1, thick: 5, strength: 1, frost: 0, tint: 0.07, color: [0.9, 0.95, 1], shadow: 0, spec: 1.41 }],
   ['.center-circle:not(.has-cover) .play-btn', { bezel: -1, hoverBezel: -1, thick: 9, strength: 1.19, frost: 6, tint: 0.35, color: [0.0, 0.95, 0.72], shadow: 0, spec: 2.32 }],
   ['.chat-send-btn img', { bezel: -0.75, hoverBezel: -1, thick: 8, strength: 0.82, frost: 0, tint: 0.3, color: [0.0, 0.95, 0.72], shadow: 0, spec: 1.46 }],
   ['.genre-select-header, .genre-search', { bezel: -0.16, thick: 63, strength: 1, frost: 0, tint: 0.09, color: [0.9, 0.95, 1], shadow: 0, spec: 1.1 }]

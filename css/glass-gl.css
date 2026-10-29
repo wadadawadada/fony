@@ -54,3 +54,12 @@ body.glass-gl #shuffleBtn.active {
 body.glass-gl .chat-container:not(.mobile-chat-container) {
   outline: none;
 }
+
+/* the canvas draws the console button too (see SHAPES) */
+body.glass-gl #chatToggleBtn {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
