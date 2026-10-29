@@ -17,20 +17,25 @@
 // If WebGL is unavailable the CSS glass in css/glass.css stays in charge.
 
 const MAX = 28;
-const IOR = 1.5;
+
+// global look
+const GLOBALS = { ior: 1.5, dispersion: 0.035, rim: 0.03, edge: 0.75, lightFollow: 2.3, texDim: 0.4 };
 
 // selector, look. bezel > 0 is px; bezel < 0 is a fraction of the shorter half-side.
 const SHAPES = [
-  ['.left-panel, .right-panel', { bezel: 26, thick: 20, strength: 0.5, frost: 14, tint: 0.05, color: [0.9, 0.95, 1], shadow: 46, spec: 0.35 }],
-  ['.playlist-area', { bezel: 20, thick: 26, strength: 0.95, frost: 5, tint: 0.07, color: [0.9, 0.95, 1], shadow: 30, spec: 0.9 }],
-  ['.chat-container', { bezel: 18, thick: 24, strength: 0.9, frost: 8, tint: 0.34, color: [0.02, 0.03, 0.14], shadow: 30, spec: 0.8 }],
-  ['.screen', { bezel: -0.35, thick: 20, strength: 1.0, frost: 4, tint: 0.3, color: [0.02, 0.03, 0.14], shadow: 22, spec: 1.0 }],
+  ['.left-panel, .right-panel', { bezel: 13, thick: 6, strength: 0.63, frost: 14, tint: 0.05, color: [0.9, 0.95, 1], shadow: 46, spec: 1.51 }],
+  ['.playlist-area', { bezel: 10, thick: 78, strength: 1.33, frost: 0, tint: 0.07, color: [0.9, 0.95, 1], shadow: 30, spec: 0.76 }],
+  ['.chat-container:not(.mobile-chat-container)', { bezel: 81, thick: 9, strength: 0.78, frost: 0, tint: 0.34, color: [0.02, 0.03, 0.14], shadow: 30, spec: 1.77 }],
+  ['.screen', { bezel: -1, thick: 3, strength: 0.32, frost: 8, tint: 0.3, color: [0.02, 0.03, 0.14], shadow: 22, spec: 1.69 }],
   // round buttons are glass beads: the whole radius is bevel, so they refract like a sphere
-  ['.player-btn:not(.play-btn), #addPlaylistBtn', { bezel: -0.28, hoverBezel: -1.0, thick: 26, strength: 1.0, frost: 0, tint: 0.07, color: [0.9, 0.95, 1], shadow: 0, spec: 0.9 }],
-  ['.center-circle:not(.has-cover) .play-btn', { bezel: -0.28, hoverBezel: -1.0, thick: 34, strength: 1.05, frost: 0, tint: 0.32, color: [0.0, 0.95, 0.72], shadow: 0, spec: 1.0 }],
-  ['.chat-send-btn img', { bezel: -0.28, hoverBezel: -1.0, thick: 18, strength: 1.0, frost: 0, tint: 0.3, color: [0.0, 0.95, 0.72], shadow: 0, spec: 1.1 }],
-  ['.genre-select-header, .genre-search', { bezel: -0.4, thick: 18, strength: 1.0, frost: 0, tint: 0.09, color: [0.9, 0.95, 1], shadow: 0, spec: 1.1 }]
+  ['.player-btn:not(.play-btn), #addPlaylistBtn', { bezel: -0.92, hoverBezel: -1, thick: 5, strength: 1, frost: 0, tint: 0.07, color: [0.9, 0.95, 1], shadow: 0, spec: 1.41 }],
+  ['.center-circle:not(.has-cover) .play-btn', { bezel: -1, hoverBezel: -1, thick: 9, strength: 1.19, frost: 6, tint: 0.35, color: [0.0, 0.95, 0.72], shadow: 0, spec: 2.32 }],
+  ['.chat-send-btn img', { bezel: -0.75, hoverBezel: -1, thick: 8, strength: 0.82, frost: 0, tint: 0.3, color: [0.0, 0.95, 0.72], shadow: 0, spec: 1.46 }],
+  ['.genre-select-header, .genre-search', { bezel: -0.16, thick: 63, strength: 1, frost: 0, tint: 0.09, color: [0.9, 0.95, 1], shadow: 0, spec: 1.1 }]
 ];
+
+const NAMES = ['Panels', 'Playlist', 'Console', 'Now playing', 'Round buttons', 'Play button', 'Send button', 'Pills (genre, search)'];
+SHAPES.forEach(([, look], i) => { look.name = NAMES[i]; });
 
 const VERT = `
 attribute vec2 aPos;
@@ -40,11 +45,12 @@ void main() { gl_Position = vec4(aPos, 0.0, 1.0); }
 const FRAG = `
 precision highp float;
 #define MAX ${MAX}
-#define IOR ${IOR.toFixed(2)}
 
 uniform vec2 uRes;
 uniform float uTime;
 uniform vec2 uMouse;
+uniform vec4 uG;   // refraction index, dispersion, rim glow, edge line
+uniform vec2 uH;   // cursor light follow, cover dimming
 uniform int uCount;
 uniform vec4 uRect[MAX];   // centre x, centre y, half w, half h (px)
 uniform vec4 uA[MAX];      // corner radius, bezel, thickness, strength
@@ -77,7 +83,7 @@ vec3 sphere(vec2 q, vec2 c, float r, vec3 base, vec3 bg) {
   return mix(bg, col, smoothstep(1.0, 0.45, sqrt(l)));
 }
 
-vec3 scene(vec2 px, float vis) {
+vec3 scene(vec2 px, float vis, float blur) {
   vec2 uv = px / uRes;
   float asp = uRes.x / uRes.y;
   vec2 q = vec2(uv.x * asp, uv.y);
@@ -98,8 +104,10 @@ vec3 scene(vec2 px, float vis) {
   sph = mix(c, sph, vis);
   c = mix(sph, c, uTexMix);
 
-  vec3 tex = texture2D(uTex, (uv - 0.5) * uTexScale + 0.5).rgb;
-  c = mix(c, tex * 0.92, uTexMix);
+  // frost = a mipmap level (a real, smooth blur: no ghost copies)
+  float lod = log2(1.0 + blur * 2.5 * 1024.0 / uRes.x);
+  vec3 tex = texture2D(uTex, (uv - 0.5) * uTexScale + 0.5, lod).rgb;
+  c = mix(c, tex * uH.y, uTexMix);
   return c;
 }
 
@@ -141,13 +149,13 @@ void main() {
     vec2 n2 = g / (length(g) + 1e-5);
 
     vec3 N = normalize(vec3(n2 * s, 1.0));
-    vec3 R = refract(vec3(0.0, 0.0, -1.0), N, 1.0 / IOR);
+    vec3 R = refract(vec3(0.0, 0.0, -1.0), N, 1.0 / uG.x);
     float H = a.z * (h * 0.7 + 0.3);
     disp += R.xy / max(-R.z, 0.2) * H * a.w * c;
 
     // a fixed key light from the top-left, nudged by the cursor: lighting straight
     // from the cursor made a perfect ring when it sat over the middle of a button
-    vec3 Ld = normalize(vec3(vec2(-0.45, -0.6) + clamp((uMouse - frag) / 900.0, vec2(-0.6), vec2(0.6)), 0.9));
+    vec3 Ld = normalize(vec3(vec2(-0.45, -0.6) + clamp((uMouse - frag) * (uH.x / 900.0), vec2(-0.6), vec2(0.6)), 0.9));
     vec3 Hh = normalize(Ld + vec3(0.0, 0.0, 1.0));
     // highlights stay on the outer part of the bevel, never near the middle of a button
     float bevel = smoothstep(0.0, 0.35, s) * (1.0 - smoothstep(0.3, 0.62, t));
@@ -163,15 +171,8 @@ void main() {
     cov = 1.0 - (1.0 - cov) * (1.0 - c);
   }
 
-  vec3 col = vec3(scene(frag + disp * 1.06, cov).r, scene(frag + disp, cov).g, scene(frag + disp * 0.94, cov).b);
-  if (frost > 0.5) {
-    vec3 acc = col;
-    acc += scene(frag + disp + vec2(frost, 0.0), cov);
-    acc += scene(frag + disp - vec2(frost, 0.0), cov);
-    acc += scene(frag + disp + vec2(0.0, frost), cov);
-    acc += scene(frag + disp - vec2(0.0, frost), cov);
-    col = acc / 5.0;
-  }
+  // slight dispersion; frost blurs the scene itself instead of stacking offset copies
+  vec3 col = vec3(scene(frag + disp * (1.0 + uG.y), cov, frost).r, scene(frag + disp, cov, frost).g, scene(frag + disp * (1.0 - uG.y), cov, frost).b);
 
   col = mix(col, col * 1.1 + 0.015, cov);
   float lum = dot(col, vec3(0.299, 0.587, 0.114));
@@ -179,9 +180,9 @@ void main() {
   float ta = clamp(tint.a, 0.0, 0.85);
   vec3 tc = tint.a > 0.0 ? tint.rgb / tint.a : vec3(1.0);
   col = mix(col, tc, ta);
-  col += rim * vec3(0.7, 0.88, 1.0) * 0.05;
+  col += rim * vec3(0.7, 0.88, 1.0) * uG.z;
   col += spec * vec3(1.0, 1.0, 1.0);
-  col += edge * 0.5;
+  col += edge * uG.w;
   col *= 1.0 - clamp(shadow, 0.0, 1.0) * 0.4;
   col += (hash(frag) - 0.5) / 255.0;
 
@@ -252,7 +253,7 @@ function init() {
   gl.enableVertexAttribArray(aPos);
   gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
-  for (const n of ['uRes', 'uTime', 'uMouse', 'uCount', 'uRect', 'uA', 'uB', 'uC', 'uTex', 'uTexMix', 'uTexScale']) {
+  for (const n of ['uRes', 'uTime', 'uMouse', 'uG', 'uH', 'uCount', 'uRect', 'uA', 'uB', 'uC', 'uTex', 'uTexMix', 'uTexScale']) {
     loc[n] = gl.getUniformLocation(prog, n);
   }
   tex = gl.createTexture();
@@ -357,6 +358,8 @@ function draw(now) {
   gl.uniform2f(loc.uRes, canvas.width, canvas.height);
   gl.uniform1f(loc.uTime, reduceMotion ? 0 : now / 1000);
   gl.uniform2f(loc.uMouse, mouse.x * dpr, mouse.y * dpr);
+  gl.uniform4f(loc.uG, GLOBALS.ior, GLOBALS.dispersion, GLOBALS.rim, GLOBALS.edge);
+  gl.uniform2f(loc.uH, GLOBALS.lightFollow, GLOBALS.texDim);
   gl.uniform1f(loc.uTexMix, texMix);
   gl.uniform2f(loc.uTexScale, texScale[0], texScale[1]);
   upload();
@@ -368,6 +371,7 @@ function draw(now) {
 function start() {
   if (running) return;
   if (!init()) return;
+
   running = true;
   canvas.style.display = 'block';
   collect();
@@ -390,29 +394,43 @@ function applySceneCss(css) {
     texTarget = 0;
     return;
   }
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => {
-    if (token !== sceneToken || !gl) return;
-    try {
-      const w = 1024;
-      const h = Math.max(1, Math.round((w * (img.naturalHeight || 900)) / (img.naturalWidth || 1200)));
-      const c = document.createElement('canvas');
-      c.width = w;
-      c.height = h;
-      c.getContext('2d').drawImage(img, 0, 0, w, h);
-      gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
-      const sa = innerWidth / innerHeight;
-      const ia = w / h;
-      texScale = sa > ia ? [1, ia / sa] : [sa / ia, 1];
-      texTarget = 1;
-    } catch {
-      texTarget = 0;
-    }
+  const load = (src, retry) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      if (token !== sceneToken || !gl) return;
+      try {
+        const c = document.createElement('canvas');
+        c.width = 1024;
+        c.height = 1024;
+        c.getContext('2d').drawImage(img, 0, 0, 1024, 1024);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        const sa = innerWidth / innerHeight;
+        const ia = (img.naturalWidth || 1200) / (img.naturalHeight || 900);
+        texScale = sa > ia ? [1, ia / sa] : [sa / ia, 1];
+        texTarget = 1;
+      } catch {
+        texTarget = 0;
+      }
+    };
+    img.onerror = () => {
+      if (token !== sceneToken) return;
+      if (retry) retry();
+      else texTarget = 0;
+    };
+    img.src = src;
   };
-  img.onerror = () => { if (token === sceneToken) texTarget = 0; };
-  img.src = m[2];
+
+  const url = m[2];
+  // WebGL can only sample images the server allows cross-origin. Cover art hosts
+  // (Discogs) usually do not, so fall back to a CORS-enabled image proxy.
+  const proxied = /^https?:\/\//i.test(url)
+    ? () => load('https://images.weserv.nl/?w=1024&output=jpg&url=' + encodeURIComponent(url.replace(/^https?:\/\//i, '')))
+    : null;
+  load(url, proxied);
 }
 
 function sync() {

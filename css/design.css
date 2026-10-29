@@ -1048,10 +1048,21 @@ body.dark .volume-slider .volume-knob {
     padding-top: 14px;
   }
 
-  /* console is not offered on mobile: hide both open buttons */
-  #mobileChatToggleBtn,
+  /* the desktop console button stays hidden; the phone console has its own */
   #chatToggleBtn {
     display: none !important;
+  }
+
+  #mobileChatToggleBtn {
+    min-width: 44px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: var(--radius-pill);
+    font-family: 'Technology', monospace;
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+    box-shadow: var(--shadow-2);
+    margin-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   /* room for the lowered random button */

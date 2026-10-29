@@ -416,6 +416,31 @@ body.glass .chat-send-btn img {
   box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.7), 0 8px 18px rgba(4, 6, 36, 0.3);
 }
 
+/* phone console: it overlays the list, so it needs to be dense, not see-through */
+body.glass .mobile-chat-container {
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
+    rgba(14, 18, 58, 0.86);
+  -webkit-backdrop-filter: blur(26px) saturate(170%);
+  backdrop-filter: blur(26px) saturate(170%);
+  /* float above the bottom edge so all four corners are rounded */
+  left: 8px;
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  width: calc(100vw - 16px);
+  max-width: calc(100vw - 16px);
+  border-radius: 26px;
+}
+
+/* phone console button */
+body.glass #mobileChatToggleBtn {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.10));
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.7), 0 8px 18px rgba(4, 6, 36, 0.3);
+}
+
 /* ---------- modals ---------- */
 
 body.glass .manifesto-modal,
@@ -471,8 +496,13 @@ body.glass #walletAddress {
 
 @media (max-width: 768px) {
   body.glass .container {
-    padding: 8px;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
     gap: 8px;
+  }
+
+  /* the container already keeps clear of the home indicator */
+  body.glass .right-panel {
+    padding-bottom: 10px;
   }
 
   body.glass .left-panel,

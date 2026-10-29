@@ -19,7 +19,7 @@ body.glass-gl #glassBackdrop {
 body.glass-gl .left-panel,
 body.glass-gl .right-panel,
 body.glass-gl .playlist-area,
-body.glass-gl .chat-container,
+body.glass-gl .chat-container:not(.mobile-chat-container),
 body.glass-gl .screen,
 body.glass-gl .player-btn,
 body.glass-gl .genre-select-header,
@@ -51,6 +51,6 @@ body.glass-gl #shuffleBtn.active {
   border-color: rgba(255, 255, 255, 0.9);
 }
 
-body.glass-gl .chat-container {
+body.glass-gl .chat-container:not(.mobile-chat-container) {
   outline: none;
 }

@@ -110,7 +110,16 @@ function linkifyText(str) {
   );
 }
 
+// The phone console is a separate DOM tree; commands such as /skins and /mood
+// write their reply through addMessage, so route it there while it is open.
+const mobileConsole = { add: null };
+
 function addMessage(role, htmlContent, isFonyTip = false) {
+  const mobileBox = document.getElementById("mobileChatContainer");
+  if (mobileConsole.add && mobileBox && mobileBox.style.display === "flex") {
+    mobileConsole.add(role, role === "user" ? escapeHtml(htmlContent) : htmlContent);
+    return null;
+  }
   const msgDiv = document.createElement("div");
   msgDiv.classList.add("chat-message", role === "user" ? "user-message" : "bot-message");
 
@@ -1109,6 +1118,8 @@ export function initChat() {
         mobileChatSendBtn.click();
       }
     });
+
+    mobileConsole.add = addMobileMessage;
 
     function addMobileMessage(role, htmlContent) {
       const msgDiv = document.createElement("div");

@@ -415,3 +415,38 @@
     padding: 18px;
   }
 }
+
+/* Phones: the search field gets its own row (flex:1 with a zero basis let it
+ * squeeze in next to the genre picker), and the list keeps clear of its rounded
+ * bottom corners and the home-indicator area (otherwise the last rows are cut). */
+@media (max-width: 768px) {
+  .search-wrapper {
+    flex: 1 0 100%;
+  }
+
+  .right-panel {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  #playlist {
+    padding-bottom: 28px;
+  }
+}
+
+/* Phones: the header icons sit in the logo's row inside the panel (they were
+ * pinned to the screen corner, above and outside the logo line) and share one size. */
+@media (max-width: 768px) {
+  .top-bar-actions {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+  }
+
+  .top-bar-actions .manifesto-button img,
+  .top-bar-actions .settings-button img,
+  .top-bar-actions #themeToggle img {
+    width: 19px;
+    height: 19px;
+  }
+}
