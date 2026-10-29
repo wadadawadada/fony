@@ -1191,3 +1191,44 @@ body.glass .center-circle.has-cover::after {
   overflow-x: clip;
   overflow-y: visible;
 }
+
+
+/* Player controls in one row: js/chat-resize.js switches to this when the console
+ * has been dragged so tall that the stacked layout would have to shrink too far.
+ * Two equal 1fr columns around the play button keep it exactly centred. */
+@media (min-width: 1025px) {
+  .player-controls.controls-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .player-controls.controls-row .left-stack,
+  .player-controls.controls-row .right-stack {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    width: auto;
+    height: auto;
+  }
+
+  .player-controls.controls-row .left-stack { justify-content: flex-end; }
+  .player-controls.controls-row .right-stack { justify-content: flex-start; }
+
+  .player-controls.controls-row #randomBtn { order: 1; }
+  .player-controls.controls-row #shuffleBtn { order: 2; }
+  .player-controls.controls-row #rrBtn { order: 3; }
+  .player-controls.controls-row .center-circle { zoom: 0.55; }
+  .player-controls.controls-row #ffBtn { order: 1; }
+  .player-controls.controls-row #favBtn { order: 2; }
+  .player-controls.controls-row .volume-container { order: 3; margin-top: 0; }
+
+  .player-controls.controls-row #rrBtn,
+  .player-controls.controls-row #ffBtn {
+    --btn-size: 52px;
+    width: 52px;
+    height: 52px;
+  }
+}

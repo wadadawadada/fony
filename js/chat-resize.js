@@ -8,6 +8,8 @@
   var MIN = 120;
   var GAP = 30;
   var MIN_SCALE = 0.4;
+  // below this scale the controls stop shrinking and lay out in one row instead
+  var ROW_AT = 0.62;
   var startY = 0;
   var startH = 0;
   var currentH = 0;
@@ -17,13 +19,20 @@
     panel.querySelector(".player-controls")
   ].filter(Boolean);
 
+  var controls = panel.querySelector(".player-controls");
+
+  function setRow(on) {
+    if (controls) controls.classList.toggle("controls-row", !!on);
+  }
+
   function outer(el) {
     var st = getComputedStyle(el);
     return el.offsetHeight + parseFloat(st.marginTop) + parseFloat(st.marginBottom);
   }
 
   // layout numbers measured with the player block at full size
-  function measure() {
+  function measure(row) {
+    setRow(row);
     shrinkable.forEach(function (el) { el.style.zoom = ""; });
     var cs = getComputedStyle(panel);
     var inner = panel.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
@@ -37,26 +46,36 @@
     var natural = 0;
     shrinkable.forEach(function (el) { natural += outer(el); });
     var fixed = GAP + total - natural;
-    return { inner: inner, fixed: fixed, natural: natural };
+    var availW = panel.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    return { inner: inner, fixed: fixed, natural: natural, availW: availW, rowW: row && controls ? controls.scrollWidth : 0 };
   }
 
   function apply(h) {
-    var m = measure();
-    var maxH = Math.max(MIN, m.inner - m.fixed - m.natural * MIN_SCALE);
-    h = Math.min(Math.max(h, MIN), maxH);
+    var m = measure(false);
+    var scale = m.natural ? (m.inner - m.fixed - h) / m.natural : 1;
+    var row = scale < ROW_AT;
+    if (row) {
+      // too little room for the stacked layout: put the controls in one row
+      m = measure(true);
+      h = Math.min(Math.max(h, MIN), Math.max(MIN, m.inner - m.fixed - m.natural * MIN_SCALE));
+      scale = m.natural ? (m.inner - m.fixed - h) / m.natural : 1;
+      if (m.rowW > m.availW) scale = Math.min(scale, m.availW / m.rowW);
+    } else {
+      h = Math.max(h, MIN);
+    }
     // size via a CSS variable + body class instead of #chat's inline style,
     // because the collapse code in chat.js reacts to every style change on #chat
     document.documentElement.style.setProperty("--chat-h", h + "px");
     document.body.classList.add("chat-sized");
     currentH = h;
 
-    var scale = m.natural ? (m.inner - m.fixed - h) / m.natural : 1;
     scale = Math.min(1, Math.max(MIN_SCALE, scale));
     shrinkable.forEach(function (el) { el.style.zoom = scale < 1 ? scale : ""; });
   }
 
   function reset() {
     document.body.classList.remove("chat-sized");
+    setRow(false);
     shrinkable.forEach(function (el) { el.style.zoom = ""; });
   }
 
@@ -96,6 +115,7 @@
     if (chat.style.display === lastDisplay) return;
     lastDisplay = chat.style.display;
     if (lastDisplay === "none") {
+      setRow(false);
       shrinkable.forEach(function (el) { el.style.zoom = ""; });
     } else {
       // the player block's margins animate (0.3s) while the console reopens, so
