@@ -21,6 +21,7 @@ const ICON = {
 let ctx = null;
 let view = { kind: 'home' };
 let query = '';
+let searchIndex = null; // rootId -> Promise of the root's folder/file listing
 let renderToken = 0;
 let activeLi = null;
 let popEl = null;
@@ -45,6 +46,7 @@ function matches(text) {
 function setView(next, { reveal = false } = {}) {
   view = next;
   query = '';
+  searchIndex = null;
   const input = document.getElementById('searchInput');
   if (input) input.value = '';
   const clear = document.getElementById('clearSearch');
@@ -504,6 +506,65 @@ async function dirRows() {
   return rows;
 }
 
+const SEARCH_LIMIT = 300;
+
+function indexFor(root) {
+  if (!searchIndex) searchIndex = new Map();
+  if (!searchIndex.has(root.id)) searchIndex.set(root.id, lib.indexRoot(root));
+  return searchIndex.get(root.id);
+}
+
+// Search runs over every added folder, not just the one on screen.
+async function searchRows() {
+  const words = query.split(/\s+/).filter(Boolean);
+  const hit = (...parts) => {
+    const text = parts.join(' ').toLowerCase();
+    return words.every(w => text.includes(w));
+  };
+  const rows = [crumbsRow([
+    { label: 'Library', onClick: () => setView({ kind: 'home' }) },
+    { label: `Search: ${query}` }
+  ])];
+  const folderRows = [];
+  const stations = [];
+  let skipped = 0;
+  let capped = false;
+
+  for (const root of await lib.listRoots()) {
+    if (!(await lib.hasAccess(root))) { skipped++; continue; }
+    let idx;
+    try { idx = await indexFor(root); } catch { skipped++; continue; }
+    for (const path of idx.dirs) {
+      if (folderRows.length >= SEARCH_LIMIT) { capped = true; break; }
+      const name = path[path.length - 1];
+      if (!hit(name)) continue;
+      folderRows.push(row({
+        icon: ICON.folder,
+        label: name,
+        sub: path.slice(0, -1).join(' / ') || root.name,
+        onClick: () => setView({ kind: 'dir', rootId: root.id, path }),
+        actions: [
+          [ICON.play, 'Play folder', () => playFolder(root, path)],
+          [ICON.list, 'Add folder to playlist', b => pickPlaylist(b, () => lib.walkTracks(root, path))]
+        ]
+      }));
+    }
+    for (const path of idx.files) {
+      if (stations.length >= SEARCH_LIMIT) { capped = true; break; }
+      const parent = path.length > 1 ? path[path.length - 2] : root.name;
+      if (!hit(path[path.length - 1], parent)) continue;
+      stations.push(lib.makeStation({ rootId: root.id, path }, root.name));
+    }
+  }
+
+  rows.push(...folderRows);
+  stations.forEach((st, i) => rows.push(trackRow(st, i, () => ({ stations, start: i }))));
+  if (!folderRows.length && !stations.length) rows.push(noticeRow('Nothing found.'));
+  if (capped) rows.push(noticeRow(`Showing the first ${SEARCH_LIMIT} matches. Refine the search to narrow it down.`));
+  if (skipped) rows.push(noticeRow('Some folders need access again: open the Library and allow them.'));
+  return rows;
+}
+
 async function playlistRows() {
   const pl = lib.getPlaylist(view.id);
   if (!pl) { view = { kind: 'home' }; return homeRows(); }
@@ -565,7 +626,8 @@ async function render(resetScroll = false, revealActive = false) {
   const token = ++renderToken;
   let rows;
   try {
-    rows = view.kind === 'dir' ? await dirRows()
+    rows = query && (view.kind === 'dir' || view.kind === 'home') ? await searchRows()
+      : view.kind === 'dir' ? await dirRows()
       : view.kind === 'playlist' ? await playlistRows()
       : view.kind === 'favorites' ? await favoritesRows()
       : await homeRows();
@@ -680,14 +742,16 @@ export function enterLocalMode(context) {
     let t;
     input.addEventListener('input', () => {
       query = input.value.trim().toLowerCase();
+      if (!query) searchIndex = null;
       if (clear) clear.style.display = input.value ? 'block' : 'none';
       clearTimeout(t);
-      t = setTimeout(() => render(), 150);
+      t = setTimeout(() => render(), 250);
     });
   }
   if (clear) {
     clear.addEventListener('click', () => {
       query = '';
+      searchIndex = null;
       input.value = '';
       clear.style.display = 'none';
       render();

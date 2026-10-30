@@ -1338,3 +1338,104 @@ body.glass .center-circle.has-cover::after {
   background: radial-gradient(circle, #d6d6d6 0 62%, #8d8d8d 63% 72%, #3a3a3a 73% 100%);
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.4);
 }
+
+/* ---------- search field: a magnifier instead of the placeholder text ----------
+ * Only while the placeholder is a search hint ("Search across all genres",
+ * "Search this view"): other placeholders, like "New playlist name", stay text. */
+
+:root {
+  --lupe: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none' stroke='white' stroke-opacity='0.9' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8.5' cy='8.5' r='5.5'/%3E%3Cpath d='M12.7 12.7 17 17'/%3E%3C/svg%3E");
+}
+
+.genre-search[placeholder^="Search"] {
+  background-image: var(--lupe);
+  background-repeat: no-repeat;
+  background-position: 11px center;
+  background-size: 16px 16px;
+  padding-left: 34px;
+}
+
+.genre-search[placeholder^="Search"]::placeholder {
+  color: transparent;
+}
+
+/* Favorites is just your saved stations: no "+" (add playlist) and no search there */
+.genre-box:has(#favoritesFilterBtn.active) #addPlaylistBtn,
+.genre-box:has(#favoritesFilterBtn.active) .search-wrapper {
+  display: none;
+}
+
+/* "Sort by" in Favorites: an icon instead of the words */
+.favorites-sort label.sort-ico {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  font-size: 0;
+  background: currentColor;
+  color: #fff;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5h9M3 10h6M3 15h3'/%3E%3Cpath d='M15 4v12M12 13l3 3 3-3'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5h9M3 10h6M3 15h3'/%3E%3Cpath d='M15 4v12M12 13l3 3 3-3'/%3E%3C/svg%3E") center / contain no-repeat;
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+/* ---------- Favorites sort: plain underlined text, styled menu ----------
+ * Chrome's customizable select (appearance: base-select) lets the open menu be
+ * styled; browsers without it keep their native menu. The closed select stays
+ * plain text (no pill, no fill). */
+
+@supports (appearance: base-select) {
+  .favorites-sort select,
+  .favorites-sort select::picker(select) {
+    appearance: base-select;
+  }
+
+  .favorites-sort select {
+    padding: 4px 0;
+    border: none;
+    background: transparent;
+  }
+
+  .favorites-sort select::picker-icon {
+    display: none;
+  }
+
+  .favorites-sort select::picker(select) {
+    margin-top: 8px;
+    padding: 6px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    background: rgba(18, 22, 36, 0.94);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-3);
+    color: #fff;
+  }
+
+  .favorites-sort select option {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: #fff;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .favorites-sort select option::checkmark {
+    display: none;
+  }
+
+  .favorites-sort select option:hover,
+  .favorites-sort select option:focus-visible {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .favorites-sort select option:checked {
+    background: rgba(0, 242, 184, 0.16);
+    color: var(--accent);
+    font-weight: 600;
+  }
+}

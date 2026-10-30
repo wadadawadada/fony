@@ -110,7 +110,7 @@
       "tips": [
         {
           "title": "Three themes",
-          "text": "The [[ui:theme|button in the top bar]] cycles light, dark and liquid glass, and its icon shows the theme you are in. Liquid glass bends the light like real glass; it looks best in Chrome, Edge and Opera, other browsers get a softer version."
+          "text": "The [[ui:theme|button in the top bar]] cycles dark, light and liquid glass, and its icon shows the theme a click switches to. Liquid glass bends the light like real glass; it looks best in Chrome, Edge and Opera, other browsers get a softer version."
         },
         {
           "title": "Skins",

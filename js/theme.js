@@ -7,12 +7,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const defaultTheme = {
     leftPanelBg: '#f2f2f2',
     rightPanelBg: 'linear-gradient(135deg, #5587e4 0%, #d68255 20%, #ec7b2a 40%, #4b85ea 60%, #C36C8B 80%, #55cbd8 100%)',
-    icon: '/img/sun_ink.svg'
+    // the toggle shows the theme a click switches to; order: dark -> light -> glass
+    // light -> liquid glass (drop)
+    icon: '/img/glass_ink.svg',
+    next: 'liquid glass'
   };
   const darkTheme = {
     leftPanelBg: '#171C2B',
     rightPanelBg: 'linear-gradient(135deg, hsl(165, 94%, 30%) 0%, hsl(165, 94%, 49%) 50%, hsl(165, 94%, 70%) 100%)',
-    icon: '/img/moon_white.svg'
+    // dark -> light (sun)
+    icon: '/img/sun.svg',
+    next: 'light'
   };
   const icons = {
     playPauseBtn: document.getElementById('playPauseBtn'),
@@ -30,7 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutIcon: document.getElementById('logoutIcon')
   };
   const glassTheme = {
-    icon: '/img/glass.svg'
+    // liquid glass -> dark (moon)
+    icon: '/img/moon_white.svg',
+    next: 'dark'
   };
   const iconVariants = {
     light: {
@@ -89,17 +96,20 @@ document.addEventListener('DOMContentLoaded', () => {
       leftPanel.style.backgroundColor = '';
       rightPanel.style.background = '';
       toggleIcon.src = glassTheme.icon;
+      themeToggleBtn.title = 'Switch to ' + glassTheme.next;
       document.body.classList.add('dark', 'glass');
     } else if (theme === 'dark') {
       leftPanel.style.backgroundColor = darkTheme.leftPanelBg;
       rightPanel.style.background = darkTheme.rightPanelBg;
       toggleIcon.src = darkTheme.icon;
+      themeToggleBtn.title = 'Switch to ' + darkTheme.next;
       document.body.classList.remove('glass');
       document.body.classList.add('dark');
     } else {
       leftPanel.style.backgroundColor = defaultTheme.leftPanelBg;
       rightPanel.style.background = defaultTheme.rightPanelBg;
       toggleIcon.src = defaultTheme.icon;
+      themeToggleBtn.title = 'Switch to ' + defaultTheme.next;
       document.body.classList.remove('dark', 'glass');
     }
     applyThemeIcons(theme);
@@ -163,15 +173,18 @@ document.addEventListener('DOMContentLoaded', () => {
     currentTheme = skinObj.theme;
     localStorage.setItem('theme', currentTheme);
   } else {
-    currentTheme = localStorage.getItem('theme') || 'light';
+    // first launch: dark
+    currentTheme = localStorage.getItem('theme') || 'dark';
   }
+  // other modules read the theme from storage to pick icon sets
+  localStorage.setItem('theme', currentTheme);
   applyTheme(currentTheme);
   if (skinObj && skinObj.skin && skinObj.theme) {
     reapplySkin();
   }
   themeToggleBtn.addEventListener('click', () => {
     clearSkinStyles();
-    const order = ['light', 'dark', 'glass'];
+    const order = ['dark', 'light', 'glass'];
     currentTheme = order[(order.indexOf(currentTheme) + 1) % order.length];
     applyTheme(currentTheme);
     localStorage.setItem('theme', currentTheme);

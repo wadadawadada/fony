@@ -63,3 +63,8 @@ body.glass-gl #chatToggleBtn {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
+
+/* the canvas draws the field; only the magnifier stays in the DOM */
+body.glass-gl .genre-search[placeholder^="Search"] {
+  background: var(--lupe) no-repeat 11px center / 16px 16px;
+}

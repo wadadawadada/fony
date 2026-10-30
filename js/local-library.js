@@ -126,6 +126,23 @@ export async function walkTracks(root, path) {
   return out;
 }
 
+// Every folder and audio file under the root, as path arrays, in one pass.
+// Used by the search, which looks through the whole added folder.
+export async function indexRoot(root) {
+  const dirs = [];
+  const files = [];
+  async function rec(h, p) {
+    const entries = await readEntries(h);
+    for (const f of entries.files) files.push([...p, f]);
+    for (const d of entries.dirs) {
+      dirs.push([...p, d]);
+      await rec(await h.getDirectoryHandle(d), [...p, d]);
+    }
+  }
+  await rec(await dirHandle(root, []), []);
+  return { dirs, files };
+}
+
 // Every folder under root/path that directly holds audio files, with its file
 // names. Used to pick "a random folder" before "a random song".
 export async function collectFolders(root, path) {

@@ -203,7 +203,6 @@ body.glass .genre-select-dropdown,
 body.glass .genre-select-header,
 body.glass .genre-search,
 body.glass #addPlaylistBtn,
-body.glass .favorites-sort select,
 body.glass #walletTooltip,
 body.glass .local-pop,
 body.glass .custom-tooltip,
@@ -262,8 +261,7 @@ body.glass #playlistLoader:not(.hidden) {
 
 body.glass .genre-select-header,
 body.glass .genre-search,
-body.glass #addPlaylistBtn,
-body.glass .favorites-sort select {
+body.glass #addPlaylistBtn {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.07));
   -webkit-backdrop-filter: blur(14px) saturate(170%);
   backdrop-filter: blur(14px) saturate(170%);
@@ -293,6 +291,18 @@ body.glass .playlist-area::-webkit-scrollbar-thumb {
 body.glass .playlist-area::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.85);
   background-clip: content-box;
+}
+
+/* the magnifier replaces the placeholder (see design.css); keep it over the glass fill */
+body.glass .genre-search[placeholder^="Search"] {
+  background-image: var(--lupe), linear-gradient(180deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.07));
+  background-repeat: no-repeat, no-repeat;
+  background-position: 11px center, 0 0;
+  background-size: 16px 16px, auto;
+}
+
+body.glass .genre-search[placeholder^="Search"]::placeholder {
+  color: transparent;
 }
 
 /* ---------- list rows ---------- */
@@ -538,5 +548,55 @@ body.glass #walletAddress {
   body.glass .right-panel {
     flex: 1 1 auto;
     min-height: 0;
+  }
+}
+
+/* genre menu scrollbar: glass, like the list's, instead of the dark theme's track */
+/* (a standard scrollbar-color would switch off the webkit styling below) */
+@supports not selector(::-webkit-scrollbar) {
+  body.glass .genre-select-dropdown {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
+  }
+}
+
+body.glass .genre-select-dropdown::-webkit-scrollbar {
+  width: 14px;
+}
+
+body.glass .genre-select-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 12px 0;
+}
+
+body.glass .genre-select-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.45);
+  background-clip: content-box;
+  border: 4px solid transparent;
+  border-radius: 999px;
+  min-height: 36px;
+}
+
+body.glass .genre-select-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.8);
+  background-clip: content-box;
+}
+
+body.glass .genre-select-dropdown::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* sort menu in glass */
+@supports (appearance: base-select) {
+  body.glass .favorites-sort select::picker(select) {
+    background:
+      linear-gradient(150deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.05)),
+      rgba(14, 18, 56, 0.55);
+    -webkit-backdrop-filter: blur(26px) saturate(190%);
+    backdrop-filter: blur(26px) saturate(190%);
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: var(--glass-shadow), var(--glass-spec);
   }
 }

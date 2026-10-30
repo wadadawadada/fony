@@ -617,7 +617,7 @@ function switchToRadio(restorePlayback = true) {
       <img src="/img/fav_list.svg" id="favoritesFilterBtn" class="favorites-filter-icon">
       <label for="customGenreSelect">Genre:</label>
       <div class="favorites-sort" id="favoritesSortContainer">
-        <label for="favoritesSortSelect">Sort by</label>
+        <label for="favoritesSortSelect" class="sort-ico" title="Sort by" aria-label="Sort by"></label>
         <select id="favoritesSortSelect">
           <option value="custom">Custom order</option>
           <option value="date">Date added</option>
