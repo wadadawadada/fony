@@ -1295,6 +1295,175 @@ body.glass .center-circle.has-cover::after {
   text-decoration-style: solid;
 }
 
+/* ---------- /skins studio (console card) ---------- */
+
+.sk-card {
+  display: grid;
+  gap: 12px;
+  padding: 2px 0 4px;
+}
+
+.sk-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.sk-spacer {
+  flex: 1;
+}
+
+.sk-label {
+  margin-right: 2px;
+  font-size: var(--text-sm);
+  opacity: 0.7;
+}
+
+.sk-ico {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.4s var(--spring);
+}
+
+.sk-ico .sk-dot,
+.sk-die circle,
+.sk-ico-fill {
+  fill: currentColor;
+  stroke: none;
+}
+
+.sk-die-body {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.sk-cat:hover .sk-die {
+  transform: rotate(-14deg) scale(1.12);
+}
+
+.sk-cat:hover .sk-ico:not(.sk-die) {
+  transform: scale(1.12);
+}
+
+/* quiet actions: plain text, no frame */
+.sk-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--text-sm);
+  opacity: 0.7;
+  cursor: pointer;
+  transition: opacity var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.sk-link:hover {
+  color: var(--accent);
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.sk-link .sk-ico {
+  width: 16px;
+  height: 16px;
+}
+
+.sk-cat .sk-ico {
+  width: 20px;
+  height: 20px;
+}
+
+/* category switches: bare icons, the active one lit and underlined */
+.sk-cat {
+  padding: 4px 6px 3px;
+  border-bottom: 2px solid transparent;
+  color: var(--accent);
+  opacity: 0.6;
+}
+
+.sk-cat:hover {
+  text-decoration: none;
+}
+
+.sk-cat.on {
+  border-bottom-color: var(--accent);
+  opacity: 1;
+}
+
+.sk-art img {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.sk-slots {
+  display: flex;
+  gap: 8px;
+}
+
+.sk-slot {
+  position: relative;
+  display: inline-flex;
+}
+
+.sk-thumb {
+  width: 48px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+
+.sk-thumb:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.65);
+}
+
+.sk-thumb.on {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.sk-x {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: none;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #171C2B;
+  color: #fff;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.sk-slot:hover .sk-x {
+  display: block;
+}
+
 /* ---------- placeholder discs (no album art) ----------
  * The art is cd.svg / vinyl.svg / reel.svg as the background of .album-cover-bg.
  * A centre piece is drawn on top of each, inside the same spinning element and

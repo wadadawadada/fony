@@ -67,12 +67,29 @@ function hexPalette(isDark, picked, bg, bg2, ink) {
 }
 
 // Earthy palette for the African-pattern styles: ochre, terracotta, indigo, malachite...
-function makeAfricanPalette(isDark, name) {
-  if (name === "Adire") {
-    const pal = hexPalette(isDark, ["#e9eefb", "#9fb6ea", "#3b5bb5", "#c9a23a"], isDark ? "#0e1a40" : "#233f8f", isDark ? "#16265a" : "#1b3478", "#e9eefb");
-    pal.veil = isDark ? "rgba(0,0,10,0.3)" : "rgba(255,255,255,0.62)";
+// fixed palettes for ornaments that only look right in their own colours
+const ETHNIC_SPECS = {
+  Seigaiha: { picked: ["#2b6cb0", "#e8eee6", "#1a4a82", "#8fb8da"], bg: "#1a4a82", bg2: "#12365f", ink: "#0f2a4d" },
+  Sashiko: { picked: ["#f1f4ff", "#9fb6ea", "#3b5bb5", "#c9a23a"], bg: "#16295e", bg2: "#0e1a40", ink: "#f1f4ff", veil: ["rgba(0,0,10,0.3)", "rgba(255,255,255,0.62)"] },
+  Adire: { picked: ["#e9eefb", "#9fb6ea", "#3b5bb5", "#c9a23a"], bg: "#233f8f", bg2: "#1b3478", ink: "#e9eefb", veil: ["rgba(0,0,10,0.3)", "rgba(255,255,255,0.62)"] },
+  Kawung: { picked: ["#7a4a1e", "#d9b36a", "#e8d5a8", "#b5532c"], bg: "#e8d5a8", bg2: "#d9b36a", ink: "#2b1a10" },
+  Girih: { picked: ["#1c6e7d", "#e8c25a", "#a8321f", "#f2ead5"], bg: "#f2ead5", bg2: "#e8dcc0", ink: "#16303a" },
+  Azulejo: { picked: ["#1d4e9e", "#5b86c8", "#f6f3ea", "#c9d8f0"], bg: "#f6f3ea", bg2: "#dfe8f5", ink: "#1d4e9e" },
+  Navajo: { picked: ["#b3261e", "#1a1412", "#e8dcc0", "#c7893a"], bg: "#e8dcc0", bg2: "#c7893a", ink: "#1a1412" },
+  Andean: { picked: ["#d6246e", "#17a398", "#f2b705", "#e2461c"], bg: "#1a1a1a", bg2: "#2a2a2a", ink: "#1a1a1a" },
+  Aboriginal: { picked: ["#f4c542", "#ffffff", "#d9482b", "#e8935a"], bg: "#2a0f0a", bg2: "#3a1810", ink: "#f4c542", veil: ["rgba(0,0,0,0.25)", "rgba(255,255,255,0.3)"] },
+  FairIsle: { picked: ["#f2efe6", "#b3261e", "#1d3f6e", "#2a2a2a"], bg: "#f2efe6", bg2: "#e6e0d0", ink: "#2a2a2a" },
+  Slavic: { picked: ["#c8201f", "#111111", "#f5f0e1", "#c8201f"], bg: "#f5f0e1", bg2: "#e9e1c8", ink: "#111111" }
+};
+
+function makeEthnicPalette(isDark, name) {
+  const spec = ETHNIC_SPECS[name];
+  if (spec) {
+    const pal = hexPalette(isDark, spec.picked, spec.bg, spec.bg2, spec.ink);
+    if (spec.veil) pal.veil = spec.veil[isDark ? 0 : 1];
     return pal;
   }
+  // African cloth: earthy colours picked at random
   const pool = ["#E3A72F", "#C65D3B", "#1F5F8B", "#B8322A", "#2F7D4A", "#2A9D8F", "#E9C46A", "#7B3F61"];
   const picked = pool.slice().sort(() => Math.random() - 0.5).slice(0, 4);
   return hexPalette(isDark, picked, isDark ? "#17110c" : "#f1e5cb", isDark ? "#2b1c12" : "#e3cfa5", isDark ? "#f2e6cf" : "#2a1a10");
@@ -924,6 +941,67 @@ function renderPixelCity(dark) {
   return { url: out.toDataURL("image/png"), overlay };
 }
 
+// ---- knit / cross-stitch bands, shared by Fair Isle, Andean and Slavic ---------------------
+const KNIT_MOTIFS = {
+  snow: ["X...X...X", ".X..X..X.", "..X.X.X..", "...XXX...", "XXXXXXXXX", "...XXX...", "..X.X.X..", ".X..X..X.", "X...X...X"],
+  star8: ["...X...", ".X.X.X.", "..XXX..", "XXXOXXX", "..XXX..", ".X.X.X.", "...X..."],
+  diam: ["...X...", "..XOX..", ".XOOOX.", "XOOXOOX", ".XOOOX.", "..XOX..", "...X..."],
+  tree: ["...X...", "..XXX..", ".X.X.X.", "...X...", "..XXX..", ".X.X.X.", "...X...", "...X...", "...X..."],
+  rozha: ["....X....", "...XXX...", "..X.X.X..", ".XX.X.XX.", "XXXXOXXXX", ".XX.X.XX.", "..X.X.X..", "...XXX...", "....X...."],
+  hook: [".....X.....", "....XXX....", "...XX.XX...", "..XX...XX..", ".XX..X..XX.", "XX..XXX..XX", ".XX..X..XX.", "..XX...XX..", "...XX.XX...", "....XXX....", ".....X....."],
+  step: ["....X....", "...XXX...", "..XXXXX..", ".XXXXXXX.", "XXXXOXXXX", ".XXXXXXX.", "..XXXXX..", "...XXX...", "....X...."],
+  fret: ["XXXXXXXX", "X......X", "X.XXXX.X", "X.X..X.X", "X.X.XX.X", "X.X....X", "X.XXXXXX", "X......."]
+};
+const KNIT_BORDERS = [
+  ["X...X...", ".X.X.X.X", "..X...X."],
+  ["XX..XX..", ".XXXX...", "..XX..XX"],
+  ["X.X.X.X.", ".X.X.X.X", "X.X.X.X."],
+  ["..X...X.", ".X.X.X.X", "X...X..."]
+];
+
+// bands: [{bg, a, b}], motifs: names from KNIT_MOTIFS
+function knitBands(opt) {
+  const u = opt.u;
+  const parts = [];
+  const paths = {};
+  const add = (c, x, y) => {
+    paths[c] = (paths[c] || "") + (opt.cross ? `M${x},${y}l${u},${u}M${x + u},${y}l${-u},${u}` : `M${x},${y}h${u}v${u}h${-u}z`);
+  };
+  const draw = (map, x0, y0, a, b) => {
+    map.forEach((row, r) => {
+      for (let c = 0; c < row.length; c++) {
+        if (row[c] === "X") add(a, x0 + c * u, y0 + r * u);
+        else if (row[c] === "O") add(b, x0 + c * u, y0 + r * u);
+      }
+    });
+  };
+  let y = 0;
+  let band = 0;
+  while (y < H) {
+    const B = opt.bands[band % opt.bands.length];
+    if (band % 2 === 0) {
+      const rows = choice(KNIT_BORDERS);
+      const h = (rows.length + 2) * u;
+      parts.push(`<rect x="0" y="${y}" width="${W}" height="${h}" fill="${B.bg}"/>`);
+      for (let x = 0; x < W; x += rows[0].length * u) draw(rows, x, y + u, B.a, B.b);
+      y += h;
+    } else {
+      const m = KNIT_MOTIFS[choice(opt.motifs)];
+      const gap = 3;
+      const h = (m.length + 4) * u;
+      parts.push(`<rect x="0" y="${y}" width="${W}" height="${h}" fill="${B.bg}"/>`);
+      const step = (m[0].length + gap) * u;
+      for (let x = Math.round(rand(0, 1) * u); x < W; x += step) draw(m, x, y + 2 * u, B.a, B.b);
+      y += h;
+    }
+    band++;
+  }
+  const out = Object.keys(paths).map(c => opt.cross
+    ? `<path d="${paths[c]}" stroke="${c}" stroke-width="${(u * 0.34).toFixed(1)}" stroke-linecap="round" fill="none"/>`
+    : `<path d="${paths[c]}" fill="${c}"/>`);
+  return `<g shape-rendering="${opt.cross ? "auto" : "crispEdges"}">${parts.join("")}${out.join("")}</g>`;
+}
+
 const styles = {
   Aurora(p) {
     const blobs = [];
@@ -1583,6 +1661,225 @@ const styles = {
   },
 
 
+  // Japan: overlapping wave scales
+  Seigaiha(p) {
+    const R = choice([54, 66, 78]);
+    const defs = [];
+    for (let k = 0; k < 3; k++) {
+      let g = "";
+      for (let i = 0; i < 5; i++) g += `<circle r="${(R * (1 - i * 0.2)).toFixed(1)}" fill="${i % 2 ? p.color(k + 1) : p.color(k)}" stroke="${p.ink}" stroke-width="2"/>`;
+      defs.push(`<g id="sg${k}">${g}</g>`);
+    }
+    const uses = [];
+    for (let r = 0; r * R / 2 < H + R; r++) {
+      const y = r * R / 2;
+      const off = r % 2 ? R : 0;
+      for (let x = -R * 2 + off; x < W + R * 2; x += R * 2) uses.push(`<use href="#sg${Math.floor(r / 5) % 3}" x="${x}" y="${y}"/>`);
+    }
+    return `<rect width="${W}" height="${H}" fill="${p.color(2)}"/><defs>${defs.join("")}</defs>${uses.join("")}${grain(p)}`;
+  },
+
+  // Japan: indigo cloth with white running stitches (shippo, "seven treasures")
+  Sashiko(p) {
+    const d = choice([96, 120]);
+    const r = d * 0.7071;
+    let circles = "";
+    let dots = "";
+    for (let j = -1; j * d < H + d; j++) {
+      for (let i = -1; i * d < W + d; i++) {
+        circles += `<circle cx="${i * d}" cy="${j * d}" r="${r.toFixed(1)}"/>`;
+        dots += `<circle cx="${i * d + d / 2}" cy="${j * d + d / 2}" r="4.5"/>`;
+      }
+    }
+    return `<rect width="${W}" height="${H}" fill="${p.isDark ? "#0e1a40" : "#233f8f"}"/>
+      <defs><pattern id="sw" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1.4" fill="#000" opacity="0.2"/></pattern></defs>
+      <rect width="${W}" height="${H}" fill="url(#sw)"/>
+      <g fill="none" stroke="${p.ink}" stroke-width="3" stroke-dasharray="7 6" stroke-linecap="round">${circles}</g>
+      <g fill="${p.color(3)}">${dots}</g>${grain(p)}`;
+  },
+
+  // Indonesia: batik kawung, four-petal flowers touching tip to tip
+  Kawung(p) {
+    const c = choice([110, 140]);
+    const defs = [];
+    for (let k = 0; k < 2; k++) {
+      const e = (cx, cy, rx, ry, f) => `<ellipse cx="${(cx * c).toFixed(1)}" cy="${(cy * c).toFixed(1)}" rx="${(rx * c).toFixed(1)}" ry="${(ry * c).toFixed(1)}" fill="${f}" stroke="${p.ink}" stroke-width="3"/>`;
+      defs.push(`<g id="kw${k}">${e(0.25, 0, 0.25, 0.13, p.color(k))}${e(-0.25, 0, 0.25, 0.13, p.color(k))}${e(0, 0.25, 0.13, 0.25, p.color(k + 1))}${e(0, -0.25, 0.13, 0.25, p.color(k + 1))}<circle r="${(c * 0.07).toFixed(1)}" fill="${p.ink}"/></g>`);
+    }
+    const uses = [];
+    for (let j = -1; j * c < H + c; j++) {
+      for (let i = -1; i * c < W + c; i++) {
+        uses.push(`<use href="#kw${(i + j + 4) % 2}" x="${i * c}" y="${j * c}"/><circle cx="${i * c + c / 2}" cy="${j * c + c / 2}" r="${(c * 0.09).toFixed(1)}" fill="${p.color(3)}" stroke="${p.ink}" stroke-width="2.5"/>`);
+      }
+    }
+    return `${baseRect(p)}<defs>${defs.join("")}</defs>${uses.join("")}${grain(p)}`;
+  },
+
+  // Islamic geometry: eight-pointed stars on a square grid
+  Girih(p) {
+    const c = choice([130, 160]);
+    const R = c / 2;
+    const star = (r, fill) => {
+      const pts = [];
+      for (let k = 0; k < 16; k++) {
+        const a = (k * Math.PI) / 8 - Math.PI / 2;
+        const rad = k % 2 === 0 ? r : r * 0.765;
+        pts.push(`${(rad * Math.cos(a)).toFixed(1)},${(rad * Math.sin(a)).toFixed(1)}`);
+      }
+      return `<polygon points="${pts.join(" ")}" fill="${fill}" stroke="${p.ink}" stroke-width="3" stroke-linejoin="round"/>`;
+    };
+    const defs = [];
+    for (let k = 0; k < 2; k++) defs.push(`<g id="gs${k}">${star(R, p.color(k))}${star(R * 0.6, p.color(k + 1))}<circle r="${(R * 0.18).toFixed(1)}" fill="${p.color(k + 2)}" stroke="${p.ink}" stroke-width="2.5"/></g>`);
+    const oct = [];
+    for (let k = 0; k < 8; k++) oct.push(`${(c * 0.15 * Math.cos((k * Math.PI) / 4 + Math.PI / 8)).toFixed(1)},${(c * 0.15 * Math.sin((k * Math.PI) / 4 + Math.PI / 8)).toFixed(1)}`);
+    const uses = [];
+    for (let j = -1; j * c < H + c; j++) {
+      for (let i = -1; i * c < W + c; i++) {
+        uses.push(`<use href="#gs${(i + j + 4) % 2}" x="${i * c}" y="${j * c}"/><polygon points="${oct.join(" ")}" transform="translate(${i * c + c / 2} ${j * c + c / 2})" fill="${p.color(3)}" stroke="${p.ink}" stroke-width="2.5"/>`);
+      }
+    }
+    return `${baseRect(p)}<defs>${defs.join("")}</defs>${uses.join("")}${grain(p)}`;
+  },
+
+  // Portugal: blue-and-white glazed tiles, each tile turned a quarter from its neighbour
+  Azulejo(p) {
+    const T = choice([100, 120]);
+    const b1 = "#1d4e9e";
+    const b2 = "#5b86c8";
+    let petals = "";
+    for (let k = 0; k < 4; k++) {
+      petals += `<ellipse cx="${T / 2}" cy="${(T / 2 - T * 0.2).toFixed(1)}" rx="${(T * 0.09).toFixed(1)}" ry="${(T * 0.19).toFixed(1)}" fill="${b1}" transform="rotate(${k * 90} ${T / 2} ${T / 2})"/>`;
+      petals += `<ellipse cx="${T / 2}" cy="${(T / 2 - T * 0.31).toFixed(1)}" rx="${(T * 0.045).toFixed(1)}" ry="${(T * 0.1).toFixed(1)}" fill="${b2}" transform="rotate(${k * 90 + 45} ${T / 2} ${T / 2})"/>`;
+    }
+    const corners = [[0, 0], [T, 0], [0, T], [T, T]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${(T * 0.3).toFixed(1)}" fill="none" stroke="${b1}" stroke-width="3"/><circle cx="${x}" cy="${y}" r="${(T * 0.17).toFixed(1)}" fill="${b2}"/>`).join("");
+    const tile = `<g id="az"><rect width="${T}" height="${T}" fill="#f6f3ea"/><g clip-path="url(#azc)">${corners}</g>${petals}<circle cx="${T / 2}" cy="${T / 2}" r="${(T * 0.13).toFixed(1)}" fill="#f6f3ea" stroke="${b1}" stroke-width="3"/><circle cx="${T / 2}" cy="${T / 2}" r="${(T * 0.06).toFixed(1)}" fill="${b1}"/><rect width="${T}" height="${T}" fill="none" stroke="#c9d3e6" stroke-width="3"/></g>`;
+    const uses = [];
+    for (let j = 0; j * T < H; j++) {
+      for (let i = 0; i * T < W; i++) uses.push(`<use href="#az" transform="translate(${i * T} ${j * T}) rotate(${((i + j) % 2) * 90} ${T / 2} ${T / 2})"/>`);
+    }
+    return `<rect width="${W}" height="${H}" fill="#f6f3ea"/><defs><clipPath id="azc"><rect width="${T}" height="${T}"/></clipPath>${tile}</defs>${uses.join("")}${grain(p)}`;
+  },
+
+  // Southwest America: stepped diamonds between zigzag borders
+  Navajo(p) {
+    const s = 14;
+    const n = 5;
+    const dw = (2 * n + 1) * s;
+    const dark = "#1a1412";
+    const rings = [p.color(0), dark, p.color(3), p.color(0), dark, p.color(2)];
+    const parts = [];
+    let y = 0;
+    let band = 0;
+    const stripe = (h, c) => { parts.push(`<rect x="0" y="${y}" width="${W}" height="${h}" fill="${c}"/>`); y += h; };
+    while (y < H) {
+      const kind = band % 3;
+      if (kind === 0) {
+        stripe(10, dark); stripe(6, p.color(2)); stripe(10, p.color(0)); stripe(6, p.color(2));
+      } else if (kind === 1) {
+        const h = dw + 2 * s;
+        parts.push(`<rect x="0" y="${y}" width="${W}" height="${h}" fill="${p.color(2)}"/>`);
+        for (let x0 = -s; x0 < W; x0 += dw + 2 * s) {
+          const cx = x0 + dw / 2;
+          const cy = y + h / 2;
+          for (let k = 0; k <= n; k++) {
+            const m = n - k;
+            let d = "";
+            for (let r = -m; r <= m; r++) {
+              const w = (2 * (m - Math.abs(r)) + 1) * s;
+              d += `M${cx - w / 2},${cy + r * s - s / 2}h${w}v${s}h${-w}z`;
+            }
+            parts.push(`<path d="${d}" fill="${rings[k % rings.length]}"/>`);
+          }
+        }
+        y += h;
+      } else {
+        const h = 4 * s;
+        parts.push(`<rect x="0" y="${y}" width="${W}" height="${h}" fill="${p.color(2)}"/>`);
+        for (let x = -s * 2, i = 0; x < W + s * 2; x += s * 2, i++) {
+          parts.push(`<polygon points="${x},${y + h} ${x + s},${y} ${x + 2 * s},${y + h}" fill="${i % 2 ? p.color(0) : dark}"/>`);
+        }
+        y += h;
+      }
+      band++;
+    }
+    return `<g shape-rendering="crispEdges">${parts.join("")}</g>
+      <defs><pattern id="tw" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1.4" fill="#000" opacity="0.14"/></pattern></defs>
+      <rect width="${W}" height="${H}" fill="url(#tw)"/>${grain(p)}`;
+  },
+
+  // Andes: stepped diamonds, key frets and zigzags on black and bright wool
+  Andean(p) {
+    const k = "#1a1a1a";
+    return `${knitBands({
+      u: 14,
+      motifs: ["step", "fret", "diam", "star8"],
+      bands: [{ bg: k, a: p.color(0), b: p.color(2) }, { bg: p.color(1), a: k, b: p.color(2) }, { bg: p.color(3), a: p.color(2), b: k }, { bg: k, a: p.color(1), b: p.color(3) }]
+    })}${grain(p)}`;
+  },
+
+  // Nordic knitwear: snowflakes, stars and diamonds in rows
+  FairIsle(p) {
+    return `${knitBands({
+      u: 12,
+      motifs: ["snow", "star8", "diam", "tree"],
+      bands: [{ bg: p.color(0), a: p.color(2), b: p.color(1) }, { bg: p.color(2), a: p.color(0), b: p.color(1) }, { bg: p.color(0), a: p.color(1), b: p.color(2) }, { bg: p.color(1), a: p.color(0), b: p.color(2) }]
+    })}${grain(p)}`;
+  },
+
+  // Slavic cross-stitch: red and black on linen
+  Slavic(p) {
+    return `${knitBands({
+      u: 14,
+      cross: true,
+      motifs: ["rozha", "hook", "tree", "diam"],
+      bands: [{ bg: p.color(2), a: p.color(0), b: p.color(1) }, { bg: p.color(2), a: p.color(1), b: p.color(0) }]
+    })}
+      <defs><pattern id="linen" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="1" fill="#000" opacity="0.07"/><rect width="1" height="3" fill="#000" opacity="0.06"/></pattern></defs>
+      <rect width="${W}" height="${H}" fill="url(#linen)"/>${grain(p)}`;
+  },
+
+  // Australia: dot painting, concentric rings of dots joined by dotted trails
+  Aboriginal(p) {
+    const cols = [p.color(0), p.color(1), p.color(2), p.color(3)];
+    const parts = [];
+    const centers = [];
+    const want = Math.floor(rand(5, 8));
+    for (let tries = 0; tries < 200 && centers.length < want; tries++) {
+      const c = { x: rand(110, W - 110), y: rand(110, H - 110), r: rand(70, 130) };
+      if (centers.every(o => Math.hypot(o.x - c.x, o.y - c.y) > o.r + c.r + 30)) centers.push(c);
+    }
+    const dot = (x, y, r, f) => parts.push(`<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r}" fill="${f}"/>`);
+    for (let i = 1; i < centers.length; i++) {
+      const a = centers[i - 1];
+      const b = centers[i];
+      const mx = (a.x + b.x) / 2 + rand(-160, 160);
+      const my = (a.y + b.y) / 2 + rand(-160, 160);
+      const col = cols[i % 4];
+      let last = null;
+      for (let t = 0; t <= 1; t += 0.004) {
+        const x = (1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * mx + t * t * b.x;
+        const y = (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * my + t * t * b.y;
+        if (!last || Math.hypot(x - last.x, y - last.y) >= 15) { dot(x, y, 4, col); last = { x, y }; }
+      }
+    }
+    centers.forEach((c, i) => {
+      const rings = Math.max(3, Math.floor(c.r / 20));
+      dot(c.x, c.y, 11, cols[(i + 1) % 4]);
+      for (let k = 1; k <= rings; k++) {
+        const r = k * 19;
+        const count = Math.max(6, Math.round((Math.PI * 2 * r) / 12));
+        const col = cols[(i + k) % 4];
+        for (let q = 0; q < count; q++) {
+          const a = (q / count) * Math.PI * 2;
+          dot(c.x + r * Math.cos(a), c.y + r * Math.sin(a), k % 2 ? 4.4 : 3.6, col);
+        }
+      }
+    });
+    let bgDots = "";
+    for (let y = 8; y < H; y += 22) for (let x = (y / 22) % 2 ? 19 : 8; x < W; x += 22) bgDots += `<circle cx="${x}" cy="${y}" r="1.6"/>`;
+    return `<rect width="${W}" height="${H}" fill="#2a0f0a"/><g fill="${p.color(2, 0.28)}">${bgDots}</g>${parts.join("")}${grain(p)}`;
+  },
+
   // Mario-style level, seven scenes: day, sunset, sky (light); night, underground,
   // castle with lava, underwater (dark)
   "Pixel Level"(p) {
@@ -1858,45 +2155,105 @@ const styles = {
   },
 
 
-  // 8-bit starfield screensaver: a few square stars drifting out of the centre on
-  // pure black. The motion is stepped (discrete keyframes) to keep the retro feel.
+  // Starfield on a graded night sky. Three moods: a calm twinkling sky with the odd
+  // shooting star, the old 8-bit drift out of the centre, or a flight through the stars.
+  // Everything animated is kept cheap: stars twinkle in a handful of groups instead of
+  // one animation each; the flight is 110 streaks on a single CSS animation.
   Starfield(p) {
-    const parts = [];
-    const cx = W / 2 + rand(-140, 140);
-    const cy = H / 2 + rand(-100, 100);
-    const maxR = Math.hypot(W, H) / 2 + 40;
-    const reduced = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const steps = 6;
+    const reduced = reducedMotion();
+    const variant = choice(["calm", "drift", "warp"]);
+    const [tintA, tintB] = choice([["#1f34a8", "#6a2390"], ["#5a2398", "#0f6a7c"], ["#0f6a7c", "#2a3cb0"], ["#8a2348", "#2f2a9a"]]);
+    const gx = rand(20, 80);
+    const gy = rand(20, 80);
+    const tints = ["#ffffff", "#ffffff", "#cfe0ff", "#ffe9b0", "#ffd0e6"];
+    const bg = `<defs>
+        <linearGradient id="sfL" x1="0" y1="0" x2="${rand(0.3, 1).toFixed(2)}" y2="1"><stop offset="0" stop-color="${tintA}" stop-opacity="0.8"/><stop offset="0.5" stop-color="#04061a"/><stop offset="1" stop-color="${tintB}" stop-opacity="0.6"/></linearGradient>
+        <radialGradient id="sfA" cx="${gx.toFixed(0)}%" cy="${gy.toFixed(0)}%" r="65%"><stop offset="0" stop-color="${tintB}" stop-opacity="0.7"/><stop offset="1" stop-color="${tintB}" stop-opacity="0"/></radialGradient>
+        <radialGradient id="sfB" cx="${(100 - gx).toFixed(0)}%" cy="${(100 - gy).toFixed(0)}%" r="55%"><stop offset="0" stop-color="${tintA}" stop-opacity="0.6"/><stop offset="1" stop-color="${tintA}" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="${W}" height="${H}" fill="#02030a"/><rect width="${W}" height="${H}" fill="url(#sfL)"/><rect width="${W}" height="${H}" fill="url(#sfA)"/><rect width="${W}" height="${H}" fill="url(#sfB)"/>`;
 
-    // stars flying outwards, growing as they get closer
-    const flying = 16;
-    for (let i = 0; i < flying; i++) {
-      const a = rand(0, Math.PI * 2);
-      const dur = rand(30, 60);
-      const tr = [];
-      for (let k = 0; k <= steps; k++) {
-        const t = k / steps;
-        const d = Math.pow(t, 1.8) * maxR;
-        tr.push(`${(d * Math.cos(a)).toFixed(0)} ${(d * Math.sin(a)).toFixed(0)}`);
+    // stars that twinkle: spread over a few groups, one animation per group
+    const still = [];
+    const groups = Array.from({ length: 6 }, () => []);
+    const sq = (arr, x, y, s, c, o) => arr.push(`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${c}" opacity="${o.toFixed(2)}"/>`);
+    const scatter = (count, sizes, twinkling) => {
+      for (let i = 0; i < count; i++) {
+        const into = i < twinkling ? groups[i % groups.length] : still;
+        sq(into, Math.round(rand(0, W) / 2) * 2, Math.round(rand(0, H) / 2) * 2, choice(sizes), choice(tints), rand(0.4, 1));
       }
-      const anim = reduced ? "" : `
-        <animateTransform attributeName="transform" type="translate" values="${tr.join(";")}" dur="${dur.toFixed(1)}s" begin="-${rand(0, dur).toFixed(1)}s" repeatCount="indefinite" calcMode="discrete"/>`;
-      const start = reduced ? maxR * rand(0.1, 0.9) : 0;
-      parts.push(`<g transform="translate(${(cx + start * Math.cos(a)).toFixed(0)} ${(cy + start * Math.sin(a)).toFixed(0)})"><rect x="0" y="0" width="1" height="1" fill="#fff">${anim}</rect></g>`);
+    };
+    const twinkleGroups = () => groups.map(g => g.length
+      ? `<g>${reduced ? "" : `<animate attributeName="opacity" values="1;1;0.2;1;1;0.55" dur="${rand(5, 13).toFixed(1)}s" begin="-${rand(0, 10).toFixed(1)}s" repeatCount="indefinite" calcMode="discrete"/>`}${g.join("")}</g>` : "").join("");
+
+    if (variant === "calm") {
+      scatter(190, [2, 2, 2, 3, 3, 4], 80);
+      // brighter pixel stars: a cross of squares, pulsing in three groups
+      const crosses = [[], [], []];
+      for (let i = 0; i < 9; i++) {
+        const x = Math.round(rand(40, W - 40) / 4) * 4;
+        const y = Math.round(rand(40, H - 40) / 4) * 4;
+        const c = choice(tints);
+        crosses[i % 3].push(`<g fill="${c}"><rect x="${x}" y="${y}" width="4" height="4"/><rect x="${x - 4}" y="${y}" width="4" height="4" opacity="0.6"/><rect x="${x + 4}" y="${y}" width="4" height="4" opacity="0.6"/><rect x="${x}" y="${y - 4}" width="4" height="4" opacity="0.6"/><rect x="${x}" y="${y + 4}" width="4" height="4" opacity="0.6"/></g>`);
+      }
+      const crossHtml = crosses.map(g => `<g>${reduced ? "" : `<animate attributeName="opacity" values="1;0.45;1" dur="${rand(4, 8).toFixed(1)}s" begin="-${rand(0, 6).toFixed(1)}s" repeatCount="indefinite" calcMode="discrete"/>`}${g.join("")}</g>`).join("");
+      let shooting = "";
+      if (!reduced) {
+        for (let i = 0; i < 2; i++) {
+          const dur = rand(11, 19);
+          const x0 = rand(W * 0.4, W);
+          const y0 = rand(0, H * 0.4);
+          let trail = "";
+          for (let k = 0; k < 7; k++) trail += `<rect x="${k * 8}" y="${-k * 4}" width="4" height="4" fill="#fff" opacity="${(1 - k * 0.14).toFixed(2)}"/>`;
+          shooting += `<g><animateTransform attributeName="transform" type="translate" values="${x0.toFixed(0)} ${y0.toFixed(0)};${(x0 - 460).toFixed(0)} ${(y0 + 230).toFixed(0)};${(x0 - 460).toFixed(0)} ${(y0 + 230).toFixed(0)}" keyTimes="0;0.07;1" dur="${dur.toFixed(1)}s" begin="-${rand(0, dur).toFixed(1)}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0;0" keyTimes="0;0.01;0.07;1" dur="${dur.toFixed(1)}s" begin="-${rand(0, dur).toFixed(1)}s" repeatCount="indefinite"/>${trail}</g>`;
+        }
+      }
+      return `${bg}<g shape-rendering="crispEdges">${still.join("")}${twinkleGroups()}${crossHtml}${shooting}</g>`;
     }
 
-    // a handful of fixed stars that blink
-    for (let i = 0; i < 12; i++) {
-      const x = Math.round(rand(0, W));
-      const y = Math.round(rand(0, H));
-      const size = choice([1, 1, 1, 1, 2]);
-      const dur = rand(9, 18);
-      const blink = reduced ? "" : `<animate attributeName="opacity" values="1;1;0.25;1;1;0.5" dur="${dur.toFixed(1)}s" begin="-${rand(0, dur).toFixed(1)}s" repeatCount="indefinite" calcMode="discrete"/>`;
-      parts.push(`<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="#fff" opacity="${rand(0.5, 1).toFixed(2)}">${blink}</rect>`);
+    if (variant === "drift") {
+      const cx = W / 2 + rand(-140, 140);
+      const cy = H / 2 + rand(-100, 100);
+      const maxR = Math.hypot(W, H) / 2 + 40;
+      const steps = 6;
+      const flying = [];
+      for (let i = 0; i < 22; i++) {
+        const a = rand(0, Math.PI * 2);
+        const dur = rand(30, 60);
+        const tr = [];
+        for (let k = 0; k <= steps; k++) {
+          const d = Math.pow(k / steps, 1.8) * maxR;
+          tr.push(`${(d * Math.cos(a)).toFixed(0)} ${(d * Math.sin(a)).toFixed(0)}`);
+        }
+        const anim = reduced ? "" : `<animateTransform attributeName="transform" type="translate" values="${tr.join(";")}" dur="${dur.toFixed(1)}s" begin="-${rand(0, dur).toFixed(1)}s" repeatCount="indefinite" calcMode="discrete"/>`;
+        const start = reduced ? maxR * rand(0.1, 0.9) : 0;
+        flying.push(`<g transform="translate(${(cx + start * Math.cos(a)).toFixed(0)} ${(cy + start * Math.sin(a)).toFixed(0)})"><rect x="0" y="0" width="${choice([2, 2, 3])}" height="${choice([2, 2, 3])}" fill="${choice(tints)}">${anim}</rect></g>`);
+      }
+      scatter(90, [2, 2, 2, 3], 30);
+      return `${bg}<g shape-rendering="crispEdges">${still.join("")}${twinkleGroups()}${flying.join("")}</g>`;
     }
-    return `<rect width="${W}" height="${H}" fill="#000"/><g shape-rendering="crispEdges">${parts.join("")}</g>`;
+
+    // warp: every star is a rect on its own ray; one CSS animation pushes it outwards
+    // while it stretches along that ray, easing in so the stars seem to accelerate
+    const cx = W / 2 + rand(-60, 60);
+    const cy = H / 2 + rand(-45, 45);
+    const reach = Math.hypot(W, H) / 2 + 80;
+    const stars = [];
+    for (let i = 0; i < 110; i++) {
+      const a = rand(0, Math.PI * 2);
+      const t = rand(2.6, 6.5);
+      const h = choice([2, 2, 3, 3, 4]);
+      const style = reduced
+        ? `transform:translateX(${(18 + reach * Math.pow(rand(0.05, 0.95), 2)).toFixed(0)}px) scaleX(${rand(2, 14).toFixed(1)});opacity:0.9`
+        : `animation-duration:${t.toFixed(2)}s;animation-delay:-${rand(0, t).toFixed(2)}s`;
+      stars.push(`<g transform="translate(${cx.toFixed(0)} ${cy.toFixed(0)}) rotate(${((a * 180) / Math.PI).toFixed(1)})"><rect class="sfw" x="0" y="${(-h / 2).toFixed(1)}" width="3" height="${h}" fill="${choice(tints)}" style="${style}"/></g>`);
+    }
+    return `${bg}
+      <radialGradient id="sfC"><stop offset="0" stop-color="${tintB}" stop-opacity="0.4"/><stop offset="1" stop-color="${tintB}" stop-opacity="0"/></radialGradient>
+      <circle cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" r="200" fill="url(#sfC)"/>
+      <style>.sfw{transform-origin:0 0;animation:sfwarp 4s cubic-bezier(.55,0,1,.45) infinite}@keyframes sfwarp{0%{transform:translateX(18px) scaleX(1);opacity:0}10%{opacity:1}100%{transform:translateX(${reach.toFixed(0)}px) scaleX(26);opacity:1}}</style>
+      ${stars.join("")}`;
   },
-
 
   Nebula(p) {
     return choice(Object.values(nebulae))(p);
@@ -2185,20 +2542,41 @@ function leftPanelStyle(p, svg) {
   `;
 }
 
-const AFRICAN = ["Kente", "Mudcloth", "Ndebele", "Kasai", "Adinkra", "Ankara", "Zulu", "Berber", "Shuka", "Adire"];
+const ETHNIC = [
+  // Africa
+  "Kente", "Mudcloth", "Ndebele", "Kasai", "Adinkra", "Ankara", "Zulu", "Berber", "Shuka", "Adire",
+  // Asia, Europe, the Americas, Oceania
+  "Seigaiha", "Sashiko", "Kawung", "Girih", "Azulejo", "FairIsle", "Slavic", "Navajo", "Andean", "Aboriginal"
+];
 const PIXEL = ["Pixel Level", "Pixel City"];
 
-// Starfield is pure black, so it only appears with the dark theme
-export function generateSkin(isDark) {
-  // themed packs turn up now and then, the abstract styles most of the time
-  const roll = Math.random();
-  const themed = [...AFRICAN, ...PIXEL];
-  const abstract = Object.keys(styles).filter(n => !themed.includes(n) && (isDark || n !== "Starfield"));
-  const pool = roll < 0.26 ? AFRICAN : roll < 0.46 ? PIXEL : abstract;
-  const name = choice(pool.filter(n => n !== lastStyle));
+// styles grouped for the /skins picker
+export const SKIN_GROUPS = {
+  Abstract: ["Aurora", "Synthwave", "Contour", "Bokeh", "Pulse"],
+  Space: ["Nebula", "Starfield"],
+  Ethnic: ETHNIC,
+  Pixel: PIXEL
+};
+
+// Starfield is pure black, so it only appears with the dark theme.
+// `only` is a group name (a random style from that group) or one particular style.
+export function generateSkin(isDark, only = null) {
+  const allowed = n => isDark || n !== "Starfield";
+  let pool;
+  let wanted = null;
+  if (only && SKIN_GROUPS[only]) {
+    pool = SKIN_GROUPS[only].filter(allowed);
+  } else {
+    if (only && styles[only] && allowed(only)) wanted = only;
+    // ethnic ornaments and pixel scenes turn up now and then, the abstract styles most of the time
+    const roll = Math.random();
+    pool = roll < 0.3 ? ETHNIC : roll < 0.45 ? PIXEL : [...SKIN_GROUPS.Abstract, ...SKIN_GROUPS.Space].filter(allowed);
+  }
+  const fresh = pool.filter(n => n !== lastStyle);
+  const name = wanted || choice(fresh.length ? fresh : pool);
   lastStyle = name;
   skinAnchor = null;
-  const palette = AFRICAN.includes(name) ? makeAfricanPalette(isDark, name)
+  const palette = ETHNIC.includes(name) ? makeEthnicPalette(isDark, name)
     : PIXEL.includes(name) ? pixelPalettes[name](isDark)
     : name === "Starfield" ? starfieldPalette()
     : makePalette(isDark);

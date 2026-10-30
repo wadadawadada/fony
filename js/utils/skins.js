@@ -1,8 +1,8 @@
 import { showDiscogsInfo } from '../nowplaying.js';
 import { openGifSearchModal } from './gifOverlays.js';
-import { generateSkin } from './skin-gen.js';
+import { generateSkin, SKIN_GROUPS } from './skin-gen.js';
 
-let currentSkin = { left: null, right: null, albumArt: null, anchor: null };
+let currentSkin = { left: null, right: null, albumArt: null, anchor: null, name: null };
 
 // Some skins have a focal point (Pulse's sun) that must sit behind the Play button.
 // The picture is 1200x900; scale it just enough to cover the panel while that point
@@ -82,9 +82,10 @@ function applyAlbumArtSkin(artUrl) {
   leftPanel.style.background = `linear-gradient(${overlay}, ${overlay}), url('${artUrl}') center / cover no-repeat`;
   currentSkin.albumArt = artUrl;
   currentSkin.anchor = null;
+  currentSkin.name = "Album art";
 }
 
-function applySkinStyles(leftStyle, rightStyle, isDark, anchor = null) {
+function applySkinStyles(leftStyle, rightStyle, isDark, anchor = null, name = null) {
   const leftPanel = document.querySelector(".left-panel");
   const rightPanel = document.querySelector(".right-panel");
   if (!leftPanel || !rightPanel) return;
@@ -94,6 +95,8 @@ function applySkinStyles(leftStyle, rightStyle, isDark, anchor = null) {
     currentSkin.left = leftStyle;
     currentSkin.right = rightStyle;
     currentSkin.anchor = anchor;
+    currentSkin.name = name;
+    currentSkin.albumArt = null;
     return;
   }
   setGlassBackdrop(null);
@@ -108,6 +111,8 @@ function applySkinStyles(leftStyle, rightStyle, isDark, anchor = null) {
   currentSkin.left = leftStyle;
   currentSkin.right = rightStyle;
   currentSkin.anchor = anchor;
+  currentSkin.name = name;
+  currentSkin.albumArt = null;
   watchSkinAlign();
   alignSkinToPlay();
 }
@@ -166,13 +171,140 @@ function resetPanelStyles() {
 
 function applyDefaultThemePanels() {
   resetPanelStyles();
-  currentSkin = { left: null, right: null, albumArt: null, anchor: null };
+  currentSkin = { left: null, right: null, albumArt: null, anchor: null, name: null };
   saveSkinToStorage();
 }
 
-export async function handleSkinsCommand(addMessage, note) {
-  const existingContainer = document.getElementById("skinButtonsContainer");
-  if (existingContainer) existingContainer.remove();
+// ---- /skins studio ---------------------------------------------------------------
+// One row of categories (each gives a random skin of its kind) and one row with the
+// current skin, the last three saved skins and the small actions.
+const SLOTS_KEY = "savedSkinSlots";
+const MAX_SLOTS = 3;
+let skinCardSeq = 0;
+
+function loadSlots() {
+  try {
+    const v = JSON.parse(localStorage.getItem(SLOTS_KEY) || "[]");
+    return Array.isArray(v) ? v.filter(s => s && s.left && s.right).slice(0, MAX_SLOTS) : [];
+  } catch {
+    return [];
+  }
+}
+
+function storeSlots(slots) {
+  const list = slots.slice(0, MAX_SLOTS);
+  while (list.length) {
+    try {
+      localStorage.setItem(SLOTS_KEY, JSON.stringify(list));
+      return;
+    } catch {
+      list.pop(); // storage is full: let the oldest one go until it fits
+    }
+  }
+  try { localStorage.removeItem(SLOTS_KEY); } catch {}
+}
+
+// puts the skin on screen at the front of the saved list (newest first, no duplicates)
+function saveCurrentSkinToSlots() {
+  if (!currentSkin.left || currentSkin.albumArt) return;
+  const slots = loadSlots().filter(s => s.left !== currentSkin.left);
+  slots.unshift({ name: currentSkin.name, left: currentSkin.left, right: currentSkin.right, anchor: currentSkin.anchor || null });
+  storeSlots(slots);
+}
+
+function groupOf(name) {
+  return Object.keys(SKIN_GROUPS).find(g => SKIN_GROUPS[g].includes(name)) || null;
+}
+
+// category icons: the die is the random-station one (five pips); the others are drawn to match
+const SK_ICONS = {
+  Any: '<svg class="sk-ico sk-die" viewBox="0 0 24 24" aria-hidden="true"><rect class="sk-die-body" x="3" y="3" width="18" height="18" rx="5"/><circle cx="8" cy="8" r="1.8"/><circle cx="16" cy="8" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="8" cy="16" r="1.8"/><circle cx="16" cy="16" r="1.8"/></svg>',
+  Abstract: '<svg class="sk-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><circle cx="15" cy="9" r="5.5"/><circle cx="12" cy="15" r="5.5"/></svg>',
+  Space: '<svg class="sk-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"/><ellipse cx="12" cy="12" rx="10" ry="3.4" transform="rotate(-20 12 12)"/></svg>',
+  Ethnic: '<svg class="sk-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 21.5 12 12 21.5 2.5 12Z"/><path d="M12 7.5 16.5 12 12 16.5 7.5 12Z"/><circle cx="12" cy="12" r="1" class="sk-dot"/></svg>',
+  Pixel: '<svg class="sk-ico sk-ico-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 3h6v3h-6zM13.5 3h6v3h-6zM1.5 6h21v3h-21zM1.5 9h21v3h-21zM4.5 12h15v3h-15zM7.5 15h9v3h-9zM10.5 18h3v3h-3z"/></svg>'
+};
+
+const SK_ACTION_ICONS = {
+  save: '<svg class="sk-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l4 4v12a2 2 0 0 1-2 2H6a3 3 0 0 1-3-3V5a2 2 0 0 1 2-2Z"/><path d="M7 3v5h8V3"/><path d="M7 21v-7h10v7"/></svg>',
+  gif: '<svg class="sk-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M4 18l5-5 4 4 3-3 5 5"/></svg>',
+  reset: '<svg class="sk-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>'
+};
+
+function skinCardHtml(albumArtUrl) {
+  const group = groupOf(currentSkin.name);
+  const cats = Object.keys(SKIN_GROUPS).map(g =>
+    `<button type="button" class="sk-link sk-cat${g === group ? " on" : ""}" data-act="cat" data-cat="${g}" title="${g}" aria-label="${g}">${SK_ICONS[g] || g}</button>`).join("");
+  const slots = loadSlots().map((s, i) =>
+    `<span class="sk-slot"><button type="button" class="sk-thumb${s.left === currentSkin.left ? " on" : ""}" data-act="slot" data-idx="${i}" title="Restore ${s.name || "skin"}"></button><button type="button" class="sk-x" data-act="unsave" data-idx="${i}" title="Remove">&times;</button></span>`).join("");
+  const art = albumArtUrl
+    ? `<button type="button" class="sk-link sk-art" data-act="art"><img src="${albumArtUrl}" alt="">Album art</button>`
+    : "";
+  return `
+    <div class="sk-row">
+      <span class="sk-label">Style:</span>
+      <button type="button" class="sk-link sk-cat" data-act="cat" data-cat="" title="Any style" aria-label="Any style">${SK_ICONS.Any}</button>
+      ${cats}
+      ${slots ? `<div class="sk-slots">${slots}</div>` : ""}
+      <span class="sk-spacer"></span>
+      <button type="button" class="sk-link" data-act="save">${SK_ACTION_ICONS.save}Save</button>
+      ${art}
+      <button type="button" class="sk-link" data-act="gif">${SK_ACTION_ICONS.gif}GIF</button>
+      <button type="button" class="sk-link" data-act="reset">${SK_ACTION_ICONS.reset}Reset</button>
+    </div>`;
+}
+
+function mountSkinCard(card, albumArtUrl) {
+  const paint = () => {
+    card.innerHTML = skinCardHtml(albumArtUrl);
+    // the thumbnails are the saved skins themselves (set from JS: the value has quotes)
+    const slots = loadSlots();
+    card.querySelectorAll(".sk-thumb").forEach(el => {
+      const s = slots[Number(el.dataset.idx)];
+      if (s) el.style.background = s.left;
+    });
+  };
+  card.addEventListener("click", (e) => {
+    const el = e.target.closest("[data-act]");
+    if (!el || !card.contains(el)) return;
+    e.preventDefault();
+    const isDark = document.body.classList.contains("dark");
+    const act = el.dataset.act;
+    if (act === "cat") {
+      const skin = generateSkin(isDark, el.dataset.cat || null);
+      applySkinStyles(skin.left, skin.right, isDark, skin.anchor || null, skin.name);
+    } else if (act === "slot") {
+      const s = loadSlots()[Number(el.dataset.idx)];
+      if (s) applySkinStyles(s.left, s.right, isDark, s.anchor || null, s.name || null);
+    } else if (act === "unsave") {
+      const slots = loadSlots();
+      slots.splice(Number(el.dataset.idx), 1);
+      storeSlots(slots);
+    } else if (act === "save") {
+      saveSkinToStorage();
+      saveCurrentSkinToSlots();
+      paint();
+      const btn = card.querySelector('[data-act="save"]');
+      if (btn) btn.innerHTML = SK_ACTION_ICONS.save + "Saved ✓";
+      setTimeout(paint, 1000);
+      return;
+    } else if (act === "reset") {
+      applyDefaultThemePanels();
+    } else if (act === "gif") {
+      openGifSearchModal();
+      return;
+    } else if (act === "art") {
+      applyAlbumArtSkin(albumArtUrl);
+      saveSkinToStorage();
+    }
+    paint();
+  });
+  paint();
+}
+
+export async function handleSkinsCommand(addMessage) {
+  const old = document.querySelector(".sk-card");
+  if (old) (old.closest(".chat-message") || old).remove();
 
   const nowPlaying = getNowPlayingText();
   if (nowPlaying && window.currentAlbumArtTrack !== nowPlaying) {
@@ -181,81 +313,23 @@ export async function handleSkinsCommand(addMessage, note) {
     window.currentAlbumArtUrl = null;
     window.currentAlbumArtTrack = null;
   }
-
   const albumArtUrl = window.currentAlbumArtUrl || null;
-  const hasAlbumArt = !!albumArtUrl;
-  const albumArtPart = hasAlbumArt
-    ? `<div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
-         <img src="${albumArtUrl}" alt="" style="width:28px; height:28px; object-fit:cover; border-radius:3px; flex-shrink:0;" />
-         <button id="useAlbumArtBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0; font-family:inherit; font-size:inherit;">use album art</button>
-       </div>`
-    : '';
-  const buttons = `
-    <div id="skinButtonsContainer">
-      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <button id="saveSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">save current skin</button>
-        <span style="color:#00F2B8;">|</span>
-        <button id="generateNewSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">generate new</button>
-        <span style="color:#00F2B8;">|</span>
-        <button id="resetSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">reset</button>
-        <span style="color:#00F2B8;">|</span>
-        <button id="addGifSkinBtn" style="cursor:pointer; background:none; border:none; color:#00F2B8; text-decoration:underline; padding:0;">gif</button>
-      </div>
-      ${albumArtPart}
-    </div>
-  `;
-  addMessage("bot", (note ? `Skins · ${note}` : "Skins") + "<br><br>" + buttons);
-  setTimeout(() => {
-    const saveEl = document.getElementById("saveSkinBtn");
-    if (saveEl) {
-      saveEl.onclick = (e) => {
-        e.preventDefault();
-        saveSkinToStorage();
-        addMessage("bot", "Skin saved!");
-      };
-    }
-    const generateEl = document.getElementById("generateNewSkinBtn");
-    if (generateEl) {
-      generateEl.onclick = (e) => {
-        e.preventDefault();
-        const isDark = document.body.classList.contains("dark");
-        const skin = generateSkin(isDark);
-        applySkinStyles(skin.left, skin.right, isDark, skin.anchor);
-        handleSkinsCommand(addMessage, skin.name);
-      };
-    }
-    const resetEl = document.getElementById("resetSkinBtn");
-    if (resetEl) {
-      resetEl.onclick = (e) => {
-        e.preventDefault();
-        applyDefaultThemePanels();
-        addMessage("bot", "Skin reset to default!");
-      };
-    }
-    const addGifEl = document.getElementById("addGifSkinBtn");
-    if (addGifEl) {
-      addGifEl.onclick = (e) => {
-        e.preventDefault();
-        openGifSearchModal();
-      };
-    }
-    const albumArtEl = document.getElementById("useAlbumArtBtn");
-    if (albumArtEl) {
-      albumArtEl.onclick = (e) => {
-        e.preventDefault();
-        applyAlbumArtSkin(albumArtUrl);
-        saveSkinToStorage();
-        addMessage("bot", "Album art applied!");
-      };
-    }
-  }, 100);
+  const id = `skCard${++skinCardSeq}`;
+  addMessage("bot", `<div class="sk-card" id="${id}">${skinCardHtml(albumArtUrl)}</div>`);
+  let tries = 0;
+  const wire = () => {
+    const card = document.getElementById(id);
+    if (card) mountSkinCard(card, albumArtUrl);
+    else if (++tries < 20) setTimeout(wire, 50);
+  };
+  setTimeout(wire, 30);
 }
 
 export function reapplySkin() {
   const skin = loadSkinFromStorage();
   if (skin && skin.left && skin.right) {
     const isDark = document.body.classList.contains("dark");
-    applySkinStyles(skin.left, skin.right, isDark, skin.anchor || null);
+    applySkinStyles(skin.left, skin.right, isDark, skin.anchor || null, skin.name || null);
   }
   if (skin && skin.albumArt) {
     applyAlbumArtSkin(skin.albumArt);
@@ -277,7 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const skin = loadSkinFromStorage();
   if (skin && skin.left && skin.right) {
     const isDark = document.body.classList.contains("dark");
-    applySkinStyles(skin.left, skin.right, isDark, skin.anchor || null);
+    applySkinStyles(skin.left, skin.right, isDark, skin.anchor || null, skin.name || null);
   }
   if (skin && skin.albumArt) {
     applyAlbumArtSkin(skin.albumArt);
@@ -288,7 +362,7 @@ document.addEventListener("themeChanged", () => {
   const skin = loadSkinFromStorage();
   const isDark = document.body.classList.contains("dark");
   if (skin && skin.left && skin.right) {
-    applySkinStyles(skin.left, skin.right, isDark, skin.anchor || null);
+    applySkinStyles(skin.left, skin.right, isDark, skin.anchor || null, skin.name || null);
   } else {
     resetPanelStyles();
   }
