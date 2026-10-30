@@ -2158,17 +2158,19 @@ function toDataUrl(svg) {
 }
 
 // Right panel carries the playlist text, so it gets a calmer mesh in the same palette.
+// Light theme: full-strength accent colours under a deep veil, so the panel is rich and
+// mid-dark (like the default light panel) and the translucent playlist cards stand out.
 function rightPanelStyle(p) {
   if (p.right) return p.right;
-  // light theme: a dark tint keeps the translucent white playlist cards visible
-  const veil = p.isDark ? "rgba(8,10,20,0.35)" : "rgba(28,34,60,0.4)";
+  const veil = p.isDark ? "rgba(8,10,20,0.35)" : "rgba(16,20,46,0.32)";
   const blobs = [0, 1, 2].map(i =>
-    `radial-gradient(circle at ${rand(0, 100).toFixed(0)}% ${rand(0, 100).toFixed(0)}%, ${p.color(i, p.isDark ? 0.45 : 0.55)}, transparent ${rand(45, 70).toFixed(0)}%)`
+    `radial-gradient(circle at ${rand(0, 100).toFixed(0)}% ${rand(0, 100).toFixed(0)}%, ${p.color(i, p.isDark ? 0.45 : 0.85)}, transparent ${rand(45, 70).toFixed(0)}%)`
   );
+  const base = p.isDark ? `${p.bgColor()}, ${p.bg2Color()}` : `${p.color(0)}, ${p.color(1)}, ${p.color(2)}`;
   return `
     linear-gradient(${veil}, ${veil}),
-    ${blobs.join(",\n    ")},
-    linear-gradient(${rand(120, 240).toFixed(0)}deg, ${p.bgColor()}, ${p.bg2Color()})
+    ${blobs.join(", ")},
+    linear-gradient(${rand(120, 240).toFixed(0)}deg, ${base})
   `;
 }
 
