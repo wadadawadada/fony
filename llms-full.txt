@@ -108,7 +108,7 @@ The console can be resized by dragging its top edge (the player controls shrink 
 ## Themes and skins
 
 - Three themes: dark (default on first launch), light, and liquid glass, a physically based glass look (refraction, dispersion, specular light) rendered with WebGL in Chromium browsers and a softer CSS version elsewhere.
-- Skins: procedurally generated backgrounds (abstract, African patterns, pixel scenes, starfield, vinyl and more), GIF skins, or the current album art. In liquid glass, skins become the scene seen through the glass.
+- Skins: procedurally generated backgrounds (abstract, African patterns, pixel scenes, starfield and more), GIF skins, or the current album art. In liquid glass, skins become the scene seen through the glass.
 - Left-handed layout mirrors the screen on wide viewports.
 
 ## Settings and data

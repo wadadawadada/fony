@@ -2,7 +2,45 @@ import { showDiscogsInfo } from '../nowplaying.js';
 import { openGifSearchModal } from './gifOverlays.js';
 import { generateSkin } from './skin-gen.js';
 
-let currentSkin = { left: null, right: null, albumArt: null };
+let currentSkin = { left: null, right: null, albumArt: null, anchor: null };
+
+// Some skins have a focal point (Pulse's sun) that must sit behind the Play button.
+// The picture is 1200x900; scale it just enough to cover the panel while that point
+// lands on the button, and shift it there.
+const SKIN_W = 1200;
+const SKIN_H = 900;
+function alignSkinToPlay() {
+  const leftPanel = document.querySelector(".left-panel");
+  const btn = document.getElementById("playPauseBtn");
+  const a = currentSkin.anchor;
+  if (!leftPanel || !btn || !a || isGlass() || !leftPanel.style.background) return;
+  const pr = leftPanel.getBoundingClientRect();
+  const br = btn.getBoundingClientRect();
+  if (!pr.width || !pr.height || !br.width) return;
+  const bx = br.left + br.width / 2 - pr.left;
+  const by = br.top + br.height / 2 - pr.top;
+  const ax = a.x * SKIN_W;
+  const ay = a.y * SKIN_H;
+  const s = Math.max(bx / ax, (pr.width - bx) / (SKIN_W - ax), by / ay, (pr.height - by) / (SKIN_H - ay), 0.01);
+  leftPanel.style.backgroundSize = `100% 100%, ${(SKIN_W * s).toFixed(1)}px ${(SKIN_H * s).toFixed(1)}px`;
+  leftPanel.style.backgroundPosition = `0 0, ${(bx - ax * s).toFixed(1)}px ${(by - ay * s).toFixed(1)}px`;
+  leftPanel.style.backgroundRepeat = "repeat, no-repeat";
+}
+
+let skinAlignWatching = false;
+function watchSkinAlign() {
+  if (skinAlignWatching) return;
+  const leftPanel = document.querySelector(".left-panel");
+  if (!leftPanel) return;
+  skinAlignWatching = true;
+  window.addEventListener("resize", alignSkinToPlay);
+  if (typeof ResizeObserver === "function") {
+    const ro = new ResizeObserver(() => alignSkinToPlay());
+    ro.observe(leftPanel);
+    const btn = document.getElementById("playPauseBtn");
+    if (btn) ro.observe(btn);
+  }
+}
 
 const isGlass = () => document.body.classList.contains("glass");
 
@@ -43,9 +81,10 @@ function applyAlbumArtSkin(artUrl) {
   leftPanel.style.backgroundColor = isDark ? "#171C2B" : "#f2f2f2";
   leftPanel.style.background = `linear-gradient(${overlay}, ${overlay}), url('${artUrl}') center / cover no-repeat`;
   currentSkin.albumArt = artUrl;
+  currentSkin.anchor = null;
 }
 
-function applySkinStyles(leftStyle, rightStyle, isDark) {
+function applySkinStyles(leftStyle, rightStyle, isDark, anchor = null) {
   const leftPanel = document.querySelector(".left-panel");
   const rightPanel = document.querySelector(".right-panel");
   if (!leftPanel || !rightPanel) return;
@@ -54,6 +93,7 @@ function applySkinStyles(leftStyle, rightStyle, isDark) {
     setGlassBackdrop(rightStyle.trim(), leftStyle);
     currentSkin.left = leftStyle;
     currentSkin.right = rightStyle;
+    currentSkin.anchor = anchor;
     return;
   }
   setGlassBackdrop(null);
@@ -67,6 +107,9 @@ function applySkinStyles(leftStyle, rightStyle, isDark) {
   rightPanel.style.backgroundColor = isDark ? "#232840" : "#f2f2f2";
   currentSkin.left = leftStyle;
   currentSkin.right = rightStyle;
+  currentSkin.anchor = anchor;
+  watchSkinAlign();
+  alignSkinToPlay();
 }
 
 function saveSkinToStorage() {
@@ -123,7 +166,7 @@ function resetPanelStyles() {
 
 function applyDefaultThemePanels() {
   resetPanelStyles();
-  currentSkin = { left: null, right: null, albumArt: null };
+  currentSkin = { left: null, right: null, albumArt: null, anchor: null };
   saveSkinToStorage();
 }
 
@@ -177,7 +220,7 @@ export async function handleSkinsCommand(addMessage, note) {
         e.preventDefault();
         const isDark = document.body.classList.contains("dark");
         const skin = generateSkin(isDark);
-        applySkinStyles(skin.left, skin.right, isDark);
+        applySkinStyles(skin.left, skin.right, isDark, skin.anchor);
         handleSkinsCommand(addMessage, skin.name);
       };
     }
@@ -212,7 +255,7 @@ export function reapplySkin() {
   const skin = loadSkinFromStorage();
   if (skin && skin.left && skin.right) {
     const isDark = document.body.classList.contains("dark");
-    applySkinStyles(skin.left, skin.right, isDark);
+    applySkinStyles(skin.left, skin.right, isDark, skin.anchor || null);
   }
   if (skin && skin.albumArt) {
     applyAlbumArtSkin(skin.albumArt);
@@ -234,7 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const skin = loadSkinFromStorage();
   if (skin && skin.left && skin.right) {
     const isDark = document.body.classList.contains("dark");
-    applySkinStyles(skin.left, skin.right, isDark);
+    applySkinStyles(skin.left, skin.right, isDark, skin.anchor || null);
   }
   if (skin && skin.albumArt) {
     applyAlbumArtSkin(skin.albumArt);
@@ -245,7 +288,7 @@ document.addEventListener("themeChanged", () => {
   const skin = loadSkinFromStorage();
   const isDark = document.body.classList.contains("dark");
   if (skin && skin.left && skin.right) {
-    applySkinStyles(skin.left, skin.right, isDark);
+    applySkinStyles(skin.left, skin.right, isDark, skin.anchor || null);
   } else {
     resetPanelStyles();
   }
@@ -274,6 +317,7 @@ function clearSkinStyles() {
   localStorage.removeItem("skinTheme");
   currentSkin.left = null;
   currentSkin.right = null;
+  currentSkin.anchor = null;
 }
 
 export { clearSkinStyles, applyAlbumArtSkin };
