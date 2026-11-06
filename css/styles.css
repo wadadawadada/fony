@@ -658,6 +658,23 @@ body.dark .logo {
   height: 50px;
 }
 
+/* a click on the equalizer switches to the next one, so it should look clickable everywhere */
+.equalizer-container,
+.equalizer-container * {
+  cursor: pointer;
+}
+
+/* over the sheep the cursor is an open palm: you can pet her */
+.equalizer-container #sheep,
+.equalizer-container #sheep * {
+  cursor: grab;
+}
+
+.equalizer-container #sheep:active,
+.equalizer-container #sheep:active * {
+  cursor: grab;
+}
+
 .equalizer-bar {
   border-radius: 2px;
 }
