@@ -361,6 +361,87 @@ border: none;
   text-align: center;
 }
 
+/* Now-playing details (Discogs): album title, then the facts as a centred wrapping line, then the links.
+   No fixed columns: whatever the panel width or text length, every line stays centred. */
+.discogs-container {
+  max-height: 320px;
+}
+
+.discogs-info {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.discogs-album {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+}
+
+.discogs-album-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.discogs-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 26px;
+  max-width: 100%;
+}
+
+.discogs-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  max-width: 100%;
+  text-align: left;
+}
+
+.discogs-key {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.discogs-val {
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.discogs-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-top: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.discogs-links a {
+  color: #00F2B8;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .center-circle {
   position: relative;
   width: 200px;

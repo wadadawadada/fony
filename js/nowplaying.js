@@ -64,6 +64,7 @@ function getNowPlayingText() {
 function setTextColorRecursively(element, color) {
   element.style.color = color;
   element.querySelectorAll("*").forEach(el => {
+    if (el.hasAttribute("data-keep-color")) return; // the service links keep their accent colour
     el.style.color = color;
   });
 }
@@ -151,22 +152,27 @@ export async function showDiscogsInfo() {
 
     const query = encodeURIComponent(`${artist} ${track}`);
 
+    const esc = v => String(v).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+    const chip = (icon, key, val) =>
+      `<div class="discogs-chip"><span class="discogs-key">${icon} ${key}</span><span class="discogs-val">${esc(val)}</span></div>`;
+
+    // Album on its own line (it is the long one), the short facts in an even grid, links underneath
     discogsContainer.innerHTML = `
-      <div style="text-align: center; max-width: 100%; margin: 0 auto;">
-        <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 8px; font-weight: 600;">
-          <div>🎵 Album: ${album}</div>
-          <div>📅 Year: ${year}</div>
-          <div>🌍 Country: ${country}</div>
+      <div class="discogs-info">
+        <div class="discogs-album">
+          <span class="discogs-key">🎵 Album</span>
+          <span class="discogs-album-title">${esc(album)}</span>
         </div>
-        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 12px; font-weight: 600;">
-          <div>🏷️ Label: ${label}</div>
-          <div>🎶 Genre: ${genre}</div>
+        <div class="discogs-meta">
+          ${chip("📅", "Year", year)}
+          ${chip("🌍", "Country", country)}
+          ${chip("🏷️", "Label", label)}
+          ${chip("🎶", "Genre", genre)}
         </div>
-        <br><br>
-        <div style="display: flex; justify-content: center; gap: 20px; font-weight: 500; font-size: 0.9rem;">
-          <a href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">YouTube</a>
-          <a href="https://open.spotify.com/search/${query}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Spotify</a>
-          <a href="https://tidal.com/browse/search?q=${query}" target="_blank" rel="noopener noreferrer" style="color: #00F2B8; text-decoration: underline;">Tidal</a>
+        <div class="discogs-links">
+          <a data-keep-color href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener noreferrer">YouTube</a>
+          <a data-keep-color href="https://open.spotify.com/search/${query}" target="_blank" rel="noopener noreferrer">Spotify</a>
+          <a data-keep-color href="https://tidal.com/browse/search?q=${query}" target="_blank" rel="noopener noreferrer">Tidal</a>
         </div>
       </div>
     `;
