@@ -537,3 +537,21 @@ body.dark .local-mode-button.active img {
 #playlist li.local-row.local-big .local-sub {
   font-size: 0.85rem;
 }
+
+/* The playing local track shows a play icon instead of the note (and drops the accent dot) */
+#playlist li.local-track.active::before {
+  display: none;
+}
+
+#playlist li.local-track.active .local-ico svg {
+  display: none;
+}
+
+#playlist li.local-track.active .local-ico::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 4l13 8-13 8z' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 4l13 8-13 8z' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
+}

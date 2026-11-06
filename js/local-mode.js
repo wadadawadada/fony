@@ -784,6 +784,23 @@ export function leaveLocalMode() {
   lib.releaseTrack();
 }
 
+// Click on the "now playing" bar: jump back to the folder of the track that is playing,
+// wherever the browser is right now (another folder, a playlist, favorites, the home screen).
+export function revealPlaying() {
+  if (!ctx) return;
+  const st = (window.currentPlaylist || []).find(x => x && x.local && x.url === window.currentStationUrl);
+  if (!st || !st.path) return;
+  const dir = st.path.slice(0, -1);
+  const here = view.kind === 'dir' && view.rootId === st.rootId
+    && view.path.length === dir.length && view.path.every((p, i) => p === dir[i]);
+  if (here && !query) {
+    // already in that folder: just bring the playing row into view
+    if (activeLi) activeLi.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    return;
+  }
+  setView({ kind: 'dir', rootId: st.rootId, path: dir }, { reveal: true });
+}
+
 export function syncActive() {
   if (!ctx) return;
   const cur = window.currentStationUrl;

@@ -772,16 +772,17 @@ body:not(.dark) .add-playlist-field input:focus {
   100% { transform: scale(1); }
 }
 
+/* next / previous: a small press-in, no sideways shift (the button stays where it is) */
 @keyframes fx-kick-r {
-  0% { transform: translateX(0); }
-  35% { transform: translateX(9px) scale(1.04); }
-  100% { transform: translateX(0); }
+  0% { transform: scale(1); }
+  35% { transform: scale(0.93); }
+  100% { transform: scale(1); }
 }
 
 @keyframes fx-kick-l {
-  0% { transform: translateX(0); }
-  35% { transform: translateX(-9px) scale(1.04); }
-  100% { transform: translateX(0); }
+  0% { transform: scale(1); }
+  35% { transform: scale(0.93); }
+  100% { transform: scale(1); }
 }
 
 @keyframes fx-flip {
@@ -1607,4 +1608,9 @@ body.glass .center-circle.has-cover::after {
     color: var(--accent);
     font-weight: 600;
   }
+}
+
+/* Active station: the genre icon comes first, the broadcast icon after it */
+#playlist li.active .station-favorite-icon {
+  order: -1;
 }

@@ -7,7 +7,7 @@ import { initEqualizer } from './equalizer.js'
 import { connectWallet, getNFTContractList, connectAndLoadWalletNFTs } from './web3.js'
 import { clearDiscogsInfo, refreshNowPlaying } from './nowplaying.js'
 import { isLocalSupported, prepareTrack, isFavorite as isLocalFavorite, toggleFavorite as toggleLocalFavoriteTrack } from './local-library.js'
-import { enterLocalMode, leaveLocalMode, syncActive as syncLocalActive, setLocalProgress, showUnsupportedDialog, playRandom as playLocalRandom } from './local-mode.js'
+import { enterLocalMode, leaveLocalMode, syncActive as syncLocalActive, setLocalProgress, showUnsupportedDialog, playRandom as playLocalRandom, revealPlaying as revealLocalPlaying } from './local-mode.js'
 import { initCustomGenreSelect, setSelectedGenre, getSelectedGenre } from './custom-genre-select.js';
 import { loadCustomPlaylists, saveCustomPlaylist, deleteCustomPlaylist, normalizePlaylistUrl, suggestNameFromUrl } from './custom-playlists.js';
 import { loadMergedPlaylistFolder as fetchMergedPlaylistFolder } from './merged-playlist-catalog.js';
@@ -590,7 +590,22 @@ function leaveLocalIfNeeded() {
   window.__localCoverFallback = null
   const lb = document.getElementById("localModeBtn")
   if (lb) { lb.classList.remove("active"); lb.title = "Local files" }
+  setNowPlayingBarClickable(false)
 }
+
+// In Local mode the "now playing" bar is a button: it takes you back to the folder of the playing track.
+function setNowPlayingBarClickable(on) {
+  const bar = document.querySelector(".left-group")
+  if (!bar) return
+  bar.style.cursor = on ? "pointer" : ""
+  bar.title = on ? "Show this track in its folder" : ""
+  // Local mode: a folder with a play sign instead of the radio-broadcast icon
+  const ico = bar.querySelector(".stream-icon")
+  if (ico) ico.src = on ? "/img/local_playing.svg" : "/img/stream_icon.svg"
+}
+document.querySelector(".left-group")?.addEventListener("click", () => {
+  if (currentMode === "local") revealLocalPlaying()
+})
 
 function switchToRadio(restorePlayback = true) {
   leaveLocalIfNeeded();
@@ -777,6 +792,7 @@ function switchToLocal() {
   playlistElement.innerHTML = ""
   const lb = document.getElementById("localModeBtn")
   if (lb) { lb.classList.add("active"); lb.title = "Back to radio" }
+  setNowPlayingBarClickable(true)
   const heart = document.getElementById("favBtn")
   if (heart) heart.src = (["dark", "glass"].includes(localStorage.getItem("theme")) ? "/img/dark/" : "/img/") + "fav.svg"
   if (stationLabel) {
