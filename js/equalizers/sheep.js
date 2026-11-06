@@ -17,6 +17,7 @@ export default function Sheep({ container, analyser }) {
   let jumpStart = -1e9, jumpAmp = 8, quietSince = 0;
   // dance moves: jump / squat / head-bang and mixes; the move changes every 4 or 8 beats
   let walkPhase = 0, lastAnimT = 0;
+  let headY = 0, headRot = 0;   // smoothed head pose (see animateSheep)
   let danceMove = "jump", pinnedMove = null, beatsLeft = 0, earDance = 0, lastEar = 0, eyesHappyShown = false;
   const MOVES = [["jump", 1.4], ["bang", 1.2], ["squat", 1.0], ["jumpbang", 1.1], ["squatbang", 1.0]];
   let jumpMs = 300;
@@ -655,28 +656,36 @@ export default function Sheep({ container, analyser }) {
     sheepGroup.setAttribute("transform", transform);
     if (head) {
       const ph = beatPhase(t);
+      // 1) what the head WANTS to do in the current mode: a vertical offset and a tilt
+      let wantY = 0, wantRot = 0;
       if (mode === "nod") {
         // with a stable tempo the head dips ON the beat and eases back up; otherwise the old free-running nod
         const amp = 3 * level + 3;
-        const y = ph === null ? Math.sin(t * 0.0037) * amp : (Math.exp(-ph * 4) * 2 - 0.4) * (amp + 2);
-        head.setAttribute("transform", `translate(0,${y.toFixed(2)})`);
+        wantY = ph === null ? Math.sin(t * 0.0037) * amp : (Math.exp(-ph * 4) * 2 - 0.4) * (amp + 2);
       } else if (mode === "graze") {
-        const chew = Math.sin(t * 0.007) * 2.8;
-        head.setAttribute("transform", `translate(0,18) rotate(-14,42,27) translate(0,${chew.toFixed(2)})`);
+        wantY = 18 + Math.sin(t * 0.007) * 2.8;      // down to the grass, chewing
+        wantRot = -14;
       } else if (mode === "dance") {
-        // head dips on landing, lifts in the air
         // head dips on landing / lifts in the air; a head-bang swings it down and forward on the beat
-        head.setAttribute("transform", `translate(0,${(3 - jumpH * 0.35 + bangArch * 6).toFixed(2)}) rotate(${(-bangArch * 15).toFixed(1)},36,18)`);
+        wantY = 3 - jumpH * 0.35 + bangArch * 6;
+        wantRot = -bangArch * 15;
       } else if (mode === "pause") {
-        head.setAttribute("transform", `translate(0,3)`);
+        wantY = 3;
       } else {
         // walking: a soft bob, not a jerk. With a known tempo it is one smooth wave per beat (lowest point on the beat);
         // otherwise a slow free wave. The loudness only changes the depth a little, never the speed.
         const depth = 1.4 + 2.6 * Math.min(1, level * 1.5);
         const wave = ph === null ? 0.5 + 0.5 * Math.sin(t * 0.0032) : 0.5 + 0.5 * Math.cos(2 * Math.PI * ph);
-        const y = wave * depth;
-        head.setAttribute("transform", `translate(0,${y.toFixed(2)})`);
+        wantY = wave * depth;
       }
+      // 2) the head never snaps there: it eases towards the target. Changing mode (walk -> graze, pause -> nod ...)
+      //    or a sharp beat therefore becomes a quick glide instead of a jerk. Dancing stays tight so it keeps the beat.
+      const dtH = lastAnimT ? Math.min(48, t - lastAnimT) : 16;
+      const tau = mode === "dance" ? 45 : mode === "nod" ? 70 : 130;
+      const k = 1 - Math.exp(-dtH / tau);
+      headY += (wantY - headY) * k;
+      headRot += (wantRot - headRot) * k;
+      head.setAttribute("transform", `translate(0,${headY.toFixed(2)}) rotate(${headRot.toFixed(2)},40,22)`);
     }
     const dtA = lastAnimT ? Math.min(48, t - lastAnimT) : 16;
     lastAnimT = t;
@@ -694,10 +703,10 @@ export default function Sheep({ container, analyser }) {
     }
     const step = walkPhase;
     const legsAnim = (mode === "walk");
-    if (frontL) frontL.setAttribute("transform", legsAnim ? `rotate(${Math.sin(step)*16*walkAmp},40,43)` : "");
-    if (frontR) frontR.setAttribute("transform", legsAnim ? `rotate(${-Math.sin(step)*16*walkAmp},34,41)` : "");
-    if (rearL)  rearL.setAttribute("transform", legsAnim ? `rotate(${Math.sin(step+1.2)*13*walkAmp},70,41)` : "");
-    if (rearR)  rearR.setAttribute("transform", legsAnim ? `rotate(${-Math.sin(step+1.2)*13*walkAmp},63,43)` : "");
+    if (frontL) frontL.setAttribute("transform", legsAnim ? `rotate(${Math.sin(step)*11*walkAmp},40.8,30)` : "");
+    if (frontR) frontR.setAttribute("transform", legsAnim ? `rotate(${-Math.sin(step)*11*walkAmp},34.9,29.6)` : "");
+    if (rearL)  rearL.setAttribute("transform", legsAnim ? `rotate(${Math.sin(step+1.2)*9*walkAmp},70.2,30)` : "");
+    if (rearR)  rearR.setAttribute("transform", legsAnim ? `rotate(${-Math.sin(step+1.2)*9*walkAmp},64.4,29.6)` : "");
     if (mode === "dance" && squatS < 1) {
       // squat: legs squash vertically about their tops while the body sinks
       const sq = `translate(0,29) scale(1,${squatS.toFixed(3)}) translate(0,-29)`;
@@ -709,10 +718,10 @@ export default function Sheep({ container, analyser }) {
     if (mode === "dance" && jumpH > 0) {
       // legs tuck up while she is in the air
       const a = Math.min(1, jumpH / Math.max(1, jumpAmp)) * 16;
-      if (frontL) frontL.setAttribute("transform", `rotate(${a},40,43)`);
-      if (frontR) frontR.setAttribute("transform", `rotate(${-a},34,41)`);
-      if (rearL)  rearL.setAttribute("transform", `rotate(${a * 0.8},70,41)`);
-      if (rearR)  rearR.setAttribute("transform", `rotate(${-a * 0.8},63,43)`);
+      if (frontL) frontL.setAttribute("transform", `rotate(${a},40.8,30)`);
+      if (frontR) frontR.setAttribute("transform", `rotate(${-a},34.9,29.6)`);
+      if (rearL)  rearL.setAttribute("transform", `rotate(${a * 0.8},70.2,30)`);
+      if (rearR)  rearR.setAttribute("transform", `rotate(${-a * 0.8},64.4,29.6)`);
     }
     updatePet(t);
     updateEyes(t);
