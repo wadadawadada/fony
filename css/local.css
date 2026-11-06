@@ -38,33 +38,44 @@ body.dark .local-mode-button.active img {
   }
 }
 
+/* Mode title: reads as a heading with the icon, not as a label of the search box */
 #localModeLabel {
   white-space: nowrap;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-left: -0.4rem;
+  margin-right: auto;
 }
 
 #localAddFolderBtn {
   background: none;
   border: none;
   color: #fff;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
+  width: 1.8rem;
+  height: 1.8rem;
+  margin-right: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   padding: 0;
-  transition: background 0.2s;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 #localAddFolderBtn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  animation: favIconPop 0.35s ease-out;
+}
+
+#localAddFolderBtn:active {
+  transform: scale(0.88);
+  animation: none;
 }
 
 #localAddFolderBtn img {
-  width: 22px;
-  height: 22px;
+  width: 1.8rem;
+  height: 1.8rem;
+  object-fit: contain;
   filter: brightness(0) invert(1);
 }
 
@@ -134,7 +145,7 @@ body.dark .local-mode-button.active img {
 
 #playlist li.local-new {
   opacity: 0.8;
-  border: 1px dashed rgba(255, 255, 255, 0.5);
+  border: 1px dashed rgba(255, 255, 255, 0.28);
   color: #fff;
   background: transparent;
   box-shadow: none;
@@ -380,7 +391,7 @@ body.dark .local-mode-button.active img {
   justify-content: center;
   gap: 12px;
   padding: 14px;
-  border: 2px dashed rgba(255, 255, 255, 0.55);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
   background: transparent;
   box-shadow: none;
 }
@@ -389,7 +400,7 @@ body.dark .local-mode-button.active img {
   justify-content: flex-start;
   gap: 8px;
   padding: 10px;
-  border: 1px dashed rgba(255, 255, 255, 0.5);
+  border: 1px dashed rgba(255, 255, 255, 0.28);
   opacity: 0.8;
 }
 
@@ -508,4 +519,21 @@ body.dark .local-mode-button.active img {
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
   opacity: 0.7;
+}
+
+/* Library home: folders and playlists are the main items, so they are larger */
+#playlist li.local-row.local-big {
+  font-size: 1.2rem;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  gap: 12px;
+}
+
+#playlist li.local-row.local-big .local-ico svg {
+  width: 22px;
+  height: 22px;
+}
+
+#playlist li.local-row.local-big .local-sub {
+  font-size: 0.85rem;
 }

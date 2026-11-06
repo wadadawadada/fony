@@ -7,6 +7,7 @@ const ICON = {
   folder: svg('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
   note: svg('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'),
   list: svg('<path d="M4 6h12M4 12h12M4 18h8M18 15v6M15 18h6"/>'),
+  playlist: svg('<path d="M4 6h16M4 12h16M4 18h10"/>'),
   play: svg('<path d="M7 4l13 8-13 8z" fill="currentColor"/>'),
   plus: svg('<path d="M12 5v14M5 12h14"/>'),
   trash: svg('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
@@ -386,6 +387,7 @@ async function homeRows() {
     rows.push(row({
       icon: granted ? ICON.folder : ICON.lock,
       label: root.name,
+      cls: 'local-big',
       sub: granted ? '' : 'click to allow access',
       onClick: async () => {
         if (!granted && !(await lib.requestAccess(root))) return;
@@ -418,7 +420,7 @@ async function homeRows() {
       icon: ICON.heartFill,
       label: 'Favorites',
       sub: `${favs.length} track${favs.length === 1 ? '' : 's'}`,
-      cls: 'local-fav-row',
+      cls: 'local-fav-row local-big',
       onClick: () => setView({ kind: 'favorites' }),
       actions: [[ICON.play, 'Play favorites', () => playFavorites()]]
     }));
@@ -426,8 +428,9 @@ async function homeRows() {
   const playlists = lib.loadPlaylists().filter(p => matches(p.name));
   for (const pl of playlists) {
     rows.push(row({
-      icon: ICON.list,
+      icon: ICON.playlist,
       label: pl.name,
+      cls: 'local-big',
       sub: `${pl.tracks.length} track${pl.tracks.length === 1 ? '' : 's'}`,
       onClick: () => setView({ kind: 'playlist', id: pl.id }),
       actions: [
@@ -443,7 +446,7 @@ async function homeRows() {
     }));
   }
   const newRow = row({
-    icon: ICON.plus,
+    icon: ICON.list,
     label: 'New playlist',
     cls: 'local-new',
     onClick: async () => {

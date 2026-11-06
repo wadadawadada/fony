@@ -634,7 +634,7 @@ function switchToRadio(restorePlayback = true) {
           <ul class="genre-select-list" id="genreSelectList"></ul>
         </div>
       </div>
-      <button id="addPlaylistBtn" title="Add custom playlist" aria-label="Add custom playlist">+</button>
+      <button id="addPlaylistBtn" title="Add custom playlist" aria-label="Add custom playlist"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h12M4 12h12M4 18h8M18 15v6M15 18h6"/></svg></button>
       <div class="search-wrapper">
         <input type="text" id="searchInput" class="genre-search" placeholder="Search all radio playlists">
         <span id="clearSearch">×</span>
@@ -788,10 +788,10 @@ function switchToLocal() {
   const g = document.querySelector(".genre-box")
   if (g) {
     g.innerHTML = `
-      <span id="localModeLabel">LOCAL: </span>
       <button id="localAddFolderBtn" title="Add music folder" aria-label="Add music folder">
         <img src="/img/local.svg" alt="Add folder">
       </button>
+      <span id="localModeLabel">My music</span>
       <div class="search-wrapper">
         <input type="text" id="searchInput" class="genre-search" placeholder="Search this view">
         <span id="clearSearch">×</span>
@@ -1467,14 +1467,62 @@ function openAddPlaylistModal() {
   document.getElementById('mergedPlaylistCatalogToggle').disabled = true;
   document.getElementById('mergedPlaylistCatalogList').innerHTML = '';
   document.getElementById('mergedPlaylistStatus').textContent = '';
-  modal.style.display = 'flex';
-  document.getElementById('addPlaylistUrl').focus();
+  modal.classList.remove('closing');
+  document.body.classList.add('add-playlist-open');
+  modal.style.display = 'block';
+  positionAddPlaylistPopover();
+  document.getElementById('addPlaylistUrl').focus({ preventScroll: true });
+}
+
+// The form opens as a popover centred over the station list; the rest of the page stays untouched.
+function positionAddPlaylistPopover() {
+  const box = document.querySelector('#addPlaylistModal .add-playlist-content');
+  if (!box) return;
+  const margin = 8;
+  const w = box.offsetWidth;
+  const h = box.offsetHeight;
+  const area = (document.getElementById('playlistContent') || document.body).getBoundingClientRect();
+  const cx = area.left + area.width / 2;
+  // sit a bit above the middle of the list
+  const cy = area.top + Math.min(area.height, window.innerHeight - area.top) * 0.38;
+  const left = Math.max(margin, Math.min(cx - w / 2, window.innerWidth - w - margin));
+  const top = Math.max(margin, Math.min(cy - h / 2, window.innerHeight - h - margin));
+  box.style.left = left + 'px';
+  box.style.top = top + 'px';
 }
 
 function closeAddPlaylistModal() {
   const modal = document.getElementById('addPlaylistModal');
-  if (modal) modal.style.display = 'none';
+  if (!modal || modal.style.display === 'none' || modal.classList.contains('closing')) return;
+  document.body.classList.remove('add-playlist-open');
+  const box = modal.querySelector('.add-playlist-content');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!box || reduce) { modal.style.display = 'none'; return; }
+  modal.classList.add('closing');
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    modal.classList.remove('closing');
+    modal.style.display = 'none';
+  };
+  box.addEventListener('animationend', finish, { once: true });
+  setTimeout(finish, 300);
 }
+
+document.addEventListener('mousedown', (e) => {
+  const modal = document.getElementById('addPlaylistModal');
+  if (!modal || modal.style.display === 'none') return;
+  if (e.target.closest('.add-playlist-content') || e.target.closest('#addPlaylistBtn')) return;
+  closeAddPlaylistModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeAddPlaylistModal();
+});
+window.addEventListener('resize', () => {
+  const modal = document.getElementById('addPlaylistModal');
+  if (modal && modal.style.display !== 'none') positionAddPlaylistPopover();
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   const initialAddBtn = document.getElementById('addPlaylistBtn');
