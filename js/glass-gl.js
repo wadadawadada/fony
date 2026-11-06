@@ -14,10 +14,21 @@
 //   - dispersion: red / green / blue use slightly different displacement,
 //   - a specular rim lit from the cursor, a Fresnel edge, a soft drop shadow.
 //
+// Where the cursor moves, the glass turns into jelly: a short trail of points is turned into a
+// height field (expanding water rings plus a springy, wobbling bump under every point). The glass
+// bends the picture along the slope of that field and catches highlights on it, so a swipe
+// leaves a wobbling, rippling wake that settles about a second and a half later.
+// (Both effects are switched OFF at the moment; flip the flags in EFFECTS to bring them back.)
+// The older sparkle shimmer is still in the shader, switched off in EFFECTS.
+//
 // If WebGL is unavailable the CSS glass in css/glass.css stays in charge.
 
 const MAX = 28;
 const TEX_SIZE = 2048;
+// which pointer effects are on: the jelly ripple trail, or the older sparkle shimmer
+const EFFECTS = { ripple: false, shimmer: false };
+const TRAIL = 24;            // points kept in the cursor trail
+const TRAIL_LIFE = 1100;     // ms a trail point lives
 
 // global look
 const GLOBALS = { ior: 1.5, dispersion: 0.035, rim: 0.03, edge: 0.75, lightFollow: 2.3, texDim: 0.37, blurScale: 0.55, blurTaps: 11, blurLod: 1, blurJitter: 0.45 };
@@ -47,6 +58,7 @@ const FRAG = `
 precision highp float;
 #define MAX ${MAX}
 #define TEX_SIZE ${TEX_SIZE}.0
+#define TRAIL ${TRAIL}
 
 uniform vec2 uRes;
 uniform float uTime;
@@ -62,6 +74,11 @@ uniform vec3 uC[MAX];      // tint colour
 uniform sampler2D uTex;
 uniform float uTexMix;
 uniform vec2 uTexScale;
+uniform vec4 uTrail[TRAIL];  // cursor trail: x, y (px), freshness * speed
+uniform int uTrailN;
+uniform float uPx;           // device pixels per css pixel
+uniform float uRip;          // jelly ripple trail on/off
+uniform float uShimmer;      // sparkle shimmer on/off (kept, currently off)
 
 float sdBox(vec2 p, vec2 hb, float r) {
   vec2 q = abs(p) - hb + r;
@@ -136,6 +153,23 @@ vec3 scene(vec2 px, float vis, float blur) {
 }
 
 
+// Height of the water/jelly surface at a pixel: every trail point sends out a ring and wobbles like a spring.
+float ripH(vec2 frag) {
+  float h = 0.0;
+  for (int i = 0; i < TRAIL; i++) {
+    if (i >= uTrailN) break;
+    vec4 tp = uTrail[i];                 // x, y (px), strength * freshness, age (s)
+    float d = length(frag - tp.xy) / uPx;  // css px from the point
+    float age = tp.w;
+    float rf = 18.0 + 175.0 * age;       // the ring travels outwards
+    float q = (d - rf) / 48.0;
+    float ring = sin((d - rf) * 0.115) * exp(-q * q);
+    float jelly = exp(-d * d / (2.0 * 26.0 * 26.0)) * cos(age * 15.0) * exp(-age * 2.4);
+    h += tp.z * (ring * 0.9 + jelly * 1.5);
+  }
+  return h;
+}
+
 void main() {
   vec2 frag = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y);
 
@@ -194,6 +228,19 @@ void main() {
     cov = 1.0 - (1.0 - cov) * (1.0 - c);
   }
 
+  // jelly: the glass bends the picture along the slope of the wake
+  vec2 ripGrad = vec2(0.0);
+  float ripSlope = 0.0;
+  if (uRip > 0.5 && uTrailN > 0 && cov > 0.01) {
+    float e = 3.2 * uPx;
+    float h0 = ripH(frag);
+    float hx = ripH(frag + vec2(e, 0.0));
+    float hy = ripH(frag + vec2(0.0, e));
+    ripGrad = vec2(hx - h0, hy - h0) / (e / uPx);   // slope per css px
+    ripSlope = length(ripGrad);
+    disp += -ripGrad * 30.0 * uPx * cov;   // small amplitude: a gentle wobble, not a heavy swell
+  }
+
   // slight dispersion; frost blurs the scene itself instead of stacking offset copies
   vec3 col = vec3(scene(frag + disp * (1.0 + uG.y), cov, frost).r, scene(frag + disp, cov, frost).g, scene(frag + disp * (1.0 - uG.y), cov, frost).b);
 
@@ -207,6 +254,45 @@ void main() {
   col += spec * vec3(1.0, 1.0, 1.0);
   col += edge * uG.w;
   col *= 1.0 - clamp(shadow, 0.0, 1.0) * 0.4;
+
+  // wet highlights on the ripples
+  if (ripSlope > 0.0) {
+    vec3 Nw = normalize(vec3(-ripGrad * 1.5, 1.0));
+    vec3 Lw = normalize(vec3(-0.45, -0.6, 0.65));
+    float spw = pow(max(dot(Nw, normalize(Lw + vec3(0.0, 0.0, 1.0))), 0.0), 11.0);
+    // a broad, soft sheen instead of a thin bright line
+    col += vec3(0.9, 0.95, 1.0) * spw * 0.16 * smoothstep(0.0, 0.25, ripSlope) * cov;
+  }
+
+  // ---- sparkle shimmer along the cursor trail, only on glass ----
+  // Just a few twinkling stars (no glow, no haze): they appear near the pointer path and die out behind it.
+  if (uShimmer > 0.5 && cov > 0.01 && uTrailN > 0) {
+    float W = 0.0;
+    for (int i = 0; i < TRAIL; i++) {
+      if (i >= uTrailN) break;
+      vec4 tp = uTrail[i];
+      vec2 dd = frag - tp.xy;
+      float R = (30.0 + 26.0 * tp.z) * uPx;
+      W += tp.z * exp(-dot(dd, dd) / (R * R));
+    }
+    W = clamp(W, 0.0, 1.2);
+    if (W > 0.02) {
+      float cs = 12.0 * uPx;                 // big cells = few stars
+      vec2 cell = floor(frag / cs);
+      vec2 f = fract(frag / cs);
+      float h1 = hash(cell);
+      float h2 = hash(cell + 17.3);
+      float h3 = hash(cell + 41.7);
+      vec2 sp = vec2(0.25 + 0.5 * h2, 0.25 + 0.5 * h3);
+      float tw = pow(max(0.0, sin(uTime * (2.2 + 5.5 * h1) + h1 * 60.0)), 7.0);
+      vec2 sd = abs(f - sp);
+      float core = smoothstep(0.2, 0.0, length(f - sp));
+      float spikes = smoothstep(0.4, 0.0, max(sd.x, sd.y)) * smoothstep(0.06, 0.0, min(sd.x, sd.y));
+      float glint = (core + spikes * 0.9) * tw * step(0.8, h1);   // only ~1 cell in 5 holds a star
+      vec3 hue = 0.6 + 0.4 * cos(6.2831853 * (h1 * 1.7 + vec3(0.0, 0.33, 0.67) + uTime * 0.04));
+      col += glint * hue * 1.5 * W * cov;
+    }
+  }
   col += (hash(frag) - 0.5) / 255.0;
 
   gl_FragColor = vec4(col, 1.0);
@@ -229,6 +315,9 @@ let texScale = [1, 1];
 let sceneToken = 0;
 const hoverAmount = new WeakMap();
 const mouse = { x: 0, y: 0, tx: 0, ty: 0, moved: false };
+const trail = [];                       // {x, y, t, s}: css px, time, strength
+let lastTrailT = 0;
+const trailBuf = new Float32Array(TRAIL * 4);
 const buffers = {
   rect: new Float32Array(MAX * 4),
   a: new Float32Array(MAX * 4),
@@ -276,7 +365,7 @@ function init() {
   gl.enableVertexAttribArray(aPos);
   gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
-  for (const n of ['uRes', 'uTime', 'uMouse', 'uG', 'uH', 'uBl', 'uCount', 'uRect', 'uA', 'uB', 'uC', 'uTex', 'uTexMix', 'uTexScale']) {
+  for (const n of ['uRes', 'uTime', 'uMouse', 'uG', 'uH', 'uBl', 'uCount', 'uRect', 'uA', 'uB', 'uC', 'uTex', 'uTexMix', 'uTexScale', 'uTrail', 'uTrailN', 'uPx', 'uRip', 'uShimmer']) {
     loc[n] = gl.getUniformLocation(prog, n);
   }
   tex = gl.createTexture();
@@ -301,9 +390,51 @@ function init() {
     mouse.tx = e.clientX;
     mouse.ty = e.clientY;
     if (!mouse.moved) { mouse.x = e.clientX; mouse.y = e.clientY; mouse.moved = true; }
+    addTrail(e.clientX, e.clientY);
   }, { passive: true });
   resize();
   return true;
+}
+
+// Cursor trail: a point every few pixels, with extra points filled in when the pointer jumps,
+// so a fast swipe leaves a continuous sparkling ribbon instead of separate dots.
+function addTrail(x, y) {
+  if (reduceMotion || (!EFFECTS.ripple && !EFFECTS.shimmer)) return;   // nothing to draw: do not even track the pointer
+  const now = performance.now();
+  const last = trail[trail.length - 1];
+  if (!last) { trail.push({ x, y, t: now, s: 0.4 }); lastTrailT = now; return; }
+  const dx = x - last.x;
+  const dy = y - last.y;
+  const dist = Math.hypot(dx, dy);
+  if (dist < 5) return;
+  const speed = dist / Math.max(1, now - lastTrailT);          // css px per ms
+  const strength = Math.min(1, 0.45 + speed * 0.5);
+  const steps = Math.min(8, Math.floor(dist / 10));
+  for (let i = 1; i <= steps; i++) {
+    const k = i / (steps + 1);
+    trail.push({ x: last.x + dx * k, y: last.y + dy * k, t: now, s: strength });
+  }
+  trail.push({ x, y, t: now, s: strength });
+  lastTrailT = now;
+  while (trail.length > TRAIL) trail.shift();
+}
+
+function uploadTrail(now) {
+  while (trail.length && now - trail[0].t > TRAIL_LIFE) trail.shift();
+  let n = 0;
+  for (const p of trail) {
+    const fresh = 1 - (now - p.t) / TRAIL_LIFE;
+    trailBuf[n * 4] = p.x * dpr;
+    trailBuf[n * 4 + 1] = p.y * dpr;
+    trailBuf[n * 4 + 2] = fresh * fresh * p.s;
+    trailBuf[n * 4 + 3] = (now - p.t) / 1000;   // age in seconds (ripples)
+    n++;
+  }
+  gl.uniform1i(loc.uTrailN, n);
+  if (n) gl.uniform4fv(loc.uTrail, trailBuf);
+  gl.uniform1f(loc.uPx, dpr);
+  gl.uniform1f(loc.uRip, EFFECTS.ripple ? 1 : 0);
+  gl.uniform1f(loc.uShimmer, EFFECTS.shimmer ? 1 : 0);
 }
 
 function resize() {
@@ -387,6 +518,7 @@ function draw(now) {
   gl.uniform1f(loc.uTexMix, texMix);
   gl.uniform2f(loc.uTexScale, texScale[0], texScale[1]);
   upload();
+  uploadTrail(performance.now());
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 
   if (!document.body.classList.contains('glass-gl')) document.body.classList.add('glass-gl');
