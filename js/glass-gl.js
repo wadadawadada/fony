@@ -34,6 +34,9 @@ const EFFECTS = { ripple: rippleSetting(), shimmer: false };
 document.addEventListener('glassRippleChanged', () => { EFFECTS.ripple = rippleSetting(); });
 const TRAIL = 24;            // points kept in the cursor trail
 const TRAIL_LIFE = 1100;     // ms a trail point lives
+const BURSTS = 4;            // extra ripple points kept for presses on buttons
+const BURST_LIFE = 1300;
+const TRAIL_MAX = TRAIL + BURSTS;
 
 // global look
 const GLOBALS = { ior: 1.5, dispersion: 0.035, rim: 0.03, edge: 0.75, lightFollow: 2.3, texDim: 0.37, blurScale: 0.55, blurTaps: 11, blurLod: 1, blurJitter: 0.45 };
@@ -63,7 +66,7 @@ const FRAG = `
 precision highp float;
 #define MAX ${MAX}
 #define TEX_SIZE ${TEX_SIZE}.0
-#define TRAIL ${TRAIL}
+#define TRAIL ${TRAIL_MAX}
 
 uniform vec2 uRes;
 uniform float uTime;
@@ -159,13 +162,15 @@ vec3 scene(vec2 px, float vis, float blur) {
 
 
 // Height of the water/jelly surface at a pixel: every trail point sends out a ring and wobbles like a spring.
-float ripH(vec2 frag) {
+float ripH(vec2 frag, float own) {
   float h = 0.0;
   for (int i = 0; i < TRAIL; i++) {
     if (i >= uTrailN) break;
-    vec4 tp = uTrail[i];                 // x, y (px), strength * freshness, age (s)
+    vec4 tp = uTrail[i];                 // x, y (px), strength * freshness, container id * 10 + age (s)
+    float pid = floor(tp.w / 10.0 + 0.001);
+    float age = tp.w - pid * 10.0;
+    if (abs(pid - own) > 0.5) continue;   // waves stay inside the container they started in
     float d = length(frag - tp.xy) / uPx;  // css px from the point
-    float age = tp.w;
     float rf = 18.0 + 175.0 * age;       // the ring travels outwards
     float q = (d - rf) / 48.0;
     float ring = sin((d - rf) * 0.115) * exp(-q * q);
@@ -181,6 +186,7 @@ void main() {
   vec2 disp = vec2(0.0);
   float frost = 0.0, cov = 0.0, spec = 0.0, rim = 0.0, edge = 0.0, shadow = 0.0;
   vec4 tint = vec4(0.0);
+  float own = -2.0, ownArea = 0.0;   // the biggest glass container under this pixel
 
   for (int i = 0; i < MAX; i++) {
     if (i >= uCount) break;
@@ -190,6 +196,7 @@ void main() {
     vec2 p = frag - r.xy;
 
     float d = sdBox(p, r.zw, a.x);
+    if (d < 0.0 && r.z * r.w > ownArea) { ownArea = r.z * r.w; own = float(i); }
     float ds = sdBox(p - vec2(0.0, b.z * 0.4), r.zw, a.x);
     float c = 1.0 - smoothstep(-1.0, 0.6, d);
     if (b.z > 0.5) shadow += (1.0 - smoothstep(0.0, b.z, ds)) * (1.0 - c);
@@ -238,9 +245,9 @@ void main() {
   float ripSlope = 0.0;
   if (uRip > 0.5 && uTrailN > 0 && cov > 0.01) {
     float e = 3.2 * uPx;
-    float h0 = ripH(frag);
-    float hx = ripH(frag + vec2(e, 0.0));
-    float hy = ripH(frag + vec2(0.0, e));
+    float h0 = ripH(frag, own);
+    float hx = ripH(frag + vec2(e, 0.0), own);
+    float hy = ripH(frag + vec2(0.0, e), own);
     ripGrad = vec2(hx - h0, hy - h0) / (e / uPx);   // slope per css px
     ripSlope = length(ripGrad);
     disp += -ripGrad * 30.0 * uPx * cov;   // small amplitude: a gentle wobble, not a heavy swell
@@ -322,7 +329,11 @@ const hoverAmount = new WeakMap();
 const mouse = { x: 0, y: 0, tx: 0, ty: 0, moved: false };
 const trail = [];                       // {x, y, t, s}: css px, time, strength
 let lastTrailT = 0;
-const trailBuf = new Float32Array(TRAIL * 4);
+const trailBuf = new Float32Array(TRAIL_MAX * 4);
+const bursts = [];                      // {x, y, t, s, root}: ripples from presses on buttons
+let uploaded = [];                      // glass boxes drawn last frame, in uniform order
+const idxOf = new Map();                // element -> uniform index
+let lastPt = null;
 const buffers = {
   rect: new Float32Array(MAX * 4),
   a: new Float32Array(MAX * 4),
@@ -397,44 +408,84 @@ function init() {
     if (!mouse.moved) { mouse.x = e.clientX; mouse.y = e.clientY; mouse.moved = true; }
     addTrail(e.clientX, e.clientY);
   }, { passive: true });
+  // pressing a button (or a list row) sends out a splash from that spot
+  window.addEventListener('pointerdown', (e) => {
+    if (e.target.closest && e.target.closest(PRESSABLE)) addBurst(e.clientX, e.clientY);
+  }, { passive: true });
+  // keyboard activation (Enter / Space) has no pointer: splash from the middle of the button
+  window.addEventListener('click', (e) => {
+    if (e.detail !== 0 || !e.target.closest || !e.target.closest(PRESSABLE)) return;
+    const r = e.target.getBoundingClientRect();
+    addBurst(r.left + r.width / 2, r.top + r.height / 2);
+  }, { passive: true });
   resize();
   return true;
 }
 
 // Cursor trail: a point every few pixels, with extra points filled in when the pointer jumps,
 // so a fast swipe leaves a continuous sparkling ribbon instead of separate dots.
+const PRESSABLE = 'button, a, [role="button"], input, select, label, li, .player-btn, .genre-select-header, .center-circle';
+
+// The biggest glass box under a point: ripples live inside it and do not cross into neighbours.
+function rootAt(x, y) {
+  let best = null;
+  let bestArea = 0;
+  for (const u of uploaded) {
+    if (x >= u.x0 && x <= u.x1 && y >= u.y0 && y <= u.y1 && u.area > bestArea) { best = u.el; bestArea = u.area; }
+  }
+  return best;
+}
+
+function addBurst(x, y) {
+  if (reduceMotion || !EFFECTS.ripple) return;
+  const root = rootAt(x, y);
+  if (!root) return;
+  bursts.push({ x, y, t: performance.now(), s: 2.2, root });
+  while (bursts.length > BURSTS) bursts.shift();
+}
+
 function addTrail(x, y) {
   if (reduceMotion || (!EFFECTS.ripple && !EFFECTS.shimmer)) return;   // nothing to draw: do not even track the pointer
   const now = performance.now();
-  const last = trail[trail.length - 1];
-  if (!last) { trail.push({ x, y, t: now, s: 0.4 }); lastTrailT = now; return; }
+  const last = lastPt;
+  lastPt = { x, y };
+  if (!last) { lastTrailT = now; return; }
   const dx = x - last.x;
   const dy = y - last.y;
   const dist = Math.hypot(dx, dy);
-  if (dist < 5) return;
+  if (dist < 5) { lastPt = last; return; }
   const speed = dist / Math.max(1, now - lastTrailT);          // css px per ms
   const strength = Math.min(1, 0.45 + speed * 0.5);
   const steps = Math.min(8, Math.floor(dist / 10));
+  const add = (px, py) => {
+    const root = rootAt(px, py);
+    if (root) trail.push({ x: px, y: py, t: now, s: strength, root });   // gaps between containers make no waves
+  };
   for (let i = 1; i <= steps; i++) {
     const k = i / (steps + 1);
-    trail.push({ x: last.x + dx * k, y: last.y + dy * k, t: now, s: strength });
+    add(last.x + dx * k, last.y + dy * k);
   }
-  trail.push({ x, y, t: now, s: strength });
+  add(x, y);
   lastTrailT = now;
   while (trail.length > TRAIL) trail.shift();
 }
 
 function uploadTrail(now) {
   while (trail.length && now - trail[0].t > TRAIL_LIFE) trail.shift();
+  while (bursts.length && now - bursts[0].t > BURST_LIFE) bursts.shift();
   let n = 0;
-  for (const p of trail) {
-    const fresh = 1 - (now - p.t) / TRAIL_LIFE;
+  const put = (p, life) => {
+    const id = idxOf.has(p.root) ? idxOf.get(p.root) : -3;
+    if (id < 0) return;
+    const fresh = 1 - (now - p.t) / life;
     trailBuf[n * 4] = p.x * dpr;
     trailBuf[n * 4 + 1] = p.y * dpr;
     trailBuf[n * 4 + 2] = fresh * fresh * p.s;
-    trailBuf[n * 4 + 3] = (now - p.t) / 1000;   // age in seconds (ripples)
+    trailBuf[n * 4 + 3] = id * 10 + (now - p.t) / 1000;   // container index * 10 + age in seconds (ripples)
     n++;
-  }
+  };
+  for (const p of trail) put(p, TRAIL_LIFE);
+  for (const p of bursts) put(p, BURST_LIFE);
   gl.uniform1i(loc.uTrailN, n);
   if (n) gl.uniform4fv(loc.uTrail, trailBuf);
   gl.uniform1f(loc.uPx, dpr);
@@ -469,6 +520,8 @@ function collect() {
 
 function upload(time) {
   let n = 0;
+  uploaded = [];
+  idxOf.clear();
   for (const it of items) {
     const r = it.el.getBoundingClientRect();
     if (r.width < 3 || r.height < 3 || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
@@ -488,6 +541,8 @@ function upload(time) {
     buffers.a.set([Math.min(it.radius * dpr, hw, hh), bezel > 0 ? bezel * dpr : bezel, l.thick * dpr, l.strength], n * 4);
     buffers.b.set([l.frost * dpr, l.tint, l.shadow * dpr, l.spec], n * 4);
     buffers.c.set(l.color, n * 3);
+    uploaded.push({ el: it.el, x0: r.left, y0: r.top, x1: r.right, y1: r.bottom, area: r.width * r.height });
+    idxOf.set(it.el, n);
     n++;
   }
   gl.uniform1i(loc.uCount, n);
