@@ -28,6 +28,12 @@ function ripple(el) {
   r.addEventListener('animationend', () => r.remove());
 }
 
+function glassRippleActive() {
+  try {
+    return document.body.classList.contains('glass-gl') && localStorage.getItem('glassRipple') === 'true';
+  } catch (e) { return false; }
+}
+
 function sparks(el) {
   const { x, y, size } = center(el);
   const n = 9;
@@ -64,7 +70,8 @@ ready(() => {
   document.addEventListener('pointerdown', e => {
     if (reduceMotion.matches || window.innerWidth <= 768) return;
     const btn = e.target.closest && e.target.closest('.player-btn');
-    if (btn) ripple(btn);
+    // the glass shader draws its own ripple on press: no extra ring then
+    if (btn && !glassRippleActive()) ripple(btn);
   });
 
   if (ffBtn) ffBtn.addEventListener('click', () => !reduceMotion.matches && once(ffBtn, 'fx-kick-r'));
