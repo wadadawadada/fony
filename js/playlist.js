@@ -1,4 +1,5 @@
 import { secureUrl } from './parsing.js';
+import { getFavLogo, ensureFavLogo, applyAvatarLogo, pruneFavLogos, removeFavLogo } from './utils/favLogos.js';
 
 // Migration: old code had inverted checkbox logic — "Hide http stations" checked
 // saved useOnlyHttps="false" and unchecked saved "true" (backwards).
@@ -295,7 +296,7 @@ function updateFavoriteRowColors() {
 
         // Update circle/icon background color for theme change
         const avatarElement = item.querySelector(".station-avatar");
-        if (avatarElement) {
+        if (avatarElement && !avatarElement.classList.contains("has-logo")) {
           avatarElement.style.backgroundColor = getAvatarBackgroundColor();
           const iconElement = avatarElement.querySelector(".genre-icon");
           if (iconElement) {
@@ -348,6 +349,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
   const genreLabel = document.querySelector("label[for='playlistSelect']");
   if (genreLabel && genreLabel.textContent === "Favorites") isFavoritesMode = true;
   else if (stations.length && stations[0].favGenre) isFavoritesMode = true;
+  if (isFavoritesMode) pruneFavLogos(getFavorites().map(f => f.url));
 
   for (let i = startIndex; i < maxEnd; i++) {
     const station = stations[i];
@@ -504,6 +506,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         if (idx !== -1) {
           favs.splice(idx, 1);
           localStorage.setItem("favorites", JSON.stringify(favs));
+          removeFavLogo(station.url);
           li.remove();
           if (typeof window.updatePlaylistHearts === "function") window.updatePlaylistHearts();
         }
@@ -524,6 +527,11 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
 
       const iconContainer = createGenreAvatar(genre, 24, 18);
       li.insertBefore(iconContainer, li.firstChild);
+
+      // Station logo replaces the genre icon (cached per favorite until it is removed)
+      const cachedLogo = getFavLogo(station.url);
+      if (cachedLogo) applyAvatarLogo(iconContainer, cachedLogo);
+      else ensureFavLogo(station, logo => { if (iconContainer.isConnected) applyAvatarLogo(iconContainer, logo); });
 
     } else if (isFavorite(station)) {
       const favHeart = document.createElement("img");

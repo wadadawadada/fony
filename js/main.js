@@ -564,7 +564,8 @@ const stationArtCache = new Map()
 // (via a CSS variable, so it survives theme CSS).
 function applyActiveStationArt() {
   document.querySelectorAll("#playlist li").forEach(li => {
-    const logo = li.classList.contains("active") ? activeStationArt.logo : null
+    // in Favorites the logo already replaces the genre icon in the row
+    const logo = li.classList.contains("active") && !li.classList.contains("draggable-favorite") ? activeStationArt.logo : null
     if (logo) {
       if (li.style.getPropertyValue("--station-logo") !== `url("${logo}")`) {
         li.style.setProperty("--station-logo", `url("${logo}")`)
