@@ -412,6 +412,13 @@ function init() {
   window.addEventListener('pointerdown', (e) => {
     if (e.target.closest && e.target.closest(PRESSABLE)) addBurst(e.clientX, e.clientY);
   }, { passive: true });
+  // moving onto a button sends out a soft ripple (once per entry, not while moving inside it)
+  window.addEventListener('pointerover', (e) => {
+    if (e.pointerType === 'touch' || !e.target.closest) return;
+    const btn = e.target.closest(HOVERABLE);
+    if (!btn || (e.relatedTarget && btn.contains(e.relatedTarget))) return;
+    addBurst(e.clientX, e.clientY, 1.1);
+  }, { passive: true });
   // keyboard activation (Enter / Space) has no pointer: splash from the middle of the button
   window.addEventListener('click', (e) => {
     if (e.detail !== 0 || !e.target.closest || !e.target.closest(PRESSABLE)) return;
@@ -424,6 +431,8 @@ function init() {
 
 // Cursor trail: a point every few pixels, with extra points filled in when the pointer jumps,
 // so a fast swipe leaves a continuous sparkling ribbon instead of separate dots.
+// buttons that answer a hover with a soft ripple
+const HOVERABLE = 'button, a, [role="button"], .player-btn, .genre-select-header, .center-circle';
 const PRESSABLE = 'button, a, [role="button"], input, select, label, li, .player-btn, .genre-select-header, .center-circle';
 
 // The biggest glass box under a point: ripples live inside it and do not cross into neighbours.
@@ -436,11 +445,11 @@ function rootAt(x, y) {
   return best;
 }
 
-function addBurst(x, y) {
+function addBurst(x, y, strength = 2.2) {
   if (reduceMotion || !EFFECTS.ripple) return;
   const root = rootAt(x, y);
   if (!root) return;
-  bursts.push({ x, y, t: performance.now(), s: 2.2, root });
+  bursts.push({ x, y, t: performance.now(), s: strength, root });
   while (bursts.length > BURSTS) bursts.shift();
 }
 
