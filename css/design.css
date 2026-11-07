@@ -1614,3 +1614,18 @@ body.glass .center-circle.has-cover::after {
 #playlist li.active .station-favorite-icon {
   order: -1;
 }
+
+/* radio stations: the station logo replaces the broadcast icon when one is found */
+#playlist li.active.has-logo:not(.local-row)::before {
+  content: "" !important;
+  flex: 0 0 30px !important;
+  width: 30px !important;
+  height: 30px !important;
+  margin-left: -4px !important;
+  border-radius: 6px !important;
+  background: var(--station-logo) center / cover no-repeat !important;
+  -webkit-mask: none !important;
+  mask: none !important;
+  filter: none !important;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+}

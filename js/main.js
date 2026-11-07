@@ -557,16 +557,20 @@ function renderMoreStations() {
 }
 
 let stationArtToken = 0
-let activeStationArt = null
+let activeStationArt = { cover: null, logo: null }
 const stationArtCache = new Map()
 
-// Paints the logo on the playing row of the station list (inline, so it survives theme CSS).
+// Paints the playing row of the station list: og:image as the background,
+// the station logo instead of the broadcast icon (inline, so it survives theme CSS).
 function applyActiveStationArt() {
   document.querySelectorAll("#playlist li").forEach(li => {
-    if (activeStationArt && li.classList.contains("active")) {
+    const active = li.classList.contains("active")
+    const cover = active ? activeStationArt.cover : null
+    const logo = active ? activeStationArt.logo : null
+    if (cover) {
       li.style.setProperty(
         "background-image",
-        `linear-gradient(rgba(10, 14, 24, 0.6), rgba(10, 14, 24, 0.6)), url("${activeStationArt}")`,
+        `linear-gradient(rgba(10, 14, 24, 0.6), rgba(10, 14, 24, 0.6)), url("${cover}")`,
         "important"
       )
       li.style.setProperty("background-size", "cover", "important")
@@ -577,26 +581,40 @@ function applyActiveStationArt() {
       ;["background-image", "background-size", "background-position", "background-repeat", "text-shadow"]
         .forEach(prop => li.style.removeProperty(prop))
     }
+    if (logo) {
+      if (li.style.getPropertyValue("--station-logo") !== `url("${logo}")`) {
+        li.style.setProperty("--station-logo", `url("${logo}")`)
+      }
+      li.classList.add("has-logo")
+    } else if (li.classList.contains("has-logo")) {
+      li.classList.remove("has-logo")
+      li.style.removeProperty("--station-logo")
+    }
   })
+}
+
+function loadStationImage(st, kind, token, assign) {
+  const key = kind + ":" + st.title.toLowerCase()
+  const done = src => {
+    if (token !== stationArtToken || !src) return
+    assign(src)
+    applyActiveStationArt()
+  }
+  if (stationArtCache.has(key)) { done(stationArtCache.get(key)); return }
+  const src = `${FONY_BACKEND_URL}/api/station-logo?kind=${kind}&name=${encodeURIComponent(st.title)}&url=${encodeURIComponent(st.originalUrl || st.url || "")}`
+  const img = new Image()
+  img.onload = () => { stationArtCache.set(key, src); done(src) }
+  img.onerror = () => { stationArtCache.set(key, null) }
+  img.src = src
 }
 
 function setStationArt(st) {
   const token = ++stationArtToken
-  activeStationArt = null
+  activeStationArt = { cover: null, logo: null }
   applyActiveStationArt()
   if (!st || st.local || st.nft || !st.title) return
-  const key = st.title.toLowerCase()
-  const apply = src => {
-    if (token !== stationArtToken || !src) return
-    activeStationArt = src
-    applyActiveStationArt()
-  }
-  if (stationArtCache.has(key)) { apply(stationArtCache.get(key)); return }
-  const src = `${FONY_BACKEND_URL}/api/station-logo?name=${encodeURIComponent(st.title)}&url=${encodeURIComponent(st.originalUrl || st.url || "")}`
-  const img = new Image()
-  img.onload = () => { stationArtCache.set(key, src); apply(src) }
-  img.onerror = () => { stationArtCache.set(key, null) }
-  img.src = src
+  loadStationImage(st, "logo", token, src => { activeStationArt.logo = src })
+  loadStationImage(st, "cover", token, src => { activeStationArt.cover = src })
 }
 
 ;(() => {
