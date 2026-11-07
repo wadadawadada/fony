@@ -171,10 +171,10 @@ float ripH(vec2 frag, float own) {
     float age = tp.w - pid * 10.0;
     if (abs(pid - own) > 0.5) continue;   // waves stay inside the container they started in
     float d = length(frag - tp.xy) / uPx;  // css px from the point
-    float rf = 18.0 + 175.0 * age;       // the ring travels outwards
-    float q = (d - rf) / 48.0;
-    float ring = sin((d - rf) * 0.115) * exp(-q * q);
-    float jelly = exp(-d * d / (2.0 * 26.0 * 26.0)) * cos(age * 15.0) * exp(-age * 2.4);
+    float rf = 30.0 + 230.0 * age;       // the ring travels outwards
+    float q = (d - rf) / 95.0;           // wide band: one big wave instead of several thin ones
+    float ring = sin((d - rf) * 0.058) * exp(-q * q);
+    float jelly = exp(-d * d / (2.0 * 44.0 * 44.0)) * cos(age * 12.0) * exp(-age * 2.4);
     h += tp.z * (ring * 0.9 + jelly * 1.5);
   }
   return h;
@@ -250,7 +250,7 @@ void main() {
     float hy = ripH(frag + vec2(0.0, e), own);
     ripGrad = vec2(hx - h0, hy - h0) / (e / uPx);   // slope per css px
     ripSlope = length(ripGrad);
-    disp += -ripGrad * 30.0 * uPx * cov;   // small amplitude: a gentle wobble, not a heavy swell
+    disp += -ripGrad * 52.0 * uPx * cov;   // small amplitude: a gentle wobble, not a heavy swell
   }
 
   // slight dispersion; frost blurs the scene itself instead of stacking offset copies
@@ -453,10 +453,10 @@ function addTrail(x, y) {
   const dx = x - last.x;
   const dy = y - last.y;
   const dist = Math.hypot(dx, dy);
-  if (dist < 5) { lastPt = last; return; }
+  if (dist < 22) { lastPt = last; return; }   // sparse points: fewer, larger waves
   const speed = dist / Math.max(1, now - lastTrailT);          // css px per ms
   const strength = Math.min(1, 0.45 + speed * 0.5);
-  const steps = Math.min(8, Math.floor(dist / 10));
+  const steps = Math.min(4, Math.floor(dist / 34));
   const add = (px, py) => {
     const root = rootAt(px, py);
     if (root) trail.push({ x: px, y: py, t: now, s: strength, root });   // gaps between containers make no waves
