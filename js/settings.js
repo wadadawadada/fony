@@ -71,6 +71,9 @@ function openSettingsModal() {
         '<label class="settings-option">' +
           '<input type="checkbox" id="stationLogosCheckbox">Load station icons' +
         '</label>' +
+        '<label class="settings-option">' +
+          '<input type="checkbox" id="glassRippleCheckbox">Glass ripple effect' +
+        '</label>' +
       '</div>' +
       '<div class="settings-actions">' +
         '<button id="backupAppBtn" class="settings-btn" type="button">Backup App</button>' +
@@ -83,6 +86,7 @@ function openSettingsModal() {
   document.getElementById("httpStationsCheckbox").checked = localStorage.getItem("useOnlyHttps") === "true";
   document.getElementById("leftHandedCheckbox").checked = localStorage.getItem("leftHanded") === "true";
   document.getElementById("stationLogosCheckbox").checked = localStorage.getItem("stationLogos") !== "false";
+  document.getElementById("glassRippleCheckbox").checked = localStorage.getItem("glassRipple") === "true";
 
   document.getElementById("saveSettingsBtn").addEventListener("click", function() {
     var checkbox = document.getElementById("httpStationsCheckbox");
@@ -99,6 +103,9 @@ function openSettingsModal() {
     var logosWereOn = localStorage.getItem("stationLogos") !== "false";
     localStorage.setItem("stationLogos", logosOn ? "true" : "false");
     if (logosOn !== logosWereOn) document.dispatchEvent(new Event("stationLogosChanged"));
+
+    localStorage.setItem("glassRipple", document.getElementById("glassRippleCheckbox").checked ? "true" : "false");
+    document.dispatchEvent(new Event("glassRippleChanged"));
     closeSettingsView(modal, modalContent);
   });
 

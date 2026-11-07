@@ -26,7 +26,12 @@
 const MAX = 28;
 const TEX_SIZE = 2048;
 // which pointer effects are on: the jelly ripple trail, or the older sparkle shimmer
-const EFFECTS = { ripple: true, shimmer: false };
+// the ripple follows the "Glass ripple effect" setting (off by default)
+function rippleSetting() {
+  try { return localStorage.getItem('glassRipple') === 'true'; } catch (e) { return false; }
+}
+const EFFECTS = { ripple: rippleSetting(), shimmer: false };
+document.addEventListener('glassRippleChanged', () => { EFFECTS.ripple = rippleSetting(); });
 const TRAIL = 24;            // points kept in the cursor trail
 const TRAIL_LIFE = 1100;     // ms a trail point lives
 
