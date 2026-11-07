@@ -273,31 +273,3 @@
     drop-shadow(0px 6px 7px rgba(0, 0, 0, 0.27));
 }
 
-
-/* station artwork as the screen background */
-.screen::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(rgba(10, 14, 24, 0.55), rgba(10, 14, 24, 0.55)), var(--station-art) center / cover no-repeat;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  pointer-events: none;
-}
-.screen.has-station-art::before {
-  opacity: 1;
-}
-.screen .left-group,
-.screen .right-group,
-.screen .center-group {
-  z-index: 1;
-}
-.screen .left-group,
-.screen .right-group {
-  position: relative;
-}
-.screen.has-station-art .station-label,
-.screen.has-station-art .track-name,
-.screen.has-station-art .play-timer {
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
-}

@@ -557,30 +557,58 @@ function renderMoreStations() {
 }
 
 let stationArtToken = 0
+let activeStationArt = null
 const stationArtCache = new Map()
+
+// Paints the logo on the playing row of the station list (inline, so it survives theme CSS).
+function applyActiveStationArt() {
+  document.querySelectorAll("#playlist li").forEach(li => {
+    if (activeStationArt && li.classList.contains("active")) {
+      li.style.setProperty(
+        "background-image",
+        `linear-gradient(rgba(10, 14, 24, 0.6), rgba(10, 14, 24, 0.6)), url("${activeStationArt}")`,
+        "important"
+      )
+      li.style.setProperty("background-size", "cover", "important")
+      li.style.setProperty("background-position", "center", "important")
+      li.style.setProperty("background-repeat", "no-repeat", "important")
+      li.style.setProperty("text-shadow", "0 1px 4px rgba(0, 0, 0, 0.85)")
+    } else if (li.style.backgroundImage) {
+      ;["background-image", "background-size", "background-position", "background-repeat", "text-shadow"]
+        .forEach(prop => li.style.removeProperty(prop))
+    }
+  })
+}
+
 function setStationArt(st) {
-  const screen = document.querySelector(".screen")
-  if (!screen) return
   const token = ++stationArtToken
-  const clear = () => {
-    screen.classList.remove("has-station-art")
-  }
-  if (!st || st.local || st.nft || !st.title) { clear(); return }
-  const apply = src => {
-    if (token !== stationArtToken) return
-    if (!src) { clear(); return }
-    screen.style.setProperty("--station-art", `url("${src}")`)
-    screen.classList.add("has-station-art")
-  }
+  activeStationArt = null
+  applyActiveStationArt()
+  if (!st || st.local || st.nft || !st.title) return
   const key = st.title.toLowerCase()
+  const apply = src => {
+    if (token !== stationArtToken || !src) return
+    activeStationArt = src
+    applyActiveStationArt()
+  }
   if (stationArtCache.has(key)) { apply(stationArtCache.get(key)); return }
-  clear()
   const src = `${FONY_BACKEND_URL}/api/station-logo?name=${encodeURIComponent(st.title)}&url=${encodeURIComponent(st.originalUrl || st.url || "")}`
   const img = new Image()
   img.onload = () => { stationArtCache.set(key, src); apply(src) }
   img.onerror = () => { stationArtCache.set(key, null) }
   img.src = src
 }
+
+;(() => {
+  const list = document.getElementById("playlist")
+  if (!list) return
+  let queued = false
+  new MutationObserver(() => {
+    if (queued) return
+    queued = true
+    requestAnimationFrame(() => { queued = false; applyActiveStationArt() })
+  }).observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] })
+})()
 
 function checkMarquee(container) {
   if (!container) return
