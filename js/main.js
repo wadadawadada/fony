@@ -556,6 +556,32 @@ function renderMoreStations() {
   }
 }
 
+let stationArtToken = 0
+const stationArtCache = new Map()
+function setStationArt(st) {
+  const screen = document.querySelector(".screen")
+  if (!screen) return
+  const token = ++stationArtToken
+  const clear = () => {
+    screen.classList.remove("has-station-art")
+  }
+  if (!st || st.local || st.nft || !st.title) { clear(); return }
+  const apply = src => {
+    if (token !== stationArtToken) return
+    if (!src) { clear(); return }
+    screen.style.setProperty("--station-art", `url("${src}")`)
+    screen.classList.add("has-station-art")
+  }
+  const key = st.title.toLowerCase()
+  if (stationArtCache.has(key)) { apply(stationArtCache.get(key)); return }
+  clear()
+  const src = `${FONY_BACKEND_URL}/api/station-logo?name=${encodeURIComponent(st.title)}&url=${encodeURIComponent(st.originalUrl || st.url || "")}`
+  const img = new Image()
+  img.onload = () => { stationArtCache.set(key, src); apply(src) }
+  img.onerror = () => { stationArtCache.set(key, null) }
+  img.src = src
+}
+
 function checkMarquee(container) {
   if (!container) return
   const st = container.querySelector(".scrolling-text")
@@ -788,6 +814,7 @@ function switchToLocal() {
   currentPlaylist = []
   currentParsingUrl = ""
   window.currentStationUrl = null
+  setStationArt(null)
   clearDiscogsInfo()
   playlistElement.innerHTML = ""
   const lb = document.getElementById("localModeBtn")
@@ -1086,6 +1113,7 @@ function onStationSelect(i) {
   renderStations(visibleStations)
   if (st.local) {
     currentTrackIndex = i
+    setStationArt(null)
     playLocalStation(st, i)
     return
   }
@@ -1108,6 +1136,7 @@ function onStationSelect(i) {
     if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station")
     checkMarquee(stationLabel)
   }
+  setStationArt(st)
   const rg = document.querySelector(".right-group")
   if (rg) {
     if (st.nft) {
