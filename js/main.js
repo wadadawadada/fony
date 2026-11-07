@@ -10,7 +10,8 @@ import { isLocalSupported, prepareTrack, isFavorite as isLocalFavorite, toggleFa
 import { enterLocalMode, leaveLocalMode, syncActive as syncLocalActive, setLocalProgress, showUnsupportedDialog, playRandom as playLocalRandom, revealPlaying as revealLocalPlaying } from './local-mode.js'
 import { initCustomGenreSelect, setSelectedGenre, getSelectedGenre } from './custom-genre-select.js';
 import { loadCustomPlaylists, saveCustomPlaylist, deleteCustomPlaylist, normalizePlaylistUrl, suggestNameFromUrl } from './custom-playlists.js';
-import { loadMergedPlaylistFolder as fetchMergedPlaylistFolder } from './merged-playlist-catalog.js';
+import { loadMergedPlaylistFolder as fetchMergedPlaylistFolder } from './merged-playlist-catalog.js'
+import { stationLogosEnabled } from './utils/favLogos.js';
 
 let currentMode = "radio"
 let currentParsingUrl = ""
@@ -582,7 +583,7 @@ function setStationArt(st) {
   const token = ++stationArtToken
   activeStationArt = { logo: null }
   applyActiveStationArt()
-  if (!st || st.local || st.nft || !st.title) return
+  if (!st || st.local || st.nft || !st.title || !stationLogosEnabled()) return
   const key = st.title.toLowerCase()
   const done = src => {
     if (token !== stationArtToken || !src) return
@@ -596,6 +597,13 @@ function setStationArt(st) {
   img.onerror = () => { stationArtCache.set(key, null) }
   img.src = src
 }
+
+// "Load station icons" switched in Settings: apply right away
+document.addEventListener("stationLogosChanged", () => {
+  if (currentMode === "local") return
+  setStationArt(currentPlaylist[currentTrackIndex])
+  renderStations(visibleStations)
+})
 
 ;(() => {
   const list = document.getElementById("playlist")

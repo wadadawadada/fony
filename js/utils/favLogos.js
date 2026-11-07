@@ -16,7 +16,13 @@ function write(map) {
   try { localStorage.setItem(KEY, JSON.stringify(map)) } catch {}
 }
 
+// Setting "Load station icons" (on by default, stored as "false" when switched off)
+export function stationLogosEnabled() {
+  try { return localStorage.getItem("stationLogos") !== "false" } catch { return true }
+}
+
 export function getFavLogo(url) {
+  if (!stationLogosEnabled()) return null
   const v = read()[url]
   return v && v.d ? v.d : null
 }
@@ -96,7 +102,7 @@ function pump() {
 // Calls onReady(dataUrl) once a logo is available. Stations without a logo are not
 // asked again for a week.
 export function ensureFavLogo(station, onReady) {
-  if (!station || !station.url || !station.title) return
+  if (!station || !station.url || !station.title || !stationLogosEnabled()) return
   const cached = read()[station.url]
   if (cached && cached.d) { onReady(cached.d); return }
   if (cached && Date.now() - (cached.t || 0) < RETRY_MS) return
