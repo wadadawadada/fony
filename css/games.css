@@ -1,0 +1,436 @@
+/* Games modal: covers the player section of the left panel (desktop only). */
+
+.games-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  line-height: 0;
+}
+
+.games-button img {
+  width: 21px;
+  height: 21px;
+}
+
+.left-panel { position: relative; }
+
+.games-modal {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  top: var(--games-top, 64px);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 28px 28px;
+  box-sizing: border-box;
+  border-radius: 24px;
+  background: #171C2B;
+  border: 2px solid #00F2B8;
+  color: #fff;
+  font-family: 'Ruda', system-ui, sans-serif;
+  box-shadow: rgba(0, 0, 0, 0.3) 0 14px 34px;
+  animation: games-in 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.games-modal[hidden] { display: none; }
+
+@keyframes games-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
+.games-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 242, 184, 0.12);
+  color: #00F2B8;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.games-close:hover { background: rgba(0, 242, 184, 0.28); transform: rotate(90deg); }
+
+.games-menu { width: 100%; max-width: 760px; max-height: 100%; overflow-y: auto; padding: 4px 4px 14px; scrollbar-width: none; }
+.games-menu[hidden] { display: none; }
+
+.games-title {
+  margin: 4px 0 16px;
+  text-align: center;
+  font-size: 1.25rem;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: #00F2B8;
+}
+
+.games-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 26px 22px;
+  justify-items: center;
+}
+
+/* ---- NES-style cartridge ---- */
+.cart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 170px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s;
+}
+
+.cart-body {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1.12;
+  padding: 7% 7% 0;
+  box-sizing: border-box;
+  background: linear-gradient(160deg, #b9b9c0 0%, #8d8d96 45%, #74747e 100%);
+  /* chamfered top corners and the stepped, narrower connector at the bottom */
+  clip-path: polygon(0 6%, 6% 0, 94% 0, 100% 6%, 100% 86%, 94% 86%, 94% 100%, 6% 100%, 6% 86%, 0 86%);
+}
+
+
+.cart-grip {
+  position: absolute;
+  left: 11%;
+  right: 11%;
+  top: 4.5%;
+  height: 7%;
+  background: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0 2px, transparent 2px 6px);
+  border-radius: 2px;
+}
+
+.cart-label {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 68%;
+  margin-top: 8%;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #171C2B;
+  border: 3px solid #5b5b64;
+  box-shadow: inset 0 0 0 2px #00F2B8, inset 0 0 14px rgba(0, 242, 184, 0.25);
+}
+
+.cart-art { flex: 1; min-height: 0; display: block; overflow: hidden; }
+.cart-art svg { display: block; width: 100%; height: 100%; }
+
+.cart-name {
+  display: block;
+  padding: 5px 6px 6px;
+  background: #00F2B8;
+  color: #171C2B;
+  font-weight: 900;
+  font-size: 0.78rem;
+  letter-spacing: 1.5px;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cart-best {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(23, 28, 43, 0.85);
+  border: 1px solid rgba(0, 242, 184, 0.6);
+  color: #00F2B8;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* darker connector strip along the bottom */
+.cart-foot {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 0;
+  height: 14%;
+  background: linear-gradient(180deg, #5c5c66, #484851);
+}
+
+.cart-desc {
+  font-size: 0.78rem;
+  opacity: 0.6;
+  text-align: center;
+  line-height: 1.25;
+  transition: opacity 0.2s;
+}
+
+/* clip-path would cut a box-shadow, so the glow lives on the button as a filter */
+.cart { filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.45)); }
+.cart:not(.cart-empty):hover {
+  transform: translateY(-8px) rotate(-1.2deg);
+  filter: drop-shadow(0 14px 16px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 242, 184, 0.35));
+}
+.cart:not(.cart-empty):hover .cart-desc { opacity: 1; }
+.cart:focus-visible { outline: 2px solid #00F2B8; outline-offset: 6px; border-radius: 10px; }
+
+
+.cart-empty { cursor: default; opacity: 0.35; }
+.cart-empty .cart-body { background: linear-gradient(160deg, #50505a, #3a3a43); }
+.cart-empty .cart-label { background: #1d2234; box-shadow: none; border-color: #3a3a43; align-items: center; justify-content: center; }
+.cart-soon { font-weight: 900; font-size: 0.72rem; letter-spacing: 2px; text-align: center; color: rgba(255, 255, 255, 0.5); }
+
+.games-stage {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.games-stage[hidden] { display: none; }
+
+.games-stage-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 44px;
+  margin-bottom: 10px;
+}
+
+.games-back {
+  border: 1px solid rgba(0, 242, 184, 0.35);
+  border-radius: 999px;
+  background: none;
+  color: #00F2B8;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.games-back:hover { background: rgba(0, 242, 184, 0.14); }
+
+.games-stage-title {
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.games-canvas-wrap {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.games-canvas-wrap canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 242, 184, 0.35);
+  box-shadow: 0 0 30px rgba(0, 242, 184, 0.12);
+  touch-action: none;
+  cursor: pointer;
+  outline: none;
+}
+
+body.glass .games-modal {
+  background: rgba(14, 18, 44, 0.72);
+  backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+  .games-button, .games-modal { display: none !important; }
+}
+
+/* While a game runs, it fills the whole modal and the controls float above it as a HUD. */
+.games-modal.is-playing {
+  padding: 0;
+  overflow: hidden;
+  background: #0f1320;
+}
+
+.games-modal.is-playing .games-stage {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.games-modal.is-playing .games-stage[hidden] { display: none; }
+
+.games-modal.is-playing .games-canvas-wrap {
+  position: absolute;
+  inset: 0;
+  width: auto;
+}
+
+.games-modal.is-playing .games-canvas-wrap canvas {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.games-modal.is-playing .games-stage-head {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  right: auto;
+  width: auto;
+  padding: 0;
+  margin: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.games-modal.is-playing .games-back,
+.games-modal.is-playing .games-close {
+  pointer-events: auto;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  opacity: 0.75;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.games-modal.is-playing .games-back { height: 34px; padding: 0 14px; }
+.games-modal.is-playing .games-back:hover { background: none; opacity: 1; }
+.games-modal.is-playing .games-close:hover { background: none; opacity: 1; }
+
+.games-modal.is-playing .games-stage-title { display: none; }
+
+/* ================= The modal is a game console ================= */
+
+/* menu mode: NES-style grey body; playing mode keeps the dark "screen" look */
+body .games-modal:not(.is-playing) {
+  background: linear-gradient(165deg, #d3d3d9 0%, #b4b4bc 55%, #9c9ca6 100%);
+  border: 2px solid #6d6d77;
+  box-shadow: rgba(0, 0, 0, 0.35) 0 14px 34px, inset 0 2px 0 rgba(255, 255, 255, 0.55), inset 0 -3px 0 rgba(0, 0, 0, 0.15);
+  backdrop-filter: none;
+  color: #1c1f2b;
+}
+
+body .games-modal:not(.is-playing) .games-close {
+  background: #2a2d3a;
+  color: #00F2B8;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.games-menu {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  overflow: visible;
+}
+
+/* brand plate */
+.games-menu .games-title {
+  align-self: center;
+  margin: 0 0 14px;
+  padding: 6px 22px;
+  border-radius: 6px;
+  background: #1c1f2b;
+  color: #fff;
+  font-size: 0.95rem;
+  letter-spacing: 7px;
+  box-shadow: inset 0 0 0 1px #4a4d5c;
+}
+
+.games-menu .games-title span { color: #00F2B8; }
+
+/* recessed bay where the cartridges stand */
+.console-shelf {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 26px 24px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #0c0f18 0%, #151a29 100%);
+  box-shadow: inset 0 6px 14px rgba(0, 0, 0, 0.7), inset 0 0 0 2px #3c3f4c, 0 1px 0 rgba(255, 255, 255, 0.5);
+  scrollbar-width: none;
+}
+
+.console-shelf::-webkit-scrollbar { display: none; }
+
+/* front panel with power LED, cartridge slot and buttons */
+.console-deck {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  height: 64px;
+  margin-top: 14px;
+  padding: 0 18px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #a6a6af, #8e8e98);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.console-power { display: flex; align-items: center; gap: 8px; font: 700 0.62rem/1 'Ruda', sans-serif; letter-spacing: 2px; color: #40424e; }
+.console-power b { font-weight: 700; }
+
+.console-led {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff3a3a;
+  box-shadow: 0 0 8px 2px rgba(255, 58, 58, 0.7), inset 0 -2px 3px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.2s, background 0.2s;
+}
+
+
+/* the opening the cartridges slide into */
+.console-slot {
+  flex: 1;
+  max-width: 340px;
+  height: 22px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #05060a, #151826);
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.console-btns { display: flex; gap: 10px; }
+.console-btns i {
+  width: 34px;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #4a4d5c, #2a2d3a);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.cart-desc { color: #cfd3e4; }

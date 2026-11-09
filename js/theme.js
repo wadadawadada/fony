@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     connectWalletBtn: document.getElementById('connectWalletBtn'),
     localModeIcon: document.getElementById('localModeIcon'),
     settingsBtnIcon: document.getElementById('settingsBtnIcon'),
+    gamesBtnIcon: document.getElementById('gamesBtnIcon'),
     logoutIcon: document.getElementById('logoutIcon')
   };
   const glassTheme = {
@@ -54,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
       connectWalletBtn: '/img/wallet.svg',
       localModeIcon: '/img/local.svg',
       settingsBtnIcon: '/img/gear.svg',
+      gamesBtnIcon: '/img/gamepad.svg',
       logoutIcon: '/img/logout.svg'
     },
     dark: {
@@ -70,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
       connectWalletBtn: '/img/dark/wallet.svg',
       localModeIcon: '/img/dark/local.svg',
       settingsBtnIcon: '/img/dark/gear.svg',
+      gamesBtnIcon: '/img/dark/gamepad.svg',
       logoutIcon: '/img/dark/logout.svg'
     }
   };

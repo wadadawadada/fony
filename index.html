@@ -61,6 +61,7 @@
   <link rel="stylesheet" href="/css/mobile.css?v=20261029">
   <link rel="stylesheet" href="/css/glass.css?v=20261029">
   <link rel="stylesheet" href="/css/glass-gl.css?v=20261029">
+  <link rel="stylesheet" href="/css/games.css?v=1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Ruda:wght@400;700;900&display=swap" rel="stylesheet">
@@ -84,6 +85,9 @@
               </button>
             </div>
           </div>
+          <button id="gamesBtn" class="games-button" title="Games" aria-label="Games">
+            <img src="/img/gamepad.svg" alt="Games" id="gamesBtnIcon">
+          </button>
           <button id="manifestoBtn" class="manifesto-button">
             <img src="/img/about_icon.svg" alt="About">
           </button>
@@ -185,6 +189,26 @@
           <button id="chatSendBtn" class="chat-send-btn">
             <img src="/img/send.svg" alt="Send">
           </button>
+        </div>
+      </div>
+
+      <div id="gamesModal" class="games-modal" role="dialog" aria-modal="true" aria-label="Games" hidden>
+        <button type="button" id="gamesClose" class="games-close" aria-label="Close games">&times;</button>
+        <div class="games-menu" id="gamesMenu">
+          <h3 class="games-title"><span>FONY</span> Games</h3>
+          <div class="console-shelf"><ul class="games-list" id="gamesList"></ul></div>
+          <div class="console-deck" aria-hidden="true">
+            <span class="console-power"><i class="console-led" id="gamesLed"></i><b>POWER</b></span>
+            <span class="console-slot" id="gamesSlot"></span>
+            <span class="console-btns"><i></i><i></i></span>
+          </div>
+        </div>
+        <div class="games-stage" id="gamesStage" hidden>
+          <div class="games-stage-head">
+            <button type="button" id="gamesBack" class="games-back" aria-label="Back to games list">&larr; Games</button>
+            <span id="gamesStageTitle" class="games-stage-title"></span>
+          </div>
+          <div class="games-canvas-wrap" id="gamesCanvasWrap"></div>
         </div>
       </div>
     </div>
@@ -298,6 +322,7 @@
   <script type="module" src="/js/utils/toggle-state.js"></script>
   <script type="module" src="/js/utils/favbutton.js"></script>
   <script type="module" src="/js/donate-modal.js"></script>
+  <script type="module" src="/js/games.js"></script>
 
   <div id="addPlaylistModal" class="add-playlist-modal" style="display:none;">
   <div class="add-playlist-content">
