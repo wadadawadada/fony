@@ -318,6 +318,148 @@ document.addEventListener("click", e => {
   else if (el.hasAttribute("data-tips-ui")) setTimeout(() => runTipUi(el.getAttribute("data-tips-ui")), 0);
 });
 
+// ---- Tip of the day: now and then a tip card shows up in the console -----------
+const TIPS_AUTO_KEY = "tipsAuto";
+const TIPS_SEEN_KEY = "tipsSeen";
+const TIP_FIRST_MS = 2 * 60 * 1000;
+const TIP_EVERY_MS = [8 * 60 * 1000, 10 * 60 * 1000];
+const TIP_RETRY_MS = 60 * 1000;
+let tipTimer = null;
+
+const tipsAutoOn = () => { try { return localStorage.getItem(TIPS_AUTO_KEY) !== "false"; } catch { return true; } };
+
+function tipsSeen() {
+  try { const v = JSON.parse(localStorage.getItem(TIPS_SEEN_KEY) || "[]"); return Array.isArray(v) ? v : []; } catch { return []; }
+}
+
+function scheduleTip(ms) {
+  clearTimeout(tipTimer);
+  if (!tipsAutoOn()) return;
+  tipTimer = setTimeout(maybeShowTip, ms);
+}
+
+// Quiet moments only: console visible, nobody typing, no game open, tab in front.
+function consoleIsFree() {
+  if (document.hidden) return false;
+  const desktop = document.getElementById("chat");
+  const mobile = document.getElementById("mobileChatContainer");
+  const desktopOpen = desktop && getComputedStyle(desktop).display !== "none" && desktop.getClientRects().length > 0;
+  const mobileOpen = mobile && mobile.style.display === "flex";
+  if (!desktopOpen && !mobileOpen) return false;
+  const typing = [document.getElementById("chatInput"), document.getElementById("mobileChatInput")]
+    .some(i => i && (i.value.trim() || document.activeElement === i));
+  if (typing) return false;
+  const games = document.getElementById("gamesModal");
+  if (games && !games.hidden) return false;
+  return true;
+}
+
+// Genre facts: read from the Fonypedia page of the genre that is playing now.
+const genreFactsShown = new Set();
+let genrePlaylistsCache = null;
+
+async function currentGenreSlug() {
+  const name = window.currentGenre;
+  if (!name) return null;
+  try {
+    if (!genrePlaylistsCache) genrePlaylistsCache = await (await fetch("/json/playlists.json")).json();
+    const hit = genrePlaylistsCache.find(p => p.name === name);
+    if (hit && /^genres\//.test(hit.file)) return hit.file.replace(/^genres\//, "").replace(/\.[^.]+$/, "");
+  } catch {}
+  return null; // custom playlists have no Fonypedia page
+}
+
+async function buildGenreFact() {
+  const slug = await currentGenreSlug();
+  if (!slug || genreFactsShown.has(slug)) return null;
+  try {
+    const res = await fetch(`/fonypedia/${slug}.html`);
+    if (!res.ok) return null;
+    const doc = new DOMParser().parseFromString(await res.text(), "text/html");
+    const title = (doc.querySelector("h1")?.textContent || "").trim();
+    const desc = (doc.querySelector('[itemprop="description"]')?.textContent || "").replace(/\s+/g, " ").trim();
+    if (!title || !desc) return null;
+    const artists = [...new Set([...doc.querySelectorAll('[itemprop="byArtist"]')].map(n => n.textContent.trim()).filter(Boolean))];
+    const picks = artists.sort(() => Math.random() - 0.5).slice(0, 3);
+    genreFactsShown.add(slug);
+    const line = desc.split(/(?<=[.!?])\s/)[0];
+    return (
+      `<div class="tip-card"><span class="tip-card-icon">🎧</span><strong>${escapeHtml(title)}</strong> — ${escapeHtml(line)}` +
+      (picks.length ? `<div class="tip-card-links">Try: ${picks.map(escapeHtml).join(", ")}</div>` : "") +
+      `<div class="tip-card-links"><a href="/fonypedia/${slug}.html" target="_blank" rel="noopener">Fonypedia</a> · <a href="#" data-tips-random>Another tip</a> · <a href="#" data-tips-off>Hide tips</a></div></div>`
+    );
+  } catch { return null; }
+}
+
+async function maybeShowTip(force = false, mode = null) {
+  if (!force && !tipsAutoOn()) return;
+  if (!force && !consoleIsFree()) { scheduleTip(TIP_RETRY_MS); return; }
+  if (mode === "genre" || (mode === null && Math.random() < 0.5)) {
+    const fact = await buildGenreFact();
+    if (fact) {
+      addMessage("bot", fact, true);
+      if (!force) scheduleTip(TIP_EVERY_MS[0] + Math.random() * (TIP_EVERY_MS[1] - TIP_EVERY_MS[0]));
+      return;
+    }
+    if (mode === "genre") { addMessage("bot", "No Fonypedia page for this genre.", true); return; }
+  }
+  const data = await loadFonyTips();
+  if (!data) { scheduleTip(TIP_EVERY_MS[1]); return; }
+  const pool = [];
+  data.categories.forEach(c => {
+    if (isPhone() && c.desktop) return;
+    visibleTips(c).forEach(t => pool.push({ cat: c, tip: t, key: `${c.id}:${t.title}` }));
+  });
+  if (!pool.length) return;
+  let seen = tipsSeen();
+  let fresh = pool.filter(x => !seen.includes(x.key));
+  if (!fresh.length) { seen = []; fresh = pool; }
+  const pick = fresh[Math.floor(Math.random() * fresh.length)];
+  try { localStorage.setItem(TIPS_SEEN_KEY, JSON.stringify([...seen, pick.key])); } catch {}
+  lastTipKey = pick.key;
+  // short and flat: first sentence only, plain links underneath
+  const short = pick.tip.text.split(/(?<=[.!?])\s/)[0];
+  addMessage(
+    "bot",
+    `<div class="tip-card"><span class="tip-card-icon">💡</span><strong>${escapeHtml(pick.tip.title)}</strong> — ${richTipText(short)}` +
+    `<div class="tip-card-links"><a href="#" data-tips-random>Another tip</a> · <a href="#" data-tips-off>Hide tips</a></div></div>`,
+    true
+  );
+  if (!force) scheduleTip(TIP_EVERY_MS[0] + Math.random() * (TIP_EVERY_MS[1] - TIP_EVERY_MS[0]));
+}
+
+document.addEventListener("click", e => {
+  if (!e.target.closest("[data-tips-off]")) return;
+  e.preventDefault();
+  try { localStorage.setItem(TIPS_AUTO_KEY, "false"); } catch {}
+  clearTimeout(tipTimer);
+  addMessage("bot", "Okay, no more tips. You can turn them back on in Settings → Console tips.", true);
+});
+document.addEventListener("tipsAutoChanged", () => scheduleTip(TIP_FIRST_MS));
+scheduleTip(TIP_FIRST_MS);
+
+// TEMPORARY test controls for the tip card: set TIPS_DEBUG to false (or delete this block) when done.
+const TIPS_DEBUG = false;
+if (TIPS_DEBUG) {
+  const bar = document.createElement("div");
+  bar.id = "tipsDebugBar";
+  bar.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:99999;display:flex;gap:6px;padding:6px 8px;border-radius:12px;background:rgba(0,0,0,.75);font:12px Ruda,sans-serif;color:#fff;align-items:center";
+  bar.innerHTML = '<span style="opacity:.7">tips debug</span>' +
+    '<button data-dbg="show">Show tip</button>' +
+    '<button data-dbg="genre">Genre fact</button>' +
+    '<button data-dbg="reset">Reset seen</button>' +
+    '<button data-dbg="on">Enable</button>';
+  bar.querySelectorAll("button").forEach(b => { b.style.cssText = "cursor:pointer;border:1px solid #00F2B8;background:transparent;color:#00F2B8;border-radius:8px;padding:3px 8px;font:inherit"; });
+  bar.addEventListener("click", e => {
+    const act = e.target.dataset && e.target.dataset.dbg;
+    if (act === "show") maybeShowTip(true, "tip");
+    else if (act === "genre") { genreFactsShown.clear(); maybeShowTip(true, "genre"); }
+    else if (act === "reset") { try { localStorage.removeItem(TIPS_SEEN_KEY); } catch {} }
+    else if (act === "on") { try { localStorage.setItem(TIPS_AUTO_KEY, "true"); } catch {} scheduleTip(TIP_FIRST_MS); }
+  });
+  document.body.appendChild(bar);
+}
+
 async function requestChatCompletion(messages, options = {}) {
   const resp = await fetch(`${FONY_BACKEND_URL}/api/openai/chat`, {
     method: "POST",
@@ -912,6 +1054,11 @@ function renderQuickLinks() {
     a.addEventListener("click", e => {
       e.preventDefault();
       if (cmd.isHome) {
+        // /home = fresh start: wipe the console and the AI context, then show the welcome screen
+        chatMessagesElem.innerHTML = "";
+        conversationHistory = [];
+        window.__awaitingMoodQuery = false;
+        chatInput.placeholder = "Enter message...";
         sendWelcomeMessage();
         return;
       }
@@ -935,7 +1082,13 @@ function renderQuickLinks() {
 
 function sendWelcomeMessage() {
   loadFonyUpdate().then(text => {
-    const updateBlock = `<br><div style="margin-top:12px; font-size: 12px; color: #ffffffff; white-space: pre-line;">${linkifyText(text)}</div>`;
+    // welcome screen shows the latest 3 updates; the link posts the whole log
+    const allLines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const latest = allLines.slice(-3).join("\n");
+    const moreLink = allLines.length > 3
+      ? `<div style="margin-top:6px; font-size: 12px;"><a href="#" data-chat-updates>All updates (${allLines.length})</a></div>`
+      : "";
+    const updateBlock = `<br><div style="margin-top:12px; font-size: 12px; color: #ffffffff; white-space: pre-line;">${linkifyText(latest)}</div>${moreLink}`;
 
     const welcomeText = `
       <div style="line-height: 1.6;">
@@ -954,6 +1107,13 @@ function sendWelcomeMessage() {
       </div>
     `;
     const welcomeMessage = addMessage("bot", welcomeText);
+    const allLink = welcomeMessage.querySelector("[data-chat-updates]");
+    if (allLink) {
+      allLink.addEventListener("click", event => {
+        event.preventDefault();
+        addMessage("bot", `<div style="font-size: 12px; white-space: pre-line;">${linkifyText(allLines.join("\n"))}</div>`, true);
+      });
+    }
     welcomeMessage.querySelectorAll("[data-chat-command]").forEach(link => {
       link.addEventListener("click", event => {
         event.preventDefault();

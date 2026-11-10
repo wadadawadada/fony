@@ -17,6 +17,10 @@
           "text": "The [[ui:random|dice button]] jumps to a random genre and station. [[ui:shuffle|Shuffle]] plays stations of the current list in random order; next and previous skip."
         },
         {
+          "title": "Random learns your taste",
+          "text": "The [[ui:random|dice button]] leans towards genres you listen to and favorite, but every genre keeps a chance, so you still discover new stuff. Reset it any time in [[ui:settings|Settings]]."
+        },
+        {
           "title": "Favorites",
           "text": "Tap the heart on a station to keep it. Open the [[ui:favorites|favorites list]] and sort it by your own drag order, date added, genre or A–Z. Drag rows to reorder."
         },
@@ -32,6 +36,16 @@
         {
           "title": "Dead streams fix themselves",
           "text": "If a stream goes silent, FONY detects it and skips to the next station; stations that keep failing get hidden."
+        },
+        {
+          "title": "Stations that fit your mood",
+          "text": "Not sure what to play? Describe a vibe to the console and it finds a live station that matches.",
+          "try": [
+            {
+              "label": "/mood",
+              "command": "/mood"
+            }
+          ]
         }
       ]
     },
@@ -129,6 +143,10 @@
           "title": "Resize the panels",
           "desktop": true,
           "text": "Drag the divider between the player and the list to change their width; double-click it to go back to the default."
+        },
+        {
+          "title": "Games",
+          "text": "On desktop, the gamepad icon next to the wallet opens a little console with FONY Flappy and FONY Breaker. They react to the music that is playing."
         }
       ]
     },
@@ -161,6 +179,10 @@
         {
           "title": "Backup and restore",
           "text": "Everything FONY remembers (favorites, playlists, skins, collection) lives in your browser. Back it up to a file, restore it on another device, or reset the app from the same dialog."
+        },
+        {
+          "title": "Console tips",
+          "text": "These little tips pop up in the console now and then. You can switch them off in [[ui:settings|Settings]] → Console tips."
         }
       ]
     },

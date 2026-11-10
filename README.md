@@ -20,6 +20,7 @@
   - [Equalizer & Visualizers](#equalizer--visualizers)
   - [Favorites & Collection](#favorites--collection)
   - [Theming & Skins](#theming--skins)
+  - [Games](#games)
   - [Settings & Data Backup](#settings--data-backup)
   - [Fonypedia](#fonypedia)
 - [Architecture](#architecture)
@@ -37,9 +38,19 @@
 - Live ICY now-playing metadata (artist/track) polled for the active station, with a buffering indicator while a stream connects.
 - Automatic stall detection and recovery: the player monitors real audio output (not just playback time) and auto-skips to the next station if a stream goes dead, hiding stations that repeatedly fail.
 - A dedicated iOS playback path relays streams through an HLS proxy, since Safari on iOS doesn't handle some ICY/AAC streams directly.
-- Global search across every genre's station list, shuffle, next/previous, and a "Random" button that jumps to a random genre and station.
+- Global search across every genre's station list, shuffle, next/previous, and a "Random" button that jumps to a random genre and station — see [Random picks](#random-picks).
 - Shareable deep links to a specific station (`#Genre/<hash>`) and URL-based genre entry (e.g. visiting `/techno` auto-plays that genre).
 - Session persistence — the last-played station, genre, and mode are restored on reload.
+
+### Random picks
+
+The Random button learns your taste locally, per genre, without making the pick predictable:
+
+- A station counts as a listen after 45 seconds of playback, so channel surfing doesn't skew anything. Genres you listen to more often, and genres of your favorited stations, get a higher chance.
+- Every genre keeps a base chance (weights are square-rooted so a favorite can't crowd out the rest), and 1 roll in 5 ignores your taste entirely to keep discovery alive.
+- It works for built-in genres and for custom playlists you've added.
+- Old habits fade (weights decay about 3% per day). Everything is a tiny object in your browser's `localStorage` — nothing is sent anywhere, and there's no background work.
+- **Settings → Random taste → Reset** wipes it. Favorites are left untouched (they still influence Random).
 
 ### Genres & Playlists
 
@@ -83,6 +94,8 @@ An in-app chat console offers several slash-commands, backed by an external API:
 
 The console also runs a rotating "tips" walkthrough of app features on first use.
 
+Every 8–10 minutes (first one after ~2 minutes) a small animated "Did you know?" card with a tip from the same library appears in the console. It never interrupts typing, a game or a hidden console, doesn't repeat a tip until all were shown, and can be switched off with "Hide tips" or in Settings → Console tips.
+
 ### Now Playing & Metadata
 
 - Discogs-derived album info (year, country, label, genre) and cover art shown automatically as the track changes.
@@ -104,13 +117,22 @@ The console also runs a rotating "tips" walkthrough of app features on first use
 - Light/dark theme toggle with a matching icon set for each mode.
 - Procedurally generated background "skins" (see `/skins` above) layered independently on top of the light/dark theme.
 
+### Games
+
+A small NES-style game console, desktop only: click the gamepad icon next to the wallet button and the console opens over the player. Games sit on a cartridge shelf and react to the music through the player's audio analyser.
+
+- **FONY Flappy** — a bouncing vinyl flies through columns of spectrum bars; you have lives.
+- **FONY Breaker** — a brick breaker with shaped levels, special bricks and power-ups; progress is saved locally.
+
 ### Settings & Data Backup
 
-Accessible from the About/manifesto panel:
+Open it from the settings icon. Options are grouped into Playback, Interface and Data:
 
 - Hide non-HTTPS stations.
-- Left-handed layout (mirrors the UI on wide viewports).
-- Backup the app's local data to a JSON file, restore from a backup, or fully reset the app.
+- Reset Random taste (see [Random picks](#random-picks)).
+- Left-handed layout (mirrors the UI on wide viewports), station icons on/off, glass ripple effect.
+- Backup the app's local data to a JSON file, restore from a backup, or fully reset the app (asks for confirmation).
+- The backup covers everything stored in the browser's `localStorage`: favorites, custom and local playlists, collection, skins, Random taste, game progress and all settings. Folder access granted for Local mode lives in the browser itself and can't be exported, so on another browser or device you'll need to add those folders again.
 
 ### Fonypedia
 

@@ -9,7 +9,8 @@ import { clearDiscogsInfo, refreshNowPlaying } from './nowplaying.js'
 import { isLocalSupported, prepareTrack, isFavorite as isLocalFavorite, toggleFavorite as toggleLocalFavoriteTrack } from './local-library.js'
 import { enterLocalMode, leaveLocalMode, syncActive as syncLocalActive, setLocalProgress, showUnsupportedDialog, playRandom as playLocalRandom, revealPlaying as revealLocalPlaying } from './local-mode.js'
 import { initCustomGenreSelect, setSelectedGenre, getSelectedGenre } from './custom-genre-select.js';
-import { loadCustomPlaylists, saveCustomPlaylist, deleteCustomPlaylist, normalizePlaylistUrl, suggestNameFromUrl } from './custom-playlists.js';
+import { pickPlaylist as pickTastePlaylist, trackListen, stopTracking as stopTasteTracking } from './taste.js';
+import { loadCustomPlaylists,saveCustomPlaylist, deleteCustomPlaylist, normalizePlaylistUrl, suggestNameFromUrl } from './custom-playlists.js';
 import { loadMergedPlaylistFolder as fetchMergedPlaylistFolder } from './merged-playlist-catalog.js'
 import { stationLogosEnabled } from './utils/favLogos.js';
 
@@ -1747,6 +1748,11 @@ audioPlayer.addEventListener("play", async () => {
   }
 
   const playing = currentPlaylist[currentTrackIndex]
+  if (playing && !playing.nft && !playing.local && currentMode !== "web3") {
+    trackListen(playing.favGenre || getSelectedGenre().name || window.currentGenre)
+  } else {
+    stopTasteTracking()
+  }
   if (!(playing && (playing.nft || playing.local))) {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
     if (playCheckTimer) {
@@ -1785,6 +1791,7 @@ audioPlayer.addEventListener("ended", () => {
 })
 
 audioPlayer.addEventListener("pause", () => {
+  stopTasteTracking()
   updatePlayPauseButton(audioPlayer, playPauseBtn)
   if (window.playTimerInterval) {
     clearInterval(window.playTimerInterval)
@@ -1919,8 +1926,7 @@ if (randomBtn) {
     } else {
       fadeAudioOut(audioPlayer, 500, () => {
         if (!allPlaylists.length) return;
-        const ri = Math.floor(Math.random() * allPlaylists.length);
-        const randomPlaylist = allPlaylists[ri];
+        const randomPlaylist = pickTastePlaylist(allPlaylists);
         setSelectedGenre(randomPlaylist.file, randomPlaylist.name);
         window.currentGenre = randomPlaylist.name;
         loadAndRenderPlaylist(randomPlaylist.file, randomPlaylist.name, () => {

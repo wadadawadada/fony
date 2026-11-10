@@ -19,9 +19,10 @@
   --text-xl: 1.375rem;
 
   /* shape */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+  --radius-xl: 34px;
   --radius-pill: 999px;
 
   /* spacing (4px grid) */
@@ -141,7 +142,11 @@
 }
 
 .playlist-area::-webkit-scrollbar-track {
-  background: transparent;
+  /* faint groove: same 5px inset as the thumb, so it reads as a slim rail */
+  background: rgba(0, 0, 0, 0.08);
+  background-clip: content-box;
+  border: 5px solid transparent;
+  border-radius: var(--radius-pill);
   margin: 20px 0;
 }
 
@@ -173,7 +178,7 @@
   color: var(--on-glass);
   border: none;
   border-bottom: 1px solid var(--row-divider);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   box-shadow: none;
   margin-bottom: 0;
   padding: 11px var(--space-4);
@@ -461,6 +466,16 @@
   backdrop-filter: blur(8px);
 }
 
+/* desktop: dim the page with a soft vignette instead of blurring it */
+@media (min-width: 1025px) {
+  html body .manifesto-modal,
+  html body.glass .manifesto-modal {
+    background: radial-gradient(ellipse at 50% 45%, rgba(8, 11, 20, 0.28) 0%, rgba(4, 6, 14, 0.62) 55%, rgba(2, 3, 9, 0.86) 100%);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
 .add-playlist-content,
 .gif-search-content,
 .manifesto-content,
@@ -469,8 +484,12 @@
   font-family: var(--font-ui);
   background: linear-gradient(180deg, #1a2033 0%, #131829 100%);
   border: 1px solid rgba(0, 242, 184, 0.35);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-3);
+}
+
+.donate-content {
+  border-radius: var(--radius-xl);
 }
 
 body:not(.dark) .add-playlist-content,
@@ -548,11 +567,6 @@ body:not(.dark) .add-playlist-field input:focus {
   scale: 1;
   opacity: 0.9;
   transform: translateY(-1px);
-}
-
-.settings-btn {
-  font-size: var(--text-sm);
-  padding: 9px var(--space-4);
 }
 
 .settings-btn:hover {
@@ -1294,6 +1308,52 @@ body.glass .center-circle.has-cover::after {
 
 .chat-messages a.tips-act:hover {
   text-decoration-style: solid;
+}
+
+/* tip of the day: plain text, no frame or background */
+
+@keyframes tipCardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes tipBulb {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  30% { transform: rotate(-14deg) scale(1.15); }
+  60% { transform: rotate(10deg) scale(1.1); }
+}
+
+.chat-messages .tip-card {
+  max-width: 62ch; /* wrap earlier so it reads as a short note, not one wide line */
+  line-height: 1.5;
+  animation: tipCardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.chat-messages .tip-card-icon {
+  display: inline-block;
+  margin-right: 4px;
+  transform-origin: 50% 80%;
+  animation: tipBulb 1.4s ease-in-out 0.5s 2;
+}
+
+.chat-messages .tip-card-links {
+  margin-top: 4px;
+  font-size: var(--text-sm);
+  opacity: 0.75;
+}
+
+.chat-messages .tip-card-links a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.chat-messages .tip-card-links a:hover {
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-messages .tip-card,
+  .chat-messages .tip-card-icon { animation: none; }
 }
 
 /* ---------- /skins studio (console card) ---------- */
