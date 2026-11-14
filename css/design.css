@@ -1764,3 +1764,33 @@ body.glass .center-circle.has-cover::after {
   right: 6px;
   color: rgba(255, 255, 255, 0.85);
 }
+
+/* the genre list is as wide as its longest name, whatever width the closed select has in the row */
+.custom-genre-select .genre-select-dropdown {
+  right: auto;
+  min-width: max(100%, 230px);
+  width: max-content;
+  max-width: min(340px, 92vw);
+}
+
+.custom-genre-select .genre-select-item-name {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+/* genre list: a thin, quiet scrollbar */
+.custom-genre-select .genre-select-dropdown {
+  scrollbar-width: auto;       /* the ::-webkit-scrollbar rules below apply (the standard thin one would be an auto-hiding overlay) */
+  scrollbar-color: auto;
+}
+
+.custom-genre-select .genre-select-dropdown::-webkit-scrollbar { width: 8px; }
+.custom-genre-select .genre-select-dropdown::-webkit-scrollbar-track { background: transparent; margin: 8px 0; }
+.custom-genre-select .genre-select-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+.custom-genre-select .genre-select-dropdown::-webkit-scrollbar-thumb:hover { background: rgba(0, 242, 184, 0.7); background-clip: padding-box; }
