@@ -61,9 +61,65 @@ export function popularStations(lists, { text = "", limit = 60 } = {}) {
   return [...map.values()].sort((a, b) => b.count - a.count || a.station.name.localeCompare(b.station.name)).slice(0, limit)
 }
 
+// What is going on in FONY right now, from anyone (not only the people you follow), in one round trip:
+//   lists   - the newest public station lists
+//   live    - accounts that are listening to a station through FONY right now
+//   people  - accounts that recently did something with FONY (shared a list, listen, posted), newest first
+export async function fetchFonyActivity() {
+  const now = Math.floor(Date.now() / 1000)
+  const events = await query([
+    { kinds: [F.KIND_LIST], "#t": [F.FONY_LIST_LABEL], limit: 100 },
+    { kinds: [F.KIND_STATUS], "#d": [F.STATUS_D_TAG], since: now - F.STATUS_TTL * 2, limit: 300 },
+    { kinds: [1], "#t": ["fony"], since: now - 7 * 86400, limit: 100 }
+  ], { timeout: 8000, limitTotal: 800 })
+
+  const lists = F.latestPerList(events.map(F.parseListEvent).filter(Boolean)).filter(l => l.stations.length).sort((a, b) => b.createdAt - a.createdAt)
+
+  // one live status per account, only those that came from FONY (they carry a station)
+  const liveBy = new Map()
+  for (const ev of events) {
+    if (ev.kind !== F.KIND_STATUS) continue
+    const st = F.parseStatusEvent(ev, now)
+    if (!st || !st.station) continue
+    const cur = liveBy.get(st.pubkey)
+    if (!cur || st.createdAt > cur.createdAt) liveBy.set(st.pubkey, st)
+  }
+  const live = [...liveBy.values()].sort((a, b) => b.createdAt - a.createdAt)
+
+  // people: the newest FONY activity of each account
+  const act = new Map()
+  const see = (pubkey, at, what, extra = {}) => {
+    const cur = act.get(pubkey)
+    if (!cur || at > cur.at) act.set(pubkey, { pubkey, at, what, ...extra })
+  }
+  for (const l of lists) see(l.pubkey, l.createdAt, "list", { title: l.title })
+  for (const ev of events) {
+    if (ev.kind === 1 && F.isHexKey(ev.pubkey) && ev.tags.some(t => t[0] === "client" && String(t[1]).toLowerCase() === "fony")) see(ev.pubkey, ev.created_at, "note")
+  }
+  for (const s of live) see(s.pubkey, s.createdAt, "live", { station: s.station })
+  const people = [...act.values()].sort((a, b) => b.at - a.at)
+  return { lists, live, people }
+}
+
+// The stations being played right now, most listeners first. Returns [{ station, who: [pubkey] }].
+export function liveStations(live) {
+  const map = new Map()
+  for (const s of live) {
+    const key = F.stationKey(s.station.url)
+    const cur = map.get(key)
+    if (cur) { cur.who.push(s.pubkey); cur.at = Math.max(cur.at, s.createdAt) }
+    else map.set(key, { station: s.station, who: [s.pubkey], at: s.createdAt })
+  }
+  return [...map.values()].sort((a, b) => b.who.length - a.who.length || b.at - a.at)
+}
+
 export async function discover(text = "") {
-  const lists = await fetchPublicLists({ limit: text ? 150 : 80, search: text })
-  return { lists, stations: popularStations(lists, { text }) }
+  if (text) {
+    const lists = await fetchPublicLists({ limit: 150, search: text })
+    return { lists, stations: popularStations(lists, { text }), live: [], people: [] }
+  }
+  const { lists, live, people } = await fetchFonyActivity()
+  return { lists, stations: popularStations(lists, {}), live, people }
 }
 
 // Live "now listening" statuses from followed accounts (FONY statuses first).

@@ -1,6 +1,7 @@
 // Profiles (kind 0) and follow lists (kind 3), with a small localStorage cache.
 
-import { query } from "./client.js"
+import { query, publish } from "./client.js"
+import { signEvent, getSession } from "./auth.js"
 import { KIND_PROFILE, KIND_CONTACTS, parseProfile, parseContacts, isHexKey } from "./format.js"
 
 const PROFILE_KEY = "fonyNostrProfiles"
@@ -86,6 +87,48 @@ export async function getFollows(pubkey, { force = false } = {}) {
   writeJson(FOLLOWS_KEY, all)
   return list
 }
+
+// ---- following someone on Nostr itself (the account's real follow list, kind 3) ----
+//
+// A follow list is ONE replaceable event. Publishing a new one replaces the old, so it must be built from
+// the newest existing event with every tag kept as it is (relay hints, petnames, other tags). If the current
+// list cannot be read from the relays, nothing is published: a guess could wipe out the user's follows.
+
+async function newestContactEvent(pubkey) {
+  const events = await query({ kinds: [KIND_CONTACTS], authors: [pubkey], limit: 10 }, { timeout: 9000 })
+  let latest = null
+  for (const ev of events) if (ev.pubkey === pubkey && (!latest || ev.created_at > latest.created_at)) latest = ev
+  return latest
+}
+
+async function changeFollow(target, add) {
+  const session = getSession()
+  if (!session) throw new Error("Sign in to Nostr first")
+  if (!isHexKey(target) || target === session.pubkey) throw new Error("That account cannot be followed")
+  const current = await newestContactEvent(session.pubkey)
+  const all = readJson(FOLLOWS_KEY, {})
+  const known = all[session.pubkey] && all[session.pubkey].list ? all[session.pubkey].list : []
+  if (!current && known.length) {
+    throw new Error("Could not read your current follow list from the relays, so it was left unchanged. Try again in a moment.")
+  }
+  let tags = current ? current.tags.map(t => t.slice()) : []
+  const has = tags.some(t => t[0] === "p" && t[1] === target)
+  if (add === has) return { changed: false, following: add }
+  tags = add ? [...tags, ["p", target]] : tags.filter(t => !(t[0] === "p" && t[1] === target))
+  const signed = await signEvent({
+    kind: KIND_CONTACTS,
+    created_at: Math.max(Math.floor(Date.now() / 1000), current ? current.created_at + 1 : 0),
+    tags,
+    content: current ? current.content : ""
+  })
+  await publish(signed)
+  all[session.pubkey] = { list: parseContacts(signed), t: Date.now() }
+  writeJson(FOLLOWS_KEY, all)
+  return { changed: true, following: add }
+}
+
+export const followAccount = (target) => changeFollow(target, true)
+export const unfollowAccount = (target) => changeFollow(target, false)
 
 export function clearProfileCache() {
   profileCache = {}

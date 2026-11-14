@@ -12,7 +12,7 @@
 
 import * as Auth from "./nostr/auth.js"
 import * as Client from "./nostr/client.js"
-import { getProfiles, getFollows, displayName } from "./nostr/profile.js"
+import { getProfiles, getFollows, displayName, followAccount, unfollowAccount } from "./nostr/profile.js"
 import * as Lists from "./nostr/playlists.js"
 import * as Fav from "./nostr/favorites.js"
 import * as Disc from "./nostr/discovery.js"
@@ -539,25 +539,55 @@ async function renderShared(body, my) {
 
 async function renderDiscover(body, my) {
   const box = h("div", { class: "nostr-section" }, loader("Searching relays…"))
-  body.append(h("p", { class: "nostr-hint",
-    text: discoverQuery ? `Results for “${discoverQuery}”` : "Search above, or paste an npub, naddr or FONY link." }), box)
+  if (discoverQuery) body.append(h("p", { class: "nostr-hint", text: `Results for “${discoverQuery}”` }))
+  body.append(box)
   try {
-    const { lists, stations } = await Disc.discover(discoverQuery)
-    const profiles = await getProfiles(lists.map(l => l.pubkey))
+    const { lists, stations, live, people } = await Disc.discover(discoverQuery)
+    const playing = Disc.liveStations(live)
+    const shownPeople = people.slice(0, 8)
+    const profiles = await getProfiles([...lists.map(l => l.pubkey), ...shownPeople.map(p => p.pubkey), ...live.map(s => s.pubkey)])
     if (stale(my)) return
     put(box)
-    if (!lists.length && !stations.length) {
-      box.append(errorBox(discoverQuery ? "Nothing found. Try another word, or paste an npub." : "No public lists were found on your relays.", () => render()))
+    if (!lists.length && !stations.length && !live.length && !people.length) {
+      box.append(errorBox(discoverQuery ? "Nothing found. Try another word, or paste an npub." : "Nothing from FONY was found on your relays yet.", () => render()))
       return
     }
+    const nameOf = (pk) => displayName(profiles.get(pk), pk)
+
+    // people who are active in FONY through Nostr, newest first
+    if (shownPeople.length) {
+      box.append(sectionTitle("", "New on FONY"), ...shownPeople.map(p => {
+        const pr = profiles.get(p.pubkey)
+        const line = p.what === "live" ? `listening to ${p.station.name}` : p.what === "list" ? `shared “${p.title}” · ${ago(p.at)}` : `posted from FONY · ${ago(p.at)}`
+        return h("button", { class: "nostr-row", type: "button", onclick: () => openUser(p.pubkey) },
+          h("span", { class: p.what === "live" ? "nostr-live-ring" : "" }, avatar(pr, p.pubkey, 36)),
+          h("span", { class: "nostr-row-main" },
+            h("span", { class: "nostr-row-title", text: displayName(pr, p.pubkey) }),
+            h("span", { class: "nostr-row-sub", text: line })))
+      }))
+    }
+
+    // what is being played through FONY right now (by anyone)
+    if (playing.length) {
+      const shown = playing.slice(0, 12)
+      const queue = shown.map(x => x.station)
+      box.append(sectionTitle("", "Playing now"), ...shown.map(x => {
+        const names = x.who.map(nameOf)
+        const who = names.length > 2 ? `${names.slice(0, 2).join(", ")} +${names.length - 2}` : names.join(", ")
+        return stationRow(x.station, { who, siblings: queue })
+      }))
+    }
+
     if (lists.length) box.append(sectionTitle("", discoverQuery ? "Lists" : "Newest lists"), ...lists.slice(0, 40).map(l => listRow(l, profiles.get(l.pubkey))))
-    if (stations.length) {
+
+    // popular stations: only in a search, or while nobody is playing anything
+    if (stations.length && (discoverQuery || !playing.length)) {
       const shown = stations.slice(0, discoverQuery ? 30 : 12)
       const queue = shown.map(s => s.station)
       box.append(sectionTitle("", discoverQuery ? "Stations" : "Popular stations"),
         ...shown.map(s => stationRow(s.station, { count: s.count, siblings: queue })))
-      markPlaying(window.currentStationUrl && F.unwrapProxyUrl(window.currentStationUrl))
     }
+    markPlaying(window.currentStationUrl && F.unwrapProxyUrl(window.currentStationUrl))
   } catch (err) {
     if (stale(my)) return
     put(box, errorBox("Could not reach your relays.", () => render()))
@@ -756,8 +786,37 @@ async function renderUser(body, my) {
     if (stale(my)) return
     const p = profiles.get(pubkey)
     const live = statuses[0] && statuses[0].station ? statuses[0].station : null
+    const session = Auth.getSession()
+    // follow / unfollow on Nostr itself (the account's real follow list)
+    let followBtn = null
+    if (session && session.pubkey !== pubkey) {   // nobody follows themselves: no button on your own profile
+      let following = false
+      try { following = (await getFollows(session.pubkey)).includes(pubkey) } catch (_) {}
+      if (stale(my)) return
+      followBtn = button(following ? "Following" : "Follow", async () => {
+        followBtn.disabled = true
+        const was = following
+        followBtn.querySelector("span, :scope")
+        try {
+          if (was) {
+            const sure = await confirmDialog({ title: "Unfollow on Nostr?", text: `${displayName(p, pubkey)} will be removed from your follow list on Nostr (in every Nostr app).`, okLabel: "Unfollow" })
+            if (!sure) return
+          }
+          followBtn.textContent = "Working…"
+          const r = was ? await unfollowAccount(pubkey) : await followAccount(pubkey)
+          following = r.following
+          toast(following ? `You now follow ${displayName(p, pubkey)} on Nostr` : "Unfollowed")
+        } catch (err) {
+          toast(String(err.message || err))
+        } finally {
+          followBtn.disabled = false
+          followBtn.textContent = following ? "Following" : "Follow"
+          followBtn.classList.toggle("primary", !following)
+        }
+      }, following ? "small" : "primary small")
+    }
     put(head,
-      personHead(p, pubkey, `${npub.slice(0, 14)}…${npub.slice(-4)}`),
+      personHead(p, pubkey, `${npub.slice(0, 14)}…${npub.slice(-4)}`, followBtn),
       p && p.about ? h("p", { class: "nostr-hint", text: p.about }) : null,
       live ? h("div", { class: "nostr-row static" },
         h("span", { class: "nostr-row-main" }, h("span", { class: "nostr-row-sub", text: "Listening now" }), h("span", { class: "nostr-row-title", text: live.name })),
@@ -879,6 +938,11 @@ function render() {
   if (sub) { renderSub(body, my); return }
   const fn = { following: renderFollowing, shared: renderShared, discover: renderDiscover, profile: renderProfile }[tab]
   fn(body, my)
+}
+
+function openUser(pubkey) {
+  sub = { type: "user", pubkey }
+  render()
 }
 
 export function openList(ref) {

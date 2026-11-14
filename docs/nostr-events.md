@@ -171,10 +171,14 @@ Both are opt-in (checkboxes, off by default) and add nothing to the list or stat
 * **Share note**, sent with *Share / Update Favorites*: `📻 I shared my favorite radio stations on FONY: <title> (<n> stations)`, then `nostr:<naddr>` and the FONY link, `#fony #radio`. Tags: `["t","fony"]`, `["t","radio"]`, `["a","30001:<pubkey>:<d>"]`, `["r",<link>]`, `["client","FONY"]`.
 * **Listening note**, sent next to the status when the station changes (the album art is looked up first, FONY waits up to 10 s for it): `🎧 Listening to <station> — <track> on FONY`, the album art (when FONY found a cover for the track: an `https` image URL on its own line plus an `imeta` tag; FONY waits up to 10 s for it) and the tune-in link, `#fony #nowplaying`. At most once every 20 minutes and never twice for the same station in a row.
 
-## 6. Events FONY reads but never writes
+## 6. Events FONY reads, and the follow list
 
 * `kind:0` profile — `display_name`/`name`, `about`, `picture` (only `https:` avatars are used).
-* `kind:3` follow list — `p` tags with 64-hex pubkeys.
+* `kind:3` follow list — `p` tags with 64-hex pubkeys. FONY **writes** it only when the user presses *Follow* / *Following* on a profile:
+  the new event is built from the account's newest `kind:3` with every existing tag and the `content` kept as they are, plus or minus one
+  `["p", <pubkey>]`, with `created_at` newer than the previous one. If the current list cannot be read from the relays, nothing is published.
+* Discover also reads, from anyone: the newest FONY lists, `kind:30315` music statuses that carry a `fony-station` tag (what is playing now),
+  and `kind:1` notes tagged `["t","fony"]` + `["client","FONY"]` (people recently active in FONY).
 
 ## 7. Security notes
 
