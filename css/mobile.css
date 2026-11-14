@@ -72,11 +72,6 @@
     z-index: 1001;
   }
 
-  #walletAddress,
-  #walletWrapper {
-    display: none;
-  }
-
   .manifesto-button {
     position: static;
     order: -1;
@@ -217,11 +212,6 @@
   .genre-search::placeholder {
     width: 6ch;
     padding-left: unset;
-  }
-
-  #connectWalletBtn {
-    width: 15px;
-    height: 15px;
   }
 
   #radioModeBtn {

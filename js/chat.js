@@ -1,5 +1,4 @@
-﻿import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js";
-import { fetchDiscogsTrackInfo } from './utils/discogs.js';
+﻿import { fetchDiscogsTrackInfo } from './utils/discogs.js';
 import { handleSkinsCommand, reapplySkin } from './utils/skins.js';
 import { addTrackToCollection, createMainCollectMenuHtml, setupCollectionMenuHandlers, setupMobileCollectionHandlers, getCollection } from './utils/collection.js';
 import { handleMoodCommand, runMoodSearch } from './utils/mood.js';
@@ -10,7 +9,6 @@ const FONY_BACKEND_URL = window.FONY_BACKEND_URL || "https://fonyserver.up.railw
 const TIPS_JSON_URL = "../json/fony_tips.json";
 const FONY_UPDATE_URL = "../update.md";
 
-let walletAddress = null;
 
 const chatContainer = document.getElementById("chat");
 const chatMessagesElem = document.getElementById("chatMessages");
@@ -204,7 +202,7 @@ const TIP_UI = {
   random: () => clickControl("#randomBtn"),
   shuffle: () => clickControl("#shuffleBtn"),
   favorites: () => clickControl("#favoritesFilterBtn"),
-  wallet: () => clickControl("#connectWalletBtn"),
+  nostr: () => clickControl("#nostrModeBtn"),
   genre: () => clickControl("#genreSelectHeader"),
   visualizer: () => clickControl(".equalizer-container"),
   search: () => {
@@ -971,18 +969,6 @@ function addRawHtmlMessage(role, htmlContent) {
 }
 
 
-async function connectWalletAndInitChat() {
-  if (!window.ethereum) {
-    return;
-  }
-  try {
-    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-    walletAddress = ethers.utils.getAddress(accounts[0]);
-    chatContainer.style.display = "flex";
-    conversationHistory = [];
-  } catch {}
-}
-
 function renderQuickLinks() {
   if (!chatGenreElem) return;
   chatGenreElem.innerHTML = "";
@@ -1209,14 +1195,6 @@ export function initChat() {
     if (chatInput) chatInput.placeholder = "Enter message...";
   });
 
-  const walletBtn = document.getElementById("connectWalletBtn");
-  if (walletBtn) {
-    walletBtn.addEventListener("click", async () => {
-      if (window.currentMode === 'web3') return;
-      await connectWalletAndInitChat();
-    });
-  }
-
   const chatSendBtn = document.getElementById("chatSendBtn");
   const chatInput = document.getElementById("chatInput");
 
@@ -1224,12 +1202,6 @@ export function initChat() {
   chatInput.addEventListener("keypress", e => {
     if (e.key === "Enter") sendMessage();
   });
-
-  if (window.ethereum && window.ethereum.selectedAddress) {
-    walletAddress = ethers.utils.getAddress(window.ethereum.selectedAddress);
-    const chatContainer = document.getElementById("chat");
-    if (chatContainer) chatContainer.style.display = "flex";
-  }
 
   const mobileChatToggleBtn = document.getElementById('mobileChatToggleBtn');
 

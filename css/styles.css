@@ -101,62 +101,6 @@ svg {
   height: 20px;
 }
 
-#connectWalletBtn {
-  width: 17px;
-  height: 17px;
-  cursor: pointer;
-}
-
-#walletWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  line-height: 0;
-}
-
-#walletTooltip {
-  display: none;
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background-color: #171C2B;
-  border: 1px solid #00F2B8;
-  border-radius: 8px;
-  padding: 4px;
-  white-space: nowrap;
-  z-index: 1002;
-}
-
-body:not(.dark) #walletTooltip {
-  background-color: #f2f2f2;
-  border-color: #171C2B;
-}
-
-#walletTooltip.open {
-  display: block;
-}
-
-#walletLogoutBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#logoutIcon {
-  width: 18px;
-  height: 18px;
-  opacity: 0.8;
-  transition: opacity 0.15s ease;
-}
-
-#walletLogoutBtn:hover #logoutIcon {
-  opacity: 1;
-}
-
 .manifesto-modal {
   display: none;
   position: fixed;
@@ -783,12 +727,8 @@ label.settings-row:hover {
   z-index: 1001;
 }
 
-.top-bar-actions #walletAddress:empty {
-  display: none;
-}
-
 .top-bar-actions .manifesto-button,
-.top-bar-actions #walletWrapper,
+.top-bar-actions .nostr-mode-button,
 .top-bar-actions .settings-button,
 .top-bar-actions .games-button,
 .top-bar-actions #themeToggle {
@@ -1814,17 +1754,6 @@ body:not(.dark) .add-playlist-hint { color: #171C2B; }
   color: #fff;
 }
 
-#walletAddress {
-  font-size: 0.65rem;
-  font-family: monospace;
-  color: #171C2B;
-  white-space: nowrap;
-}
-
-body.dark #walletAddress {
-  color: #ffffff;
-}
-
 #radioModeBtn {
   margin-left: auto;
   margin-right: 0;
@@ -1923,10 +1852,6 @@ body.dark #walletAddress {
   background-color: #171c2b8b;
 }
 
-#playlist li.web3-mode .progress {
-  background-color: #00F2B8;
-}
-
 #playlist li:hover {
   background-color: #00F2B8;
   color: #000;
@@ -1936,11 +1861,6 @@ body.dark #walletAddress {
 
 #playlist li.radio-mode:hover {
   background-color: #00F2B8;
-  color: #000;
-}
-
-#playlist li.web3-mode:hover {
-  background-color: #ffffff77;
   color: #000;
 }
 
@@ -2228,3 +2148,12 @@ body.dark #manifestoBtn img:hover {
   cursor: pointer;
   padding: 0;
 }
+
+/* Data section: one row per action, small buttons on the right */
+.settings-row-static { cursor: default; }
+.settings-btns { display: flex; gap: 6px; flex: 0 0 auto; }
+.settings-row .settings-btn-small { padding: 5px 14px; font-size: 0.82rem; }
+
+.settings-row-tight { padding-top: 4px; padding-bottom: 4px; }
+.settings-status { padding: 0 12px 4px; }
+.settings-status:empty { display: none; }

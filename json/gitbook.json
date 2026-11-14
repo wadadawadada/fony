@@ -1,31 +1,30 @@
 {
-  "title": "FONY Web3 Music Player - Complete Documentation and User Guide",
-  "description": "FONY is a browser-based music player combining free internet radio streaming with Web3 NFT audio playback, an AI console, and a set of discovery/customization tools. This documentation covers all features, usage tips, chat commands, and technical details for users and developers.",
+  "title": "FONY Internet Radio with Nostr - Complete Documentation and User Guide",
+  "description": "FONY is a browser-based music player combining free internet radio streaming with optional Nostr social sharing of favorite stations, an AI console, and a set of discovery/customization tools. This documentation covers all features, usage tips, chat commands, and technical details for users and developers.",
   "keywords": [
-    "Web3 music player",
-    "NFT audio player",
+    "Nostr radio",
+    "shared favorite stations",
     "internet radio streaming",
-    "blockchain music",
-    "crypto music platform",
+    "social radio",
+    "decentralized radio sharing",
     "AI music console",
-    "digital collectibles",
+    "local music player",
     "FONY app documentation"
   ],
   "sections": [
     {
       "id": "intro",
       "title": "Introduction to FONY",
-      "content": "FONY is a browser-based music player that combines free internet radio streaming with Web3 NFT audio playback, an AI console, and a set of discovery/customization tools — all in a single static web app, with no account or subscription required. This documentation serves as a guide to help you explore all of FONY's functionality."
+      "content": "FONY is a browser-based music player that combines free internet radio streaming with optional Nostr social sharing, an AI console, and a set of discovery/customization tools — all in a single static web app, with no account or subscription required. This documentation serves as a guide to help you explore all of FONY's functionality."
     },
     {
       "id": "features",
       "title": "Core Features of FONY",
-      "content": "FONY's feature set blends internet radio streaming with Web3 audio and a set of discovery tools.",
+      "content": "FONY's feature set blends internet radio streaming with an optional Nostr social layer and a set of discovery tools.",
       "items": [
         "Radio Streaming: 24/7 internet radio across dozens of genre-based stations, with live ICY now-playing metadata, automatic stall detection and recovery, global search, shuffle, a Random button, shareable deep links, and session persistence across reloads.",
         "Genres & Playlists: dozens of built-in genre stations, each backed by a plain M3U playlist. Add your own playlist by pasting an M3U URL, or browse a large third-party community M3U catalog directly from the app.",
-        "Web3 / NFT Audio: connect a MetaMask-compatible wallet to browse and stream audio from a small, curated allowlist of NFT collections on Ethereum mainnet and Soneum. Metadata (audio, cover art, title, artist) is read from each token's on-chain metadata, with real seeking since NFT tracks have a fixed duration unlike a live stream. This is a curated showcase, not general 'connect any NFT' support, and ownership is not strictly verified for every collection.",
-        "AI Console: an in-app chat console with slash-commands for track discovery, facts, mood-based station matching, and more, backed by an external API — see Chat Commands below.",
+        "Nostr Social Radio (optional): share your Favorites as a public list on Nostr, browse other people's favorites, import stations without duplicates, follow a playlist to get its updates, and tune in to the station a person you follow is listening to. Sign in with a NIP-07 browser extension or a NIP-46 remote signer; public lists can be browsed without any account. Nothing is published unless you press Share, and the Now Listening status is off by default.", "AI Console: an in-app chat console with slash-commands for track discovery, facts, mood-based station matching, and more, backed by an external API — see Chat Commands below.",
         "Now Playing & Metadata: Discogs-derived album info (year, country, label, genre) and cover art shown automatically as the track changes, with an animated rotating record/CD/reel visual and Media Session API support for lock-screen and OS-level media controls.",
         "Equalizer & Visualizers: five selectable real-time frequency visualizer styles (bars, line, fish, lava, sheep) driven by the Web Audio API, plus a separate 3-band audio equalizer (low/mid/high) with per-genre presets.",
         "Favorites & Collection: heart any station to pin it as a Favorite, with sorting by custom drag order, date added, genre, or alphabetically. The Collection is a separate, chat-driven list of manually saved tracks used to power AI recommendations.",
@@ -37,7 +36,7 @@
     {
       "id": "getting-started",
       "title": "Getting Started with FONY",
-      "content": "To begin, simply select a genre and browse its list of internet radio stations, then use the playback controls to start listening — no account needed. Connect a MetaMask-compatible wallet if you'd like to try Web3 mode and stream from the curated NFT collections. Open the chat console any time for AI-powered discovery commands and a rotating tips walkthrough on first use."
+      "content": "To begin, simply select a genre and browse its list of internet radio stations, then use the playback controls to start listening — no account needed. Open the Nostr button in the top bar if you'd like to share your favorites or discover other people's lists. Open the chat console any time for AI-powered discovery commands and a rotating tips walkthrough on first use."
     },
     {
       "id": "chat-commands",
@@ -85,20 +84,19 @@
         "Favorites: heart a station to pin it, then sort your favorites by drag order, date added, genre, or alphabetically.",
         "Custom playlists: paste any M3U URL (including GitHub blob links) to add your own station list, or pick one from the community catalog.",
         "Deep links: share a specific station with `#Genre/<hash>` links, or visit a genre URL directly (e.g. `/techno`) to auto-play it.",
-        "Web3 mode: connecting a wallet unlocks a curated set of NFT audio collections — it's a showcase, not a general NFT player.",
-        "Settings: back up your local data to a file before clearing browser storage, so favorites and custom playlists aren't lost."
+        "Nostr: press the Nostr icon, open any shared list (or paste a link, npub or naddr) and hit Tune In on a station, Import to copy it into your Favorites, or Follow playlist to get its updates.", "Settings: back up your local data to a file before clearing browser storage, so favorites and custom playlists aren't lost."
       ]
     },
     {
       "id": "technical-overview",
       "title": "Technical Overview",
-      "content": "FONY is a static, vanilla JavaScript web app — no framework, no bundler, no build step, no package.json. index.html loads ES modules directly (js/main.js as the entry point), which import the rest of the app (player.js, playlist.js, chat.js, web3.js, and more).",
+      "content": "FONY is a static, vanilla JavaScript web app — no framework, no bundler, no build step, no package.json. index.html loads ES modules directly (js/main.js as the entry point), which import the rest of the app (player.js, playlist.js, chat.js, nostr-mode.js, and more).",
       "items": [
         "Hosting: deployed on Netlify as a static site; a `_redirects` file provides SPA-style catch-all routing so deep links like /techno resolve to the app.",
         "Data: genre stations are plain .m3u playlists, indexed by json/playlists.json.",
         "Backend: dynamic functionality (AI chat, stream proxying for mixed-content/iOS HLS relay, Discogs lookups) is handled by an external API service, not included in this repository.",
-        "Web3: wallet connectivity and contract reads use ethers.js, loaded from a CDN at runtime.",
-        "External services: Discogs (via backend proxy), public IPFS/Arweave gateways, GitHub's API (for the community playlist browser), and Google Analytics for basic usage stats."
+        "Nostr: relay connections are plain WebSockets; nostr-tools is loaded from a CDN only when the Nostr mode is opened. Event formats are documented in docs/nostr-events.md.",
+        "External services: Discogs (via backend proxy), public Nostr relays (only if Nostr is used), GitHub's API (for the community playlist browser), and Google Analytics for basic usage stats."
       ]
     },
     {
@@ -116,7 +114,7 @@
       "title": "Known Limitations",
       "items": [
         "The AI console, stream proxy, and Discogs lookups depend on an external backend service not included in this repository, so their behavior can't be fully controlled or audited from this codebase alone.",
-        "Web3 playback is a curated allowlist of a few NFT collections, not a general-purpose NFT player, and ownership is not strictly enforced for playback on every collection.",
+        "Nostr features depend on public relays, which can be slow, offline or drop events; you can change the relay list in Nostr > Profile.",
         "A couple of features present in the code (podcast narration, album-art lookup via MusicBrainz) are currently disabled in the UI and not user-reachable."
       ]
     },

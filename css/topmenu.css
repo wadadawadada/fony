@@ -1,0 +1,98 @@
+/* Header icon menu on desktop: sliding tooltips and a draggable, dockable bar (js/top-menu.js). */
+
+.tb-grip,
+.tb-tip,
+.tb-wall { display: none; }
+
+@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
+  /* grip: six small dots at the start of the menu */
+  .tb-grip {
+    display: inline-block;
+    width: 10px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-right: 2px;
+    cursor: grab;
+    opacity: 0;
+    background:
+      radial-gradient(circle, currentColor 1.1px, transparent 1.6px) 0 0 / 5px 6.6px repeat;
+    color: #fff;
+    border-radius: 4px;
+    transition: opacity 0.2s ease;
+    touch-action: none;
+  }
+
+  .top-bar-actions:hover .tb-grip,
+  .top-bar-actions.tb-dragging .tb-grip { opacity: 0.7; }
+  .tb-grip:active { cursor: grabbing; }
+
+  /* floating menu: just the icons, no plate behind them */
+  .top-bar-actions.tb-floating {
+    position: fixed;
+    right: auto;
+    transform: none;
+    z-index: 1100;
+    padding: 4px 2px;
+  }
+
+  .top-bar-actions.tb-floating .tb-grip { margin-right: 4px; }
+
+  .top-bar-actions.tb-vertical {
+    flex-direction: column;
+    padding: 2px 4px;
+    gap: 12px;
+  }
+
+  .top-bar-actions.tb-vertical .tb-grip {
+    width: 20px;
+    height: 10px;
+    margin: 0 0 2px;
+    background-size: 6.6px 5px;
+  }
+
+  .top-bar-actions.tb-dragging { cursor: grabbing; }
+
+  body.tb-drag-active { user-select: none; cursor: grabbing; }
+
+  /* wall guides while dragging */
+  .tb-wall {
+    display: block;
+    position: fixed;
+    width: 6px;
+    z-index: 1090;
+    border-radius: 6px;
+    background: rgba(0, 242, 184, 0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .tb-wall.on { opacity: 1; }
+  .tb-wall.hot { background: #00F2B8; box-shadow: 0 0 16px rgba(0, 242, 184, 0.8); }
+
+  /* tooltip that grows out of its icon: light text on a soft plate */
+  .tb-tip {
+    display: block;
+    position: fixed;
+    z-index: 1200;
+    pointer-events: none;
+    padding: 4px 10px;
+    border-radius: 10px;
+    background: rgba(18, 22, 36, 0.78);
+    color: #fff;
+    font: 600 0.74rem/1.2 'Ruda', sans-serif;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(var(--from-x, 0), var(--from-y, -10px)) scale(0.4);
+    transition: opacity 0.16s ease, transform 0.26s cubic-bezier(0.2, 0.9, 0.3, 1.25);
+  }
+
+  .tb-tip[data-side="below"] { translate: -50% 0; transform-origin: 50% 0; }
+  .tb-tip[data-side="right"] { translate: 0 -50%; transform-origin: 0 50%; }
+  .tb-tip[data-side="left"] { translate: -100% -50%; transform-origin: 100% 50%; }
+  .tb-tip.show { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tb-tip, .tb-wall { transition: none; }
+}

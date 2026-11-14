@@ -87,7 +87,9 @@ export async function showDiscogsInfo() {
   setAlbumCoverBackground(null);
   updateAlbumCoverAnimation();
 
-  if (!nowPlaying) {
+  // placeholders and status texts are not tracks
+  const NOT_A_TRACK = /^(pick a folder or playlist|no data|no track data|no metadata|artist - track|loading\.*|unavailable:.*)$/i;
+  if (!nowPlaying || NOT_A_TRACK.test(nowPlaying)) {
     window.currentAlbumArtUrl = null;
     window.currentAlbumArtTrack = null;
     return;
@@ -194,6 +196,7 @@ export function clearDiscogsInfo() {
   if (discogsContainer) {
     discogsContainer.innerHTML = "";
   }
+  window.currentAlbumArtUrl = null;
   setAlbumCoverBackground(null);
   updateAlbumCoverAnimation();
 }

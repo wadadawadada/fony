@@ -8,6 +8,24 @@ function sanitizeQuery(str) {
     .trim();
 }
 
+// Radio titles are often "Now: A - B Next: C", "A feat. B", "A [Remix]"…: a second, plainer query
+// finds the release when the first one does not.
+function plainQuery(str) {
+  return sanitizeQuery(
+    String(str)
+      .replace(/^\s*now\s*[:\-]\s*/i, "")
+      .replace(/\s+next\s*[:\-].*$/i, "")
+      .replace(/\[[^\]]*\]/g, "")
+      .replace(/\s+(feat\.?|ft\.?|featuring|with)\s+.*$/i, "")
+      .replace(/[\u2013\u2014]/g, "-")
+      .replace(/\.{2,}|\u2026/g, " ")
+  )
+}
+
+async function searchDiscogs(query) {
+  return fetch(`${FONY_BACKEND_URL}/api/discogs/search?q=${encodeURIComponent(query)}`)
+}
+
 function escapeHtml(text) {
   if (!text) return "";
   return text.replace(/[&<>"']/g, function(m) {
@@ -27,7 +45,11 @@ export async function fetchDiscogsTrackInfo(artist, track) {
   if (!query) return "\u26A0\uFE0F Artist or track name is required.";
 
   try {
-    const response = await fetch(`${FONY_BACKEND_URL}/api/discogs/search?q=${encodeURIComponent(query)}`);
+    let response = await searchDiscogs(query);
+    if (response.status === 404) {
+      const retry = plainQuery(rawQuery);
+      if (retry && retry !== query) response = await searchDiscogs(retry);
+    }
     if (!response.ok) {
       if (response.status === 404) {
         return `\u26A0\uFE0F No results found on Discogs for "${escapeHtml(query)}"`;

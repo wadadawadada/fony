@@ -20,11 +20,11 @@
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-  <title>FONY – Web3 Music Player | Free Internet Radio</title>
-  <meta name="description" content="FONY is a next-gen Web3 music player combining internet radio streaming with NFT-based audio content. Listen, AI support, and explore the future of audio.">
-  <meta name="keywords" content="Web3 music player, NFT music, internet radio, streaming platform, crypto audio, blockchain music, digital collectibles, FONY">
-  <meta property="og:title" content="FONY – Web3 Music Player & NFT Internet Radio">
-  <meta property="og:description" content="Stream music from around the world, discover NFT audio collectibles — all in one futuristic player.">
+  <title>FONY – Free Internet Radio with Nostr Social Discovery</title>
+  <meta name="description" content="FONY is a free internet radio player with no sign-up. Share your favorite stations on Nostr, follow other listeners and discover music through people, not algorithms.">
+  <meta name="keywords" content="internet radio, Nostr radio, shared favorites, social radio, free music streaming, radio stations, local music player, FONY">
+  <meta property="og:title" content="FONY – Free Internet Radio with Nostr Social Discovery">
+  <meta property="og:description" content="Stream radio from around the world, share your favorite stations on Nostr and tune in to what people you follow are listening to.">
   <meta property="og:image" content="https://fony.fun/preview.png">
   <meta property="og:url" content="https://fony.fun">
   <meta property="og:type" content="website">
@@ -32,8 +32,8 @@
   <link rel="alternate" type="text/plain" href="/llms.txt" title="FONY: summary for language models">
   <link rel="alternate" type="text/plain" href="/llms-full.txt" title="FONY: full guide for language models">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="FONY – Web3 Music Streaming & NFT Audio Player">
-  <meta name="twitter:description" content="Experience the evolution of streaming with FONY. Powered by Web3, built for audio lovers.">
+  <meta name="twitter:title" content="FONY – Free Internet Radio with Nostr Social Discovery">
+  <meta name="twitter:description" content="Discover music through people, not algorithms. Free internet radio, no registration.">
   <meta name="twitter:image" content="https://fony.fun/preview.png">
   <script type="application/ld+json">
   {
@@ -41,7 +41,7 @@
     "@type": "WebSite",
     "name": "FONY",
     "url": "https://fony.fun",
-    "description": "Web3-based internet radio and NFT music player for streaming audio across genres.",
+    "description": "Free internet radio player with Nostr-based sharing of favorite stations.",
     "inLanguage": "en",
     "publisher": {
       "@type": "Organization",
@@ -62,6 +62,9 @@
   <link rel="stylesheet" href="/css/glass.css?v=20261029">
   <link rel="stylesheet" href="/css/glass-gl.css?v=20261029">
   <link rel="stylesheet" href="/css/games.css?v=1">
+  <link rel="stylesheet" href="/css/nostr.css?v=1">
+  <link rel="stylesheet" href="/css/settings.css?v=1">
+  <link rel="stylesheet" href="/css/topmenu.css?v=1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Ruda:wght@400;700;900&display=swap" rel="stylesheet">
@@ -73,18 +76,12 @@
       <div class="top-bar">
         <span class="logo">FONY</span>
         <div class="top-bar-actions">
-          <span id="walletAddress"></span>
           <button id="localModeBtn" class="local-mode-button" title="Local files" aria-label="Local files">
             <img src="/img/local.svg" alt="Local files" id="localModeIcon">
           </button>
-          <div id="walletWrapper">
-            <img src="/img/wallet.svg" alt="Connect Wallet" id="connectWalletBtn">
-            <div id="walletTooltip">
-              <button id="walletLogoutBtn">
-                <img src="/img/logout.svg" id="logoutIcon" alt="Disconnect">
-              </button>
-            </div>
-          </div>
+          <button id="nostrModeBtn" class="nostr-mode-button" title="Nostr" aria-label="Nostr: shared favorites and what people listen to">
+            <img src="/img/nostr.svg" alt="Nostr" id="nostrModeIcon">
+          </button>
           <button id="gamesBtn" class="games-button" title="Games" aria-label="Games">
             <img src="/img/gamepad.svg" alt="Games" id="gamesBtnIcon">
           </button>
@@ -237,7 +234,7 @@
         </div>
         <button id="addPlaylistBtn" title="Add custom playlist" aria-label="Add custom playlist"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h12M4 12h12M4 18h8M18 15v6M15 18h6"/></svg></button>
         <div class="search-wrapper">
-    <input type="text" id="searchInput" class="genre-search" placeholder="Search across all genres">
+    <input type="text" id="searchInput" class="genre-search" name="fony-station-search" autocomplete="off" spellcheck="false" placeholder="Search across all genres">
     <span id="clearSearch">×</span>
     </div>
         <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
@@ -272,7 +269,7 @@
           <span id="mascotBubbleText"></span>
         </div>
       </div>
-      <p class="sr-only">FONY is more than just a music player — it's a revolutionary Web3 platform designed for infinite global music streaming, blending freedom, decentralization, and cutting-edge technology. Unlimited Free Music Streaming: enjoy your favorite tracks and discover new genres with no subscriptions, no restrictions, and no ads. FONY offers seamless 24/7 streaming — anytime, anywhere, for everyone. An Interface That Works for You: our mission is to make access to music fast, intuitive, and diverse. The carefully crafted interface ensures you dive into the world of music effortlessly, right from the start. Web3 & NFT Integration: in the near future, you'll be able to connect your NFT audio tracks and play the music you truly own. FONY bridges collectible digital audio with the convenience of modern streaming. Decentralized Audio Without Limits: FONY breaks the barriers of traditional platforms and opens the door to a new kind of music experience — fair, open, and built for the people. Internet Radio & Music Discovery Tools: tune into curated radio stations and explore sound like never before with AI-powered music advisors and innovative discovery tools designed to expand your sonic horizons.</p>
+      <p class="sr-only">FONY is a free internet radio player that needs no account. Unlimited Free Music Streaming: enjoy your favorite stations and discover new genres with no subscriptions, no restrictions, and no ads. Discover music through people, not algorithms: connect a Nostr account to share your favorite stations as a public list, browse other people's favorites, follow a playlist to get its updates, and tune in to the station a person you follow is listening to. Nostr is optional: everything else works without it. Internet Radio & Music Discovery Tools: tune into curated radio stations and explore sound like never before with AI-powered music advisors and innovative discovery tools designed to expand your sonic horizons.</p>
       <a href="https://w3dada.space" target="_blank">Created by w3dada </a>♫<a href="https://blockarkstudios.com" target="_blank"> Powered by Block Ark Studios © 2026 v1.0</a>
     </div>
   </div>
@@ -306,7 +303,6 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <script type="module" src="/js/main.js"></script>
   <script type="module" src="/js/glass-gl.js"></script>
   <script type="module" src="/js/theme.js"></script>
@@ -323,6 +319,7 @@
   <script type="module" src="/js/utils/favbutton.js"></script>
   <script type="module" src="/js/donate-modal.js"></script>
   <script type="module" src="/js/games.js"></script>
+  <script type="module" src="/js/top-menu.js"></script>
 
   <div id="addPlaylistModal" class="add-playlist-modal" style="display:none;">
   <div class="add-playlist-content">

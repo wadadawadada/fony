@@ -1,6 +1,6 @@
 {
   "title": "FONY tips",
-  "intro": "FONY is a free internet radio and Web3 music player with an AI console, local files, skins and a liquid-glass theme. Pick a topic, or grab a random tip.",
+  "intro": "FONY is a free internet radio player with Nostr sharing, an AI console, local files, skins and a liquid-glass theme. Pick a topic, or grab a random tip.",
   "categories": [
     {
       "id": "listen",
@@ -146,23 +146,31 @@
         },
         {
           "title": "Games",
-          "text": "On desktop, the gamepad icon next to the wallet opens a little console with FONY Flappy and FONY Breaker. They react to the music that is playing."
+          "text": "On desktop, the gamepad icon next to the Nostr button opens a little console with FONY Flappy and FONY Breaker. They react to the music that is playing."
         }
       ]
     },
     {
-      "id": "web3",
-      "icon": "🪙",
-      "title": "Web3 & NFT audio",
-      "summary": "Wallet and collectible tracks.",
+      "id": "nostr",
+      "icon": "🪶",
+      "title": "Nostr: radio with people",
+      "summary": "Share favorites, follow lists, tune in.",
       "tips": [
         {
-          "title": "Connect a wallet",
-          "text": "[[ui:wallet|Connect a MetaMask-compatible wallet]] to play audio from a hand-picked set of NFT collections on Ethereum and Soneum."
+          "title": "Open Nostr",
+          "text": "The [[ui:nostr|Nostr icon]] in the top bar opens Nostr mode: Following, Shared, Discover and Profile. Sign in with a QR code, an extension or a bunker link, or browse public lists without an account."
         },
         {
-          "title": "Seek in NFT tracks",
-          "text": "NFT tracks have a fixed length, so unlike radio you can scrub through them. The Random button in this mode picks a collection and a track."
+          "title": "Share your favorites",
+          "text": "In Nostr → Profile, press Share to publish your Favorites as a list, only when you confirm. After that the list updates itself when your Favorites change."
+        },
+        {
+          "title": "Import and follow",
+          "text": "Open someone's list, then Import to copy its stations into your Favorites (no duplicates) or Follow playlist to see when it changes. Tune In plays any station with one click."
+        },
+        {
+          "title": "Now listening",
+          "text": "In Nostr → Profile you can switch on a status that shows friends what you are playing, and optionally post it to your feed with the album art. It is off by default and never includes local files."
         }
       ]
     },

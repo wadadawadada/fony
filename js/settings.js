@@ -1,4 +1,5 @@
 import { resetTaste } from "./taste.js";
+import { confirmDialog, toast } from "./local-mode.js";
 
 var defaultModalContent = "";
 
@@ -104,10 +105,30 @@ function openSettingsModal() {
 
       '<section class="settings-section">' +
         '<h2 class="settings-heading"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg>Data</h2>' +
-        '<div class="settings-row settings-row-actions">' +
-          '<button id="backupAppBtn" class="settings-btn" type="button">Backup</button>' +
-          '<button id="restoreAppBtn" class="settings-btn" type="button">Restore</button>' +
-          '<button id="resetAppBtn" class="settings-btn settings-btn-danger" type="button">Reset app</button>' +
+        '<div class="settings-row settings-row-static settings-row-tight">' +
+          '<span class="settings-name">Backup file</span>' +
+          '<span class="settings-btns">' +
+            '<button id="backupAppBtn" class="settings-btn settings-btn-small settings-btn-icon" title="Save backup file" aria-label="Save backup file" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>Backup</span></button>' +
+            '<button id="restoreAppBtn" class="settings-btn settings-btn-small settings-btn-icon" title="Load backup file" aria-label="Load backup file" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>Restore</span></button>' +
+          '</span>' +
+        '</div>' +
+        '<div class="settings-row settings-row-static settings-row-tight">' +
+          '<span class="settings-name">Nostr backup</span>' +
+          '<span class="settings-btns">' +
+            '<button id="nostrBackupBtn" class="settings-btn settings-btn-small settings-btn-icon" title="Back up to Nostr" aria-label="Back up to Nostr" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A5.5 5.5 0 0 1 17 8.6 4.7 4.7 0 0 1 17.5 18z"/><path d="M12 15v-5M9.5 12.2L12 9.7l2.5 2.5"/></svg><span>Backup</span></button>' +
+            '<button id="nostrRestoreBtn" class="settings-btn settings-btn-small settings-btn-icon" title="Restore from Nostr" aria-label="Restore from Nostr" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A5.5 5.5 0 0 1 17 8.6 4.7 4.7 0 0 1 17.5 18z"/><path d="M12 10v5M9.5 12.8l2.5 2.5 2.5-2.5"/></svg><span>Restore</span></button>' +
+          '</span>' +
+        '</div>' +
+        '<label class="settings-row settings-row-tight">' +
+          '<span class="settings-name">Auto backup to Nostr <span class="settings-hint">daily, only if changed</span></span>' +
+          '<input type="checkbox" class="settings-switch" id="nostrAutoBackup">' +
+        '</label>' +
+        '<div class="settings-hint settings-status" id="nostrBackupStatus"></div>' +
+        '<div class="settings-row settings-row-static settings-row-tight">' +
+          '<span class="settings-name">Reset app</span>' +
+          '<span class="settings-btns">' +
+            '<button id="resetAppBtn" class="settings-btn settings-btn-small settings-btn-danger settings-btn-icon" title="Reset app" aria-label="Reset app" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/></svg><span>Reset</span></button>' +
+          '</span>' +
         '</div>' +
       '</section>' +
 
@@ -160,8 +181,9 @@ function openSettingsModal() {
     this.disabled = true;
   });
 
-  document.getElementById("resetAppBtn").addEventListener("click", function() {
-    if (!confirm("Reset the app? Favorites, custom playlists and all settings will be erased.")) return;
+  document.getElementById("resetAppBtn").addEventListener("click", async function() {
+    const sure = await confirmDialog({ title: "Reset the app?", text: "Favorites, custom playlists and all settings will be erased from this device.", okLabel: "Reset" });
+    if (!sure) return;
     localStorage.clear();
     // Local mode keeps its folder handles in IndexedDB; wipe them too
     new Promise(function(resolve) {
@@ -173,8 +195,84 @@ function openSettingsModal() {
     }).then(function() { location.reload(); });
   });
 
+  // ---- automatic Nostr backup (js/nostr/autosync.js) ----
+  (function() {
+    var box = document.getElementById("nostrAutoBackup");
+    box.checked = localStorage.getItem("fonyNostrAutoBackup") === "1";
+    box.addEventListener("change", async function() {
+      var sync = await import("./nostr/autosync.js");
+      sync.setAutoBackup(box.checked);
+      var st = document.getElementById("nostrBackupStatus");
+      st.textContent = box.checked ? "Automatic backup is on. It runs once you are signed in to Nostr." : "";
+    });
+  })();
+
+  // ---- backup / restore through Nostr (encrypted, js/nostr/backup.js) ----
+  (function() {
+    var status = document.getElementById("nostrBackupStatus");
+    var bBtn = document.getElementById("nostrBackupBtn");
+    var rBtn = document.getElementById("nostrRestoreBtn");
+    function say(t) { status.textContent = t; }
+    function ago(ts) {
+      var m = Math.round((Date.now() - ts) / 60000);
+      if (m < 2) return "just now";
+      if (m < 120) return m + " min ago";
+      if (m < 2880) return Math.round(m / 60) + " h ago";
+      return new Date(ts).toLocaleDateString();
+    }
+    async function ready() {
+      var auth = await import("./nostr/auth.js");
+      await auth.restoreSession();
+      if (!auth.isLoggedIn()) {
+        say("Connect Nostr first: opening the sign-in screen…");
+        setTimeout(function() {
+          modal.style.display = "none";
+          document.dispatchEvent(new CustomEvent("fony:nostr-open", { detail: { tab: "profile", login: true } }));
+        }, 900);
+        return null;
+      }
+      return await import("./nostr/backup.js");
+    }
+    bBtn.addEventListener("click", async function() {
+      bBtn.disabled = rBtn.disabled = true;
+      try {
+        var bk = await ready();
+        if (!bk) return;
+        say("Waiting for your signer…");
+        var r = await bk.backupToNostr();
+        say("Backed up " + r.entries + " items to " + r.relays + (r.relays === 1 ? " relay" : " relays") +
+          (r.skipped.length ? ". Left out (too large, use file Backup): " + r.skipped.join(", ") : "."));
+      } catch (e) { say(String(e && e.message || e)); }
+      finally { bBtn.disabled = rBtn.disabled = false; }
+    });
+    rBtn.addEventListener("click", async function() {
+      bBtn.disabled = rBtn.disabled = true;
+      try {
+        var bk = await ready();
+        if (!bk) return;
+        say("Looking for your backup…");
+        var ev = await bk.findNostrBackup();
+        if (!ev) { say("No backup found on your relays."); return; }
+        say("Waiting for your signer to unlock it…");
+        var opened = await bk.openNostrBackup(ev);
+        var sure = await confirmDialog({ title: "Restore this backup?", text: "Backup from " + ago(opened.at) + " (" + Object.keys(opened.entries).length + " items). It replaces the data on this device.", okLabel: "Restore", danger: false });
+        if (!sure) { say("Restore cancelled."); return; }
+        bk.applyBackup(opened.entries);
+        location.reload();
+      } catch (e) { say(String(e && e.message || e)); }
+      finally { bBtn.disabled = rBtn.disabled = false; }
+    });
+  })();
+
   document.getElementById("backupAppBtn").addEventListener("click", function() {
-    const data = JSON.stringify(localStorage, null, 2);
+    const all = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      // the Nostr sign-in stays on this device
+      if (k === "fonyNostrSession") continue;
+      all[k] = localStorage.getItem(k);
+    }
+    const data = JSON.stringify(all, null, 2);
     const blob = new Blob([data], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -195,13 +293,15 @@ function openSettingsModal() {
       reader.onload = function(loadEvent) {
         try {
           const data = JSON.parse(loadEvent.target.result);
+          const keepSession = localStorage.getItem("fonyNostrSession");
           localStorage.clear();
           for (const key in data) {
             localStorage.setItem(key, data[key]);
           }
+          if (keepSession) localStorage.setItem("fonyNostrSession", keepSession);
           location.reload();
         } catch (err) {
-          alert("Invalid backup file");
+          toast("Invalid backup file");
         }
       };
       reader.readAsText(file);
@@ -223,7 +323,7 @@ window.addEventListener("resize", updateLeftHandedSetting);
 (function animateManifestoMascot() {
   var phrases = [
     "FONY is more than just a music player.",
-    "It's a revolutionary Web3 platform.",
+    "Discover music through people, not algorithms.",
     "Infinite global music streaming, freedom, decentralization.",
     "Unlimited Free Music Streaming.",
     "No subscriptions. No restrictions. No ads.",
@@ -231,9 +331,9 @@ window.addEventListener("resize", updateLeftHandedSetting);
     "An Interface That Works for You.",
     "Fast, intuitive, and diverse by design.",
     "Dive into the world of music effortlessly.",
-    "Web3 & NFT Integration.",
-    "Connect your NFT audio tracks.",
-    "Play the music you truly own.",
+    "Share your favorite stations on Nostr.",
+    "Follow a playlist, tune in to a friend.",
+    "Nostr is optional. The radio is free for everyone.",
     "Decentralized Audio Without Limits.",
     "FONY breaks the barriers of traditional platforms.",
     "Fair, open, and built for the people.",

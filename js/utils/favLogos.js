@@ -5,7 +5,7 @@
 const KEY = "favLogos"
 const RETRY_MS = 7 * 24 * 60 * 60 * 1000
 const LOGO_PX = 64
-const MAX_CONCURRENT = 2
+const MAX_CONCURRENT = 4
 const BACKEND = window.FONY_BACKEND_URL || "https://fonyserver.up.railway.app"
 
 function read() {
@@ -74,8 +74,10 @@ async function fetchLogo(station) {
     if (!resp.ok) throw new Error("no logo")
     const dataUrl = await blobToSmallDataUrl(await resp.blob())
     map[station.url] = dataUrl ? { d: dataUrl, t: Date.now() } : { t: Date.now() }
-  } catch {
-    map[station.url] = { t: Date.now() }
+  } catch (err) {
+    // "no logo" (404) is remembered for a week; a network hiccup is not, so it is tried again soon
+    if (err && err.message === "no logo") map[station.url] = { t: Date.now() }
+    else return getFavLogo(station.url)
   }
   write({ ...read(), [station.url]: map[station.url] })
   return getFavLogo(station.url)
@@ -125,4 +127,29 @@ export function applyAvatarLogo(iconContainer, dataUrl) {
   avatar.style.borderRadius = "6px"
   const icon = avatar.querySelector(".genre-icon")
   if (icon) icon.style.display = "none"
+  addContrastBacking(avatar, dataUrl)
+}
+
+// White-on-transparent logos vanish on a dark row and dark ones on a light row: look at the pixels
+// and put a plain backing behind logos that have transparent areas.
+function addContrastBacking(avatar, dataUrl) {
+  const img = new Image()
+  img.onload = () => {
+    try {
+      const c = document.createElement("canvas")
+      c.width = c.height = 16
+      const ctx = c.getContext("2d", { willReadFrequently: true })
+      ctx.drawImage(img, 0, 0, 16, 16)
+      const px = ctx.getImageData(0, 0, 16, 16).data
+      let seen = 0, clear = 0, lum = 0
+      for (let i = 0; i < px.length; i += 4) {
+        if (px[i + 3] < 40) { clear++; continue }
+        seen++
+        lum += (0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2]) / 255
+      }
+      if (!seen || clear / 256 < 0.12) return
+      avatar.style.backgroundColor = lum / seen > 0.6 ? "#171C2B" : "#ffffff"
+    } catch (_) {}
+  }
+  img.src = dataUrl
 }

@@ -203,7 +203,6 @@ body.glass .genre-select-dropdown,
 body.glass .genre-select-header,
 body.glass .genre-search,
 body.glass #addPlaylistBtn,
-body.glass #walletTooltip,
 body.glass .local-pop,
 body.glass .custom-tooltip,
 body.glass .add-playlist-content,
@@ -248,7 +247,6 @@ body.glass .screen {
 }
 
 body.glass .genre-select-dropdown,
-body.glass #walletTooltip,
 body.glass .local-pop,
 body.glass .custom-tooltip,
 body.glass #playlistLoader:not(.hidden) {
@@ -316,7 +314,6 @@ body.glass #playlist li.draggable-favorite {
 
 body.glass #playlist li:hover,
 body.glass #playlist li.radio-mode:hover,
-body.glass #playlist li.web3-mode:hover,
 body.glass #playlist li.draggable-favorite:hover {
   background-color: rgba(255, 255, 255, 0.14);
   color: #fff;
@@ -335,7 +332,6 @@ body.glass #playlist li.active:hover {
 
 body.glass #playlist li .progress,
 body.glass #playlist li.radio-mode .progress,
-body.glass #playlist li.web3-mode .progress,
 body.glass #playlist li.active .progress {
   background-color: rgba(0, 242, 184, 0.30);
 }
@@ -516,14 +512,9 @@ body.glass .donate-copy-btn {
 
 /* ---------- top bar ---------- */
 
-body.glass .top-bar-actions button,
-body.glass .top-bar-actions #connectWalletBtn {
+body.glass .top-bar-actions button {
   opacity: 0.9;
   filter: drop-shadow(0 1px 4px rgba(4, 6, 36, 0.4));
-}
-
-body.glass #walletAddress {
-  color: #fff;
 }
 
 /* ---------- responsive ---------- */

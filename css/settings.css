@@ -1,0 +1,117 @@
+/* Settings window: a little tighter than the original, still with room to breathe. */
+
+.manifesto-content.settings-view {
+  max-width: 460px;
+  padding: 1rem 0.9rem 0.9rem;
+}
+
+.settings-panel { padding-top: 4px; }
+
+.settings-title {
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.settings-title::after { width: 40px; height: 3px; margin-left: -20px; }
+
+.settings-section {
+  margin-bottom: 12px;
+  padding: 12px 8px 6px;
+  border-radius: 20px;
+}
+
+.settings-heading {
+  margin: 0 0 5px 12px;
+  font-size: 0.66rem;
+  gap: 6px;
+}
+
+.settings-heading svg { width: 13px; height: 13px; }
+
+.settings-row {
+  padding: 8px 12px;
+  gap: 12px;
+  border-radius: 14px;
+}
+
+.settings-row-tight { padding-top: 6px; padding-bottom: 6px; }
+.settings-text { gap: 2px; }
+.settings-name { font-size: 0.92rem; }
+.settings-hint { font-size: 0.72rem; line-height: 1.25; }
+.settings-status { padding: 0 12px 6px; }
+
+.settings-switch { width: 36px; height: 20px; }
+.settings-switch::after { top: 2px; left: 2px; width: 16px; height: 16px; }
+.settings-switch:checked::after { transform: translateX(16px); }
+
+.settings-btn { padding: 6px 14px; font-size: 0.84rem; }
+.settings-row .settings-btn-small, .settings-btn-small { padding: 5px 14px; font-size: 0.82rem; }
+.settings-btns { gap: 8px; }
+
+.settings-save { margin-top: 4px; padding: 11px 14px; font-size: 0.92rem; }
+
+/* icon-only action buttons in the Data section */
+.settings-btn.settings-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  padding: 0;
+}
+
+.settings-btn-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* icons without circles, larger */
+.settings-btn.settings-btn-icon,
+.settings-btn.settings-btn-icon:hover {
+  width: 38px;
+  height: 36px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.settings-btn.settings-btn-icon:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); transform: none; }
+.settings-btn.settings-btn-icon.settings-btn-danger:hover:not(:disabled) { background: rgba(255, 95, 124, 0.14); }
+.settings-btn-icon svg { width: 24px; height: 24px; stroke-width: 1.9; }
+.settings-btns { gap: 4px; }
+
+/* icon + small caption */
+.settings-btn.settings-btn-icon,
+.settings-btn.settings-btn-icon:hover {
+  flex-direction: column;
+  gap: 1px;
+  width: 58px;
+  height: 50px;
+}
+
+.settings-btn-icon svg { width: 22px; height: 22px; }
+.settings-btn-icon span { font-size: 0.64rem; line-height: 1; letter-spacing: 0.02em; opacity: 0.85; }
+.settings-btns { gap: 2px; }
+
+/* caption beside the icon, not under it */
+.settings-btn.settings-btn-icon,
+.settings-btn.settings-btn-icon:hover {
+  flex-direction: row;
+  gap: 6px;
+  width: auto;
+  height: 34px;
+  padding: 0 10px;
+}
+
+.settings-btn-icon svg { width: 20px; height: 20px; }
+.settings-btn-icon span { font-size: 0.78rem; opacity: 0.95; }
+.settings-btns { gap: 4px; }
+
+.settings-name .settings-hint { display: block; margin-top: 1px; }

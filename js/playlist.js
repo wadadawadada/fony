@@ -1,5 +1,6 @@
 import { secureUrl } from './parsing.js';
-import { getFavLogo, ensureFavLogo, applyAvatarLogo, pruneFavLogos, removeFavLogo } from './utils/favLogos.js';
+import { buildTuneLink } from './nostr/format.js';
+import { getFavLogo, ensureFavLogo, applyAvatarLogo, pruneFavLogos, removeFavLogo, stationLogosEnabled } from './utils/favLogos.js';
 
 // Migration: old code had inverted checkbox logic — "Hide http stations" checked
 // saved useOnlyHttps="false" and unchecked saved "true" (backwards).
@@ -211,7 +212,7 @@ function getAvatarBackgroundColor() {
   return "transparent";
 }
 
-function createGenreAvatar(genre, size = 26, iconSize = 14, iconColor = null) {
+export function createGenreAvatar(genre, size = 26, iconSize = 14, iconColor = null) {
   const iconContainer = document.createElement("div");
   iconContainer.classList.add("station-favorite-icon");
   iconContainer.style.display = "inline-flex";
@@ -358,7 +359,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     li.style.setProperty("--buffer-percent", "0%");
     li.dataset.index = i;
     li.dataset.stationUrl = station.url;
-    li.classList.add(window.currentMode === "web3" ? "web3-mode" : "radio-mode");
+    li.classList.add("radio-mode");
     if (isFavoritesMode) {
       li.draggable = true;
       li.classList.add("draggable-favorite");
@@ -366,7 +367,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
     const progressDiv = document.createElement("div");
     progressDiv.classList.add("progress");
     li.appendChild(progressDiv);
-    const displayName = station.nft ? station.playlistTitle : station.title;
+    const displayName = station.title;
     const span = document.createElement("span");
     span.className = "title-ellipsis";
     span.textContent = displayName + (station.bitrate ? ` (${station.bitrate})` : "");
@@ -389,7 +390,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
 
     if (window.currentStationUrl && station.url === window.currentStationUrl) {
       li.classList.add("active");
-      if (typeof currentMode === "undefined" || currentMode !== "web3") {
+      {
         const shareWrapper = document.createElement("div");
         shareWrapper.style.display = "inline-flex";
         shareWrapper.style.alignItems = "center";
@@ -456,7 +457,10 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
           }
           const hash = generateStationHash(station.url);
           const genre = favGenre || (window.currentGenre || "");
-          const link = window.location.origin + window.location.pathname + "#" + encodeURIComponent(genre) + "/" + hash;
+          // stations that came from Nostr are not in the genre catalog: share a tune-in link instead
+          const link = station.nostr
+            ? buildTuneLink(window.location.origin, { url: station.originalUrl || station.url, name: station.title, genre: station.genre })
+            : window.location.origin + window.location.pathname + "#" + encodeURIComponent(genre) + "/" + hash;
           navigator.clipboard.writeText(link).then(() => {
             copiedSpan.style.display = "inline";
             setTimeout(() => { copiedSpan.style.display = "none"; }, 2000);
@@ -533,7 +537,15 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
       if (cachedLogo) applyAvatarLogo(iconContainer, cachedLogo);
       else ensureFavLogo(station, logo => { if (iconContainer.isConnected) applyAvatarLogo(iconContainer, logo); });
 
-    } else if (isFavorite(station)) {
+    } else if (station.nostr && stationLogosEnabled()) {
+      // stations from a Nostr list: genre icon, replaced by the station logo (when "Station icons" is on)
+      const iconContainer = createGenreAvatar(station.genre || "World", 24, 16);
+      li.insertBefore(iconContainer, li.firstChild);
+      const cachedLogo = getFavLogo(station.url);
+      if (cachedLogo) applyAvatarLogo(iconContainer, cachedLogo);
+      else ensureFavLogo(station, logo => { if (iconContainer.isConnected) applyAvatarLogo(iconContainer, logo); });
+    }
+    if (!isFavoritesMode && isFavorite(station)) {
       const favHeart = document.createElement("img");
       favHeart.classList.add("favorite-heart", "active");
       favHeart.src = "/img/heart.svg";

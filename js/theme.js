@@ -29,11 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     volumeLine: document.querySelector('.volume-line'),
     sendImg: document.querySelector('#chatSendBtn img'),
     manifestoBtn: document.querySelector('#manifestoBtn img'),
-    connectWalletBtn: document.getElementById('connectWalletBtn'),
+    nostrModeIcon: document.getElementById('nostrModeIcon'),
     localModeIcon: document.getElementById('localModeIcon'),
     settingsBtnIcon: document.getElementById('settingsBtnIcon'),
-    gamesBtnIcon: document.getElementById('gamesBtnIcon'),
-    logoutIcon: document.getElementById('logoutIcon')
+    gamesBtnIcon: document.getElementById('gamesBtnIcon')
   };
   const glassTheme = {
     // liquid glass -> dark (moon)
@@ -52,11 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
       volumeLine: '/img/volume_line.svg',
       sendImg: '/img/send.svg',
       manifestoBtn: '/img/about_icon.svg',
-      connectWalletBtn: '/img/wallet.svg',
+      nostrModeIcon: '/img/nostr.svg',
       localModeIcon: '/img/local.svg',
       settingsBtnIcon: '/img/gear.svg',
-      gamesBtnIcon: '/img/gamepad.svg',
-      logoutIcon: '/img/logout.svg'
+      gamesBtnIcon: '/img/gamepad.svg'
     },
     dark: {
       playPauseBtn: '/img/dark/play_button.svg',
@@ -69,11 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
       volumeLine: '/img/dark/volume_line.svg',
       sendImg: '/img/dark/send.svg',
       manifestoBtn: '/img/dark/about_icon.svg',
-      connectWalletBtn: '/img/dark/wallet.svg',
+      nostrModeIcon: '/img/dark/nostr.svg',
       localModeIcon: '/img/dark/local.svg',
       settingsBtnIcon: '/img/dark/gear.svg',
-      gamesBtnIcon: '/img/dark/gamepad.svg',
-      logoutIcon: '/img/dark/logout.svg'
+      gamesBtnIcon: '/img/dark/gamepad.svg'
     }
   };
   function applyThemeIcons(theme) {

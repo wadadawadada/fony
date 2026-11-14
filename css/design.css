@@ -196,7 +196,6 @@
 
 #playlist li:hover,
 #playlist li.radio-mode:hover,
-#playlist li.web3-mode:hover,
 #playlist li.draggable-favorite:hover {
   background-color: var(--row-hover);
   color: var(--on-glass);
@@ -247,8 +246,7 @@
 }
 
 #playlist li .progress,
-#playlist li.radio-mode .progress,
-#playlist li.web3-mode .progress {
+#playlist li.radio-mode .progress {
   background-color: rgba(0, 242, 184, 0.24);
   /* the row clips it (overflow:hidden), so the fill follows the row's rounded
    * corners on the left and ends in a straight edge instead of a lens shape */
@@ -612,22 +610,14 @@ body:not(.dark) .add-playlist-field input:focus {
   gap: 10px;
 }
 
-.top-bar-actions button,
-.top-bar-actions #connectWalletBtn {
+.top-bar-actions button {
   opacity: 0.8;
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.top-bar-actions button:hover,
-.top-bar-actions #connectWalletBtn:hover {
+.top-bar-actions button:hover {
   opacity: 1;
   transform: translateY(-3px);
-}
-
-#walletAddress {
-  font-family: var(--font-ui);
-  font-size: var(--text-xs);
-  font-weight: 500;
 }
 
 /* ---------- popovers, toast ---------- */
@@ -1688,4 +1678,89 @@ body.glass .center-circle.has-cover::after {
   mask: none !important;
   filter: none !important;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+}
+
+/* ---------- search: a magnifier that slides open (desktop) ----------
+ * The magnifier is always the last item of the row (before the back-to-radio icon). Closed it is just
+ * the icon, no plate. Opening grows the field into the free space of the row: it never covers its
+ * neighbours and never gets wider than what is left. */
+
+@media (min-width: 769px) {
+  .genre-box .search-wrapper {
+    position: relative;
+    flex: 0 1 auto;
+    width: 32px;
+    min-width: 32px;
+    height: 36px;
+    margin-left: auto;
+    transition: width 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  /* when the field opens, the long things in the row give way (with an ellipsis) instead of overflowing */
+  .genre-box > *:not(.search-wrapper):not(.custom-genre-select):not(#nostrModeLabel):not(#localModeLabel) { flex-shrink: 0; }
+  .genre-box .custom-genre-select { flex: 0 1 auto; min-width: 80px; }
+  .genre-box .genre-select-header { min-width: 0; }
+  .genre-box .genre-select-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .genre-box #nostrModeLabel,
+  .genre-box #localModeLabel { flex-shrink: 1; min-width: 0; overflow: hidden; white-space: nowrap; }
+  .genre-box .nostr-who { flex-shrink: 1; min-width: 0; }
+  .genre-box #nostrModeLabel,
+  .genre-box #localModeLabel { margin-right: 0; }
+  .genre-box #radioModeBtn { margin-left: 2px; }
+
+  .genre-box .search-wrapper:hover,
+  .genre-box .search-wrapper:focus-within,
+  .genre-box .search-wrapper:has(.genre-search:not(:placeholder-shown)) {
+    width: 280px;
+  }
+
+  .genre-box .search-wrapper .genre-search[placeholder^="Search"] {
+    height: 36px;
+    transition: padding 0.35s cubic-bezier(0.2, 0.7, 0.2, 1), background-position 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+      border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  /* closed: only the magnifier, no plate and no outline */
+  .genre-box .search-wrapper:not(:hover):not(:focus-within) .genre-search[placeholder^="Search"]:placeholder-shown {
+    padding-left: 0;
+    padding-right: 0;
+    background-image: var(--lupe) !important;
+    background-color: transparent !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-size: 20px 20px !important;   /* about the size of the icons next to it */
+    border-color: transparent !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    cursor: pointer;
+    caret-color: transparent;
+  }
+
+  .genre-box .search-wrapper:not(:hover):not(:focus-within) #clearSearch { display: none !important; }
+}
+
+/* narrow desktop windows: drop the "Genre:" word to leave room for the search field */
+@media (min-width: 769px) and (max-width: 1000px) {
+  .genre-box label[for="customGenreSelect"] { display: none; }
+}
+
+/* the browser's autofill / suggestion highlight turned the search field white (and hid the clear cross) */
+.genre-search:-webkit-autofill,
+.genre-search:-webkit-autofill:hover,
+.genre-search:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  box-shadow: 0 0 0 100px rgba(18, 22, 36, 0.9) inset;
+  transition: background-color 600000s ease 0s;
+}
+
+.genre-search { color-scheme: dark; }
+
+/* the clear cross stays visible and clickable above the field */
+#clearSearch {
+  z-index: 2;
+  padding: 4px;
+  right: 6px;
+  color: rgba(255, 255, 255, 0.85);
 }

@@ -182,7 +182,7 @@ function row({ icon, label, sub, onClick, actions = [], cls = '' }) {
 }
 
 // In-app replacement for window.confirm().
-function confirmDialog({ title, text, okLabel = 'OK', danger = true }) {
+export function confirmDialog({ title, text, okLabel = 'OK', danger = true }) {
   return new Promise(resolve => {
     document.querySelector('.local-help.confirm')?.remove();
     const overlay = el('div', 'local-help confirm');
@@ -325,7 +325,7 @@ function trackRow(st, index, queueFn, extraActions = []) {
     ],
     onClick: e => {
       if (st.url === window.currentStationUrl && audio().duration) {
-        // Clicking the active row seeks, like NFT tracks do.
+        // Clicking the active row seeks.
         const r = li.getBoundingClientRect();
         audio().currentTime = ((e.clientX - r.left) / r.width) * audio().duration;
         return;

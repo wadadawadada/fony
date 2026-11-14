@@ -4,7 +4,9 @@ import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from '.
 import { initChat} from './chat.js'
 import { getStreamMetadata, secureUrl } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
-import { connectWallet, getNFTContractList, connectAndLoadWalletNFTs } from './web3.js'
+import { enterNostrMode, leaveNostrMode, initNostr, isNostrActive, isNostrHash, handleNostrHash } from './nostr-mode.js'
+import { getRememberedStations } from './nostr/favorites.js'
+import { unwrapProxyUrl } from './nostr/format.js'
 import { clearDiscogsInfo, refreshNowPlaying } from './nowplaying.js'
 import { isLocalSupported, prepareTrack, isFavorite as isLocalFavorite, toggleFavorite as toggleLocalFavoriteTrack } from './local-library.js'
 import { enterLocalMode, leaveLocalMode, syncActive as syncLocalActive, setLocalProgress, showUnsupportedDialog, playRandom as playLocalRandom, revealPlaying as revealLocalPlaying } from './local-mode.js'
@@ -38,17 +40,14 @@ let radioSearchPoolReady = false
 let radioSearchLoading = false
 let radioSearchPoolReleaseTimer = null
 let favoritesBaseList = []
-let web3BaseList = []
 const APP_MODE_KEY = "lastAppMode"
 const LAST_RADIO_TRACK_KEY = "lastRadioTrackUrl"
 const LAST_FAVORITES_TRACK_KEY = "lastFavoritesTrackUrl"
-const LAST_WEB3_TRACK_KEY = "lastWeb3TrackState"
 const APP_FIRST_LAUNCH_DONE_KEY = "appFirstLaunchDone"
 const FONY_BACKEND_URL = window.FONY_BACKEND_URL || "https://fonyserver.up.railway.app"
 const searchByMode = {
   radio: "",
-  favorites: "",
-  web3: ""
+  favorites: ""
 }
 // const chatUpdateInterval = 15000
 const metadataUpdateInterval = 7000
@@ -86,51 +85,26 @@ const ffBtn = document.getElementById('ffBtn')
 const favBtn = document.getElementById('favBtn')
 const shuffleBtn = document.getElementById('shuffleBtn')
 const randomBtn = document.getElementById('randomBtn')
-const walletBtn = document.getElementById('connectWalletBtn')
+const nostrBtn = document.getElementById('nostrModeBtn')
 const radioModeBtn = document.getElementById('radioModeBtn')
 
-function disconnectWallet() {
-  const addrEl = document.getElementById('walletAddress')
-  if (addrEl) addrEl.textContent = ''
-  const tooltip = document.getElementById('walletTooltip')
-  if (tooltip) tooltip.classList.remove('open')
-  switchToRadio()
-}
+// Clean-up of a saved mode that no longer exists, so nothing tries to restore it.
+;(() => {
+  try {
+    if (localStorage.getItem("lastAppMode") === "web3") localStorage.setItem("lastAppMode", "radio")
+    localStorage.removeItem("lastWeb3TrackState")
+  } catch (_) {}
+})()
 
-if (walletBtn) {
-  walletBtn.addEventListener("click", async (evt) => {
-    evt.stopPropagation()
-    if (window.currentMode === 'web3') {
-      const tooltip = document.getElementById('walletTooltip')
-      if (tooltip) tooltip.classList.toggle('open')
-    } else {
-      try {
-        const acc = await connectWallet()
-        if (acc) switchToWeb3(acc)
-      } catch (_err) {
-        if (!window.ethereum) {
-          const addrEl = document.getElementById('walletAddress')
-          if (addrEl) {
-            addrEl.textContent = 'No wallet'
-            setTimeout(() => { addrEl.textContent = '' }, 2000)
-          }
-        }
-      }
-    }
+if (nostrBtn) {
+  nostrBtn.addEventListener("click", () => {
+    if (currentMode === "nostr") switchToRadio()
+    else switchToNostr()
   })
 }
 
-document.addEventListener('click', () => {
-  const tooltip = document.getElementById('walletTooltip')
-  if (tooltip) tooltip.classList.remove('open')
-})
-
-document.addEventListener('DOMContentLoaded', () => {
-  const logoutBtn = document.getElementById('walletLogoutBtn')
-  if (logoutBtn) logoutBtn.addEventListener('click', disconnectWallet)
-})
-
 speechSynthesis.cancel()
+initNostr()
 
 
 function playRandomFromUrlGenre() {
@@ -193,7 +167,7 @@ function debounce(fn, wait) {
 function updateMediaSessionMetadata(st) {
   if ("mediaSession" in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: st.nft ? st.playlistTitle : (st.trackTitle || "Unknown Track"),
+      title: st.trackTitle || "Unknown Track",
       artist: st.artist || "",
       album: "",
       artwork: [{ src: st.cover || "/img/stream_icon.svg", sizes: "96x96", type: "image/svg" }]
@@ -218,57 +192,17 @@ function cleanupBuffer(sb) {
   }
 }
 
-function startPlaylistPreloader() {
-  if (preloaderInterval) {
-    clearInterval(preloaderInterval);
-    preloaderInterval = null;
-  }
-  playlistLoader.classList.remove("hidden");
-  playlistLoader.style.animation = "none";
-  playlistLoader.style.color = "#fff";
-  playlistLoader.style.fontSize = "22px";
-  playlistLoader.style.fontFamily = "Ruda";
-  playlistLoader.style.textAlign = "center";
-  playlistLoader.style.whiteSpace = "nowrap";
-  playlistLoader.innerHTML =
-    '<span id="leftColons" style="display: inline-block; min-width: 3ch; text-align: right;"></span>' +
-    '<span id="loaderText" style="display: inline-block; margin: 0 10px;">IPFS load</span>' +
-    '<span id="rightColons" style="display: inline-block; min-width: 3ch; text-align: left;"></span>';
-  let colonCount = 0;
-  const maxColons = 3;
-  preloaderInterval = setInterval(() => {
-    colonCount = (colonCount + 1) % (maxColons + 1);
-    document.getElementById("leftColons").textContent = ":".repeat(colonCount);
-    document.getElementById("rightColons").textContent = ":".repeat(colonCount);
-  }, 250);
-}
-
-function stopPlaylistPreloader() {
-  if (preloaderInterval) clearInterval(preloaderInterval)
-  preloaderInterval = null
-  playlistLoader.classList.add("hidden")
-  playlistLoader.textContent = ""
-}
-
 const FAVORITES_SORT_KEY = "favoritesSortMode";
 
 function persistCurrentMode(mode) {
-  if (["radio", "favorites", "web3", "local"].includes(mode)) {
+  if (["radio", "favorites", "nostr", "local"].includes(mode)) {
     localStorage.setItem(APP_MODE_KEY, mode)
   }
 }
 
 function getSavedMode() {
   const mode = localStorage.getItem(APP_MODE_KEY)
-  return ["radio", "favorites", "web3", "local"].includes(mode) ? mode : "radio"
-}
-
-function getSavedWeb3State() {
-  try {
-    const state = JSON.parse(localStorage.getItem(LAST_WEB3_TRACK_KEY) || "{}")
-    if (state && typeof state === "object") return state
-  } catch (_) {}
-  return {}
+  return ["radio", "favorites", "nostr", "local"].includes(mode) ? mode : "radio"
 }
 
 function isFirstLaunch() {
@@ -290,14 +224,7 @@ function savePlaybackState(station) {
 
   if (mode === "local") return
 
-  if (mode === "web3") {
-    const cs = document.getElementById("contractSelect")
-    localStorage.setItem(LAST_WEB3_TRACK_KEY, JSON.stringify({
-      contract: cs ? cs.value : "",
-      trackUrl: station.url
-    }))
-    return
-  }
+  if (mode === "nostr") return
 
   localStorage.setItem(LAST_RADIO_TRACK_KEY, station.url)
 }
@@ -305,7 +232,6 @@ function savePlaybackState(station) {
 function loadSearchState() {
   searchByMode.radio = ""
   searchByMode.favorites = ""
-  searchByMode.web3 = ""
 }
 
 function saveSearchState() {}
@@ -326,8 +252,7 @@ function updateSearchInputByMode() {
   const mode = getEffectiveMode()
   const placeholders = {
     radio: radioSearchLoading ? "Searching across all genres..." : "Search across all genres",
-    favorites: "Search favorites",
-    web3: "Search web3 tracks"
+    favorites: "Search favorites"
   }
   sIn.placeholder = placeholders[mode] || "Search"
   sIn.value = searchByMode[mode] || ""
@@ -338,11 +263,8 @@ function applyModeSearch(mode = getEffectiveMode()) {
   if (!sIn) return
   const query = (searchByMode[mode] || "").trim().toLowerCase()
 
-  if (mode === "web3") {
-    currentPlaylist = query ? web3BaseList.filter(st => getStationSearchText(st).includes(query)) : web3BaseList.slice()
-    resetVisibleStations()
-    return
-  }
+  // Nostr mode runs its own search box
+  if (mode === "nostr") return
 
   if (mode === "favorites") {
     currentPlaylist = query ? favoritesBaseList.filter(st => getStationSearchText(st).includes(query)) : favoritesBaseList.slice()
@@ -469,6 +391,7 @@ function toggleFavoritesSortVisibility(isVisible) {
   if (sortContainer) {
     sortContainer.style.display = isVisible ? "flex" : "none";
   }
+
 }
 
 function syncFavoritesSortSelect() {
@@ -584,7 +507,7 @@ function setStationArt(st) {
   const token = ++stationArtToken
   activeStationArt = { logo: null }
   applyActiveStationArt()
-  if (!st || st.local || st.nft || !st.title || !stationLogosEnabled()) return
+  if (!st || st.local || st.nostr || !st.title || !stationLogosEnabled()) return
   const key = st.title.toLowerCase()
   const done = src => {
     if (token !== stationArtToken || !src) return
@@ -669,6 +592,7 @@ document.querySelector(".left-group")?.addEventListener("click", () => {
 })
 
 function switchToRadio(restorePlayback = true) {
+  leaveNostrIfNeeded();
   leaveLocalIfNeeded();
   currentMode = "radio";
   window.currentMode = currentMode;
@@ -712,7 +636,7 @@ function switchToRadio(restorePlayback = true) {
       </div>
       <button id="addPlaylistBtn" title="Add custom playlist" aria-label="Add custom playlist"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h12M4 12h12M4 18h8M18 15v6M15 18h6"/></svg></button>
       <div class="search-wrapper">
-        <input type="text" id="searchInput" class="genre-search" placeholder="Search all radio playlists">
+        <input type="text" id="searchInput" class="genre-search" name="fony-station-search" autocomplete="off" spellcheck="false" placeholder="Search all radio playlists">
         <span id="clearSearch">×</span>
       </div>
       <img src="/img/radio.svg" alt="Radio Mode" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px; display: none;">
@@ -755,58 +679,67 @@ function switchToRadio(restorePlayback = true) {
   defaultPlaylist();
 }
 
-function switchToWeb3(acc, restoreState = null) {
-  leaveLocalIfNeeded()
-  currentMode = "web3"
-  initChat();
-  window.currentMode = currentMode;
-  persistCurrentMode("web3");
-  audioPlayer.pause()
-  audioPlayer.src = ""
-  currentPlaylist = []
-  web3BaseList = []
-  playlistElement.innerHTML = ""
+// ---- Nostr mode: the social layer (js/nostr-mode.js) ----
 
-  const saved = restoreState || getSavedWeb3State()
-
-  updateWalletUI(acc).then(() => {
-    const cs = document.getElementById("contractSelect")
-    if (!cs) return
-
-    if (saved.contract && Array.from(cs.options).some(opt => opt.value === saved.contract)) {
-      cs.value = saved.contract
-    }
-
-    const loadSelectedContract = async () => {
-      playlistElement.innerHTML = ""
-      startPlaylistPreloader()
-      try {
-        const sel = cs.value
-        const { tracks } = await connectAndLoadWalletNFTs(sel)
-        if (tracks && tracks.length > 0) {
-          web3BaseList = tracks.slice()
-          applyModeSearch("web3")
-          let trackIndex = 0
-          if (saved.trackUrl) {
-            const foundIndex = currentPlaylist.findIndex(t => t.url === saved.trackUrl)
-            if (foundIndex >= 0) trackIndex = foundIndex
-          }
-          onStationSelect(trackIndex)
-        } else {
-          web3BaseList = []
-          applyModeSearch("web3")
-          stationLabel.textContent = "No NFT tracks found"
-        }
-      } finally {
-        stopPlaylistPreloader()
-      }
-    }
-
-    cs.addEventListener("change", loadSelectedContract)
-    loadSelectedContract()
-  })
+function setPlaylistFromNostr(stations) {
+  currentPlaylist = stations
+  window.currentPlaylist = stations
+  // keep the playing station selected if it is in the new list
+  const idx = window.currentStationUrl ? stations.findIndex(s => s.url === window.currentStationUrl) : -1
+  if (idx >= 0) currentTrackIndex = idx
+  resetVisibleStations()
 }
 
+function leaveNostrIfNeeded() {
+  if (currentMode !== "nostr") return
+  leaveNostrMode()
+  const nb = document.getElementById("nostrModeBtn")
+  if (nb) { nb.classList.remove("active"); nb.title = "Nostr" }
+}
+
+// route: { input } (a pasted link / npub / naddr) or { tab }
+function switchToNostr(route = {}) {
+  if (currentMode === "nostr") {
+    if (route.input || route.tab || route.login) enterNostrMode(nostrContext(), route)
+    return
+  }
+  leaveLocalIfNeeded()
+  currentMode = "nostr"
+  window.currentMode = currentMode
+  persistCurrentMode("nostr")
+  initChat()
+  const nb = document.getElementById("nostrModeBtn")
+  if (nb) { nb.classList.add("active"); nb.title = "Back to radio" }
+  // playback keeps going while the user browses; only the list area is taken over
+  playlistElement.innerHTML = ""
+  currentPlaylist = []
+  enterNostrMode(nostrContext(), route)
+}
+
+function nostrContext() {
+  return {
+    listEl: playlistElement,
+    scroller: playlistContainer,
+    setPlaylist: setPlaylistFromNostr,
+    play: (i) => onStationSelect(i),
+    getCurrentLength: () => currentPlaylist.length,
+    getFavoriteStations: () => createFavoritesPlaylist(),
+    exit: () => switchToRadio()
+  }
+}
+
+// favorites -> Nostr (used by the Share button in Favorites and by the Nostr dialogs)
+window.fonyGetFavoriteStations = () => createFavoritesPlaylist()
+document.addEventListener("fony:nostr-open", (e) => {
+  const d = e.detail || {}
+  if (d.input || d.tab || d.login) switchToNostr(d)
+})
+window.addEventListener("hashchange", () => {
+  if (!isNostrHash()) return
+  const input = location.hash.replace(/^#\/?nostr\//, "")
+  if (currentMode === "nostr") handleNostrHash(location.hash)
+  else switchToNostr({ input })
+})
 
 function setTrackText(text) {
   const rg = document.querySelector(".right-group")
@@ -823,12 +756,8 @@ function setTrackText(text) {
 
 function switchToLocal() {
   if (!isLocalSupported()) return
-  const wasWeb3 = currentMode === "web3"
+  leaveNostrIfNeeded()
   leaveLocalIfNeeded()
-  if (wasWeb3) {
-    const addrEl = document.getElementById('walletAddress')
-    if (addrEl) addrEl.textContent = ''
-  }
   currentMode = "local"
   window.currentMode = currentMode
   window.currentGenre = "Local"
@@ -871,7 +800,7 @@ function switchToLocal() {
       </button>
       <span id="localModeLabel">My music</span>
       <div class="search-wrapper">
-        <input type="text" id="searchInput" class="genre-search" placeholder="Search this view">
+        <input type="text" id="searchInput" class="genre-search" name="fony-station-search" autocomplete="off" spellcheck="false" placeholder="Search this view">
         <span id="clearSearch">×</span>
       </div>
       <img src="/img/radio.svg" alt="Radio" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px;">
@@ -989,33 +918,6 @@ if (localModeBtn) {
   })
 }
 
-async function updateWalletUI(account) {
-  const c = await getNFTContractList()
-  const g = document.querySelector(".genre-box")
-  if (g) {
-    const ops = c.map(x => `<option value="${x.address}">${x.collectionName}</option>`).join("")
-    const shortAddr = account.slice(0, 2) + "..." + account.slice(-2)
-    g.innerHTML = `
-      <span id="walletConnectedLabel">WEB3: </span>
-      <select id="contractSelect" class="genre-select">${ops}</select>
-      <div class="search-wrapper">
-        <input type="text" id="searchInput" class="genre-search" placeholder="Search web3 tracks">
-        <span id="clearSearch">×</span>
-      </div>
-      <img src="/img/radio.svg" alt="Radio" id="radioModeBtn" style="cursor: pointer; width: 28px; height: 28px;">
-    `
-    const addrEl = document.getElementById('walletAddress')
-    if (addrEl) addrEl.textContent = shortAddr
-  }
-  const r = document.getElementById("radioModeBtn")
-  if (r) {
-    r.style.display = "inline-block"
-    r.addEventListener("click", () => switchToRadio())
-  }
-  updateSearchInputByMode();
-  setRadioListeners();
-}
-
 function defaultPlaylist() {
   if (!allPlaylists.length) return
   const firstPlaylist = allPlaylists[0];
@@ -1105,7 +1007,7 @@ function checkRealBuffering(durationMs, li, cb) {
 }
 
 function updateStreamMetadata(u) {
-  if (currentMode === "local") return
+  if (currentMode === "local" || !u) return
   if (u !== currentParsingUrl) return
   const rg = document.querySelector(".right-group")
   if (!rg) return
@@ -1115,14 +1017,20 @@ function updateStreamMetadata(u) {
   Promise.race([p, t]).then(r => {
     if (u !== currentParsingUrl) return
     if (r && r.trim() && r !== "No Metadata" && r !== "No Track Data") {
+      const changed = lastValidNowPlaying !== r.trim()
       lastValidNowPlaying = r.trim()
       const su = "https://www.google.com/search?q=" + encodeURIComponent(lastValidNowPlaying)
+      // stream metadata is untrusted text (a shared station can send anything): never inject it as HTML
       rg.innerHTML = `
         <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
         <span id="currentTrack" class="track-name">
-          <a href="${su}" target="_blank" rel="noopener noreferrer" class="scrolling-text">${lastValidNowPlaying}</a>
+          <a target="_blank" rel="noopener noreferrer" class="scrolling-text"></a>
         </span>
       `
+      const trackLink = rg.querySelector("a.scrolling-text")
+      trackLink.href = su
+      trackLink.textContent = lastValidNowPlaying
+      if (changed) announceNowPlaying(lastValidNowPlaying)
       setTimeout(() => checkMarquee(rg), 20000)
     } else {
       if (!lastValidNowPlaying) {
@@ -1138,6 +1046,15 @@ function updateStreamMetadata(u) {
   })
 }
 
+// Tells the (opt-in) Nostr "now listening" publisher what is playing.
+function announceNowPlaying(track, st) {
+  const s = st || currentPlaylist[currentTrackIndex]
+  const detail = !s || s.local
+    ? { local: true }
+    : { station: { url: unwrapProxyUrl(s.originalUrl || s.url), name: s.title || "", genre: s.favGenre || s.genre || "" }, track: track || "" }
+  document.dispatchEvent(new CustomEvent("fony:nowplaying", { detail }))
+}
+
 function onStationSelect(i) {
   clearDiscogsInfo();
   currentParsingUrl = ""
@@ -1147,6 +1064,7 @@ function onStationSelect(i) {
   window.currentStationUrl = st.url
   renderStations(visibleStations)
   if (st.local) {
+    announceNowPlaying("", st)
     currentTrackIndex = i
     setStationArt(null)
     playLocalStation(st, i)
@@ -1161,57 +1079,39 @@ function onStationSelect(i) {
   currentTrackIndex = i
   currentParsingUrl = st.originalUrl || st.url;
   const selectedGenre = getSelectedGenre();
-  if (selectedGenre.name && !st.local) {
+  if (currentMode === "nostr") {
+    // genre of the station, so a heart pressed here files it under the right genre
+    window.currentGenre = st.genre || "World"
+  } else if (selectedGenre.name && !st.local) {
     localStorage.setItem("lastStation", JSON.stringify({ genre: selectedGenre.name, trackIndex: i }))
     window.currentGenre = selectedGenre.name
   }
   savePlaybackState(st);
+  announceNowPlaying("", st)
   if (stationLabel) {
     const t = stationLabel.querySelector(".scrolling-text")
-    if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station")
+    if (t) t.textContent = st.title || "Unknown Station"
     checkMarquee(stationLabel)
   }
   setStationArt(st)
   const rg = document.querySelector(".right-group")
   if (rg) {
-    if (st.nft) {
-      rg.innerHTML = `
-        <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
-        <span id="currentTrack" class="track-name">
-          <span class="scrolling-text">${st.playlistTitle}</span>
-        </span>
-      `
-      checkMarquee(rg)
-    } else {
-      rg.innerHTML = `
-        <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
-        <span id="currentTrack" class="track-name">
-          <span class="scrolling-text loading"></span>
-        </span>
-      `
-      checkMarquee(rg)
-    }
+    rg.innerHTML = `
+      <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+      <span id="currentTrack" class="track-name">
+        <span class="scrolling-text loading"></span>
+      </span>
+    `
+    checkMarquee(rg)
   }
   if (!st.url) return
-  if (st.nft) {
+  if (isIOS()) {
     audioPlayer.src = secureUrl(st.url)
-    audioPlayer.onloadedmetadata = () => {
-      const el = document.getElementById("playTimer")
-      if (el && audioPlayer.duration) {
-        el.textContent = formatTime(Math.floor(audioPlayer.duration - audioPlayer.currentTime))
-      }
-    }
-    audioPlayer.ontimeupdate = () => {
-      const el = document.getElementById("playTimer")
-      if (el && audioPlayer.duration) {
-        const remaining = Math.floor(audioPlayer.duration - audioPlayer.currentTime)
-        el.textContent = formatTime(remaining)
-        const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100
-        if (li) li.style.setProperty("--buffer-percent", percent + "%")
-      }
-    }
     if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
     if (window.playTimerInterval) clearInterval(window.playTimerInterval)
+    const pt = document.getElementById("playTimer")
+    if (pt) pt.textContent = formatTime(0)
+    if (li) li.classList.add("active")
     audioPlayer.muted = false
     audioPlayer.volume = defaultVolume.value
     audioPlayer.play().then(() => {
@@ -1229,75 +1129,48 @@ function onStationSelect(i) {
         if (audioPlayer.paused) markStationAsHidden(i)
       }, 15000)
     }
+    updateStreamMetadata(st.originalUrl || st.url)
     updateMediaSessionMetadata(st)
   } else {
-    if (isIOS()) {
-      audioPlayer.src = secureUrl(st.url)
-      if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
-      if (window.playTimerInterval) clearInterval(window.playTimerInterval)
-      const pt = document.getElementById("playTimer")
-      if (pt) pt.textContent = formatTime(0)
+    audioPlayer.src = secureUrl(st.url)
+
+    if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
+    if (window.playTimerInterval) clearInterval(window.playTimerInterval)
+
+    const pt = document.getElementById("playTimer")
+    if (pt) pt.textContent = formatTime(0)
+
+    checkRealBuffering(3000, li, () => {
       if (li) li.classList.add("active")
+      if (stationLabel) {
+        const t = stationLabel.querySelector(".scrolling-text")
+        if (t) t.textContent = st.title || "Unknown Station"
+        checkMarquee(stationLabel)
+      }
+    })
+
+    audioPlayer.oncanplay = () => {
+      audioPlayer.oncanplay = null
       audioPlayer.muted = false
       audioPlayer.volume = defaultVolume.value
-      audioPlayer.play().then(() => {
-        appInitialized = true
-        if (!window.equalizerInitialized) {
-          initEqualizer()
-          window.equalizerInitialized = true
-        }
-      }).catch(() => {})
+      audioPlayer.play().catch(() => {})
       fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
       updatePlayPauseButton(audioPlayer, playPauseBtn)
-      if (playCheckTimer) clearTimeout(playCheckTimer)
-      if (appInitialized) {
-        playCheckTimer = setTimeout(() => {
-          if (audioPlayer.paused) markStationAsHidden(i)
-        }, 15000)
+      if (!window.equalizerInitialized) {
+        initEqualizer()
+        window.equalizerInitialized = true
       }
-      if (!st.nft) updateStreamMetadata(st.originalUrl || st.url)
-      updateMediaSessionMetadata(st)
-    } else {
-      audioPlayer.src = secureUrl(st.url)
-
-      if (li) li.scrollIntoView({ behavior: "smooth", block: "start" })
-      if (window.playTimerInterval) clearInterval(window.playTimerInterval)
-
-      const pt = document.getElementById("playTimer")
-      if (pt) pt.textContent = formatTime(0)
-
-      checkRealBuffering(3000, li, () => {
-        if (li) li.classList.add("active")
-        if (stationLabel) {
-          const t = stationLabel.querySelector(".scrolling-text")
-          if (t) t.textContent = st.nft ? st.title : (st.title || "Unknown Station")
-          checkMarquee(stationLabel)
-        }
-      })
-
-      audioPlayer.oncanplay = () => {
-        audioPlayer.oncanplay = null
-        audioPlayer.muted = false
-        audioPlayer.volume = defaultVolume.value
-        audioPlayer.play().catch(() => {})
-        fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
-        updatePlayPauseButton(audioPlayer, playPauseBtn)
-        if (!window.equalizerInitialized) {
-          initEqualizer()
-          window.equalizerInitialized = true
-        }
-      }
-
-      if (playCheckTimer) clearTimeout(playCheckTimer)
-      if (appInitialized) {
-        playCheckTimer = setTimeout(() => {
-          if (audioPlayer.paused) markStationAsHidden(i)
-        }, 15000)
-      }
-
-      if (!st.nft) updateStreamMetadata(st.originalUrl || st.url)
-      updateMediaSessionMetadata(st)
     }
+
+    if (playCheckTimer) clearTimeout(playCheckTimer)
+    if (appInitialized) {
+      playCheckTimer = setTimeout(() => {
+        if (audioPlayer.paused) markStationAsHidden(i)
+      }, 15000)
+    }
+
+    updateStreamMetadata(st.originalUrl || st.url)
+    updateMediaSessionMetadata(st)
   }
 }
 
@@ -1356,7 +1229,7 @@ function setRadioListeners() {
   const sortSelect = document.getElementById("favoritesSortSelect");
   const customSelect = document.getElementById("customGenreSelect");
 
-  if (rBtn && currentMode !== "web3") rBtn.style.display = "none";
+  if (rBtn) rBtn.style.display = "none";
   if (currentMode !== "radio" || !(fBtn && fBtn.classList.contains("active"))) {
     toggleFavoritesSortVisibility(false);
   }
@@ -1748,12 +1621,12 @@ audioPlayer.addEventListener("play", async () => {
   }
 
   const playing = currentPlaylist[currentTrackIndex]
-  if (playing && !playing.nft && !playing.local && currentMode !== "web3") {
+  if (playing && !playing.local && currentMode !== "nostr") {
     trackListen(playing.favGenre || getSelectedGenre().name || window.currentGenre)
   } else {
     stopTasteTracking()
   }
-  if (!(playing && (playing.nft || playing.local))) {
+  if (!(playing && playing.local)) {
     updatePlayPauseButton(audioPlayer, playPauseBtn);
     if (playCheckTimer) {
       clearTimeout(playCheckTimer);
@@ -1780,13 +1653,6 @@ audioPlayer.addEventListener("ended", () => {
     }
     fadeAudioOut(audioPlayer, 500, () => onStationSelect(next))
     return
-  }
-  if (currentMode === "web3") {
-    if (currentTrackIndex < currentPlaylist.length - 1) {
-      fadeAudioOut(audioPlayer, 500, () => onStationSelect(currentTrackIndex + 1))
-    } else {
-      fadeAudioOut(audioPlayer, 500, () => onStationSelect(0))
-    }
   }
 })
 
@@ -1839,14 +1705,7 @@ playlistElement.addEventListener("click", e => {
   const li = e.target.closest("li")
   if (!li || li.dataset.index === undefined) return
   const index = parseInt(li.dataset.index)
-  if (index === currentTrackIndex && currentPlaylist[index].nft && audioPlayer.duration) {
-    const rect = li.getBoundingClientRect()
-    const clickX = e.clientX - rect.left
-    const newTime = (clickX / rect.width) * audioPlayer.duration
-    audioPlayer.currentTime = newTime
-  } else {
-    onStationSelect(index)
-  }
+  onStationSelect(index)
 })
 
 if (playPauseBtn) {
@@ -1906,23 +1765,13 @@ if (randomBtn) {
       fadeAudioOut(audioPlayer, 500, () => playLocalRandom())
       return
     }
-    if (currentMode === "web3") {
-      fadeAudioOut(audioPlayer, 500, async () => {
-        const contracts = await getNFTContractList();
-        if (!contracts.length) return;
-        const randomContract = contracts[Math.floor(Math.random() * contracts.length)];
-        const cs = document.getElementById("contractSelect");
-        if (cs) {
-          cs.value = randomContract.address;
-          cs.dispatchEvent(new Event("change"));
-        }
-        const { tracks } = await connectAndLoadWalletNFTs(randomContract.address);
-        if (tracks && tracks.length) {
-          const ix = Math.floor(Math.random() * tracks.length);
-          currentPlaylist = tracks;
-          onStationSelect(ix);
-        }
-      });
+    if (currentMode === "nostr") {
+      // pick another station from the list that is open in Nostr mode
+      if (currentPlaylist.length > 1) {
+        let r
+        do { r = Math.floor(Math.random() * currentPlaylist.length) } while (r === currentTrackIndex)
+        fadeAudioOut(audioPlayer, 500, () => onStationSelect(r))
+      }
     } else {
       fadeAudioOut(audioPlayer, 500, () => {
         if (!allPlaylists.length) return;
@@ -2064,17 +1913,9 @@ fetch("../json/playlists.json")
     if (!hasFavoritesRestoreState && favoritesRaw) {
       try { hasFavoritesRestoreState = Array.isArray(JSON.parse(favoritesRaw)) && JSON.parse(favoritesRaw).length > 0 } catch (_) {}
     }
-    const web3Raw = localStorage.getItem(LAST_WEB3_TRACK_KEY);
-    let hasWeb3RestoreState = false;
-    if (web3Raw) {
-      try {
-        const ws = JSON.parse(web3Raw);
-        hasWeb3RestoreState = !!(ws && (ws.contract || ws.trackUrl));
-      } catch (_) {}
-    }
     const hasDirectRoute = !!window.location.hash || (window.location.pathname !== "/" && window.location.pathname !== "");
 
-    if (isFirstLaunch() && !hasRadioRestoreState && !hasFavoritesRestoreState && !hasWeb3RestoreState && !hasDirectRoute) {
+    if (isFirstLaunch() && !hasRadioRestoreState && !hasFavoritesRestoreState && !hasDirectRoute) {
       playRandomGenreAndStation();
       markFirstLaunchDone();
       return;
@@ -2082,13 +1923,15 @@ fetch("../json/playlists.json")
 
     const savedMode = getSavedMode();
 
-    if (savedMode === "web3") {
-      try {
-        const account = await connectWallet();
-        switchToWeb3(account, getSavedWeb3State());
-      } catch (_) {
-        await restoreRadioPlayback();
-      }
+    // a Nostr link (#nostr/…) opens straight in Nostr mode
+    if (isNostrHash()) {
+      switchToNostr({ input: location.hash.replace(/^#\/?nostr\//, "") });
+      markFirstLaunchDone();
+      return;
+    }
+
+    if (savedMode === "nostr") {
+      switchToNostr();
       markFirstLaunchDone();
       return;
     }
@@ -2403,7 +2246,13 @@ window.onStationSelect = function(i) {
     return "World";
   }
 
-  async function warm(force=false){
+  // concurrent callers share one run (a second run used to see a half-filled catalog)
+  let warming = null;
+  function warm(force=false){
+    if (!warming || force) warming = warmImpl(force).finally(() => { warming = null; });
+    return warming;
+  }
+  async function warmImpl(force=false){
     const favs = normalizeFavoritesStorage();
     if(!Array.isArray(favs)||!favs.length){ cache.list=[]; cache.ready=true; window.preloadedFavorites=[]; return []; }
 
@@ -2421,7 +2270,9 @@ window.onStationSelect = function(i) {
     }
 
     const out=[];
+    const remembered = getRememberedStations();
     favs.forEach((fav, idx) => {
+      let found = false;
       // Search for station in all genres
       for (const [genre, stations] of Object.entries(cache.byGenre)) {
         const st = stations && stations.find(s => s.url === fav.url);
@@ -2440,8 +2291,16 @@ window.onStationSelect = function(i) {
           st.favGenre = favGenre;
           st.favAddedAt = typeof fav.addedAt === "number" ? fav.addedAt : idx;
           out.push(st);
+          found = true;
           break;
         }
+      }
+      // stations imported from Nostr that are not in the genre catalog
+      if (!found && remembered.has(fav.url)) {
+        const st = { ...remembered.get(fav.url) };
+        st.favGenre = (fav.genre && fav.genre.trim()) || st.genre || "World";
+        st.favAddedAt = typeof fav.addedAt === "number" ? fav.addedAt : idx;
+        out.push(st);
       }
     });
 
