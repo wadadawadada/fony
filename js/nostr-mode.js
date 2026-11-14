@@ -90,6 +90,7 @@ const ICONS = {
   bell: '<path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15zM10 21h4"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
+  ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
   up: '<path d="M12 16V5M7 9l5-5 5 5M5 20h14"/>',
   cloud: '<path d="M7 18a4 4 0 0 1-.6-7.96A5.5 5.5 0 0 1 17 8.6 4.7 4.7 0 0 1 17.5 18z"/>',
   clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
@@ -630,6 +631,15 @@ function personHead(p, pubkey, sub, ...right) {
     ...right)
 }
 
+function copyNpubButton(npub) {
+  return h("button", { class: "nostr-ib mini", type: "button", title: "Copy npub", "aria-label": "Copy npub", onclick: async () => toast(await copyText(npub) ? "npub copied" : "Could not copy") }, icon("copy", "nostr-ico sm"))
+}
+
+// the profile in Primal, in a new tab (the npub is bech32, so it is safe to put into the address)
+function primalLink(npub) {
+  return h("a", { class: "nostr-ib mini", href: `https://primal.net/p/${npub}`, target: "_blank", rel: "noopener noreferrer", title: "Open in Primal", "aria-label": "Open in Primal" }, icon("ext", "nostr-ico sm"))
+}
+
 // one line of a settings-like list: icon | title + short status | control
 function settingRow(iconName, title, sub, ...controls) {
   return h("div", { class: "nostr-set" },
@@ -668,7 +678,7 @@ async function renderProfile(body, my) {
     const p = profiles.get(session.pubkey)
     put(head,
       personHead(p, session.pubkey,
-        [`${npub.slice(0, 12)}…${npub.slice(-4)}`, h("button", { class: "nostr-ib mini", type: "button", title: "Copy npub", "aria-label": "Copy npub", onclick: async () => toast(await copyText(npub) ? "npub copied" : "Could not copy") }, icon("copy", "nostr-ico sm"))],
+        [`${npub.slice(0, 12)}…${npub.slice(-4)}`, copyNpubButton(npub), primalLink(npub)],
         iconBtn("logout", "Log out", async () => { await Auth.logout(); toast("Disconnected"); render(); updateWho() })),
       h("div", { class: "nostr-stat-row" },
         statLine("users", `${follows.length} following`),
@@ -816,7 +826,7 @@ async function renderUser(body, my) {
       }, following ? "small" : "primary small")
     }
     put(head,
-      personHead(p, pubkey, `${npub.slice(0, 14)}…${npub.slice(-4)}`, followBtn),
+      personHead(p, pubkey, [`${npub.slice(0, 14)}…${npub.slice(-4)}`, copyNpubButton(npub), primalLink(npub)], followBtn),
       p && p.about ? h("p", { class: "nostr-hint", text: p.about }) : null,
       live ? h("div", { class: "nostr-row static" },
         h("span", { class: "nostr-row-main" }, h("span", { class: "nostr-row-sub", text: "Listening now" }), h("span", { class: "nostr-row-title", text: live.name })),

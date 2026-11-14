@@ -1414,3 +1414,7 @@ button.nostr-row:hover, button.nostr-row-list:hover { background: rgba(255, 255,
 .nostr-lb span { white-space: nowrap; }
 @keyframes nostrPulse2 { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
 .nostr-status:empty { display: none; }
+
+/* the Primal link beside an address */
+a.nostr-ib.mini { color: inherit; text-decoration: none; }
+a.nostr-ib.mini:hover { color: #00F2B8; }
