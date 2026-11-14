@@ -767,6 +767,28 @@ function onFavoritesChanged() {
   if (ctx) render();
 }
 
+// After a reload: play the track that was playing, within its folder, if the browser still allows
+// reading that folder. It never opens a permission prompt on its own (that needs a click).
+export async function restoreLastTrack() {
+  try {
+    const last = JSON.parse(localStorage.getItem('lastLocalTrack') || 'null');
+    if (!ctx || !last || !last.rootId || !Array.isArray(last.path) || !last.path.length) return false;
+    const root = await lib.getRoot(last.rootId);
+    if (!root || !(await lib.hasAccess(root))) return false;
+    const folder = last.path.slice(0, -1);
+    const { files } = await lib.listDir(root, folder);
+    const file = last.path[last.path.length - 1];
+    const start = files.indexOf(file);
+    if (start < 0 || !ctx) return false;
+    const stations = files.map(f => lib.makeStation({ rootId: root.id, path: [...folder, f] }, root.name));
+    ctx.playQueue(stations, start);
+    setView({ kind: 'dir', rootId: root.id, path: folder }, { reveal: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function leaveLocalMode() {
   if (durationObserver) durationObserver.disconnect();
   durationObserver = null;

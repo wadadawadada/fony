@@ -1,5 +1,6 @@
 import { resetTaste } from "./taste.js";
 import { confirmDialog, toast } from "./local-mode.js";
+import { bindBackup } from "./nostr/backup-ui.js";
 
 var defaultModalContent = "";
 
@@ -207,94 +208,16 @@ function openSettingsModal() {
     });
   })();
 
-  // ---- backup / restore through Nostr (encrypted, js/nostr/backup.js) ----
-  (function() {
-    var status = document.getElementById("nostrBackupStatus");
-    var bBtn = document.getElementById("nostrBackupBtn");
-    var rBtn = document.getElementById("nostrRestoreBtn");
-    function say(t) { status.textContent = t; }
-    // the button itself shows what is going on: its caption changes, then "Done" / "Failed" for a moment
-    function label(btn, text, state) {
-      var span = btn.querySelector("span");
-      if (!btn.dataset.idle) btn.dataset.idle = span.textContent;
-      span.textContent = text;
-      btn.classList.toggle("is-busy", state === "busy");
-      btn.classList.toggle("is-ok", state === "ok");
-      btn.classList.toggle("is-err", state === "err");
+  // ---- backup / restore through Nostr (encrypted; shared with Nostr -> Profile, js/nostr/backup-ui.js) ----
+  bindBackup({
+    backupBtn: document.getElementById("nostrBackupBtn"),
+    restoreBtn: document.getElementById("nostrRestoreBtn"),
+    say: function(t) { document.getElementById("nostrBackupStatus").textContent = t; },
+    onNeedLogin: function() {
+      modal.style.display = "none";
+      document.dispatchEvent(new CustomEvent("fony:nostr-open", { detail: { tab: "profile", login: true } }));
     }
-    function settle(btn, text, state) {
-      label(btn, text, state);
-      setTimeout(function() { label(btn, btn.dataset.idle, ""); }, 3200);
-    }
-    function ago(ts) {
-      var m = Math.round((Date.now() - ts) / 60000);
-      if (m < 2) return "just now";
-      if (m < 120) return m + " min ago";
-      if (m < 2880) return Math.round(m / 60) + " h ago";
-      return new Date(ts).toLocaleDateString();
-    }
-    // not signed in: say so on the button, then open Nostr mode at the sign-in screen
-    async function ready(btn) {
-      var auth = await import("./nostr/auth.js");
-      await auth.restoreSession();
-      if (!auth.isLoggedIn()) {
-        settle(btn, "Log in to Nostr", "busy");
-        setTimeout(function() {
-          modal.style.display = "none";
-          document.dispatchEvent(new CustomEvent("fony:nostr-open", { detail: { tab: "profile", login: true } }));
-        }, 900);
-        return null;
-      }
-      return await import("./nostr/backup.js");
-    }
-    bBtn.addEventListener("click", async function() {
-      bBtn.disabled = rBtn.disabled = true;
-      say("");
-      var failed = false;
-      try {
-        label(bBtn, "Checking…", "busy");
-        var bk = await ready(bBtn);
-        if (!bk) return;
-        var r = await bk.backupToNostr(function(step, i, n) {
-          var part = n > 1 ? " " + i + "/" + n : "";
-          if (step === "encrypt") label(bBtn, "Encrypting…", "busy");
-          else if (step === "sign") label(bBtn, "Approve" + part + "…", "busy");
-          else label(bBtn, "Sending" + part + "…", "busy");
-        });
-        settle(bBtn, "Done", "ok");
-        if (r.skipped.length) say("Left out (too large, use the file backup): " + r.skipped.join(", "));
-      } catch (e) {
-        failed = true;
-        settle(bBtn, "Failed", "err");
-        say(String(e && e.message || e));
-      }
-      finally { bBtn.disabled = rBtn.disabled = false; }
-    });
-    rBtn.addEventListener("click", async function() {
-      bBtn.disabled = rBtn.disabled = true;
-      say("");
-      try {
-        label(rBtn, "Checking…", "busy");
-        var bk = await ready(rBtn);
-        if (!bk) return;
-        label(rBtn, "Searching…", "busy");
-        var ev = await bk.findNostrBackup();
-        if (!ev) { settle(rBtn, "No backup", "err"); return; }
-        label(rBtn, "Approve…", "busy");
-        var opened = await bk.openNostrBackup(ev);
-        label(rBtn, "Confirm…", "busy");
-        var sure = await confirmDialog({ title: "Restore this backup?", text: "Backup from " + ago(opened.at) + " (" + Object.keys(opened.entries).length + " items). It replaces the data on this device.", okLabel: "Restore", danger: false });
-        if (!sure) { label(rBtn, rBtn.dataset.idle || "Restore", ""); return; }
-        label(rBtn, "Restoring…", "busy");
-        bk.applyBackup(opened.entries);
-        location.reload();
-      } catch (e) {
-        settle(rBtn, "Failed", "err");
-        say(String(e && e.message || e));
-      }
-      finally { bBtn.disabled = rBtn.disabled = false; }
-    });
-  })();
+  });
 
   document.getElementById("backupAppBtn").addEventListener("click", function() {
     const all = {};

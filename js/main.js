@@ -4,12 +4,13 @@ import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from '.
 import { initChat} from './chat.js'
 import { getStreamMetadata, secureUrl } from './parsing.js'
 import { initEqualizer } from './equalizer.js'
+import { toast as toastLocal } from './local-mode.js'
 import { enterNostrMode, leaveNostrMode, initNostr, isNostrActive, isNostrHash, handleNostrHash } from './nostr-mode.js'
 import { getRememberedStations } from './nostr/favorites.js'
 import { unwrapProxyUrl } from './nostr/format.js'
 import { clearDiscogsInfo, refreshNowPlaying } from './nowplaying.js'
 import { isLocalSupported, prepareTrack, isFavorite as isLocalFavorite, toggleFavorite as toggleLocalFavoriteTrack } from './local-library.js'
-import { enterLocalMode, leaveLocalMode, syncActive as syncLocalActive, setLocalProgress, showUnsupportedDialog, playRandom as playLocalRandom, revealPlaying as revealLocalPlaying } from './local-mode.js'
+import { enterLocalMode, leaveLocalMode, restoreLastTrack as restoreLastLocalTrack, syncActive as syncLocalActive, setLocalProgress, showUnsupportedDialog, playRandom as playLocalRandom, revealPlaying as revealLocalPlaying } from './local-mode.js'
 import { initCustomGenreSelect, setSelectedGenre, getSelectedGenre } from './custom-genre-select.js';
 import { pickPlaylist as pickTastePlaylist, trackListen, stopTracking as stopTasteTracking } from './taste.js';
 import { loadCustomPlaylists,saveCustomPlaylist, deleteCustomPlaylist, normalizePlaylistUrl, suggestNameFromUrl } from './custom-playlists.js';
@@ -56,6 +57,31 @@ const RADIO_SEARCH_POOL_IDLE_TTL = 120000
 const audioPlayer = document.getElementById('audioPlayer')
 audioPlayer.volume = defaultVolume.value
 audioPlayer.crossOrigin = 'anonymous'
+
+// Browsers may refuse to start audio on a page that has not been clicked yet (after a reload). Playback
+// is then started by the first click / key press, and a small hint says so.
+;(() => {
+  const rawPlay = audioPlayer.play.bind(audioPlayer)
+  let armed = false
+  const arm = () => {
+    if (armed) return
+    armed = true
+    toastLocal("Click anywhere to start the music")
+    const go = () => {
+      document.removeEventListener("pointerdown", go, true)
+      document.removeEventListener("keydown", go, true)
+      armed = false
+      if (audioPlayer.paused && audioPlayer.src && !userPaused) rawPlay().catch(() => {})
+    }
+    document.addEventListener("pointerdown", go, true)
+    document.addEventListener("keydown", go, true)
+  }
+  audioPlayer.play = function () {
+    const p = rawPlay()
+    if (p && p.catch) p.catch(err => { if (err && err.name === "NotAllowedError") arm() })
+    return p
+  }
+})()
 
 const stationLabel = document.getElementById('stationLabel')
 const customGenreSelect = document.getElementById('customGenreSelect')
@@ -224,7 +250,18 @@ function savePlaybackState(station) {
 
   if (mode === "local") return
 
-  if (mode === "nostr") return
+  if (mode === "nostr") {
+    // enough to bring the same station (and the list it came from) back after a reload
+    try {
+      localStorage.setItem("fonyNostrLast", JSON.stringify({
+        url: unwrapProxyUrl(station.originalUrl || station.url),
+        name: station.title || "",
+        genre: station.genre || "",
+        src: window.__nostrSrc || null
+      }))
+    } catch (_) {}
+    return
+  }
 
   localStorage.setItem(LAST_RADIO_TRACK_KEY, station.url)
 }
@@ -707,6 +744,7 @@ function switchToNostr(route = {}) {
   currentMode = "nostr"
   window.currentMode = currentMode
   persistCurrentMode("nostr")
+  initChat()   // safe to repeat: the console is set up once (needed when the app starts in Nostr mode)
   const nb = document.getElementById("nostrModeBtn")
   if (nb) { nb.classList.add("active"); nb.title = "Back to radio" }
   // playback keeps going while the user browses; only the list area is taken over
@@ -753,7 +791,7 @@ function setTrackText(text) {
   checkMarquee(rg)
 }
 
-function switchToLocal() {
+function switchToLocal(opts = {}) {
   if (!isLocalSupported()) return
   leaveNostrIfNeeded()
   leaveLocalIfNeeded()
@@ -819,6 +857,8 @@ function switchToLocal() {
       onStationSelect(start)
     }
   })
+  // after a reload: the track that was playing comes back
+  if (opts.restore) restoreLastLocalTrack()
 }
 
 let localPlayToken = 0
@@ -844,6 +884,7 @@ document.addEventListener("themeChanged", () => setTimeout(syncLocalFavIcon, 0))
 
 async function playLocalStation(st, i) {
   const token = ++localPlayToken
+  try { localStorage.setItem("lastLocalTrack", JSON.stringify({ rootId: st.rootId, path: st.path })) } catch (_) {}
   if (playCheckTimer) { clearTimeout(playCheckTimer); playCheckTimer = null }
   if (window.playTimerInterval) { clearInterval(window.playTimerInterval); window.playTimerInterval = null }
   window.__localCoverFallback = null
@@ -1930,13 +1971,13 @@ fetch("../json/playlists.json")
     }
 
     if (savedMode === "nostr") {
-      switchToNostr();
+      switchToNostr({ restore: true });
       markFirstLaunchDone();
       return;
     }
 
     if (savedMode === "local" && isLocalSupported()) {
-      switchToLocal();
+      switchToLocal({ restore: true });
       markFirstLaunchDone();
       return;
     }

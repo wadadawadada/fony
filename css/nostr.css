@@ -1404,3 +1404,13 @@ button.nostr-row:hover, button.nostr-row-list:hover { background: rgba(255, 255,
   -webkit-mask-position: center;
   mask-position: center;
 }
+
+/* backup buttons in the profile show their progress like the ones in Settings */
+.nostr-lb.is-busy { color: #ffd166; }
+.nostr-lb.is-busy .nostr-ico { animation: nostrPulse2 1s ease-in-out infinite; }
+.nostr-lb.is-ok { color: #00F2B8; }
+.nostr-lb.is-err { color: #ff9bb0; }
+.nostr-lb:disabled { opacity: 1; cursor: default; }
+.nostr-lb span { white-space: nowrap; }
+@keyframes nostrPulse2 { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+.nostr-status:empty { display: none; }

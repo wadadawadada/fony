@@ -19,6 +19,7 @@ import * as Disc from "./nostr/discovery.js"
 import * as Pres from "./nostr/presence.js"
 import * as F from "./nostr/format.js"
 import * as AutoSync from "./nostr/autosync.js"
+import { bindBackup } from "./nostr/backup-ui.js"
 import { confirmDialog } from "./local-mode.js"
 import { createGenreAvatar, getGenreIcon } from "./playlist.js"
 import { getFavLogo, ensureFavLogo, applyAvatarLogo, stationLogosEnabled } from "./utils/favLogos.js"
@@ -89,6 +90,9 @@ const ICONS = {
   bell: '<path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15zM10 21h4"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
+  up: '<path d="M12 16V5M7 9l5-5 5 5M5 20h14"/>',
+  cloud: '<path d="M7 18a4 4 0 0 1-.6-7.96A5.5 5.5 0 0 1 17 8.6 4.7 4.7 0 0 1 17.5 18z"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
   copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
   logout: '<path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3M14 8l4 4-4 4M18 12H8"/>',
   trash: '<path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/>',
@@ -690,10 +694,21 @@ async function renderProfile(body, my) {
   paintPresence()
   const off = Pres.onPresenceState(() => { if (stale(my)) off(); else paintPresence() })
 
-  // the rest is tucked away
-  body.append(h("details", { class: "nostr-more" }, h("summary", {}, icon("gear", "nostr-ico sm"), "Backup and relays"),
-    h("p", { class: "nostr-hint", text: "Encrypted backup: Settings → Data." }),
-    relayEditor()))
+  // backup: encrypted copy of Favorites, playlists and settings on the relays
+  const backup = h("div", { class: "nostr-section" })
+  const backupMsg = h("p", { class: "nostr-hint nostr-status" })
+  const bBtn = labelBtn("up", "Backup", () => {}, "is-action")
+  const rBtn = labelBtn("down", "Restore", () => {}, "is-action")
+  bindBackup({ backupBtn: bBtn, restoreBtn: rBtn, say: t => { backupMsg.textContent = t } })
+  put(backup,
+    settingRow("cloud", "Nostr backup", "encrypted, on your relays", bBtn, rBtn),
+    settingRow("clock", "Auto backup", "daily, only if something changed",
+      toggle(AutoSync.isAutoBackup(), v => AutoSync.setAutoBackup(v), "Back up to Nostr automatically once a day")),
+    backupMsg)
+  body.append(sectionTitle("", "Backup"), backup)
+
+  // relays are tucked away
+  body.append(h("details", { class: "nostr-more" }, h("summary", {}, icon("gear", "nostr-ico sm"), "Relays"), relayEditor()))
 }
 
 // ----- drill-in views
@@ -797,8 +812,15 @@ async function renderList(body, my) {
     if (!stale(my)) {
       const stations = l.stations.map(Fav.toPlayerStation).filter(Boolean)
       Fav.rememberStations(l.stations)
+      window.__nostrSrc = { pubkey: l.pubkey, id: l.id }
       ctx.setPlaylist(stations)
       setStationsVisible(true)
+      if (pendingResume) {
+        const want = F.stationKey(pendingResume)
+        pendingResume = null
+        const idx = stations.findIndex(st => F.stationKey(st.originalUrl) === want)
+        if (idx >= 0) ctx.play(idx)
+      }
     }
   }
 
@@ -838,8 +860,11 @@ function needsLogin() {
   return !Auth.isLoggedIn() && !guest && !sub
 }
 
+let pendingResume = null   // station to start once its list is loaded (after a reload)
+
 function render() {
   if (!active || !view) return
+  window.__nostrSrc = null   // set again by an open list
   const my = ++token
   clearInterval(listeningTimer)
   setStationsVisible(false)
@@ -968,6 +993,22 @@ export function enterNostrMode(context, route = {}) {
   updateWho()
   if (route.input) openInput(route.input)
   else if (route.tab && TABS.some(t => t.id === route.tab)) { tab = route.tab; render() }
+  else if (route.restore) resumeLast()
+}
+
+// After a reload in Nostr mode: bring back the station that was playing (and its list).
+function resumeLast() {
+  let last = null
+  try { last = JSON.parse(localStorage.getItem("fonyNostrLast") || "null") } catch (_) {}
+  if (!last || typeof last.url !== "string") return
+  const item = F.normalizeStation({ url: last.url, name: last.name, genre: last.genre })
+  if (!item) return
+  if (last.src && F.isHexKey(last.src.pubkey)) {
+    pendingResume = item.url
+    openList({ pubkey: last.src.pubkey, id: last.src.id })
+  } else {
+    playInPlace(item, "", [item])
+  }
 }
 
 export function leaveNostrMode() {
