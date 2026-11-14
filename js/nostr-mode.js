@@ -451,7 +451,7 @@ async function renderFollowing(body, my) {
       const profiles = await getProfiles(items.map(i => i.pubkey))
       if (stale(my)) return
       if (!items.length) {
-        put(listening, emptyBox("Nobody you follow is listening right now.", button("Refresh", () => { put(listening); loadListening() }, "quiet small")))
+        put(listening, emptyBox("Nobody you follow is sharing what they listen to right now. They need “Now listening” switched on in their Profile.", button("Refresh", () => { put(listening); loadListening() }, "quiet small")))
         return
       }
       put(listening, items.map(it => {
@@ -501,7 +501,7 @@ async function renderFollowing(body, my) {
   }
   await paintFollowed(Lists.getFollowedLists())
   if (stale(my)) return
-  Lists.refreshFollowedLists().then(all => { AutoSync.markUpdates(all.filter(Lists.hasUpdate).length); if (!stale(my)) paintFollowed(all) }).catch(() => {})
+  Lists.refreshFollowedLists().then(all => { if (!stale(my)) paintFollowed(all) }).catch(() => {})
 }
 
 async function renderShared(body, my) {
@@ -646,6 +646,7 @@ async function renderProfile(body, my) {
   body.append(sectionTitle("", "Favorites"), share)
   const paintShare = async () => {
     const sess = Auth.getSession()
+    if (sess) await Lists.adoptRemote(sess.pubkey)
     let local = null
     try { local = await Fav.getShareableFavorites(ctx.getFavoriteStations) } catch (_) {}
     if (stale(my)) return
@@ -656,13 +657,18 @@ async function renderProfile(body, my) {
       return
     }
     const dot = h("span", { class: "nostr-state-dot " + (state.inSync ? "ok" : "warn") })
+    const elsewhere = !!state.meta.adopted
+    const cached = elsewhere ? Lists.getCachedList(`${F.KIND_LIST}:${sess.pubkey}:${F.DEFAULT_LIST_ID}`) : null
     put(share,
       settingRow("share", "Shared favorites",
-        [dot, `${plural(state.meta.count, "station", "stations")} · ${state.inSync ? "up to date" : "changes not shared"}`],
+        [dot, `${plural(state.meta.count, "station", "stations")} · ${elsewhere ? "found on your relays" : (state.inSync ? "up to date" : "changes not shared")}`],
+        elsewhere && cached ? labelBtn("down", "Import", () => {
+          try { const r = Fav.importStations(cached.stations); toast(r.added ? `Added ${plural(r.added, "station", "stations")} to Favorites` : "All of these are already in your Favorites") } catch (err) { toast(String(err.message || err)) }
+        }) : null,
         labelBtn("refresh", "Update", () => openShareDialog()),
         labelBtn("list", "Open", () => openList({ pubkey: sess.pubkey, id: F.DEFAULT_LIST_ID })),
         labelBtn("trash", "Unshare", async () => { try { if (await unshareFlow()) render() } catch (err) { toast(String(err.message || err)) } })),
-      settingRow("refresh", "Auto-update", "after sign-in, every few hours",
+      settingRow("refresh", "Auto-update", elsewhere ? "starts after you press Update here" : "after sign-in, every few hours",
         toggle(AutoSync.isAutoShare(), on => AutoSync.setAutoShare(on), "Keep the shared list up to date automatically")))
   }
   paintShare()
@@ -766,7 +772,7 @@ async function renderList(body, my) {
     const p = profiles.get(l.pubkey)
     const mine = !!session && session.pubkey === l.pubkey
     const following = Lists.isFollowing(l.ref)
-    if (following && !refreshing) { Lists.markSeen(l); AutoSync.markUpdates(Lists.getFollowedLists().filter(Lists.hasUpdate).length) }
+    if (following && !refreshing) Lists.markSeen(l)
     const followBtn = following
       ? button("Following", () => { Lists.unfollowList(l.ref); toast("Unfollowed"); paint(l, false) }, "quiet small", "bell")
       : button("Follow", () => { Lists.followList(l); toast("You will see updates in Following"); paint(l, false) }, "quiet small", "bell")
@@ -1021,6 +1027,7 @@ export function openShareDialog(getStations) {
     put(box, h("button", { class: "nostr-close", type: "button", "aria-label": "Close", text: "×", onclick: close }), loader("Reading your Favorites…"))
     let stations = []
     let favError = ""
+    if (session) await Lists.adoptRemote(session.pubkey)
     try { stations = await Fav.getShareableFavorites(getFavs) } catch (err) { favError = String(err && err.message || err) }
     const state = session ? Lists.syncState(session.pubkey, stations) : null
     const title = h("input", { class: "nostr-input", type: "text", maxlength: String(F.LIMITS.title), value: (state && state.meta && state.meta.title) || "My FONY favorites" })
@@ -1068,7 +1075,7 @@ export function openShareDialog(getStations) {
     const dot = h("span", { class: "nostr-state-dot " + (state && state.inSync ? "ok" : "warn") })
     const stat = h("div", { class: "nostr-stat-row" },
       statLine("heart", plural(stations.length, "station", "stations")),
-      state && state.published ? h("span", { class: "nostr-stat-line" }, dot, state.inSync ? "up to date" : "changes not shared") : null,
+      state && state.published ? h("span", { class: "nostr-stat-line" }, dot, state.meta.adopted ? "already on your relays (other device)" : state.inSync ? "up to date" : "changes not shared") : null,
       stations.skipped ? h("span", { class: "nostr-stat-line", title: "Their address cannot be shared" }, `${stations.skipped} left out`) : null)
 
     put(box,

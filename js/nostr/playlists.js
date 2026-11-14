@@ -112,6 +112,45 @@ function setPublishedMeta(pubkey, id, meta) {
   writeJson(SHARED_KEY, all)
 }
 
+// A list published from another browser or app is unknown to this device (what was published is remembered
+// locally). Ask the relays and remember it, marked `adopted`: it is shown as shared, but nothing is ever
+// overwritten automatically, because this device's Favorites may be completely different.
+const remoteChecked = {}
+const UNSHARED_KEY = "fonyNostrUnshared"
+function unsharedAt(pubkey, id) {
+  const all = readJson(UNSHARED_KEY, {})
+  return Number(all[pubkey + ":" + id]) || 0
+}
+function rememberUnshared(pubkey, id) {
+  const all = readJson(UNSHARED_KEY, {})
+  all[pubkey + ":" + id] = Math.floor(Date.now() / 1000)
+  writeJson(UNSHARED_KEY, all)
+}
+export async function adoptRemote(pubkey, id = F.DEFAULT_LIST_ID, { force = false } = {}) {
+  const cleanId = F.cleanListId(id)
+  const now = Date.now()
+  if (!force && remoteChecked[pubkey] && now - remoteChecked[pubkey] < 5 * 60 * 1000) return getPublishedMeta(pubkey, cleanId)
+  let remote = null
+  try { remote = await fetchList(pubkey, cleanId, undefined, 4000) } catch (_) { return getPublishedMeta(pubkey, cleanId) }
+  remoteChecked[pubkey] = now
+  const meta = getPublishedMeta(pubkey, cleanId)
+  // a list the user just withdrew may still be served by relays that ignore deletion requests
+  if (remote && remote.createdAt <= unsharedAt(pubkey, cleanId)) remote = null
+  if (remote && (!meta || remote.createdAt > meta.createdAt)) {
+    setPublishedMeta(pubkey, cleanId, {
+      eventId: remote.eventId,
+      createdAt: remote.createdAt,
+      fingerprint: F.stationsFingerprint(remote.stations),
+      count: remote.stations.length,
+      title: remote.title,
+      description: remote.description,
+      noteIds: (meta && meta.noteIds) || [],
+      adopted: true
+    })
+  }
+  return getPublishedMeta(pubkey, cleanId)
+}
+
 // Compare local Favorites with the last published version. Nothing is ever sent from here.
 export function syncState(pubkey, localStations, id = F.DEFAULT_LIST_ID) {
   const meta = pubkey ? getPublishedMeta(pubkey, id) : null
@@ -189,6 +228,7 @@ export async function unshareFavorites(id = F.DEFAULT_LIST_ID) {
   })
   const result = await publish(signed)
   setPublishedMeta(session.pubkey, cleanId, null)
+  rememberUnshared(session.pubkey, cleanId)
   return result
 }
 

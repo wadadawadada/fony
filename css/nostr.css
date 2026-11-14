@@ -1251,20 +1251,6 @@ button.nostr-row:hover, button.nostr-row-list:hover { background: rgba(255, 255,
 .nostr-row.playing { background: rgba(0, 242, 184, 0.16); }
 .nostr-row.playing .nostr-row-title { color: #00F2B8; }
 
-/* dot on the Nostr button: a followed playlist has new stations */
-.nostr-mode-button { position: relative; }
-.nostr-mode-button.has-update::after {
-  content: "";
-  position: absolute;
-  top: -2px;
-  right: -3px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ff3860;
-  box-shadow: 0 0 0 2px rgba(23, 28, 43, 0.9);
-}
-
 /* icon buttons: just the white icon, no circle */
 .nostr-ib,
 .nostr-ib.primary {

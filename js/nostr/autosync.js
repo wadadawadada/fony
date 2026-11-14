@@ -3,8 +3,7 @@
 //  * Shared Favorites: once a list has been shared (by pressing Share), it is kept up to date.
 //    It is re-published when the user signs in / opens the app and when the local Favorites
 //    differ, then at most every few hours. FONY never publishes a list that was not shared before.
-//  * Followed playlists: checked at start and every half hour; the Nostr button gets a dot when
-//    one of them has a new version.
+//  * Followed playlists: checked at start and every half hour; Following marks the ones with a new version.
 //  * Backup (optional, off by default): a daily encrypted backup, only when something changed.
 //
 // Turn the first two off with the switch in Nostr > Profile; the backup in Settings > Data.
@@ -61,8 +60,9 @@ function hashText(text) {
 async function syncShared(reason) {
   const session = Auth.getSession()
   if (!session || !isAutoShare() || !getFavoriteStations) return
-  const meta = Lists.getPublishedMeta(session.pubkey)
-  if (!meta) return                                   // never shared: never published automatically
+  // a list published elsewhere is recognised, but only a manual Update from this device may replace it
+  const meta = await Lists.adoptRemote(session.pubkey)
+  if (!meta || meta.adopted) return                   // never shared (or shared elsewhere): never published automatically
   const st = readState()
   const now = Date.now()
   // after a failed attempt wait an hour; otherwise a sign-in / switching it on checks right away,
@@ -90,18 +90,10 @@ async function syncShared(reason) {
 // ---- followed playlists ----
 
 async function syncFollowed() {
-  if (!Lists.getFollowedLists().length) { markUpdates(0); return }
+  if (!Lists.getFollowedLists().length) return
   try {
-    const all = await Lists.refreshFollowedLists()
-    markUpdates(all.filter(Lists.hasUpdate).length)
+    await Lists.refreshFollowedLists()   // the "New" badge in Following shows what changed
   } catch (_) {}
-}
-
-export function markUpdates(n) {
-  const btn = document.getElementById("nostrModeBtn")
-  if (!btn) return
-  btn.classList.toggle("has-update", n > 0)
-  btn.title = n > 0 ? `Nostr: ${n} followed ${n === 1 ? "playlist has" : "playlists have"} new stations` : (btn.classList.contains("active") ? "Back to radio" : "Nostr")
 }
 
 // ---- backup ----
