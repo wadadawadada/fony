@@ -233,11 +233,12 @@ function openSettingsModal() {
       if (m < 2880) return Math.round(m / 60) + " h ago";
       return new Date(ts).toLocaleDateString();
     }
-    async function ready() {
+    // not signed in: say so on the button, then open Nostr mode at the sign-in screen
+    async function ready(btn) {
       var auth = await import("./nostr/auth.js");
       await auth.restoreSession();
       if (!auth.isLoggedIn()) {
-        say("Connect Nostr first: opening the sign-in screen…");
+        settle(btn, "Log in to Nostr", "busy");
         setTimeout(function() {
           modal.style.display = "none";
           document.dispatchEvent(new CustomEvent("fony:nostr-open", { detail: { tab: "profile", login: true } }));
@@ -252,8 +253,8 @@ function openSettingsModal() {
       var failed = false;
       try {
         label(bBtn, "Checking…", "busy");
-        var bk = await ready();
-        if (!bk) { label(bBtn, bBtn.dataset.idle || "Backup", ""); return; }
+        var bk = await ready(bBtn);
+        if (!bk) return;
         var r = await bk.backupToNostr(function(step, i, n) {
           var part = n > 1 ? " " + i + "/" + n : "";
           if (step === "encrypt") label(bBtn, "Encrypting…", "busy");
@@ -274,8 +275,8 @@ function openSettingsModal() {
       say("");
       try {
         label(rBtn, "Checking…", "busy");
-        var bk = await ready();
-        if (!bk) { label(rBtn, rBtn.dataset.idle || "Restore", ""); return; }
+        var bk = await ready(rBtn);
+        if (!bk) return;
         label(rBtn, "Searching…", "busy");
         var ev = await bk.findNostrBackup();
         if (!ev) { settle(rBtn, "No backup", "err"); return; }
