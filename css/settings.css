@@ -115,3 +115,15 @@
 .settings-btns { gap: 4px; }
 
 .settings-name .settings-hint { display: block; margin-top: 1px; }
+
+/* status shown inside the icon buttons (Nostr backup / restore) */
+.settings-btn-icon span { white-space: nowrap; }
+.settings-btn-icon.is-busy { color: #ffd166; }
+.settings-btn-icon.is-busy svg { animation: settingsPulse 1s ease-in-out infinite; }
+.settings-btn-icon.is-ok { color: #00F2B8; }
+.settings-btn-icon.is-err { color: #ff9bb0; }
+.settings-btn-icon:disabled { opacity: 1; cursor: default; }
+
+@keyframes settingsPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) { .settings-btn-icon.is-busy svg { animation: none; } }

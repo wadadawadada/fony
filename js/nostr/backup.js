@@ -52,10 +52,11 @@ export function backupSupported() {
 
 // ---- backup ----
 
-export async function backupToNostr() {
+export async function backupToNostr(onStep = () => {}) {
   if (!backupSupported()) throw new Error("This browser cannot create encrypted backups")
   const session = getSession()
   if (!session) throw new Error("Connect a Nostr account first")
+  onStep("encrypt")
   const { data, skipped } = backupEntries()
   const plain = new TextEncoder().encode(JSON.stringify({ v: 1, app: "FONY", at: Date.now(), data }))
   const packed = await gzip(plain)
@@ -79,12 +80,14 @@ export async function backupToNostr() {
     const content = i === 0
       ? JSON.stringify({ v: 2, scheme: wrapped.scheme, key: wrapped.data, iv: b64(iv), n: parts.length, part: parts[0] })
       : JSON.stringify({ v: 2, part: parts[i] })
+    onStep("sign", i + 1, parts.length)
     const signed = await signEvent({
       kind: BACKUP_KIND,
       created_at: now + i,      // replaceable events need a newer created_at than the version they replace
       tags: [["d", i === 0 ? BACKUP_D : `${BACKUP_D}-${i}`], ["bid", bid], ["client", "FONY"], ["encryption", wrapped.scheme]],
       content
     })
+    onStep("publish", i + 1, parts.length)
     const result = await publish(signed)
     relays = relays ? Math.min(relays, result.ok.length) : result.ok.length
   }

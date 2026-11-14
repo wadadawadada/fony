@@ -213,6 +213,19 @@ function openSettingsModal() {
     var bBtn = document.getElementById("nostrBackupBtn");
     var rBtn = document.getElementById("nostrRestoreBtn");
     function say(t) { status.textContent = t; }
+    // the button itself shows what is going on: its caption changes, then "Done" / "Failed" for a moment
+    function label(btn, text, state) {
+      var span = btn.querySelector("span");
+      if (!btn.dataset.idle) btn.dataset.idle = span.textContent;
+      span.textContent = text;
+      btn.classList.toggle("is-busy", state === "busy");
+      btn.classList.toggle("is-ok", state === "ok");
+      btn.classList.toggle("is-err", state === "err");
+    }
+    function settle(btn, text, state) {
+      label(btn, text, state);
+      setTimeout(function() { label(btn, btn.dataset.idle, ""); }, 3200);
+    }
     function ago(ts) {
       var m = Math.round((Date.now() - ts) / 60000);
       if (m < 2) return "just now";
@@ -235,31 +248,49 @@ function openSettingsModal() {
     }
     bBtn.addEventListener("click", async function() {
       bBtn.disabled = rBtn.disabled = true;
+      say("");
+      var failed = false;
       try {
+        label(bBtn, "Checking…", "busy");
         var bk = await ready();
-        if (!bk) return;
-        say("Waiting for your signer…");
-        var r = await bk.backupToNostr();
-        say("Backed up " + r.entries + " items to " + r.relays + (r.relays === 1 ? " relay" : " relays") +
-          (r.skipped.length ? ". Left out (too large, use file Backup): " + r.skipped.join(", ") : "."));
-      } catch (e) { say(String(e && e.message || e)); }
+        if (!bk) { label(bBtn, bBtn.dataset.idle || "Backup", ""); return; }
+        var r = await bk.backupToNostr(function(step, i, n) {
+          var part = n > 1 ? " " + i + "/" + n : "";
+          if (step === "encrypt") label(bBtn, "Encrypting…", "busy");
+          else if (step === "sign") label(bBtn, "Approve" + part + "…", "busy");
+          else label(bBtn, "Sending" + part + "…", "busy");
+        });
+        settle(bBtn, "Done", "ok");
+        if (r.skipped.length) say("Left out (too large, use the file backup): " + r.skipped.join(", "));
+      } catch (e) {
+        failed = true;
+        settle(bBtn, "Failed", "err");
+        say(String(e && e.message || e));
+      }
       finally { bBtn.disabled = rBtn.disabled = false; }
     });
     rBtn.addEventListener("click", async function() {
       bBtn.disabled = rBtn.disabled = true;
+      say("");
       try {
+        label(rBtn, "Checking…", "busy");
         var bk = await ready();
-        if (!bk) return;
-        say("Looking for your backup…");
+        if (!bk) { label(rBtn, rBtn.dataset.idle || "Restore", ""); return; }
+        label(rBtn, "Searching…", "busy");
         var ev = await bk.findNostrBackup();
-        if (!ev) { say("No backup found on your relays."); return; }
-        say("Waiting for your signer to unlock it…");
+        if (!ev) { settle(rBtn, "No backup", "err"); return; }
+        label(rBtn, "Approve…", "busy");
         var opened = await bk.openNostrBackup(ev);
+        label(rBtn, "Confirm…", "busy");
         var sure = await confirmDialog({ title: "Restore this backup?", text: "Backup from " + ago(opened.at) + " (" + Object.keys(opened.entries).length + " items). It replaces the data on this device.", okLabel: "Restore", danger: false });
-        if (!sure) { say("Restore cancelled."); return; }
+        if (!sure) { label(rBtn, rBtn.dataset.idle || "Restore", ""); return; }
+        label(rBtn, "Restoring…", "busy");
         bk.applyBackup(opened.entries);
         location.reload();
-      } catch (e) { say(String(e && e.message || e)); }
+      } catch (e) {
+        settle(rBtn, "Failed", "err");
+        say(String(e && e.message || e));
+      }
       finally { bBtn.disabled = rBtn.disabled = false; }
     });
   })();
