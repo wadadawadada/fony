@@ -638,7 +638,7 @@ async function renderProfile(body, my) {
         iconBtn("logout", "Log out", async () => { await Auth.logout(); toast("Disconnected"); render(); updateWho() })),
       h("div", { class: "nostr-stat-row" },
         statLine("users", `${follows.length} following`),
-        statLine("list", `${Lists.getFollowedLists().length} playlists`)))
+        statLine("list", plural(Lists.getFollowedLists().length, "playlist", "playlists"))))
   }).catch(() => { if (!stale(my)) put(head, errorBox("Could not load your profile.", () => render())) })
 
   // shared favorites

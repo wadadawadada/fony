@@ -707,7 +707,6 @@ function switchToNostr(route = {}) {
   currentMode = "nostr"
   window.currentMode = currentMode
   persistCurrentMode("nostr")
-  initChat()
   const nb = document.getElementById("nostrModeBtn")
   if (nb) { nb.classList.add("active"); nb.title = "Back to radio" }
   // playback keeps going while the user browses; only the list area is taken over

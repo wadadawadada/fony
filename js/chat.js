@@ -1112,8 +1112,15 @@ function sendWelcomeMessage() {
 }
 
 
+// initChat() is called on every genre or mode change. Only the quick links depend on the genre; the
+// rest (welcome message, the "open console" button, button handlers) must be set up once, otherwise
+// every call added another toggle button and doubled the send handlers.
+let chatInitialized = false
+
 export function initChat() {
   renderQuickLinks();
+  if (chatInitialized) return;
+  chatInitialized = true;
   sendWelcomeMessage();
 
   const chatUsernameContainer = document.getElementById("chatUsernameContainer");

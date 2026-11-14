@@ -190,8 +190,13 @@ function init() {
     return NAMES[btn.id] || btn.dataset.tip || btn.getAttribute("title") || btn.getAttribute("aria-label") || btn.querySelector("img")?.alt || ""
   }
 
+  let activeBtn = null
+  let watchdog = null
+  const stillOver = (b) => b && b.isConnected && (b.matches(":hover") || b.matches(":focus-visible"))
+
   function showTip(btn) {
     if (!desktop.matches || dragging) return
+    activeBtn = btn
     // the native tooltip would double ours
     const title = btn.getAttribute("title")
     if (title) { btn.dataset.tip = title; btn.removeAttribute("title") }
@@ -221,12 +226,23 @@ function init() {
     // it grows out of the icon it belongs to
     tip.style.setProperty("--from-x", side === "below" ? "0px" : side === "right" ? "-14px" : "14px")
     tip.style.setProperty("--from-y", side === "below" ? "-12px" : "0px")
-    requestAnimationFrame(() => requestAnimationFrame(() => tip.classList.add("show")))
+    requestAnimationFrame(() => requestAnimationFrame(() => { if (activeBtn === btn && stillOver(btn)) tip.classList.add("show") }))
+    // safety net: whatever happens to the pointer events, the tooltip goes when the pointer is gone
+    clearInterval(watchdog)
+    watchdog = setInterval(() => { if (!stillOver(activeBtn)) hideTip() }, 200)
   }
 
   function hideTip() {
+    activeBtn = null
+    clearInterval(watchdog)
     tip.classList.remove("show")
   }
+
+  document.addEventListener("pointerdown", hideTip, true)
+  document.addEventListener("scroll", hideTip, true)
+  window.addEventListener("blur", hideTip)
+  document.addEventListener("visibilitychange", hideTip)
+  document.documentElement.addEventListener("pointerleave", hideTip)
 
   bar.addEventListener("pointerover", (e) => {
     const btn = e.target.closest && e.target.closest("button")
