@@ -9,7 +9,7 @@ import { enterNostrMode, leaveNostrMode, initNostr, isNostrActive, isNostrHash, 
 import { getRememberedStations } from './nostr/favorites.js'
 import { unwrapProxyUrl } from './nostr/format.js'
 import { clearDiscogsInfo, refreshNowPlaying } from './nowplaying.js'
-import { isLocalSupported, prepareTrack, isFavorite as isLocalFavorite, toggleFavorite as toggleLocalFavoriteTrack } from './local-library.js'
+import { isLocalSupported, prepareTrack, releaseTrack as releaseLocalTrack, isFavorite as isLocalFavorite, toggleFavorite as toggleLocalFavoriteTrack } from './local-library.js'
 import { enterLocalMode, leaveLocalMode, restoreLastTrack as restoreLastLocalTrack, syncActive as syncLocalActive, setLocalProgress, showUnsupportedDialog, playRandom as playLocalRandom, revealPlaying as revealLocalPlaying } from './local-mode.js'
 import { initCustomGenreSelect, setSelectedGenre, getSelectedGenre } from './custom-genre-select.js';
 import { pickPlaylist as pickTastePlaylist, trackListen, stopTracking as stopTasteTracking } from './taste.js';
@@ -24,6 +24,10 @@ let allPlaylists = []
 let allStations = []
 let currentPlaylist = []
 let currentTrackIndex = 0
+// What is playing while another mode is being browsed: { mode, url, playlist, index }.
+// Switching modes no longer stops the sound; the next/prev buttons keep working on this list.
+let detached = null
+let silentStep = false
 let shuffleActive = false
 let visibleStations = 0
 let lastValidNowPlaying = ""
@@ -490,11 +494,66 @@ function applyFavoritesSorting(list) {
 }
 
 // The local explorer owns #playlist while in local mode.
+function playingMode() { return detached ? detached.mode : currentMode }
+window.fonyPlayingMode = playingMode
+
+// the list and position the transport buttons (prev / next / end of track) work on
+function transport() {
+  return detached ? { list: detached.playlist, idx: detached.index } : { list: currentPlaylist, idx: currentTrackIndex }
+}
+
+// Called right before the mode changes: if something is playing, remember it so it can go on.
+function detachPlayback() {
+  const url = window.currentStationUrl
+  if (!url || !audioPlayer.getAttribute("src")) return false
+  if (detached && detached.url === url) return true
+  const st = currentPlaylist[currentTrackIndex]
+  if (!st || st.url !== url) return false
+  detached = { mode: currentMode, url, playlist: currentPlaylist, index: currentTrackIndex }
+  // the "hide a dead station" check indexes the browsed list, which is about to change
+  if (playCheckTimer) { clearTimeout(playCheckTimer); playCheckTimer = null }
+  return true
+}
+
+// The browsed list contains the playing station again: it becomes the transport list.
+function reconcileDetached() {
+  if (!detached || silentStep) return
+  const i = currentPlaylist.findIndex(s => s && s.url === detached.url)
+  if (i < 0) return
+  currentTrackIndex = i
+  detached = null
+}
+
+// Next / previous while the playing list is not the one on screen.
+function playAt(i) {
+  if (!detached) { onStationSelect(i); return }
+  const d = detached
+  if (!d.playlist[i]) return
+  const saved = { list: currentPlaylist, idx: currentTrackIndex, mode: currentMode, vis: visibleStations }
+  silentStep = true
+  currentPlaylist = d.playlist
+  currentTrackIndex = d.index
+  currentMode = d.mode
+  try {
+    onStationSelect(i)
+    d.index = i
+    d.url = window.currentStationUrl
+  } finally {
+    currentPlaylist = saved.list
+    currentTrackIndex = saved.idx
+    currentMode = saved.mode
+    visibleStations = saved.vis
+    silentStep = false
+  }
+}
+
 function renderStations(end) {
   if (currentMode === "local") {
     window.currentPlaylist = currentPlaylist
     return
   }
+  reconcileDetached()
+  if (silentStep) return
   renderPlaylist(playlistElement, currentPlaylist, 0, end)
 }
 
@@ -561,8 +620,9 @@ function setStationArt(st) {
 
 // "Load station icons" switched in Settings: apply right away
 document.addEventListener("stationLogosChanged", () => {
-  if (currentMode === "local") return
-  setStationArt(currentPlaylist[currentTrackIndex])
+  if (playingMode() === "local") return
+  const t = transport()
+  setStationArt(t.list[t.idx])
   renderStations(visibleStations)
 })
 
@@ -607,8 +667,10 @@ function fillPlaylistSelect(autoSelectFirst = false) {
 
 function leaveLocalIfNeeded() {
   if (currentMode !== "local") return
-  leaveLocalMode()
-  window.__localCoverFallback = null
+  // a local track that goes on playing needs its file kept
+  const keepTrack = !!detached && detached.mode === "local"
+  leaveLocalMode(keepTrack)
+  if (!keepTrack) window.__localCoverFallback = null
   const lb = document.getElementById("localModeBtn")
   if (lb) { lb.classList.remove("active"); lb.title = "Local files" }
   setNowPlayingBarClickable(false)
@@ -629,23 +691,27 @@ document.querySelector(".left-group")?.addEventListener("click", () => {
 })
 
 function switchToRadio(restorePlayback = true) {
+  // whatever is playing keeps playing; only a switch from radio to radio (a reset) stops it
+  const keep = currentMode !== "radio" ? detachPlayback() : !!detached;
   leaveNostrIfNeeded();
   leaveLocalIfNeeded();
   currentMode = "radio";
   window.currentMode = currentMode;
   persistCurrentMode("radio");
-  if (window.playTimerInterval) {
-    clearInterval(window.playTimerInterval);
-    window.playTimerInterval = null;
+  if (!keep) {
+    if (window.playTimerInterval) {
+      clearInterval(window.playTimerInterval);
+      window.playTimerInterval = null;
+    }
+    const playTimerElem = document.getElementById("playTimer");
+    if (playTimerElem) {
+      playTimerElem.textContent = formatTime(0);
+    }
+    audioPlayer.pause();
+    audioPlayer.src = "";
+    audioPlayer.currentTime = 0;
+    audioPlayer.ontimeupdate = null;
   }
-  const playTimerElem = document.getElementById("playTimer");
-  if (playTimerElem) {
-    playTimerElem.textContent = formatTime(0);
-  }
-  audioPlayer.pause();
-  audioPlayer.src = "";
-  audioPlayer.currentTime = 0;
-  audioPlayer.ontimeupdate = null;
   currentPlaylist = [];
   playlistElement.innerHTML = "";
   const g = document.querySelector(".genre-box");
@@ -681,6 +747,16 @@ function switchToRadio(restorePlayback = true) {
   }
   fillPlaylistSelect(false);
   setRadioListeners();
+  if (keep) {
+    // just show the stations again; the sound is not touched
+    const g = getSelectedGenre();
+    const entry = allPlaylists.find(p => p.file === g.file) || allPlaylists[0];
+    if (entry) {
+      setSelectedGenre(entry.file, entry.name);
+      loadAndRenderPlaylist(entry.file, entry.name);
+    }
+    return;
+  }
   if (!restorePlayback) return;
 
   const lastRadioTrackUrl = localStorage.getItem(LAST_RADIO_TRACK_KEY);
@@ -740,6 +816,7 @@ function switchToNostr(route = {}) {
     if (route.input || route.tab || route.login) enterNostrMode(nostrContext(), route)
     return
   }
+  detachPlayback()
   leaveLocalIfNeeded()
   currentMode = "nostr"
   window.currentMode = currentMode
@@ -793,41 +870,55 @@ function setTrackText(text) {
 
 function switchToLocal(opts = {}) {
   if (!isLocalSupported()) return
+  // whatever is playing keeps playing (a local track that is already playing is simply taken over again)
+  const keep = currentMode !== "local" ? detachPlayback() : !!detached
   leaveNostrIfNeeded()
   leaveLocalIfNeeded()
+  const adopt = keep && detached.mode === "local"
   currentMode = "local"
   window.currentMode = currentMode
-  window.currentGenre = "Local"
   persistCurrentMode("local")
   initChat()
-  if (window.playTimerInterval) {
-    clearInterval(window.playTimerInterval)
-    window.playTimerInterval = null
+  if (adopt) {
+    currentPlaylist = detached.playlist
+    currentTrackIndex = detached.index
+    window.currentPlaylist = currentPlaylist
+    detached = null
+  } else {
+    currentPlaylist = []
   }
-  const pt = document.getElementById("playTimer")
-  if (pt) pt.textContent = formatTime(0)
-  audioPlayer.pause()
-  audioPlayer.removeAttribute("src")
-  audioPlayer.load()
-  audioPlayer.oncanplay = null
-  audioPlayer.onloadedmetadata = null
-  audioPlayer.ontimeupdate = null
-  currentPlaylist = []
-  currentParsingUrl = ""
-  window.currentStationUrl = null
-  setStationArt(null)
-  clearDiscogsInfo()
+  if (!keep) {
+    window.currentGenre = "Local"
+    if (window.playTimerInterval) {
+      clearInterval(window.playTimerInterval)
+      window.playTimerInterval = null
+    }
+    const pt = document.getElementById("playTimer")
+    if (pt) pt.textContent = formatTime(0)
+    audioPlayer.pause()
+    audioPlayer.removeAttribute("src")
+    audioPlayer.load()
+    audioPlayer.oncanplay = null
+    audioPlayer.onloadedmetadata = null
+    audioPlayer.ontimeupdate = null
+    currentParsingUrl = ""
+    window.currentStationUrl = null
+    setStationArt(null)
+    clearDiscogsInfo()
+  }
   playlistElement.innerHTML = ""
   const lb = document.getElementById("localModeBtn")
   if (lb) { lb.classList.add("active"); lb.title = "Back to radio" }
-  setNowPlayingBarClickable(true)
-  const heart = document.getElementById("favBtn")
-  if (heart) heart.src = (["dark", "glass"].includes(localStorage.getItem("theme")) ? "/img/dark/" : "/img/") + "fav.svg"
-  if (stationLabel) {
-    const t = stationLabel.querySelector(".scrolling-text")
-    if (t) t.textContent = "Local files"
+  setNowPlayingBarClickable(!keep || adopt)
+  if (!keep) {
+    const heart = document.getElementById("favBtn")
+    if (heart) heart.src = (["dark", "glass"].includes(localStorage.getItem("theme")) ? "/img/dark/" : "/img/") + "fav.svg"
+    if (stationLabel) {
+      const t = stationLabel.querySelector(".scrolling-text")
+      if (t) t.textContent = "Local files"
+    }
+    setTrackText("Pick a folder or playlist")
   }
-  setTrackText("Pick a folder or playlist")
 
   const g = document.querySelector(".genre-box")
   if (g) {
@@ -857,25 +948,28 @@ function switchToLocal(opts = {}) {
       onStationSelect(start)
     }
   })
+  if (adopt) syncLocalFavIcon()
   // after a reload: the track that was playing comes back
-  if (opts.restore) restoreLastLocalTrack()
+  if (opts.restore && !keep) restoreLastLocalTrack()
 }
 
 let localPlayToken = 0
 
 // The heart button in the player works on the playing local track.
 function syncLocalFavIcon() {
-  if (currentMode !== "local") return
+  if (playingMode() !== "local") return
   const heart = document.getElementById("favBtn")
-  const st = currentPlaylist[currentTrackIndex]
+  const t = transport()
+  const st = t.list[t.idx]
   if (!heart || !st || !st.local) return
   const prefix = ["dark", "glass"].includes(localStorage.getItem("theme")) ? "/img/dark/" : "/img/"
   heart.src = prefix + (isLocalFavorite(st) ? "fav_active.svg" : "fav.svg")
 }
 
 window.toggleLocalFavorite = function () {
-  const st = currentPlaylist[currentTrackIndex]
-  if (currentMode !== "local" || !st || !st.local) return
+  const t = transport()
+  const st = t.list[t.idx]
+  if (playingMode() !== "local" || !st || !st.local) return
   toggleLocalFavoriteTrack({ rootId: st.rootId, path: st.path })
   syncLocalFavIcon()
 }
@@ -884,6 +978,7 @@ document.addEventListener("themeChanged", () => setTimeout(syncLocalFavIcon, 0))
 
 async function playLocalStation(st, i) {
   const token = ++localPlayToken
+  const queue = currentPlaylist
   try { localStorage.setItem("lastLocalTrack", JSON.stringify({ rootId: st.rootId, path: st.path })) } catch (_) {}
   if (playCheckTimer) { clearTimeout(playCheckTimer); playCheckTimer = null }
   if (window.playTimerInterval) { clearInterval(window.playTimerInterval); window.playTimerInterval = null }
@@ -904,9 +999,9 @@ async function playLocalStation(st, i) {
     if (token !== localPlayToken) return
     console.warn("Local track unavailable:", err)
     setTrackText(`Unavailable: ${st.title}`)
-    if (currentPlaylist.length > 1) {
+    if (queue.length > 1) {
       setTimeout(() => {
-        if (token === localPlayToken) onStationSelect(i < currentPlaylist.length - 1 ? i + 1 : 0)
+        if (token === localPlayToken) playAt(i < queue.length - 1 ? i + 1 : 0)
       }, 800)
     }
     return
@@ -1047,7 +1142,7 @@ function checkRealBuffering(durationMs, li, cb) {
 }
 
 function updateStreamMetadata(u) {
-  if (currentMode === "local" || !u) return
+  if (playingMode() === "local" || !u) return
   if (u !== currentParsingUrl) return
   const rg = document.querySelector(".right-group")
   if (!rg) return
@@ -1088,7 +1183,8 @@ function updateStreamMetadata(u) {
 
 // Tells the (opt-in) Nostr "now listening" publisher what is playing.
 function announceNowPlaying(track, st) {
-  const s = st || currentPlaylist[currentTrackIndex]
+  const t = transport()
+  const s = st || t.list[t.idx]
   const detail = !s || s.local
     ? { local: true }
     : { station: { url: unwrapProxyUrl(s.originalUrl || s.url), name: s.title || "", genre: s.favGenre || s.genre || "" }, track: track || "" }
@@ -1096,11 +1192,16 @@ function announceNowPlaying(track, st) {
 }
 
 function onStationSelect(i) {
+  const st = currentPlaylist[i]
+  if (!st) return
+  if (!silentStep) {
+    // a new start: the old playing list is no longer needed
+    if (detached && detached.mode === "local" && !st.local) releaseLocalTrack()
+    detached = null
+  }
   clearDiscogsInfo();
   currentParsingUrl = ""
   ensureVisible(i)
-  const st = currentPlaylist[i]
-  if (!st) return
   window.currentStationUrl = st.url
   renderStations(visibleStations)
   if (st.local) {
@@ -1110,7 +1211,7 @@ function onStationSelect(i) {
     playLocalStation(st, i)
     return
   }
-  const lis = document.querySelectorAll("#playlist li")
+  const lis = silentStep ? [] : document.querySelectorAll("#playlist li")
   lis.forEach(x => {
     x.classList.remove("active")
     x.style.setProperty("--buffer-percent", "0%")
@@ -1122,7 +1223,7 @@ function onStationSelect(i) {
   if (currentMode === "nostr") {
     // genre of the station, so a heart pressed here files it under the right genre
     window.currentGenre = st.genre || "World"
-  } else if (selectedGenre.name && !st.local) {
+  } else if (selectedGenre.name && !st.local && !silentStep) {
     localStorage.setItem("lastStation", JSON.stringify({ genre: selectedGenre.name, trackIndex: i }))
     window.currentGenre = selectedGenre.name
   }
@@ -1164,7 +1265,7 @@ function onStationSelect(i) {
     fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
     updatePlayPauseButton(audioPlayer, playPauseBtn)
     if (playCheckTimer) clearTimeout(playCheckTimer)
-    if (appInitialized) {
+    if (appInitialized && !silentStep) {
       playCheckTimer = setTimeout(() => {
         if (audioPlayer.paused) markStationAsHidden(i)
       }, 15000)
@@ -1203,7 +1304,7 @@ function onStationSelect(i) {
     }
 
     if (playCheckTimer) clearTimeout(playCheckTimer)
-    if (appInitialized) {
+    if (appInitialized && !silentStep) {
       playCheckTimer = setTimeout(() => {
         if (audioPlayer.paused) markStationAsHidden(i)
       }, 15000)
@@ -1660,8 +1761,9 @@ audioPlayer.addEventListener("play", async () => {
     }
   }
 
-  const playing = currentPlaylist[currentTrackIndex]
-  if (playing && !playing.local && currentMode !== "nostr") {
+  const tp = transport()
+  const playing = tp.list[tp.idx]
+  if (playing && !playing.local && playingMode() !== "nostr") {
     trackListen(playing.favGenre || getSelectedGenre().name || window.currentGenre)
   } else {
     stopTasteTracking()
@@ -1686,12 +1788,13 @@ audioPlayer.addEventListener("play", async () => {
 });
 
 audioPlayer.addEventListener("ended", () => {
-  if (currentMode === "local" && currentPlaylist.length) {
-    let next = currentTrackIndex < currentPlaylist.length - 1 ? currentTrackIndex + 1 : 0
-    if (shuffleActive && currentPlaylist.length > 1) {
-      do { next = Math.floor(Math.random() * currentPlaylist.length) } while (next === currentTrackIndex)
+  const t = transport()
+  if (playingMode() === "local" && t.list.length) {
+    let next = t.idx < t.list.length - 1 ? t.idx + 1 : 0
+    if (shuffleActive && t.list.length > 1) {
+      do { next = Math.floor(Math.random() * t.list.length) } while (next === t.idx)
     }
-    fadeAudioOut(audioPlayer, 500, () => onStationSelect(next))
+    fadeAudioOut(audioPlayer, 500, () => playAt(next))
     return
   }
 })
@@ -1715,23 +1818,25 @@ if ("mediaSession" in navigator) {
     audioPlayer.pause()
   })
   navigator.mediaSession.setActionHandler("previoustrack", () => {
-    if (currentTrackIndex > 0) {
+    const t = transport()
+    if (t.idx > 0) {
       audioPlayer.volume = 0;
-      onStationSelect(currentTrackIndex - 1);
+      playAt(t.idx - 1);
     }
   })
   navigator.mediaSession.setActionHandler("nexttrack", () => {
+    const t = transport()
     if (shuffleActive) {
       let r;
       do {
-        r = Math.floor(Math.random() * currentPlaylist.length);
-      } while (r === currentTrackIndex && currentPlaylist.length > 1);
+        r = Math.floor(Math.random() * t.list.length);
+      } while (r === t.idx && t.list.length > 1);
       audioPlayer.volume = 0;
-      onStationSelect(r);
+      playAt(r);
     } else {
-      const next = currentTrackIndex < currentPlaylist.length - 1 ? currentTrackIndex + 1 : 0;
+      const next = t.idx < t.list.length - 1 ? t.idx + 1 : 0;
       audioPlayer.volume = 0;
-      onStationSelect(next);
+      playAt(next);
     }
   })
 }
@@ -1764,9 +1869,9 @@ if (playPauseBtn) {
 
 if (rrBtn) {
   rrBtn.addEventListener("click", () => {
-    if (currentTrackIndex > 0) {
+    if (transport().idx > 0) {
       fadeAudioOut(audioPlayer, 500, () => {
-        onStationSelect(currentTrackIndex - 1)
+        playAt(transport().idx - 1)
       })
     }
   })
@@ -1774,17 +1879,18 @@ if (rrBtn) {
 
 if (ffBtn) {
   ffBtn.addEventListener("click", () => {
+    const t = transport()
     if (shuffleActive) {
       let r;
       do {
-        r = Math.floor(Math.random() * currentPlaylist.length);
-      } while (r === currentTrackIndex && currentPlaylist.length > 1);
-      fadeAudioOut(audioPlayer, 500, () => onStationSelect(r));
+        r = Math.floor(Math.random() * t.list.length);
+      } while (r === t.idx && t.list.length > 1);
+      fadeAudioOut(audioPlayer, 500, () => playAt(r));
     } else {
-      if (currentTrackIndex < currentPlaylist.length - 1) {
-        fadeAudioOut(audioPlayer, 500, () => onStationSelect(currentTrackIndex + 1));
+      if (t.idx < t.list.length - 1) {
+        fadeAudioOut(audioPlayer, 500, () => playAt(t.idx + 1));
       } else {
-        fadeAudioOut(audioPlayer, 500, () => onStationSelect(0));
+        fadeAudioOut(audioPlayer, 500, () => playAt(0));
       }
     }
   });
@@ -1970,7 +2076,7 @@ fetch("../json/playlists.json")
       return;
     }
 
-    if (savedMode === "nostr") {
+    if (savedMode === "nostr" && window.innerWidth > 768) {
       switchToNostr({ restore: true });
       markFirstLaunchDone();
       return;

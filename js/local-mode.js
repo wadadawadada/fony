@@ -249,7 +249,11 @@ async function addFolder(getRoot) {
     toast(existed ? `“${root.name}” is already in the library` : `Added “${root.name}”`);
     setView({ kind: 'dir', rootId: root.id, path: [] });
   } catch (err) {
-    if (err && err.name !== 'AbortError') toast('Could not open that folder');
+    console.warn('Add folder:', err && err.name, err && err.message);
+    if (err && err.name !== 'AbortError') {
+      console.warn('Add folder failed:', err);
+      toast(`Could not open that folder (${err.name || 'error'})`);
+    }
   }
 }
 
@@ -789,7 +793,7 @@ export async function restoreLastTrack() {
   }
 }
 
-export function leaveLocalMode() {
+export function leaveLocalMode(keepTrack = false) {
   if (durationObserver) durationObserver.disconnect();
   durationObserver = null;
   durationQueue = [];
@@ -803,7 +807,7 @@ export function leaveLocalMode() {
   ctx = null;
   activeLi = null;
   closePopover();
-  lib.releaseTrack();
+  if (!keepTrack) lib.releaseTrack();
 }
 
 // Click on the "now playing" bar: jump back to the folder of the track that is playing,

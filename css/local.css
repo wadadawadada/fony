@@ -412,6 +412,11 @@ body.dark .local-mode-button.active img {
   font-size: 1.2rem;
 }
 
+#playlist li.local-drop,
+#playlist li.local-drop.big {
+  border-radius: 16px;
+}
+
 #playlist li.local-drop.big {
   flex-direction: column;
   padding: 36px 14px;

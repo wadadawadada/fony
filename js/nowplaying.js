@@ -111,7 +111,7 @@ export async function showDiscogsInfo() {
 
     let coverUrl = extractCoverFromDiscogsHtml(infoHtml);
     // Local files: fall back to the cover embedded in the file's tags.
-    if (!coverUrl && window.currentMode === 'local') coverUrl = window.__localCoverFallback || null;
+    if (!coverUrl && (window.fonyPlayingMode ? window.fonyPlayingMode() : window.currentMode) === 'local') coverUrl = window.__localCoverFallback || null;
     window.currentAlbumArtUrl = coverUrl || null;
     window.currentAlbumArtTrack = nowPlaying;
     setAlbumCoverBackground(coverUrl);

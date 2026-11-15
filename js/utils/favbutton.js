@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (favBtn) {
     favBtn.addEventListener("click", () => {
-      if (window.currentMode === "local") {
+      if ((window.fonyPlayingMode ? window.fonyPlayingMode() : window.currentMode) === "local") {
         if (typeof window.toggleLocalFavorite === "function") window.toggleLocalFavorite();
         return;
       }

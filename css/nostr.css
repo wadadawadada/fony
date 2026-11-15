@@ -31,10 +31,10 @@ body.dark .nostr-mode-button.active img {
   content: url('/img/radio.svg');
 }
 
+/* phones: Nostr is not part of the mobile app */
 @media (max-width: 768px) {
-  .top-bar-actions .nostr-mode-button img {
-    width: 19px;
-    height: 19px;
+  .nostr-mode-button {
+    display: none !important;
   }
 }
 
