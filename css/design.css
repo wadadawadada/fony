@@ -1794,3 +1794,22 @@ body.glass .center-circle.has-cover::after {
   background-clip: padding-box;
 }
 .custom-genre-select .genre-select-dropdown::-webkit-scrollbar-thumb:hover { background: rgba(0, 242, 184, 0.7); background-clip: padding-box; }
+
+/* desktop: the "open console" button is a circle in every theme (chat.js sets its radius and padding inline) */
+@media (min-width: 769px) {
+  #chatToggleBtn {
+    width: 44px;
+    height: 44px;
+    padding: 0 !important;
+    border-radius: 999px !important;
+    line-height: 44px;   /* chat.js toggles display inline, so centre the text without flex */
+    text-align: center;
+  }
+}
+
+@media (min-width: 769px) {
+  #chatToggleBtn .tooltip-text {
+    line-height: 1.3;
+    text-align: left;
+  }
+}

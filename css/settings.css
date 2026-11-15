@@ -127,3 +127,8 @@
 @keyframes settingsPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) { .settings-btn-icon.is-busy svg { animation: none; } }
+
+/* phones: Nostr is not part of the mobile app */
+@media (max-width: 768px) {
+  .settings-nostr-only { display: none !important; }
+}

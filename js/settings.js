@@ -113,18 +113,18 @@ function openSettingsModal() {
             '<button id="restoreAppBtn" class="settings-btn settings-btn-small settings-btn-icon" title="Load backup file" aria-label="Load backup file" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>Restore</span></button>' +
           '</span>' +
         '</div>' +
-        '<div class="settings-row settings-row-static settings-row-tight">' +
+        '<div class="settings-row settings-row-static settings-row-tight settings-nostr-only">' +
           '<span class="settings-name">Nostr backup</span>' +
           '<span class="settings-btns">' +
             '<button id="nostrBackupBtn" class="settings-btn settings-btn-small settings-btn-icon" title="Back up to Nostr" aria-label="Back up to Nostr" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A5.5 5.5 0 0 1 17 8.6 4.7 4.7 0 0 1 17.5 18z"/><path d="M12 15v-5M9.5 12.2L12 9.7l2.5 2.5"/></svg><span>Backup</span></button>' +
             '<button id="nostrRestoreBtn" class="settings-btn settings-btn-small settings-btn-icon" title="Restore from Nostr" aria-label="Restore from Nostr" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A5.5 5.5 0 0 1 17 8.6 4.7 4.7 0 0 1 17.5 18z"/><path d="M12 10v5M9.5 12.8l2.5 2.5 2.5-2.5"/></svg><span>Restore</span></button>' +
           '</span>' +
         '</div>' +
-        '<label class="settings-row settings-row-tight">' +
+        '<label class="settings-row settings-row-tight settings-nostr-only">' +
           '<span class="settings-name">Auto backup to Nostr <span class="settings-hint">daily, only if changed</span></span>' +
           '<input type="checkbox" class="settings-switch" id="nostrAutoBackup">' +
         '</label>' +
-        '<div class="settings-hint settings-status" id="nostrBackupStatus"></div>' +
+        '<div class="settings-hint settings-status settings-nostr-only" id="nostrBackupStatus"></div>' +
         '<div class="settings-row settings-row-static settings-row-tight">' +
           '<span class="settings-name">Reset app</span>' +
           '<span class="settings-btns">' +
