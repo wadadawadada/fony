@@ -301,6 +301,10 @@
     justify-content: flex-start;
   }
 
+  .right-group .track-name {
+    flex: 1;
+  }
+
   .right-group,
   .right-group .track-name,
   .right-group .scrolling-text,
@@ -313,14 +317,14 @@
   }
 
   .scrolling-text.marquee {
-    animation: scrollText 10s linear infinite;
+    animation: scrollText var(--mq-dur, 10s) linear infinite;
     display: inline-block;
     white-space: nowrap;
   }
 
   @keyframes scrollText {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
+    0% { transform: translateX(var(--mq-from, 100%)); }
+    100% { transform: translateX(var(--mq-to, -100%)); }
   }
 
   .track-name {
@@ -336,6 +340,11 @@
   }
 
   .center-group {
+    display: none;
+  }
+
+  .station-facts,
+  .station-facts.on {
     display: none;
   }
 

@@ -784,6 +784,11 @@ export function updatePlaylistHearts() {
 
       const iconContainer = createGenreAvatar(genre, 26, 16);
       li.insertBefore(iconContainer, li.firstChild);
+
+      // the avatar was just rebuilt as a genre icon: put the station logo back
+      const cachedLogo = getFavLogo(station.url);
+      if (cachedLogo) applyAvatarLogo(iconContainer, cachedLogo);
+      else ensureFavLogo(station, logo => { if (iconContainer.isConnected) applyAvatarLogo(iconContainer, logo); });
     } else {
       // In normal mode, update heart icon
       const favSlot = li.querySelector(".fav-slot");

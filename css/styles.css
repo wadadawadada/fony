@@ -788,6 +788,76 @@ body.dark .logo {
   transition: color 0.3s ease;
 }
 
+/* Rotating station facts (format / tags / country / language) in the free space of the screen */
+.left-group.has-facts .station-label {
+  flex: 0 1 auto;
+  max-width: 50%;
+}
+
+.station-facts {
+  display: none;
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0 46px 0 10px;
+  padding-left: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+
+.station-facts.on {
+  display: block;
+}
+
+.station-facts .fact {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  will-change: transform, opacity;
+}
+
+.station-facts .fact-label {
+  margin-right: 6px;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #00F2B8;
+}
+
+.station-facts .fact-country {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.station-facts .fact-flag {
+  display: block;
+  flex: none;
+  height: 14px;
+  width: 21px;
+  object-fit: contain;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.station-facts .fact-value {
+  display: inline-block;
+  vertical-align: bottom;
+  color: #fff;
+}
+
+.station-label a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.station-label a:hover {
+  text-decoration: underline;
+  color: #fff;
+}
+
 .track-name a:hover {
   text-decoration: underline;
   color: #00F2B8;
@@ -817,6 +887,36 @@ body.dark .logo {
   margin: 0 10px;
   font-family: 'Technology';
   letter-spacing: 2px;
+}
+
+/* fixed-width box: the centred block must not move while the digits or the preloader change */
+.play-timer {
+  display: inline-block;
+  min-width: 7ch;
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.play-timer .tc {
+  display: inline-block;
+  text-align: center;
+  letter-spacing: 0;
+}
+
+/* buffering: colons filled from the centre outwards by a gradient that follows --tp */
+.play-timer.buffering {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.25) calc(50% - var(--tp, 0%) / 2 - 3%),
+    #fff calc(50% - var(--tp, 0%) / 2),
+    #fff calc(50% + var(--tp, 0%) / 2),
+    rgba(255, 255, 255, 0.25) calc(50% + var(--tp, 0%) / 2 + 3%)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 .diods-row {

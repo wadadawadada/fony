@@ -4,6 +4,7 @@
 
 const KEY = "favLogos"
 const RETRY_MS = 7 * 24 * 60 * 60 * 1000
+const NEGATIVE_VALID_AFTER = Date.parse("2026-11-15T14:00:00Z")
 const LOGO_PX = 64
 const MAX_CONCURRENT = 4
 const BACKEND = window.FONY_BACKEND_URL || "https://fonyserver.up.railway.app"
@@ -107,7 +108,8 @@ export function ensureFavLogo(station, onReady) {
   if (!station || !station.url || !station.title || !stationLogosEnabled()) return
   const cached = read()[station.url]
   if (cached && cached.d) { onReady(cached.d); return }
-  if (cached && Date.now() - (cached.t || 0) < RETRY_MS) return
+  // "no logo" answers older than the backend fix (placeholder favicons) are asked again
+  if (cached && (cached.t || 0) > NEGATIVE_VALID_AFTER && Date.now() - (cached.t || 0) < RETRY_MS) return
   if (pending.has(station.url)) { pending.get(station.url).push(onReady); return }
   pending.set(station.url, [onReady])
   queue.push(station)

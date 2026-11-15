@@ -89,17 +89,24 @@
   display: inline-block;
 }
 
-.station-label .scrolling-text.marquee {
-  animation: marquee 20s linear infinite;
-}
-
+.station-label .scrolling-text.marquee,
 .track-name .scrolling-text.marquee {
-  animation: marquee 20s linear infinite;
+  animation: marquee var(--mq-dur, 20s) linear infinite;
 }
 
 @keyframes marquee {
-  0% { transform: translateX(50%); }
-  100% { transform: translateX(-100%); }
+  0% { transform: translateX(var(--mq-from, 50%)); }
+  100% { transform: translateX(var(--mq-to, -100%)); }
+}
+
+.right-group .track-name {
+  min-width: 0;
+}
+
+/* the icon sits to the right of the track text, so it stays in the same place for any title */
+.right-group .track-icon {
+  order: 2;
+  flex: none;
 }
 .station-label {
   font-size: 1.2rem;

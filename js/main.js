@@ -599,10 +599,292 @@ function applyActiveStationArt() {
   })
 }
 
+// Station name -> clickable link to the station's website. The site comes from the station
+// data (Nostr/favorites) or, when "Load station icons" is on, from the backend lookup.
+const stationHomepageCache = new Map()
+
+function safeHomepage(u) {
+  try {
+    const p = new URL(u)
+    return p.protocol === "https:" || p.protocol === "http:" ? p.href : ""
+  } catch { return "" }
+}
+
+let stationLinkUrl = ""
+let stationLinkTitle = ""
+
+// Several code paths rewrite the label text (e.g. when buffering ends), which would drop the
+// link: put it back whenever the same station's plain text reappears.
+if (stationLabel) {
+  const t = stationLabel.querySelector(".scrolling-text")
+  if (t) {
+    new MutationObserver(() => {
+      if (stationLinkUrl && !t.querySelector("a") && t.textContent === stationLinkTitle) linkStationLabel(stationLinkUrl)
+    }).observe(t, { childList: true, characterData: true })
+  }
+}
+
+function linkStationLabel(url) {
+  const t = stationLabel && stationLabel.querySelector(".scrolling-text")
+  if (!t || t.querySelector("a")) return
+  stationLinkUrl = url
+  stationLinkTitle = t.textContent
+  const text = t.textContent
+  const a = document.createElement("a")
+  a.href = url
+  a.target = "_blank"
+  a.rel = "noopener noreferrer"
+  a.title = url
+  a.textContent = text
+  t.textContent = ""
+  t.appendChild(a)
+  checkMarquee(stationLabel)
+}
+
+function setStationLink(st, token) {
+  stationLinkUrl = ""
+  if (!st || st.local || !st.title) return
+  const direct = safeHomepage(st.homepage)
+  if (direct) { linkStationLabel(direct); return }
+  if (!stationLogosEnabled()) return
+  const key = st.title.toLowerCase()
+  if (stationHomepageCache.has(key)) {
+    const c = stationHomepageCache.get(key)
+    if (c) linkStationLabel(c)
+    return
+  }
+  fetch(`${FONY_BACKEND_URL}/api/station-homepage?name=${encodeURIComponent(st.title)}&url=${encodeURIComponent(st.originalUrl || st.url || "")}`)
+    .then(r => (r.ok ? r.json() : null))
+    .then(d => {
+      const url = safeHomepage(d && d.homepage)
+      stationHomepageCache.set(key, url)
+      if (url && token === stationArtToken) linkStationLabel(url)
+    })
+    .catch(() => {})
+}
+
+// Station facts (format / tags / country) rotate in the free space of the screen.
+const stationFactsEl = document.getElementById("stationFacts")
+const stationFactsCache = new Map()
+let factsTimer = null
+let factsIndex = 0
+let factsList = []
+const FACT_LABELS = [["format", "Format"], ["tags", "Tags"], ["country", "Country"]]
+
+function renderFact(entry) {
+  const wrap = document.createElement("span")
+  wrap.className = "fact"
+  if (entry[2]) {
+    // country as a flag image (emoji flags do not render on Windows); the name stays as a tooltip
+    const img = document.createElement("img")
+    img.className = "fact-flag"
+    const cc = entry[2].toLowerCase()
+    img.src = `https://flagcdn.com/h40/${cc}.png`
+    img.srcset = `https://flagcdn.com/h20/${cc}.png 1x, https://flagcdn.com/h40/${cc}.png 2x`
+    img.alt = entry[1]
+    img.title = entry[1]
+    img.onerror = () => { img.remove() }
+    const name = document.createElement("span")
+    name.className = "fact-value"
+    name.textContent = entry[1]
+    wrap.classList.add("fact-country")
+    wrap.append(img, name)
+    return wrap
+  }
+  const v = document.createElement("span")
+  v.className = "fact-value"
+  v.textContent = entry[1]
+  v.title = entry[0]
+  wrap.append(v)
+  return wrap
+}
+
+function stopStationFacts() {
+  if (factsTimer) { clearInterval(factsTimer); factsTimer = null }
+  factsList = []
+  if (stationFactsEl) { stationFactsEl.classList.remove("on"); stationFactsEl.textContent = ""; setFactsLayout(false) }
+}
+
+// The left part of the screen is split in two: the station name gets (at most) half and runs as a
+// marquee inside it when longer, the facts get the other half.
+function setFactsLayout(on, recheck = true) {
+  const lg = stationFactsEl && stationFactsEl.parentElement
+  if (!lg) return
+  const active = !!on && getComputedStyle(stationFactsEl).display !== "none"
+  lg.classList.toggle("has-facts", active)
+  if (recheck) checkMarquee(stationLabel)
+}
+
+// Does this fact fit in its half without being cut?
+function factFits(node) {
+  const el = stationFactsEl
+  const old = el.firstElementChild
+  const oldDisplay = old ? old.style.display : ""
+  if (old) old.style.display = "none"
+  const wasOn = el.classList.contains("on")
+  el.classList.add("on")
+  setFactsLayout(true, false)
+  el.appendChild(node)
+  const ok = node.scrollWidth <= node.clientWidth + 1
+  node.remove()
+  if (old) old.style.display = oldDisplay
+  if (!wasOn) { el.classList.remove("on"); setFactsLayout(false, false) }
+  return ok
+}
+
+// Shows the first fact (starting at startIdx) that fits; if none does, the first one is shown with an ellipsis.
+function stepFacts(startIdx, animate, onlyIfNeeded) {
+  if (!stationFactsEl || !factsList.length) return
+  const n = factsList.length
+  const current = stationFactsEl.firstElementChild
+  if (onlyIfNeeded && current && stationFactsEl.classList.contains("on")) {
+    if (factFits(renderFact(factsList[factsIndex % n]))) return
+  }
+  let node = null
+  let idx = -1
+  for (let k = 0; k < n; k++) {
+    const cand = renderFact(factsList[(startIdx + k) % n])
+    if (factFits(cand)) { node = cand; idx = (startIdx + k) % n; break }
+  }
+  if (!node) { idx = startIdx % n; node = renderFact(factsList[idx]) }
+  factsIndex = idx
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  const old = stationFactsEl.firstElementChild
+  const enter = () => {
+    stationFactsEl.textContent = ""
+    stationFactsEl.appendChild(node)
+    stationFactsEl.classList.add("on")
+    setFactsLayout(true)
+    if (!reduce && node.animate) {
+      // left-to-right wipe: the text is uncovered as if a scan line passes over it
+      node.animate(
+        [
+          { clipPath: "inset(0 100% 0 0)", opacity: 0.2, transform: "translateX(-10px)" },
+          { clipPath: "inset(0 0 0 0)", opacity: 1, transform: "translateX(0)" }
+        ],
+        { duration: 750, easing: "cubic-bezier(.65,0,.25,1)" }
+      )
+    }
+  }
+  if (animate && old && !reduce && old.animate) {
+    // the old text is wiped away in the same direction
+    old.animate(
+      [{ clipPath: "inset(0 0 0 0)", opacity: 1 }, { clipPath: "inset(0 0 0 100%)", opacity: 0.2 }],
+      { duration: 450, easing: "cubic-bezier(.65,0,.35,1)", fill: "forwards" }
+    ).onfinish = enter
+  } else {
+    enter()
+  }
+}
+
+function startStationFacts(facts) {
+  stopStationFacts()
+  if (!stationFactsEl || !facts) return
+  factsList = FACT_LABELS.filter(([k]) => facts[k]).map(([k, label]) => [label, facts[k], k === "country" ? facts.countrycode : ""])
+  if (!factsList.length) return
+  factsIndex = 0
+  stepFacts(0, false)
+  factsTimer = setInterval(() => {
+    if (document.hidden) return
+    stepFacts(factsIndex + 1, true)
+  }, 9000)
+}
+
+let factsResizeTimer = null
+window.addEventListener("resize", () => {
+  clearTimeout(factsResizeTimer)
+  factsResizeTimer = setTimeout(() => {
+    if (factsList.length) stepFacts(factsIndex, false, true)
+    checkMarquee(stationLabel)
+  }, 200)
+})
+
+// Country name -> ISO code from Radio Browser's own country list (via the backend pass-through),
+// fetched once and kept for a month, so a flag can be shown without extra backend fields.
+let countryCodesPromise = null
+function loadCountryCodes() {
+  if (countryCodesPromise) return countryCodesPromise
+  countryCodesPromise = (async () => {
+    try {
+      const c = JSON.parse(localStorage.getItem("countryCodes") || "null")
+      if (c && c.map && Date.now() - c.t < 30 * 24 * 3600 * 1000) return c.map
+    } catch {}
+    const map = {}
+    for (let offset = 0; offset < 400; offset += 100) {
+      const r = await fetch(`${FONY_BACKEND_URL}/api/rb/countries?order=name&limit=100&offset=${offset}`)
+      if (!r.ok) throw new Error("countries")
+      const list = await r.json()
+      for (const x of list) if (x && x.name && /^[A-Za-z]{2}$/.test(x.iso_3166_1 || "")) map[x.name.trim().toLowerCase()] = x.iso_3166_1.toUpperCase()
+      if (list.length < 100) break
+    }
+    try { localStorage.setItem("countryCodes", JSON.stringify({ t: Date.now(), map })) } catch {}
+    return map
+  })().catch(() => { countryCodesPromise = null; return {} })
+  return countryCodesPromise
+}
+
+function hostOf(u) {
+  try { return new URL(u).hostname.replace(/^www\./, "").toLowerCase() } catch { return "" }
+}
+
+// Radio Browser often lists a station under a different name or stream URL, so the backend lookup
+// misses it. Find it by website instead: search by name, keep the entry whose homepage host matches.
+async function fillFromRadioBrowser(st, d) {
+  if (d.country) return d
+  try {
+    let home = safeHomepage(st.homepage)
+    if (!home) {
+      const r = await fetch(`${FONY_BACKEND_URL}/api/station-homepage?name=${encodeURIComponent(st.title)}&url=${encodeURIComponent(st.originalUrl || st.url || "")}`)
+      home = r.ok ? safeHomepage((await r.json()).homepage) : ""
+    }
+    const host = hostOf(home)
+    if (!host) return d
+    const clean = st.title.replace(/[^\p{L}\p{N} ]+/gu, " ").replace(/\s+/g, " ").trim()
+    const first = clean.split(" ").find(w => w.length >= 4) || ""
+    for (const q of [clean, first]) {
+      if (!q) continue
+      const r = await fetch(`${FONY_BACKEND_URL}/api/rb/stations/search?name=${encodeURIComponent(q)}&limit=50&order=votes&reverse=true`)
+      if (!r.ok) continue
+      const hit = (await r.json()).find(x => x && hostOf(x.homepage) === host)
+      if (!hit) continue
+      const out = { ...d }
+      if (!out.country && hit.country) out.country = hit.country
+      if (!out.countrycode && /^[A-Za-z]{2}$/.test(hit.countrycode || "")) out.countrycode = hit.countrycode.toUpperCase()
+      return out
+    }
+  } catch {}
+  return d
+}
+
+async function withCountryCode(d) {
+  if (!d || !d.country || d.countrycode) return d
+  const map = await loadCountryCodes()
+  return { ...d, countrycode: map[d.country.trim().toLowerCase()] || "" }
+}
+
+function setStationFacts(st, token) {
+  stopStationFacts()
+  if (!st || st.local || !st.title || !stationLogosEnabled()) return
+  const key = st.title.toLowerCase()
+  if (stationFactsCache.has(key)) { startStationFacts(stationFactsCache.get(key)); return }
+  fetch(`${FONY_BACKEND_URL}/api/station-info?name=${encodeURIComponent(st.title)}&url=${encodeURIComponent(st.originalUrl || st.url || "")}`)
+    .then(r => (r.ok ? r.json() : null))
+    .then(d => (d ? fillFromRadioBrowser(st, d) : null))
+    .then(d => (d ? withCountryCode(d) : null))
+    .then(d => {
+      if (!d) return
+      stationFactsCache.set(key, d)
+      if (token === stationArtToken) startStationFacts(d)
+    })
+    .catch(() => {})
+}
+
 function setStationArt(st) {
   const token = ++stationArtToken
   activeStationArt = { logo: null }
   applyActiveStationArt()
+  setStationLink(st, token)
+  setStationFacts(st, token)
   if (!st || st.local || st.nostr || !st.title || !stationLogosEnabled()) return
   const key = st.title.toLowerCase()
   const done = src => {
@@ -637,15 +919,59 @@ document.addEventListener("stationLogosChanged", () => {
   }).observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] })
 })()
 
+// Runs the text as a marquee when it is wider than the box that actually clips it. For the track
+// the clipping box is .track-name (the group also holds the icon), for the station it is the label.
+// The class is only touched when the state changes (re-adding it would restart the animation).
+// The run is timed to the real widths (--mq-from / --mq-to / --mq-dur): it starts at the right edge of
+// the box and leaves at the left edge, at a steady speed.
+const MARQUEE_PX_PER_SEC = 45
 function checkMarquee(container) {
   if (!container) return
   const st = container.querySelector(".scrolling-text")
   if (!st) return
-  st.classList.remove("marquee")
-  const cW = container.clientWidth
+  const box = container.querySelector(".track-name") || container
+  const cW = box.clientWidth
   const sW = st.scrollWidth
-  if (sW > cW) st.classList.add("marquee")
+  if (!cW) return
+  const over = sW > cW + 1
+  if (over) {
+    const dur = Math.max(8, (cW + sW) / MARQUEE_PX_PER_SEC)
+    const from = cW + "px"
+    const to = -sW + "px"
+    if (st.style.getPropertyValue("--mq-from") !== from) st.style.setProperty("--mq-from", from)
+    if (st.style.getPropertyValue("--mq-to") !== to) st.style.setProperty("--mq-to", to)
+    const d = dur.toFixed(1) + "s"
+    if (st.style.getPropertyValue("--mq-dur") !== d) st.style.setProperty("--mq-dur", d)
+  }
+  if (over !== st.classList.contains("marquee")) st.classList.toggle("marquee", over)
 }
+
+// Re-check whenever the text, the fonts or the available width change.
+;(function watchMarquees() {
+  let queued = false
+  const run = () => {
+    queued = false
+    checkMarquee(stationLabel)
+    checkMarquee(document.querySelector(".right-group"))
+  }
+  const schedule = () => {
+    if (queued) return
+    queued = true
+    requestAnimationFrame(run)
+  }
+  const rg = document.querySelector(".right-group")
+  if (typeof ResizeObserver !== "undefined") {
+    const ro = new ResizeObserver(schedule)
+    if (stationLabel) ro.observe(stationLabel)
+    if (rg) ro.observe(rg)
+    const lg = document.querySelector(".left-group")
+    if (lg) ro.observe(lg)
+  }
+  if (rg) new MutationObserver(schedule).observe(rg, { childList: true, subtree: true, characterData: true })
+  if (stationLabel) new MutationObserver(schedule).observe(stationLabel, { childList: true, subtree: true, characterData: true })
+  window.addEventListener("resize", schedule)
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule)
+})()
 
 function handleDeleteCustomPlaylist(id) {
   const deleted = allPlaylists.find(p => p.id === id);
@@ -689,6 +1015,7 @@ function setNowPlayingBarClickable(on) {
 document.querySelector(".left-group")?.addEventListener("click", () => {
   if (currentMode === "local") revealLocalPlaying()
 })
+
 
 function switchToRadio(restorePlayback = true) {
   // whatever is playing keeps playing; only a switch from radio to radio (a reset) stops it
@@ -1110,35 +1437,104 @@ function markStationAsHidden(i) {
 
 window.markStationAsHidden = markStationAsHidden
 
+// The "preloader" in the timer: ten colons that fill in smoothly while the stream buffers.
+// It is driven by requestAnimationFrame and a CSS gradient (no text changes, so the timer box never
+// changes width and the centred block does not wobble); the list row's bar updates every 100 ms.
+let bufferingRun = 0
+// The timer font has digits of different widths, which made the centred block jump every second.
+// Each character of the time is put in a cell as wide as the widest digit (colon: its own width).
+;(function fixedWidthTimer() {
+  const el = document.getElementById("playTimer")
+  if (!el) return
+  let digitEm = 0
+  let colonEm = 0
+  const sync = () => {
+    if (!digitEm) return
+    const txt = el.textContent
+    if (!/^\d+(:\d{2})+$/.test(txt)) return
+    const cells = el.children
+    if (cells.length === txt.length && cells[0] && cells[0].classList.contains("tc")) {
+      for (let i = 0; i < txt.length; i++) if (cells[i].textContent !== txt[i]) cells[i].textContent = txt[i]
+      return
+    }
+    const frag = document.createDocumentFragment()
+    for (const ch of txt) {
+      const c = document.createElement("span")
+      c.className = "tc"
+      c.style.width = (ch === ":" ? colonEm : digitEm) + "em"
+      c.textContent = ch
+      frag.appendChild(c)
+    }
+    el.textContent = ""
+    el.appendChild(frag)
+  }
+  const measure = () => {
+    const cs = getComputedStyle(el)
+    const ctx = document.createElement("canvas").getContext("2d")
+    ctx.font = `100px ${cs.fontFamily}`
+    let d = 0
+    for (let i = 0; i <= 9; i++) d = Math.max(d, ctx.measureText(String(i)).width)
+    const spacing = (parseFloat(cs.letterSpacing) || 0) / (parseFloat(cs.fontSize) || 32)
+    digitEm = d / 100 + spacing
+    colonEm = ctx.measureText(":").width / 100 + spacing
+    sync()
+  }
+  new MutationObserver(sync).observe(el, { childList: true, characterData: true, subtree: true })
+  const fam = getComputedStyle(el).fontFamily
+  if (document.fonts && document.fonts.load) document.fonts.load(`100px ${fam}`).then(measure, measure)
+  else measure()
+})()
+
+// anything else writing a time into the timer ends the preloader look
+;(function guardTimer() {
+  const el = document.getElementById("playTimer")
+  if (!el) return
+  new MutationObserver(() => {
+    if (el.classList.contains("buffering") && !/^:+$/.test(el.textContent)) {
+      el.classList.remove("buffering")
+      el.style.removeProperty("--tp")
+    }
+  }).observe(el, { childList: true, characterData: true, subtree: true })
+})()
 function checkRealBuffering(durationMs, li, cb) {
   if (!li) {
     cb()
     return
   }
+  const run = ++bufferingRun
   li.classList.remove("buffer-complete")
   const p = document.getElementById("playTimer")
-  let progress = 0
-  const step = 100
-  const maxSteps = durationMs / step
-  let currentStep = 0
+  const maxSteps = durationMs / 100
   li.style.setProperty("--buffer-percent", "0%")
-  if (p) p.textContent = ""
-  const intervalId = setInterval(() => {
-    currentStep++
-    progress = Math.min((currentStep / maxSteps) * 100, 100)
-    if (p) p.textContent = ":".repeat(Math.floor(progress / 10))
-    li.style.setProperty("--buffer-percent", progress + "%")
-    if (currentStep >= maxSteps) {
-      clearInterval(intervalId)
-      if (p) p.textContent = formatTime(0)
-      li.classList.add("buffer-complete")
-      setTimeout(() => {
-        li.style.setProperty("--buffer-percent", "0%")
-        li.classList.remove("buffer-complete")
-        cb()
-      }, 300)
+  if (p) {
+    p.textContent = ":::::::::::"
+    p.style.setProperty("--tp", "0%")
+    p.classList.add("buffering")
+  }
+  const start = performance.now()
+  let lastStep = -1
+  const frame = now => {
+    const prog = Math.min(1, (now - start) / durationMs)
+    if (run === bufferingRun && p) p.style.setProperty("--tp", (prog * 100).toFixed(1) + "%")
+    const step = Math.floor(prog * maxSteps)
+    if (step !== lastStep) {
+      lastStep = step
+      li.style.setProperty("--buffer-percent", (step / maxSteps) * 100 + "%")
     }
-  }, step)
+    if (prog < 1) { requestAnimationFrame(frame); return }
+    if (run === bufferingRun && p) {
+      p.classList.remove("buffering")
+      p.style.removeProperty("--tp")
+      p.textContent = formatTime(0)
+    }
+    li.classList.add("buffer-complete")
+    setTimeout(() => {
+      li.style.setProperty("--buffer-percent", "0%")
+      li.classList.remove("buffer-complete")
+      cb()
+    }, 300)
+  }
+  requestAnimationFrame(frame)
 }
 
 function updateStreamMetadata(u) {
@@ -1155,18 +1551,23 @@ function updateStreamMetadata(u) {
       const changed = lastValidNowPlaying !== r.trim()
       lastValidNowPlaying = r.trim()
       const su = "https://www.google.com/search?q=" + encodeURIComponent(lastValidNowPlaying)
-      // stream metadata is untrusted text (a shared station can send anything): never inject it as HTML
-      rg.innerHTML = `
-        <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
-        <span id="currentTrack" class="track-name">
-          <a target="_blank" rel="noopener noreferrer" class="scrolling-text"></a>
-        </span>
-      `
-      const trackLink = rg.querySelector("a.scrolling-text")
-      trackLink.href = su
-      trackLink.textContent = lastValidNowPlaying
+      // The metadata is polled all the time: when the track is the same, leave the DOM alone,
+      // otherwise the running marquee would restart from the beginning on every poll.
+      const existing = rg.querySelector("a.scrolling-text")
+      if (changed || !existing || existing.textContent !== lastValidNowPlaying) {
+        // stream metadata is untrusted text (a shared station can send anything): never inject it as HTML
+        rg.innerHTML = `
+          <img src="/img/track_icon.svg" alt="Track Icon" class="track-icon">
+          <span id="currentTrack" class="track-name">
+            <a target="_blank" rel="noopener noreferrer" class="scrolling-text"></a>
+          </span>
+        `
+        const trackLink = rg.querySelector("a.scrolling-text")
+        trackLink.href = su
+        trackLink.textContent = lastValidNowPlaying
+        checkMarquee(rg)
+      }
       if (changed) announceNowPlaying(lastValidNowPlaying)
-      setTimeout(() => checkMarquee(rg), 20000)
     } else {
       if (!lastValidNowPlaying) {
         rg.innerHTML = `
@@ -1175,7 +1576,7 @@ function updateStreamMetadata(u) {
             <span class="scrolling-text">No Data</span>
           </span>
         `
-        setTimeout(() => checkMarquee(rg), 3000)
+        checkMarquee(rg)
       }
     }
   })
