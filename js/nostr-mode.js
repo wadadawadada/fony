@@ -386,7 +386,6 @@ function stationRow(item, { count = 0, who = "", siblings = null } = {}) {
     h("span", { class: "nostr-row-main" },
       h("span", { class: "nostr-row-title", text: item.name }),
       meta ? h("span", { class: "nostr-row-sub", text: meta }) : null),
-    iconBtn("play", "Tune In", () => playInPlace(item, who, siblings || [item]), "primary"),
     iconBtn("plus", "Add to Favorites", () => {
       try {
         const r = Fav.importStations([item])
@@ -467,7 +466,7 @@ async function renderFollowing(body, my) {
           h("span", { class: "nostr-row-main" },
             h("span", { class: "nostr-row-title", text: name }),
             h("span", { class: "nostr-row-sub", text: it.station ? (it.track ? `${it.track} — ${it.station.name}` : it.station.name) : it.content })),
-          it.station ? iconBtn("play", "Tune In", () => playInPlace(it.station, name, items.filter(x => x.station).map(x => x.station)), "primary") : null)
+          null)
         return it.station ? playOnClick(card, () => playInPlace(it.station, name, items.filter(x => x.station).map(x => x.station))) : card
       }))
     } catch (err) {
@@ -828,9 +827,9 @@ async function renderUser(body, my) {
     put(head,
       personHead(p, pubkey, [`${npub.slice(0, 14)}…${npub.slice(-4)}`, copyNpubButton(npub), primalLink(npub)], followBtn),
       p && p.about ? h("p", { class: "nostr-hint", text: p.about }) : null,
-      live ? h("div", { class: "nostr-row static" },
-        h("span", { class: "nostr-row-main" }, h("span", { class: "nostr-row-sub", text: "Listening now" }), h("span", { class: "nostr-row-title", text: live.name })),
-        iconBtn("play", "Tune In", () => tuneStation(live, displayName(p, pubkey)), "primary")) : null)
+      live ? playOnClick(h("div", { class: "nostr-row static" },
+        h("span", { class: "nostr-row-main" }, h("span", { class: "nostr-row-sub", text: "Listening now" }), h("span", { class: "nostr-row-title", text: live.name }))),
+        () => tuneStation(live, displayName(p, pubkey))) : null)
     box.append(sectionTitle("", "Shared favorites"))
     if (!lists.length) box.append(emptyBox("No shared favorites from this account."))
     else box.append(...lists.map(l => listRow(l, p)))
