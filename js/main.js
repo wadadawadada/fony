@@ -849,7 +849,7 @@ document.addEventListener("fony:nostr-open", (e) => {
   if (d.input || d.tab || d.login) switchToNostr(d)
 })
 window.addEventListener("hashchange", () => {
-  if (!isNostrHash()) return
+  if (!isNostrHash() || window.innerWidth <= 768) return
   const input = location.hash.replace(/^#\/?nostr\//, "")
   if (currentMode === "nostr") handleNostrHash(location.hash)
   else switchToNostr({ input })
@@ -2070,7 +2070,7 @@ fetch("../json/playlists.json")
     const savedMode = getSavedMode();
 
     // a Nostr link (#nostr/…) opens straight in Nostr mode
-    if (isNostrHash()) {
+    if (isNostrHash() && window.innerWidth > 768) {
       switchToNostr({ input: location.hash.replace(/^#\/?nostr\//, "") });
       markFirstLaunchDone();
       return;

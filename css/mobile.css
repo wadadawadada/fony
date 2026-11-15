@@ -440,3 +440,63 @@
     height: 19px;
   }
 }
+
+/* Phones: the search sits in the genre row as a magnifier (like on desktop); a tap opens the field,
+ * it closes again when it loses focus while empty. This block overrides the "own row" rule above. */
+@media (max-width: 768px) {
+  .genre-box {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;   /* the older 90% cap left the magnifier short of the right edge */
+  }
+
+  .genre-box .search-wrapper {
+    position: relative;
+    flex: 0 0 auto;
+    width: 32px;
+    min-width: 32px;
+    height: 36px;
+    margin-left: auto;
+    transition: width 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .genre-box > *:not(.search-wrapper):not(.custom-genre-select) { flex-shrink: 0; }
+  .genre-box .custom-genre-select { flex: 0 1 auto; min-width: 70px; }
+  .genre-box .genre-select-header { min-width: 0; }
+  .genre-box .genre-select-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .genre-box .search-wrapper:focus-within,
+  .genre-box .search-wrapper:has(.genre-search:not(:placeholder-shown)) {
+    width: 190px;
+  }
+
+  /* room for the open field: the "Genre:" word steps aside */
+  .genre-box:has(.search-wrapper:focus-within) label[for="customGenreSelect"],
+  .genre-box:has(.genre-search:not(:placeholder-shown)) label[for="customGenreSelect"] {
+    display: none;
+  }
+
+  .genre-box .search-wrapper .genre-search[placeholder^="Search"] {
+    height: 36px;
+    font-size: 16px;   /* below 16px iOS zooms the page when the field gets focus */
+  }
+
+  .genre-box .search-wrapper:not(:focus-within) .genre-search[placeholder^="Search"]:placeholder-shown {
+    padding-left: 0;
+    padding-right: 0;
+    background-image: var(--lupe) !important;
+    background-color: transparent !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-size: 20px 20px !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    cursor: pointer;
+    caret-color: transparent;
+  }
+
+  .genre-box .search-wrapper:not(:focus-within) #clearSearch { display: none !important; }
+}
