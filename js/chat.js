@@ -186,6 +186,12 @@ function scrollToCenter(element) {
 // addMessage (which routes to the open console) and the links are handled by a
 // single delegated click listener.
 
+// first sentence of a text (no regex lookbehind: Safari before 16.4 cannot even parse it)
+function firstSentence(t) {
+  const m = String(t).match(/^[\s\S]*?[.!?](?=\s)/);
+  return m ? m[0] : String(t);
+}
+
 const isPhone = () => window.matchMedia("(max-width: 768px)").matches;
 let lastTipKey = null;
 
@@ -380,7 +386,7 @@ async function buildGenreFact() {
     const artists = [...new Set([...doc.querySelectorAll('[itemprop="byArtist"]')].map(n => n.textContent.trim()).filter(Boolean))];
     const picks = artists.sort(() => Math.random() - 0.5).slice(0, 3);
     genreFactsShown.add(slug);
-    const line = desc.split(/(?<=[.!?])\s/)[0];
+    const line = firstSentence(desc);
     return (
       `<div class="tip-card"><span class="tip-card-icon">🎧</span><strong>${escapeHtml(title)}</strong> — ${escapeHtml(line)}` +
       (picks.length ? `<div class="tip-card-links">Try: ${picks.map(escapeHtml).join(", ")}</div>` : "") +
@@ -416,7 +422,7 @@ async function maybeShowTip(force = false, mode = null) {
   try { localStorage.setItem(TIPS_SEEN_KEY, JSON.stringify([...seen, pick.key])); } catch {}
   lastTipKey = pick.key;
   // short and flat: first sentence only, plain links underneath
-  const short = pick.tip.text.split(/(?<=[.!?])\s/)[0];
+  const short = firstSentence(pick.tip.text);
   addMessage(
     "bot",
     `<div class="tip-card"><span class="tip-card-icon">💡</span><strong>${escapeHtml(pick.tip.title)}</strong> — ${richTipText(short)}` +

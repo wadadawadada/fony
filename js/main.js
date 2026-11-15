@@ -63,14 +63,13 @@ audioPlayer.volume = defaultVolume.value
 audioPlayer.crossOrigin = 'anonymous'
 
 // Browsers may refuse to start audio on a page that has not been clicked yet (after a reload). Playback
-// is then started by the first click / key press, and a small hint says so.
+// is then started by the first click / key press (no on-screen hint).
 ;(() => {
   const rawPlay = audioPlayer.play.bind(audioPlayer)
   let armed = false
   const arm = () => {
     if (armed) return
     armed = true
-    toastLocal("Click anywhere to start the music")
     const go = () => {
       document.removeEventListener("pointerdown", go, true)
       document.removeEventListener("keydown", go, true)
@@ -134,7 +133,8 @@ if (nostrBtn) {
 }
 
 speechSynthesis.cancel()
-initNostr()
+// a failure in the social layer must never take the player down with it (some phone browsers lack APIs)
+try { initNostr() } catch (e) { console.warn("Nostr init failed:", e) }
 
 
 function playRandomFromUrlGenre() {
