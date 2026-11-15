@@ -75,7 +75,18 @@ export function initEqualizer() {
     window.equalizerAnalyser = audioContext.createAnalyser();
     window.equalizerAnalyser.fftSize = 128;
     window.audioSource.connect(window.equalizerAnalyser);
-    window.equalizerAnalyser.connect(audioContext.destination);
+    if (window.lowFilter) {
+      // The sound already goes through the tone controls (low / mid / high and the Analog FX chain in
+      // eq-adjust.js). This analyser only listens: it must not also play the untouched signal to the
+      // speakers, otherwise the dry copy is added on top of the EQ'd one (+6 dB louder, controls about a
+      // third weaker, and the Analog FX never fully replaces the clean sound). A silent tap keeps it running.
+      const tap = audioContext.createGain();
+      tap.gain.value = 0;
+      window.equalizerAnalyser.connect(tap);
+      tap.connect(audioContext.destination);
+    } else {
+      window.equalizerAnalyser.connect(audioContext.destination);
+    }
   }
   const analyser = window.equalizerAnalyser;
 

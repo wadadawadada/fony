@@ -11,6 +11,7 @@ import { isHexKey } from "./format.js"
 
 const SESSION_KEY = "fonyNostrSession"
 const SIGN_TIMEOUT = 60000
+const FIRST_TRY_MS = 40000
 const CONNECT_TIMEOUT = 90000
 
 let session = null   // { method: "nip07" | "nip46", pubkey, clientKey?, bunker? }
@@ -30,19 +31,65 @@ function makeSigner(BunkerSigner, clientKey, bp) {
   return new BunkerSigner(clientKey, bp, { onauth: onSignerAuth })
 }
 
+// Closes a signer AND its relay sockets (BunkerSigner.close() only drops the subscription, so every
+// rebuild used to leave its sockets open; relays limit connections per client and eventually refuse).
+async function destroySigner(signer) {
+  if (!signer) return
+  try { await signer.close() } catch (_) {}
+  try { if (signer.pool && signer.bp) signer.pool.close(signer.bp.relays) } catch (_) {}
+}
+
+// A fresh connection is only trusted once the signer has answered a ping: the answer to a request is an
+// ephemeral event, so a request sent before the subscription is really open would be lost (a fixed sleep
+// was only a guess). A signer that replies with an error (e.g. "ping" unsupported) is alive too.
+async function waitSignerReady(signer) {
+  for (let i = 0; i < 3; i++) {
+    try {
+      await withTimeout(signer.ping(), 5000, "ping timeout")
+      return true
+    } catch (err) {
+      if (!(err && err.timedOut)) return true
+    }
+  }
+  return false
+}
+
 // Relay sockets behind a remote-signer session go stale after idle time or sleep, and
-// then requests just hang. Rebuild the connection if it has not been used for a while.
-async function liveSigner() {
+// then requests just hang. Rebuild the connection if it has not been used for a while
+// (or when `force` is set after a request got no answer).
+async function liveSigner(force = false) {
   if (!session || session.method !== "nip46") throw new Error("The remote signer is not connected")
-  if (bunkerSigner && Date.now() - bunkerUsedAt < SIGNER_FRESH_MS) { bunkerUsedAt = Date.now(); return bunkerSigner }
+  if (!force && bunkerSigner && Date.now() - bunkerUsedAt < SIGNER_FRESH_MS) { bunkerUsedAt = Date.now(); return bunkerSigner }
   const { BunkerSigner } = await loadNip46()
   const old = bunkerSigner
   bunkerSigner = makeSigner(BunkerSigner, hexToBytes(session.clientKey), { pubkey: session.bunker.pubkey, relays: session.bunker.relays, secret: null })
   bunkerUsedAt = Date.now()
-  if (old) { try { await old.close() } catch (_) {} }
-  // give the new subscription a moment to open before the first request
-  await new Promise(r => setTimeout(r, 900))
-  return bunkerSigner
+  await destroySigner(old)
+  const fresh = bunkerSigner
+  await waitSignerReady(fresh)
+  bunkerUsedAt = Date.now()
+  return fresh
+}
+
+// Runs one signer request. No answer in time usually means the connection went stale: it is rebuilt and
+// the request is sent once more, so the user does not have to log out and in again. An answer that says
+// "no" (the user denied it, an error) is passed on as it is.
+async function viaSigner(call, message) {
+  let signer = await liveSigner()
+  try {
+    return await withTimeout(call(signer), FIRST_TRY_MS, message)
+  } catch (err) {
+    if (!(err && err.timedOut)) { bunkerUsedAt = Date.now(); throw err }
+  }
+  signer = await liveSigner(true)
+  try {
+    const out = await withTimeout(call(signer), SIGN_TIMEOUT, message)
+    bunkerUsedAt = Date.now()
+    return out
+  } catch (err) {
+    bunkerUsedAt = 0   // the next request starts from a clean connection
+    throw err
+  }
 }
 const listeners = new Set()
 
@@ -70,7 +117,7 @@ export function hasNip07() {
 
 function withTimeout(promise, ms, message) {
   let timer
-  const t = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), ms) })
+  const t = new Promise((_, reject) => { timer = setTimeout(() => { const e = new Error(message); e.timedOut = true; reject(e) }, ms) })
   return Promise.race([promise, t]).finally(() => clearTimeout(timer))
 }
 
@@ -124,7 +171,7 @@ export async function loginNip46(input) {
     emit()
     return getSession()
   } catch (err) {
-    try { await signer.close() } catch (_) {}
+    await destroySigner(signer)
     throw err
   }
 }
@@ -157,7 +204,7 @@ export async function logout() {
   bunkerSigner = null
   session = null
   persist()
-  if (signer) { try { await signer.close() } catch (_) {} }
+  if (signer) await destroySigner(signer)
   emit()
 }
 
@@ -171,9 +218,8 @@ export async function signEvent(template) {
     if (!(await waitForNip07())) throw new Error("The Nostr extension is not available")
     signed = await withTimeout(window.nostr.signEvent({ ...template }), SIGN_TIMEOUT, "Signing timed out. Approve the request in your extension.")
   } else {
-    const signer = await liveSigner()
-    signed = await withTimeout(signer.signEvent({ ...template }), SIGN_TIMEOUT,
-      "The signer did not answer. Open your signer app and approve the request, or log out and sign in again in Profile.")
+    signed = await viaSigner(signer => signer.signEvent({ ...template }),
+      "The signer did not answer. Open your signer app and approve the request, then try again.")
   }
   if (!signed || !verifyEvent(signed)) throw new Error("The signer returned an invalid event")
   if (signed.pubkey !== session.pubkey) throw new Error("The signer used a different account than the one connected")
@@ -272,8 +318,7 @@ export async function encryptToSelf(text) {
     }
     throw new Error("Your extension cannot encrypt (needs NIP-44 or NIP-04)")
   }
-  const signer = await liveSigner()
-  return { scheme: "nip44", data: await withTimeout(signer.nip44Encrypt(session.pubkey, text), SIGN_TIMEOUT, "The signer did not answer. Approve the request in your signer app.") }
+  return { scheme: "nip44", data: await viaSigner(signer => signer.nip44Encrypt(session.pubkey, text), "The signer did not answer. Approve the request in your signer app.") }
 }
 
 export async function decryptFromSelf(scheme, data) {
@@ -284,7 +329,5 @@ export async function decryptFromSelf(scheme, data) {
     if (!api || !api.decrypt) throw new Error("Your extension cannot decrypt this backup")
     return withTimeout(api.decrypt(session.pubkey, data), SIGN_TIMEOUT, "The extension did not answer")
   }
-  const signer = await liveSigner()
-  const fn = scheme === "nip04" ? signer.nip04Decrypt : signer.nip44Decrypt
-  return withTimeout(fn.call(signer, session.pubkey, data), SIGN_TIMEOUT, "The signer did not answer. Approve the request in your signer app.")
+  return viaSigner(signer => (scheme === "nip04" ? signer.nip04Decrypt : signer.nip44Decrypt).call(signer, session.pubkey, data), "The signer did not answer. Approve the request in your signer app.")
 }

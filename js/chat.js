@@ -168,17 +168,27 @@ function addMessage(role, htmlContent, isFonyTip = false) {
   return msgDiv;
 }
 
+// Where a new message goes in the console: a reply starts at the top of the window, so it is read from
+// its first line (scrolling up through long answers was a chore); your own message just has to be visible.
+function placeMessage(container, element) {
+  if (!container || !element) return;
+  const cr = container.getBoundingClientRect();
+  const er = element.getBoundingClientRect();
+  if (element.classList.contains("bot-message")) {
+    container.scrollTop += er.top - cr.top - 8;
+  } else {
+    const over = er.bottom - cr.bottom;
+    if (over > 0) container.scrollTop += over + 8;
+  }
+}
+
 function scrollToCenter(element) {
-  const containerRect = chatMessagesElem.getBoundingClientRect();
-  const elemRect = element.getBoundingClientRect();
-  const scrollTopCurrent = chatMessagesElem.scrollTop;
-  const topDiff = elemRect.top - containerRect.top;
-  const contentElem = element.querySelector(".message-content") || element.querySelector(".image-container");
-  if (!contentElem) return;
-  const contentRect = contentElem.getBoundingClientRect();
-  let desiredOffset = topDiff + (contentRect.top + contentRect.height / 2) - (containerRect.top + containerRect.height / 2);
-  if (desiredOffset < topDiff) desiredOffset = topDiff;
-  chatMessagesElem.scrollTop = scrollTopCurrent + desiredOffset;
+  // the welcome screen starts at the top (it is read from its first line), not scrolled to its end
+  if (element.dataset && element.dataset.welcome) {
+    chatMessagesElem.scrollTop = 0;
+    return;
+  }
+  placeMessage(chatMessagesElem, element);
 }
 
 // ---- FONY tips ------------------------------------------------------------
@@ -1099,6 +1109,7 @@ function sendWelcomeMessage() {
       </div>
     `;
     const welcomeMessage = addMessage("bot", welcomeText);
+    if (welcomeMessage) welcomeMessage.dataset.welcome = "1";
     const allLink = welcomeMessage.querySelector("[data-chat-updates]");
     if (allLink) {
       allLink.addEventListener("click", event => {
@@ -1255,7 +1266,7 @@ export function initChat() {
       mobileChatMessagesElem.appendChild(msgDiv);
       setTimeout(() => {
         msgDiv.classList.add("show");
-        mobileChatMessagesElem.scrollTop = mobileChatMessagesElem.scrollHeight;
+        mobileChatMessagesElem.scrollTop = 0;
       }, 10);
       conversationHistory.push({ role: "assistant", content: welcomeText });
     }
@@ -1344,7 +1355,7 @@ export function initChat() {
       mobileChatMessagesElem.appendChild(msgDiv);
       setTimeout(() => {
         msgDiv.classList.add("show");
-        mobileChatMessagesElem.scrollTop = mobileChatMessagesElem.scrollHeight;
+        placeMessage(mobileChatMessagesElem, msgDiv);
       }, 10);
     }
 

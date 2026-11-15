@@ -1248,32 +1248,26 @@ body.glass .center-circle.has-cover::after {
 .chat-messages .tips-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px 18px;
   margin-top: 12px;
 }
 
+/* plain accent links: no frame, no background */
 .chat-messages a.tips-chip {
   display: inline-block;
-  padding: 4px 12px;
-  border: 1px solid rgba(0, 242, 184, 0.5);
-  border-radius: var(--radius-pill);
-  background: rgba(0, 242, 184, 0.08);
+  padding: 0;
   color: var(--accent);
   font-size: var(--text-sm);
   text-decoration: none;
-  transition: background-color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
 }
 
 .chat-messages a.tips-chip:hover {
-  background: rgba(0, 242, 184, 0.22);
-  border-color: var(--accent);
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .chat-messages .tips-item {
   margin-top: 12px;
-  padding-left: 10px;
-  border-left: 2px solid rgba(0, 242, 184, 0.4);
   line-height: 1.5;
 }
 
