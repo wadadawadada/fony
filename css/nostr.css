@@ -19,6 +19,18 @@
   height: 20px;
 }
 
+/* a bit larger than its neighbours in the header menu */
+body .top-bar-actions .nostr-mode-button {
+  width: 24px;
+  height: 24px;
+  margin-right: -3px;
+}
+
+body .top-bar-actions .nostr-mode-button:not(.active) img {
+  width: 23px;
+  height: 23px;
+}
+
 /* In Nostr mode the icon turns into a "back to radio" icon, like the Local button */
 .nostr-mode-button.active img {
   content: url('/img/radio_dark.svg');

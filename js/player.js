@@ -29,10 +29,18 @@ export function fadeAudioIn(audioPlayer, defaultVolume, duration) {
   setTimeout(fade, step);
 }
 
+// header buttons that are re-rendered on mode switches: tooltip via event delegation, header-menu look
+const DELEGATED_TIPS = new Set(["addPlaylistBtn", "favoritesFilterBtn", "radioModeBtn"]);
+const DELEGATED_SEL = [...DELEGATED_TIPS].map(id => "#" + id).join(",");
+// set by a click on any of them: a click often swaps the button for another mode's, so stay quiet until the pointer leaves them
+let tipsSuppressed = false;
+let tipsRect = null;
+
 function addTooltip(buttonId, tooltipText, position) {
   // `button` is re-resolved on hover: some buttons are re-rendered when the mode switches
   let button = document.getElementById(buttonId);
-  if (!button) return;
+  const delegated = DELEGATED_TIPS.has(buttonId);
+  if (!button && !delegated) return;
   // One tooltip element per button, created lazily and reused. Button
   // animations (flip, kick, heart pop) can fire mouseleave/mouseenter in quick
   // succession; creating a new element on every enter used to orphan the old
@@ -54,7 +62,7 @@ function addTooltip(buttonId, tooltipText, position) {
     tooltip.style.whiteSpace = "nowrap";
     tooltip.style.opacity = "0";
     tooltip.style.transition = "opacity 0.3s ease, transform 0.3s ease";
-    if (buttonId === "addPlaylistBtn") {
+    if (delegated) {
       // same look as the header menu tooltips: light text on a soft plate
       const s = tooltip.style;
       s.setProperty("color", "#fff", "important");
@@ -128,18 +136,28 @@ function addTooltip(buttonId, tooltipText, position) {
     hideTimer = setTimeout(removeTooltip, 350);
   }
 
-  if (buttonId === "addPlaylistBtn") {
+  if (delegated) {
+    const sel = "#" + buttonId;
     document.addEventListener("mouseover", e => {
-      const b = e.target.closest && e.target.closest("#addPlaylistBtn");
-      if (!b || (tooltip && b === button)) return;
+      // the pointer has really left the clicked spot (layout shifts after a mode switch fire mouseovers too)
+      if (tipsSuppressed && tipsRect && !(e.clientX >= tipsRect.left && e.clientX <= tipsRect.right && e.clientY >= tipsRect.top && e.clientY <= tipsRect.bottom)) tipsSuppressed = false;
+      const b = e.target.closest && e.target.closest(sel);
+      if (!b || tipsSuppressed || (tooltip && b === button)) return;
       b.removeAttribute("title");
       button = b;
       showTooltip();
     });
     document.addEventListener("mouseout", e => {
-      if (e.target.closest && e.target.closest("#addPlaylistBtn") && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest("#addPlaylistBtn"))) hideTooltip();
+      if (e.target.closest && e.target.closest(sel) && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(sel))) hideTooltip();
     });
-    document.addEventListener("click", e => { if (e.target.closest && e.target.closest("#addPlaylistBtn")) removeTooltip(); });
+    document.addEventListener("click", e => {
+      const b = e.target.closest && e.target.closest(sel);
+      if (!b) return;
+      const r = b.getBoundingClientRect();
+      tipsRect = { left: r.left - 6, right: r.right + 6, top: r.top - 6, bottom: r.bottom + 6 };
+      tipsSuppressed = true;
+      removeTooltip();
+    }, true);
   } else {
     button.addEventListener("mouseenter", () => showTooltip());
     button.addEventListener("mouseleave", hideTooltip);
@@ -163,11 +181,10 @@ document.addEventListener("DOMContentLoaded", () => {
     addTooltip("randomBtn", () => (window.currentMode === "local" ? "Random Track" : "Random Station"), "left");
     addTooltip("shuffleBtn", "Shuffle", "left");
     addTooltip("favBtn", "+ Favorites", "right");
-    const addBtn = document.getElementById("addPlaylistBtn");
-    if (addBtn) {
-      addBtn.removeAttribute("title"); // the custom tooltip replaces the native one
-      addTooltip("addPlaylistBtn", "Add custom playlist", "bottom");
-    }
+    addTooltip("addPlaylistBtn", "Add custom playlist", "bottom");
+    // while Favorites is open this same button shows the radio icon and leads back to the radio
+    addTooltip("favoritesFilterBtn", () => (document.getElementById("favoritesFilterBtn")?.classList.contains("active") ? "Radio" : "Favorites"), "bottom");
+    addTooltip("radioModeBtn", "Radio", "bottom");
   }
 
   const screen = document.querySelector('.screen');

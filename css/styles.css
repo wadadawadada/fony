@@ -1280,6 +1280,16 @@ body.dark .logo {
   font-family: 'Ruda', sans-serif;
 }
 
+#addPlaylistBtn {
+  width: 36px;
+  height: 36px;
+}
+
+#addPlaylistBtn svg {
+  width: 24px;
+  height: 24px;
+}
+
 #addPlaylistBtn:hover {
   background: rgba(255, 255, 255, 0.15);
 }

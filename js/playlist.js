@@ -407,42 +407,21 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
         copiedSpan.style.color = "#fff";
         copiedSpan.style.marginLeft = "15px";
         copiedSpan.style.display = "none";
-        let shareTooltip = null;
+        // "share station" hint: inline text in the very spot where "copied!" appears afterwards
+        const hintSpan = document.createElement("span");
+        hintSpan.textContent = "share station";
+        hintSpan.style.fontSize = "12px";
+        hintSpan.style.color = "#fff";
+        hintSpan.style.marginLeft = "15px";
+        hintSpan.style.whiteSpace = "nowrap";
+        hintSpan.style.display = "none";
         function showShareTooltip() {
-          if (shareTooltip) return;
           if (window.innerWidth <= 768) return;
-          shareTooltip = document.createElement("div");
-          shareTooltip.textContent = "share station";
-          shareTooltip.style.position = "absolute";
-          shareTooltip.style.fontFamily = "'Ruda', sans-serif";
-          shareTooltip.style.fontSize = "12px";
-          shareTooltip.style.color = "#fff";
-          shareTooltip.style.pointerEvents = "none";
-          shareTooltip.style.whiteSpace = "nowrap";
-          shareTooltip.style.opacity = "0";
-          shareTooltip.style.transition = "opacity 0.2s ease, transform 0.2s ease";
-          document.body.appendChild(shareTooltip);
-          const rect = shareIcon.getBoundingClientRect();
-          const tipRect = shareTooltip.getBoundingClientRect();
-          const top = rect.top + (rect.height - tipRect.height) / 2;
-          const left = rect.right + 15;
-          shareTooltip.style.top = top + "px";
-          shareTooltip.style.left = left + "px";
-          requestAnimationFrame(() => {
-            shareTooltip.style.opacity = "1";
-            shareTooltip.style.transform = "translateY(0)";
-          });
+          if (copiedSpan.style.display !== "none") return;
+          hintSpan.style.display = "inline";
         }
         function hideShareTooltip() {
-          if (shareTooltip) {
-            shareTooltip.style.opacity = "0";
-            setTimeout(() => {
-              if (shareTooltip && shareTooltip.parentNode) {
-                shareTooltip.parentNode.removeChild(shareTooltip);
-              }
-              shareTooltip = null;
-            }, 200);
-          }
+          hintSpan.style.display = "none";
         }
         shareIcon.addEventListener("mouseenter", showShareTooltip);
         shareIcon.addEventListener("mouseleave", hideShareTooltip);
@@ -467,6 +446,7 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
           }).catch(() => {});
         });
         shareWrapper.appendChild(shareIcon);
+        shareWrapper.appendChild(hintSpan);
         shareWrapper.appendChild(copiedSpan);
         li.appendChild(shareWrapper);
       }
