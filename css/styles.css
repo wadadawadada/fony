@@ -1331,9 +1331,13 @@ body.dark .logo {
 /* One corner radius for every control in the form */
 #addPlaylistModal .add-playlist-field input,
 #addPlaylistModal .merged-playlist-catalog-toggle,
-#addPlaylistModal .merged-playlist-catalog-dropdown,
 #addPlaylistModal .add-playlist-save {
-  border-radius: 14px;
+  border-radius: 999px;
+}
+
+/* the open list can't be a pill (it holds rows), so it gets a big soft radius */
+#addPlaylistModal .merged-playlist-catalog-dropdown {
+  border-radius: 22px;
 }
 
 #addPlaylistModal .add-playlist-close {
@@ -1742,8 +1746,54 @@ body:not(.dark) .merged-playlist-catalog-toggle:disabled .merged-playlist-catalo
 }
 
 .merged-playlist-catalog-option:hover, .merged-playlist-catalog-option:focus { background: rgba(0, 242, 184, .16); outline: none; }
-.merged-playlist-catalog-dropdown::-webkit-scrollbar { width: 8px; }
-.merged-playlist-catalog-dropdown::-webkit-scrollbar-thumb { background: #00F2B8; border-radius: 8px; }
+.merged-playlist-catalog-dropdown::-webkit-scrollbar { width: 10px; }
+/* the track is inset so the thumb never runs into the rounded corners */
+.merged-playlist-catalog-dropdown::-webkit-scrollbar-track { background: transparent; margin: 16px 0; }
+.merged-playlist-catalog-dropdown::-webkit-scrollbar-thumb { background: #00F2B8; border-radius: 8px; border: 3px solid transparent; background-clip: padding-box; }
+#addPlaylistModal .merged-playlist-folder-catalog { flex: 0 0 116px; }
+#addPlaylistModal .merged-playlist-catalog-row { gap: 10px; align-items: stretch; }
+#addPlaylistModal .merged-playlist-catalog-toggle {
+  min-height: 44px; padding: 0 18px; font-size: 0.82rem; font-weight: 600; line-height: 1;
+}
+#addPlaylistModal .merged-playlist-catalog-toggle > span:first-child {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* a drawn chevron instead of a text glyph: always centred, same weight everywhere */
+#addPlaylistModal .merged-playlist-catalog-chevron {
+  flex: 0 0 auto; width: 7px; height: 7px; font-size: 0; line-height: 0; color: currentColor;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg); transition: transform .18s ease;
+}
+#addPlaylistModal .merged-playlist-catalog.open .merged-playlist-catalog-chevron {
+  transform: translateY(2px) rotate(-135deg);
+}
+#addPlaylistModal .merged-playlist-catalog-toggle:not(:disabled) .merged-playlist-catalog-chevron { color: #00F2B8; }
+body:not(.dark) #addPlaylistModal .merged-playlist-catalog-toggle .merged-playlist-catalog-chevron { color: #171C2B; }
+/* ---- layout grid: one rhythm (20px between groups, 8px label→control), one control height (46px) ---- */
+#addPlaylistModal .add-playlist-content { padding: 26px 28px 24px; }
+#addPlaylistModal .add-playlist-content h3 {
+  margin: 0 36px 22px 0;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+body:not(.dark) #addPlaylistModal .add-playlist-content h3 { border-bottom-color: rgba(0, 0, 0, 0.1); }
+#addPlaylistModal .add-playlist-field { gap: 8px; margin-bottom: 20px; }
+#addPlaylistModal .add-playlist-field label {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; opacity: 0.55; padding-left: 4px;
+}
+#addPlaylistModal .add-playlist-field input {
+  box-sizing: border-box; height: 46px; padding: 0 18px; font-size: 0.85rem;
+}
+#addPlaylistModal .merged-playlist-catalog-toggle { min-height: 46px; height: 46px; }
+/* empty helper lines must not add height */
+#addPlaylistModal .add-playlist-catalog-status:empty,
+#addPlaylistModal .add-playlist-error:empty { display: none; }
+#addPlaylistModal .add-playlist-catalog-status { min-height: 0; padding-left: 4px; margin-top: -2px; }
+#addPlaylistModal .add-playlist-error { min-height: 0; margin: -6px 0 14px; padding-left: 4px; }
+#addPlaylistModal .add-playlist-save { height: 48px; padding: 0; font-size: 0.92rem; }
+#addPlaylistModal .add-playlist-hint { margin-top: 16px; font-size: 0.74rem; }
+#addPlaylistModal .merged-playlist-catalog-dropdown { padding: 6px 0; }
+#addPlaylistModal .merged-playlist-catalog-option { padding: 8px 16px; }
 body:not(.dark) .merged-playlist-catalog-toggle, body:not(.dark) .merged-playlist-catalog-dropdown { color: #171C2B; background: #f2f2f2; border-color: #171C2B; }
 body:not(.dark) .merged-playlist-catalog-option { color: #171C2B; }
 body:not(.dark) .merged-playlist-catalog-chevron { color: #171C2B; }
@@ -2006,7 +2056,7 @@ body:not(.dark) .add-playlist-hint { color: #171C2B; }
   object-fit: cover;
   position: relative;
   z-index: 1;
-  border-radius: 3px;
+  border-radius: 50%;
 }
 
 #playlist li span {

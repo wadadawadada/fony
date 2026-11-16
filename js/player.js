@@ -30,7 +30,8 @@ export function fadeAudioIn(audioPlayer, defaultVolume, duration) {
 }
 
 function addTooltip(buttonId, tooltipText, position) {
-  const button = document.getElementById(buttonId);
+  // `button` is re-resolved on hover: some buttons are re-rendered when the mode switches
+  let button = document.getElementById(buttonId);
   if (!button) return;
   // One tooltip element per button, created lazily and reused. Button
   // animations (flip, kick, heart pop) can fire mouseleave/mouseenter in quick
@@ -53,6 +54,22 @@ function addTooltip(buttonId, tooltipText, position) {
     tooltip.style.whiteSpace = "nowrap";
     tooltip.style.opacity = "0";
     tooltip.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+    if (buttonId === "addPlaylistBtn") {
+      // same look as the header menu tooltips: light text on a soft plate
+      const s = tooltip.style;
+      s.setProperty("color", "#fff", "important");
+      s.setProperty("font-size", "0.74rem", "important");
+      s.setProperty("font-weight", "600");
+      s.setProperty("background", "rgba(18, 22, 36, 0.78)", "important");
+      s.setProperty("border", "none", "important");
+      s.setProperty("box-shadow", "none", "important");
+      s.setProperty("border-radius", "10px", "important");
+      s.padding = "4px 10px";
+      s.lineHeight = "1.2";
+      s.transform = "scale(0.4)";
+      s.transformOrigin = "50% 0";
+      s.transition = "opacity 0.16s ease, transform 0.26s cubic-bezier(0.2, 0.9, 0.3, 1.25)";
+    }
     document.body.appendChild(tooltip);
     return tooltip;
   }
@@ -65,6 +82,9 @@ function addTooltip(buttonId, tooltipText, position) {
     let top, left;
     if (position === "top") {
       top = rect.top - tooltipRect.height - 14;
+      left = rect.left + (rect.width - tooltipRect.width) / 2 + offsetX;
+    } else if (position === "bottom") {
+      top = rect.bottom + 10;
       left = rect.left + (rect.width - tooltipRect.width) / 2 + offsetX;
     } else if (position === "left") {
       top = rect.top + (rect.height - tooltipRect.height) / 2;
@@ -108,8 +128,22 @@ function addTooltip(buttonId, tooltipText, position) {
     hideTimer = setTimeout(removeTooltip, 350);
   }
 
-  button.addEventListener("mouseenter", () => showTooltip());
-  button.addEventListener("mouseleave", hideTooltip);
+  if (buttonId === "addPlaylistBtn") {
+    document.addEventListener("mouseover", e => {
+      const b = e.target.closest && e.target.closest("#addPlaylistBtn");
+      if (!b || (tooltip && b === button)) return;
+      b.removeAttribute("title");
+      button = b;
+      showTooltip();
+    });
+    document.addEventListener("mouseout", e => {
+      if (e.target.closest && e.target.closest("#addPlaylistBtn") && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest("#addPlaylistBtn"))) hideTooltip();
+    });
+    document.addEventListener("click", e => { if (e.target.closest && e.target.closest("#addPlaylistBtn")) removeTooltip(); });
+  } else {
+    button.addEventListener("mouseenter", () => showTooltip());
+    button.addEventListener("mouseleave", hideTooltip);
+  }
   // never leave one behind if the pointer is gone or the tab loses focus
   window.addEventListener("blur", removeTooltip);
   document.addEventListener("visibilitychange", () => { if (document.hidden) removeTooltip(); });
@@ -129,6 +163,11 @@ document.addEventListener("DOMContentLoaded", () => {
     addTooltip("randomBtn", () => (window.currentMode === "local" ? "Random Track" : "Random Station"), "left");
     addTooltip("shuffleBtn", "Shuffle", "left");
     addTooltip("favBtn", "+ Favorites", "right");
+    const addBtn = document.getElementById("addPlaylistBtn");
+    if (addBtn) {
+      addBtn.removeAttribute("title"); // the custom tooltip replaces the native one
+      addTooltip("addPlaylistBtn", "Add custom playlist", "bottom");
+    }
   }
 
   const screen = document.querySelector('.screen');

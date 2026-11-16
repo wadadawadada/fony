@@ -1666,7 +1666,7 @@ body.glass .center-circle.has-cover::after {
   width: 30px !important;
   height: 30px !important;
   margin-left: -4px !important;
-  border-radius: 6px !important;
+  border-radius: 50% !important;
   background: var(--station-logo) center / cover no-repeat !important;
   -webkit-mask: none !important;
   mask: none !important;

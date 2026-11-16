@@ -126,7 +126,7 @@ export function applyAvatarLogo(iconContainer, dataUrl) {
   avatar.style.backgroundSize = "cover"
   avatar.style.backgroundPosition = "center"
   avatar.style.backgroundRepeat = "no-repeat"
-  avatar.style.borderRadius = "6px"
+  avatar.style.borderRadius = "50%"
   const icon = avatar.querySelector(".genre-icon")
   if (icon) icon.style.display = "none"
   addContrastBacking(avatar, dataUrl)
