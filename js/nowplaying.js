@@ -34,6 +34,18 @@ function setAlbumCoverBackground(imageUrl) {
   if (imageUrl) {
     bg.style.backgroundImage = `url('${imageUrl}')`;
     void bg.offsetWidth; 
+    // a cover that fails to load would leave an empty circle: drop it so the placeholder disc returns
+    if (!/(cd|vinyl|reel)\.svg/.test(imageUrl)) {
+      const probe = new Image();
+      probe.onerror = () => {
+        if ((bg.style.backgroundImage || '').includes(imageUrl)) {
+          bg.style.backgroundImage = '';
+          bg.classList.remove('visible');
+          if (window.currentAlbumArtUrl === imageUrl) window.currentAlbumArtUrl = null;
+        }
+      };
+      probe.src = imageUrl;
+    }
   } else {
     bg.style.backgroundImage = '';
     bg.classList.remove('visible');
@@ -77,8 +89,11 @@ function extractCoverFromDiscogsHtml(html) {
   return null;
 }
 
+let discogsSeq = 0;
+
 export async function showDiscogsInfo() {
   const nowPlaying = getNowPlayingText();
+  const seq = ++discogsSeq;
 
   const discogsContainer = document.getElementById("discogsInfoContainer");
   if (!discogsContainer) return;
@@ -108,6 +123,7 @@ export async function showDiscogsInfo() {
 
   try {
     const infoHtml = await fetchDiscogsTrackInfo(artist, track);
+    if (seq !== discogsSeq) return; // a newer track took over while this lookup was in flight
 
     let coverUrl = extractCoverFromDiscogsHtml(infoHtml);
     // Local files: fall back to the cover embedded in the file's tags.
@@ -363,6 +379,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const showPlaceholder=()=>setCover(selUrl());
 
   function applyState(){
+    try{updateAlbumCoverAnimation()}catch(e){}
     if(isChatOpen())return;
     const el=document.querySelector("#currentTrack .scrolling-text");if(!el)return;
     const txt=el.textContent||"";const box=document.getElementById("discogsInfoContainer");
