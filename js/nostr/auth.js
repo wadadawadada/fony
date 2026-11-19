@@ -12,6 +12,7 @@ import { isHexKey } from "./format.js"
 const SESSION_KEY = "fonyNostrSession"
 const SIGN_TIMEOUT = 60000
 const FIRST_TRY_MS = 40000
+const STALE_TRY_MS = 8000   // after idle time the old connection gets a short chance before it is rebuilt
 const CONNECT_TIMEOUT = 90000
 
 let session = null   // { method: "nip07" | "nip46", pubkey, clientKey?, bunker? }
@@ -59,29 +60,31 @@ async function waitSignerReady(signer) {
 // (or when `force` is set after a request got no answer).
 async function liveSigner(force = false) {
   if (!session || session.method !== "nip46") throw new Error("The remote signer is not connected")
-  if (!force && bunkerSigner && Date.now() - bunkerUsedAt < SIGNER_FRESH_MS) { bunkerUsedAt = Date.now(); return bunkerSigner }
+  // an existing connection is tried first even after a long idle time; it is only rebuilt when it fails to answer
+  if (!force && bunkerSigner) return bunkerSigner
   const { BunkerSigner } = await loadNip46()
   const old = bunkerSigner
   bunkerSigner = makeSigner(BunkerSigner, hexToBytes(session.clientKey), { pubkey: session.bunker.pubkey, relays: session.bunker.relays, secret: null })
   bunkerUsedAt = Date.now()
-  await destroySigner(old)
-  const fresh = bunkerSigner
-  await waitSignerReady(fresh)
-  bunkerUsedAt = Date.now()
-  return fresh
+  if (old) destroySigner(old).catch(() => {})   // in the background: closing a dead socket must not delay the request
+  return bunkerSigner
 }
 
 // Runs one signer request. No answer in time usually means the connection went stale: it is rebuilt and
 // the request is sent once more, so the user does not have to log out and in again. An answer that says
 // "no" (the user denied it, an error) is passed on as it is.
 async function viaSigner(call, message) {
+  const stale = !bunkerSigner || Date.now() - bunkerUsedAt >= SIGNER_FRESH_MS
   let signer = await liveSigner()
   try {
-    return await withTimeout(call(signer), FIRST_TRY_MS, message)
+    const out = await withTimeout(call(signer), stale ? STALE_TRY_MS : FIRST_TRY_MS, message)
+    bunkerUsedAt = Date.now()
+    return out
   } catch (err) {
     if (!(err && err.timedOut)) { bunkerUsedAt = Date.now(); throw err }
   }
   signer = await liveSigner(true)
+  await waitSignerReady(signer)
   try {
     const out = await withTimeout(call(signer), SIGN_TIMEOUT, message)
     bunkerUsedAt = Date.now()
