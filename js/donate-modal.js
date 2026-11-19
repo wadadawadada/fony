@@ -90,7 +90,7 @@ function animateDonateMascot() {
 
   function setMouth(open) {
     const mascot = document.getElementById("donateMascot");
-    if (mascot) mascot.src = open ? openSrc : closedSrc;
+    if (mascot) mascot.classList.toggle("mouth-open", !!open);
   }
 
   function step() {

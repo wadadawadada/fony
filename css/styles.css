@@ -534,7 +534,7 @@ label.settings-row:hover {
   left: -18px;
   top: 50%;
   margin-top: -10px;
-  transform: rotate(-24deg);
+  transform: rotate(24deg);
   transform-origin: right center;
   border-style: solid;
   border-width: 10px 32px 10px 0;
@@ -2317,3 +2317,57 @@ body.dark #manifestoBtn img:hover {
 .settings-row-tight { padding-top: 4px; padding-bottom: 4px; }
 .settings-status { padding: 0 12px 4px; }
 .settings-status:empty { display: none; }
+
+/* running T-rex mascot: the head talks (mouth swaps), the legs run */
+.dino-mascot {
+  width: 256px;
+  height: 223px;
+  animation: none;
+}
+.dino-mascot svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.dino-limb {
+  stroke: #171c2b;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+}
+body.glass .dino-limb { stroke: #242846; }
+.dino-mascot .dino-head-open { display: none; }
+.dino-mascot.mouth-open .dino-head-open { display: inline; }
+.dino-mascot.mouth-open .dino-head-closed { display: none; }
+.dino-bob, .dino-head, .dino-speed path, .dino-dust circle { transform-box: fill-box; }
+.dino-bob { animation: dinoBob 0.18s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+.dino-head { transform-origin: 30% 100%; animation: dinoNod 0.18s ease-in-out infinite alternate; }
+.dino-speed path { animation: dinoSpeed 0.45s linear infinite; }
+.dino-speed path:nth-child(2) { animation-delay: -0.15s; }
+.dino-speed path:nth-child(3) { animation-delay: -0.3s; }
+.dino-dust circle { transform-origin: 50% 50%; animation: dinoDust 0.6s ease-out infinite; opacity: 0; }
+.dino-dust circle:nth-child(2) { animation-delay: -0.2s; }
+.dino-dust circle:nth-child(3) { animation-delay: -0.4s; }
+@keyframes dinoBob {
+  from { transform: translateY(0) rotate(-1.5deg); }
+  to { transform: translateY(-4px) rotate(1.5deg); }
+}
+@keyframes dinoNod { from { transform: rotate(-2deg); } to { transform: rotate(3deg); } }
+@keyframes dinoSpeed {
+  0% { transform: translateX(8px); opacity: 0; }
+  30% { opacity: 0.7; }
+  100% { transform: translateX(-10px); opacity: 0; }
+}
+@keyframes dinoDust {
+  0% { transform: translate(0, 0) scale(0.4); opacity: 0.8; }
+  100% { transform: translate(-16px, -5px) scale(1.5); opacity: 0; }
+}
+.mascot-stage:has(.dino-mascot:not(.donate-mascot)) { min-height: 230px; }
+.mascot-stage:has(.dino-mascot) .mascot-bubble { left: 278px; max-width: calc(100% - 298px); top: 24%; }
+.donate-mascot.dino-mascot { width: 156px; height: 136px; }
+.donate-mascot-stage:has(.dino-mascot) { min-height: 140px; }
+.donate-mascot-stage:has(.dino-mascot) .mascot-bubble { left: 172px; max-width: calc(100% - 182px); top: 28%; }
+@media (max-width: 600px) {
+  .manifesto-mascot-big.dino-mascot:not(.donate-mascot) { width: 167px; height: 145px; }
+  .mascot-stage:has(.dino-mascot:not(.donate-mascot)) { min-height: 150px; }
+  .mascot-stage:has(.dino-mascot:not(.donate-mascot)) .mascot-bubble { left: 178px; max-width: calc(100% - 188px); top: 26%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dino-mascot svg * { animation: none !important; }
+}

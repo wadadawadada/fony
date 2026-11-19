@@ -64,41 +64,41 @@ function openSettingsModal() {
   modalContent.innerHTML =
     '<button class="manifesto-close" aria-label="Close settings">&times;</button>' +
     '<div class="settings-panel">' +
-      '<h1 class="settings-title">Settings</h1>' +
+      '<h1 class="settings-title"><svg class="settings-title-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></h1>' +
 
       '<section class="settings-section">' +
         '<h2 class="settings-heading"><svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>Playback</h2>' +
         '<label class="settings-row">' +
-          '<span class="settings-text"><span class="settings-name">Hide HTTP stations</span>' +
+          '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.500"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/><path d="M12 15v2"/></svg></span><span class="settings-text"><span class="settings-name">Hide HTTP stations</span>' +
           '<span class="settings-hint">Only show secure (HTTPS) streams</span></span>' +
           '<input type="checkbox" class="settings-switch" id="httpStationsCheckbox">' +
         '</label>' +
         '<label class="settings-row">' +
-          '<span class="settings-text"><span class="settings-name">Console tips</span>' +
+          '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.500 10.900c.6.5 1 1.200 1 2.100h5c0-.9.4-1.600 1-2.100A6 6 0 0 0 12 3z"/></svg></span><span class="settings-text"><span class="settings-name">Console tips</span>' +
           '<span class="settings-hint">Show a helpful tip in the console now and then</span></span>' +
           '<input type="checkbox" class="settings-switch" id="consoleTipsCheckbox">' +
         '</label>' +
         '<div class="settings-row">' +
-          '<span class="settings-text"><span class="settings-name">Random taste</span>' +
+          '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.500 8.500h.01M15.500 8.500h.01M12 12h.01M8.500 15.500h.01M15.500 15.500h.01" stroke-width="2.600"/></svg></span><span class="settings-text"><span class="settings-name">Random taste</span>' +
           '<span class="settings-hint">Random leans towards genres you play and favorite</span></span>' +
-          '<button id="resetTasteBtn" class="settings-btn settings-btn-small" type="button">Reset</button>' +
+          '<button id="resetTasteBtn" class="settings-btn settings-btn-small settings-btn-icon" title="Clean taste" aria-label="Clean taste" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5L13.5 10.5"/><path d="M11.5 8.5L3 14l6 6 6.5-7.500z"/><path d="M12.500 9.500L4.500 15.500M14.500 11.500L7.500 18.500"/><path d="M2 18h.01M4.500 21h.01M7.500 22h.01M1.500 21h.01" stroke-width="2.600"/></svg><span>Clean</span></button>' +
         '</div>' +
       '</section>' +
 
       '<section class="settings-section">' +
         '<h2 class="settings-heading"><svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="9" cy="7" r="2.5"/><circle cx="15" cy="17" r="2.5"/></svg>Interface</h2>' +
         '<label class="settings-row">' +
-          '<span class="settings-text"><span class="settings-name">Left-handed layout</span>' +
+          '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M9.500 5v14"/><path d="M18 12h-5M15 9l-3 3 3 3"/></svg></span><span class="settings-text"><span class="settings-name">Left-handed layout</span>' +
           '<span class="settings-hint">Mirror the player on wide screens</span></span>' +
           '<input type="checkbox" class="settings-switch" id="leftHandedCheckbox">' +
         '</label>' +
         '<label class="settings-row">' +
-          '<span class="settings-text"><span class="settings-name">Station icons</span>' +
+          '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3.500"/><circle cx="9" cy="10" r="1.800"/><path d="M21 16l-5-5-8 9"/></svg></span><span class="settings-text"><span class="settings-name">Station icons</span>' +
           '<span class="settings-hint">Load station logos in the list</span></span>' +
           '<input type="checkbox" class="settings-switch" id="stationLogosCheckbox">' +
         '</label>' +
         '<label class="settings-row">' +
-          '<span class="settings-text"><span class="settings-name">Glass ripple</span>' +
+          '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="5.500"/><circle cx="12" cy="12" r="9" opacity=".55"/></svg></span><span class="settings-text"><span class="settings-name">Glass ripple</span>' +
           '<span class="settings-hint">Ripple effect in the glass skin</span></span>' +
           '<input type="checkbox" class="settings-switch" id="glassRippleCheckbox">' +
         '</label>' +
@@ -178,7 +178,8 @@ function openSettingsModal() {
 
   document.getElementById("resetTasteBtn").addEventListener("click", function() {
     resetTaste();
-    this.textContent = "Done ✓";
+    const label = this.querySelector("span");
+    if (label) label.textContent = "Done ✓";
     this.disabled = true;
   });
 
@@ -276,6 +277,13 @@ window.openSettingsModal = openSettingsModal;
 window.addEventListener("resize", updateLeftHandedSetting);
 
 (function animateManifestoMascot() {
+  // SMIL leg/arm animation ignores the CSS media query, so honour reduced motion here
+  try {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      document.querySelectorAll(".dino-mascot svg").forEach(function(v) { if (v.pauseAnimations) v.pauseAnimations(); });
+    }
+  } catch (e) {}
+
   var phrases = [
     "FONY is more than just a music player.",
     "Discover music through people, not algorithms.",
@@ -306,7 +314,7 @@ window.addEventListener("resize", updateLeftHandedSetting);
 
   function setMouth(open) {
     var mascot = document.getElementById("manifestoMascot");
-    if (mascot) mascot.src = open ? openSrc : closedSrc;
+    if (mascot) mascot.classList.toggle("mouth-open", !!open);
   }
 
   function step() {
