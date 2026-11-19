@@ -650,6 +650,11 @@ body:not(.dark) .add-playlist-field input:focus {
   transition: opacity var(--t-med) var(--ease);
 }
 
+/* a loader with no content yet (a plain playlist load) must not show as an empty plate */
+#playlistLoader:empty {
+  display: none !important;
+}
+
 #playlistLoader:not(.hidden) {
   background: var(--row-active);
   border: 1px solid var(--glass-border);

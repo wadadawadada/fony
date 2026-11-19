@@ -1092,7 +1092,8 @@ export function leaveNostrMode() {
   if (pendingConnect) { pendingConnect.cancel(); pendingConnect = null }
   document.body.classList.remove("nostr-mode")
   if (view) { view.remove(); view = null }
-  if (ctx && ctx.listEl) ctx.listEl.classList.remove("hidden")
+  const list = (ctx && ctx.listEl) || document.getElementById("playlist")
+  if (list) list.classList.remove("hidden")
 }
 
 export function isNostrActive() {

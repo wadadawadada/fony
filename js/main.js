@@ -1234,6 +1234,9 @@ function switchToLocal(opts = {}) {
     clearDiscogsInfo()
   }
   playlistElement.innerHTML = ""
+  // a list hidden by Nostr or by a Favorites load that was interrupted must not stay hidden (empty frame)
+  playlistElement.classList.remove("hidden")
+  playlistLoader.classList.add("hidden")
   const lb = document.getElementById("localModeBtn")
   if (lb) { lb.classList.add("active"); lb.title = "Back to radio" }
   setNowPlayingBarClickable(!keep || adopt)
