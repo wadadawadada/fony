@@ -14,7 +14,7 @@
   text-align: left;
   padding-left: 12px;
   gap: 8px;
-  margin: 0 0 8px;
+  margin: 0 0 22px;
   padding-bottom: 0;
   font-size: 1.05rem;
 }
@@ -38,12 +38,13 @@
 .settings-heading svg { width: 13px; height: 13px; }
 
 .settings-row {
-  padding: 8px 12px;
+  padding: 14px 12px;
   gap: 12px;
   border-radius: 14px;
 }
 
-.settings-row-tight { padding-top: 6px; padding-bottom: 6px; }
+.settings-row-tight,
+.settings-panel .settings-row.settings-row-tight { padding-top: 11px; padding-bottom: 11px; }
 .settings-text { gap: 2px; }
 .settings-name { font-size: 0.92rem; }
 .settings-hint { font-size: 0.72rem; line-height: 1.25; }
@@ -56,6 +57,187 @@
 .settings-btn { padding: 6px 14px; font-size: 0.84rem; }
 .settings-row .settings-btn-small, .settings-btn-small { padding: 5px 14px; font-size: 0.82rem; }
 .settings-btns { gap: 8px; }
+
+/* folder tabs: one section on screen at a time.
+ * The active tab and the card share one opaque fill and the tab covers the card's top
+ * border, so they read as a single folder. */
+.settings-panel {
+  --tab-fill: #1f2538;
+  --tab-line: rgba(0, 242, 184, 0.30);
+  --tab-r: 18px;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.settings-tab {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 9px 8px 8px;
+  font: 700 0.8rem 'Ruda', sans-serif;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--tab-line);
+  border-bottom: 0;
+  border-radius: var(--tab-r) var(--tab-r) 0 0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.settings-tab svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.settings-tab:hover { color: #fff; background: rgba(255, 255, 255, 0.09); }
+
+.settings-tab.active {
+  color: #00F2B8;
+  background: var(--tab-fill);
+  margin-bottom: -1px;          /* sits over the card's top border */
+  padding-bottom: 9px;
+}
+
+.settings-panel .settings-section,
+.settings-panel .settings-section:hover {
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+  background: var(--tab-fill);
+  border: 1px solid var(--tab-line);
+  border-radius: var(--tab-r);
+  box-shadow: none;
+}
+
+/* no entrance animation: it replayed on every tab switch */
+.manifesto-content.settings-view .settings-panel .settings-section {
+  animation: none;
+  transition: none;
+}
+
+.settings-tab { transition: none; }
+
+/* the card's top corners sit under the first / last tab (active or not), so they stay square:
+ * a rounded corner there leaves a notch beneath the neighbouring tab */
+.settings-panel .settings-section,
+.settings-panel .settings-section:hover {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.settings-section[hidden] { display: none !important; }
+
+/* desktop: a fixed-size window, so switching tabs never resizes it */
+@media (min-width: 769px) {
+  .manifesto-content.settings-view {
+    box-sizing: border-box;
+    width: min(460px, calc(100vw - 24px));
+    min-height: min(580px, 90vh);
+  }
+}
+
+/* phones: full-screen sheet, tabs stay pinned while the section scrolls */
+@media (max-width: 768px) {
+  .manifesto-content.settings-view {
+    max-width: none;
+    padding: 0.8rem 0.7rem calc(0.9rem + env(safe-area-inset-bottom));
+  }
+
+  .settings-tabs {
+    position: sticky;
+    top: -0.8rem;
+    margin: 0 -0.7rem 0;
+    padding: 0.8rem 0.7rem 0;
+    background: #171C2B;
+    z-index: 6;
+  }
+
+  .settings-tab,
+  .settings-tab.active { padding: 11px 6px 11px; font-size: 0.82rem; }
+  .settings-title { margin-bottom: 18px; }
+  .settings-row { padding: 15px 10px; }
+  .settings-name { font-size: 0.98rem; }
+  .settings-btn.settings-btn-icon { width: 42px; height: 38px; }
+  .settings-save { padding: 14px; font-size: 1rem; }
+}
+
+/* Save settings is always at the bottom of the window, over the scrolling section */
+.manifesto-content.settings-view {
+  display: flex;
+  flex-direction: column;
+}
+
+.manifesto-content.settings-view .settings-panel {
+  /* the base rule centres it with auto margins, which would shrink it to its content */
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.manifesto-content.settings-view .settings-save {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  z-index: 7;
+}
+
+/* the window scrolls inside its rounded frame, not past it */
+.manifesto-content.settings-view {
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 242, 184, 0.55) transparent;
+}
+
+/* segmented pill choice (Smooth transitions) */
+.settings-seg {
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+}
+
+.settings-seg button {
+  padding: 4px 10px;
+  font: 600 0.78rem 'Ruda', sans-serif;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  opacity: 0.7;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s, color 0.15s;
+}
+
+.settings-seg button:hover { opacity: 1; }
+
+.settings-seg button.active {
+  opacity: 1;
+  color: #0e1220;
+  background: #00F2B8;
+}
 
 .settings-save { margin-top: 4px; padding: 11px 14px; font-size: 0.92rem; }
 

@@ -1285,6 +1285,39 @@ function switchToLocal(opts = {}) {
 
 let localPlayToken = 0
 
+// ---- smooth transitions between local tracks (Settings -> Smooth transitions) ----
+let localAutoAdvance = false
+let localFadeTimer = null
+
+function localFadeSec() {
+  const n = Number(localStorage.getItem("localFadeSec"))
+  return Number.isFinite(n) && n > 0 ? n : 0
+}
+
+function stopLocalFadeOut() {
+  if (localFadeTimer) { clearInterval(localFadeTimer); localFadeTimer = null }
+}
+
+// timeupdate is too coarse for a fade, so a short interval follows the real playback position
+function maybeStartLocalFadeOut() {
+  if (localFadeTimer || playingMode() !== "local") return
+  const fade = localFadeSec()
+  const d = audioPlayer.duration
+  if (!fade || !d || !isFinite(d)) return
+  const span = Math.min(fade, d / 2)
+  if (d - audioPlayer.currentTime > span) return
+  localFadeTimer = setInterval(() => {
+    const left = audioPlayer.duration - audioPlayer.currentTime
+    if (playingMode() !== "local" || !isFinite(left)) return stopLocalFadeOut()
+    if (left > span) {
+      // the user seeked back out of the fade zone
+      audioPlayer.volume = defaultVolume.value
+      return stopLocalFadeOut()
+    }
+    audioPlayer.volume = defaultVolume.value * Math.max(left / span, 0)
+  }, 40)
+}
+
 // The heart button in the player works on the playing local track.
 function syncLocalFavIcon() {
   if (playingMode() !== "local") return
@@ -1351,11 +1384,13 @@ async function playLocalStation(st, i) {
     const el = document.getElementById("playTimer")
     if (el && isFinite(audioPlayer.duration) && audioPlayer.duration) el.textContent = formatTime(Math.floor(audioPlayer.duration - audioPlayer.currentTime))
   }
+  stopLocalFadeOut()
   audioPlayer.ontimeupdate = () => {
     if (!audioPlayer.duration || !isFinite(audioPlayer.duration)) return
     const el = document.getElementById("playTimer")
     if (el) el.textContent = formatTime(Math.floor(audioPlayer.duration - audioPlayer.currentTime))
     setLocalProgress((audioPlayer.currentTime / audioPlayer.duration) * 100)
+    maybeStartLocalFadeOut()
   }
   audioPlayer.muted = false
   audioPlayer.volume = defaultVolume.value
@@ -1366,7 +1401,10 @@ async function playLocalStation(st, i) {
       window.equalizerInitialized = true
     }
   }).catch(() => {})
-  fadeAudioIn(audioPlayer, defaultVolume.value, 1000)
+  // after an automatic advance the next track rises over the same span the last one fell
+  const fadeInMs = localAutoAdvance && localFadeSec() > 0 ? localFadeSec() * 1000 : 1000
+  localAutoAdvance = false
+  fadeAudioIn(audioPlayer, defaultVolume.value, fadeInMs)
   updatePlayPauseButton(audioPlayer, playPauseBtn)
   updateMediaSessionMetadata(st)
 }
@@ -2198,7 +2236,11 @@ audioPlayer.addEventListener("ended", () => {
     if (shuffleActive && t.list.length > 1) {
       do { next = Math.floor(Math.random() * t.list.length) } while (next === t.idx)
     }
-    fadeAudioOut(audioPlayer, 500, () => playAt(next))
+    stopLocalFadeOut()
+    localAutoAdvance = true
+    // with smooth transitions the track has already faded out on its own
+    if (localFadeSec() > 0) playAt(next)
+    else fadeAudioOut(audioPlayer, 500, () => playAt(next))
     return
   }
 })

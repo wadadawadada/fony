@@ -66,8 +66,13 @@ function openSettingsModal() {
     '<div class="settings-panel">' +
       '<h1 class="settings-title"><svg class="settings-title-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></h1>' +
 
-      '<section class="settings-section">' +
-        '<h2 class="settings-heading"><svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>Playback</h2>' +
+      '<div class="settings-tabs" role="tablist">' +
+        '<button type="button" role="tab" class="settings-tab" data-tab="playback" title="Playback" aria-label="Playback"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg><span>Playback</span></button>' +
+        '<button type="button" role="tab" class="settings-tab" data-tab="interface" title="Interface" aria-label="Interface"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="9" cy="7" r="2.5"/><circle cx="15" cy="17" r="2.5"/></svg><span>Interface</span></button>' +
+        '<button type="button" role="tab" class="settings-tab" data-tab="data" title="Data" aria-label="Data"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg><span>Data</span></button>' +
+      '</div>' +
+
+      '<section class="settings-section" data-tab="playback">' +
         '<label class="settings-row">' +
           '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.500"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/><path d="M12 15v2"/></svg></span><span class="settings-text"><span class="settings-name">Hide HTTP stations</span>' +
           '<span class="settings-hint">Only show secure (HTTPS) streams</span></span>' +
@@ -78,6 +83,13 @@ function openSettingsModal() {
           '<span class="settings-hint">Show a helpful tip in the console now and then</span></span>' +
           '<input type="checkbox" class="settings-switch" id="consoleTipsCheckbox">' +
         '</label>' +
+        '<div class="settings-row settings-row-static">' +
+          '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15c3 0 3-6 6-6s3 6 6 6 3-6 6-6"/></svg></span><span class="settings-text"><span class="settings-name">Smooth transitions</span>' +
+          '<span class="settings-hint">Local files: fade out and in between tracks</span></span>' +
+          '<span class="settings-seg" id="localFadeSeg" role="group" aria-label="Smooth transitions">' +
+            '<button type="button" data-s="0">Off</button><button type="button" data-s="2">2s</button><button type="button" data-s="4">4s</button><button type="button" data-s="6">6s</button>' +
+          '</span>' +
+        '</div>' +
         '<div class="settings-row">' +
           '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.500 8.500h.01M15.500 8.500h.01M12 12h.01M8.500 15.500h.01M15.500 15.500h.01" stroke-width="2.600"/></svg></span><span class="settings-text"><span class="settings-name">Random taste</span>' +
           '<span class="settings-hint">Random leans towards genres you play and favorite</span></span>' +
@@ -85,8 +97,7 @@ function openSettingsModal() {
         '</div>' +
       '</section>' +
 
-      '<section class="settings-section">' +
-        '<h2 class="settings-heading"><svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="9" cy="7" r="2.5"/><circle cx="15" cy="17" r="2.5"/></svg>Interface</h2>' +
+      '<section class="settings-section" data-tab="interface">' +
         '<label class="settings-row">' +
           '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M9.500 5v14"/><path d="M18 12h-5M15 9l-3 3 3 3"/></svg></span><span class="settings-text"><span class="settings-name">Left-handed layout</span>' +
           '<span class="settings-hint">Mirror the player on wide screens</span></span>' +
@@ -104,8 +115,7 @@ function openSettingsModal() {
         '</label>' +
       '</section>' +
 
-      '<section class="settings-section">' +
-        '<h2 class="settings-heading"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg>Data</h2>' +
+      '<section class="settings-section" data-tab="data">' +
         '<div class="settings-row settings-row-static settings-row-tight">' +
           '<span class="settings-name">Backup file</span>' +
           '<span class="settings-btns">' +
@@ -142,6 +152,25 @@ function openSettingsModal() {
   document.getElementById("glassRippleCheckbox").checked = localStorage.getItem("glassRipple") === "true";
   document.getElementById("consoleTipsCheckbox").checked = localStorage.getItem("tipsAuto") !== "false";
 
+  // folder tabs: one section at a time; the last tab is remembered
+  (function() {
+    var tabs = modalContent.querySelectorAll(".settings-tab");
+    var sections = modalContent.querySelectorAll(".settings-section");
+    function show(name) {
+      tabs.forEach(function(t) {
+        var on = t.dataset.tab === name;
+        t.classList.toggle("active", on);
+        t.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      sections.forEach(function(sec) { sec.hidden = sec.dataset.tab !== name; });
+      try { localStorage.setItem("settingsTab", name); } catch (e) {}
+    }
+    tabs.forEach(function(t) { t.addEventListener("click", function() { show(t.dataset.tab); }); });
+    var saved = null;
+    try { saved = localStorage.getItem("settingsTab"); } catch (e) {}
+    show(["playback", "interface", "data"].indexOf(saved) >= 0 ? saved : "playback");
+  })();
+
   // Each setting is applied the moment it changes; Save settings just closes the window.
   function applyHttps() {
     var on = document.getElementById("httpStationsCheckbox").checked;
@@ -165,6 +194,24 @@ function openSettingsModal() {
     localStorage.setItem("tipsAuto", document.getElementById("consoleTipsCheckbox").checked ? "true" : "false");
     document.dispatchEvent(new Event("tipsAutoChanged"));
   }
+
+  // Smooth transitions: seconds of fade at the end/start of local tracks (0 = off), read by js/main.js
+  (function() {
+    var seg = document.getElementById("localFadeSeg");
+    function mark() {
+      var cur = localStorage.getItem("localFadeSec") || "0";
+      seg.querySelectorAll("button").forEach(function(b) {
+        b.classList.toggle("active", b.dataset.s === cur);
+      });
+    }
+    seg.addEventListener("click", function(e) {
+      var b = e.target.closest("button");
+      if (!b) return;
+      localStorage.setItem("localFadeSec", b.dataset.s);
+      mark();
+    });
+    mark();
+  })();
 
   document.getElementById("consoleTipsCheckbox").addEventListener("change", applyConsoleTips);
   document.getElementById("httpStationsCheckbox").addEventListener("change", applyHttps);
