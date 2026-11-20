@@ -83,13 +83,6 @@ function openSettingsModal() {
           '<span class="settings-hint">Show a helpful tip in the console now and then</span></span>' +
           '<input type="checkbox" class="settings-switch" id="consoleTipsCheckbox">' +
         '</label>' +
-        '<div class="settings-row settings-row-static">' +
-          '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15c3 0 3-6 6-6s3 6 6 6 3-6 6-6"/></svg></span><span class="settings-text"><span class="settings-name">Smooth transitions</span>' +
-          '<span class="settings-hint">Local files: fade out and in between tracks</span></span>' +
-          '<span class="settings-seg" id="localFadeSeg" role="group" aria-label="Smooth transitions">' +
-            '<button type="button" data-s="0">Off</button><button type="button" data-s="2">2s</button><button type="button" data-s="4">4s</button><button type="button" data-s="6">6s</button>' +
-          '</span>' +
-        '</div>' +
         '<div class="settings-row">' +
           '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.500 8.500h.01M15.500 8.500h.01M12 12h.01M8.500 15.500h.01M15.500 15.500h.01" stroke-width="2.600"/></svg></span><span class="settings-text"><span class="settings-name">Random taste</span>' +
           '<span class="settings-hint">Random leans towards genres you play and favorite</span></span>' +
@@ -194,24 +187,6 @@ function openSettingsModal() {
     localStorage.setItem("tipsAuto", document.getElementById("consoleTipsCheckbox").checked ? "true" : "false");
     document.dispatchEvent(new Event("tipsAutoChanged"));
   }
-
-  // Smooth transitions: seconds of fade at the end/start of local tracks (0 = off), read by js/main.js
-  (function() {
-    var seg = document.getElementById("localFadeSeg");
-    function mark() {
-      var cur = localStorage.getItem("localFadeSec") || "0";
-      seg.querySelectorAll("button").forEach(function(b) {
-        b.classList.toggle("active", b.dataset.s === cur);
-      });
-    }
-    seg.addEventListener("click", function(e) {
-      var b = e.target.closest("button");
-      if (!b) return;
-      localStorage.setItem("localFadeSec", b.dataset.s);
-      mark();
-    });
-    mark();
-  })();
 
   document.getElementById("consoleTipsCheckbox").addEventListener("change", applyConsoleTips);
   document.getElementById("httpStationsCheckbox").addEventListener("change", applyHttps);
