@@ -401,6 +401,7 @@ body.dark .local-mode-button.active img {
   gap: 8px;
   padding: 10px;
   border: 1px dashed rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
   opacity: 0.8;
 }
 

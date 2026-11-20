@@ -983,18 +983,19 @@ body.dark .logo {
   top: auto;
   left: auto;
   transform: none;
-  width: 90%;
-  max-width: 800px;
-  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  width: 92%;
+  max-width: 980px;
+  height: min(82vh, 740px);
+  max-height: none;
+  padding: 0;
+  overflow: hidden; /* clip to the rounded frame; scrolling lives in .gitbook-scroll */
   background-color: #171C2B;
-  border: 2px solid #00F2B8;
-  border-radius: 3px;
-  padding: 1rem 1.5rem;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #00F2B8 #171C2B;
+  border: 1px solid rgba(0, 242, 184, 0.35);
+  border-radius: 22px;
   font-family: 'Ruda', sans-serif;
-  color: #ddd;
+  color: #d5d9e6;
   animation: gitbookSlideUp 0.4s ease;
 }
 
@@ -1003,34 +1004,200 @@ body.dark .logo {
   to { transform: translateY(0); opacity: 1; }
 }
 
-#gitbookModal .manifesto-content::-webkit-scrollbar {
-  width: 8px;
+.gitbook-head {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 14px 26px;
+  background: linear-gradient(90deg, rgba(0, 242, 184, 0.14), rgba(0, 242, 184, 0) 70%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-#gitbookModal .manifesto-content::-webkit-scrollbar-track {
-  background: #171C2B;
-  border-radius: 4px;
+.gitbook-head-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
 }
 
-#gitbookModal .manifesto-content::-webkit-scrollbar-thumb {
-  background-color: #00F2B8;
-  border-radius: 4px;
-}
+.gitbook-head-title em { font-style: normal; color: #00F2B8; }
 
 #gitbookCloseBtn {
-  position: sticky;
-  top: 0;
-  right: 0;
-  float: right;
-  background: none;
-  border: none;
+  position: static;
+  float: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
   color: #00F2B8;
-  font-size: 28px;
-  font-weight: bold;
+  background: rgba(255, 255, 255, 0.06);
+  border: 0;
+  border-radius: 50%;
   cursor: pointer;
-  padding: 0.2rem 0.4rem;
-  z-index: 10;
-  backdrop-filter: none;
+  transition: background 0.15s, transform 0.15s;
+}
+
+#gitbookCloseBtn:hover { background: rgba(0, 242, 184, 0.2); transform: rotate(90deg); }
+
+.gitbook-progress {
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+}
+
+.gitbook-progress span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: #00F2B8;
+  box-shadow: 0 0 8px #00F2B8;
+}
+
+.gitbook-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+}
+
+.gitbook-toc {
+  flex: 0 0 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 10px 16px 16px;
+  overflow-y: auto;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  scrollbar-width: none;
+}
+
+#gitbookModal .gitbook-toc a {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.62);
+  transition: background 0.15s, color 0.15s;
+}
+
+#gitbookModal .gitbook-toc a b {
+  font-size: 0.72rem;
+  color: rgba(0, 242, 184, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+#gitbookModal .gitbook-toc a:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+#gitbookModal .gitbook-toc a.active { background: rgba(0, 242, 184, 0.14); color: #00F2B8; }
+
+.gitbook-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* margins keep the scrollbar clear of the rounded corners */
+  margin: 0 6px 16px 0;
+  padding: 18px 22px 24px 28px;
+  overflow-y: auto;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 242, 184, 0.6) transparent;
+}
+
+.gitbook-scroll::-webkit-scrollbar { width: 8px; }
+.gitbook-scroll::-webkit-scrollbar-track { background: transparent; }
+.gitbook-scroll::-webkit-scrollbar-thumb { background: rgba(0, 242, 184, 0.55); border-radius: 4px; }
+
+.gitbook-section {
+  margin-bottom: 18px;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+}
+
+.gitbook-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+  color: #fff;
+}
+
+.gitbook-num {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0e1220;
+  background: #00F2B8;
+  border-radius: 999px;
+}
+
+.gitbook-section p {
+  margin: 0 0 12px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.gitbook-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gitbook-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  line-height: 1.5;
+  background: rgba(0, 0, 0, 0.18);
+  border-left: 3px solid rgba(0, 242, 184, 0.55);
+  border-radius: 4px 10px 10px 4px;
+}
+
+.gitbook-list li strong { color: #00F2B8; font-size: 0.92rem; }
+.gitbook-tips li { border-left-color: #ffcf5c; }
+.gitbook-tips li strong { color: #ffcf5c; }
+
+.gitbook-cmds { display: flex; flex-direction: column; gap: 6px; }
+
+.gitbook-cmd {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 10px;
+}
+
+.gitbook-cmd code {
+  flex: 0 0 auto;
+  min-width: 110px;
+  padding: 3px 10px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.85rem;
+  color: #00F2B8;
+  background: rgba(0, 242, 184, 0.1);
+  border-radius: 999px;
+}
+
+@media (max-width: 720px) {
+  .gitbook-toc { display: none; }
+  .gitbook-scroll { padding: 14px 14px 20px 16px; }
+  .gitbook-cmd { flex-direction: column; gap: 4px; }
 }
 
 #chatToggleBtn {

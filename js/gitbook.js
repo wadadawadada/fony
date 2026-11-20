@@ -18,117 +18,86 @@ function createModal() {
   const modal = document.createElement('div');
   modal.id = MODAL_ID;
   modal.className = 'manifesto-modal';
-  modal.style.cssText = `
-    display: none;
-    justify-content: center;
-    align-items: center;
-  `;
+  modal.style.cssText = 'display: none; justify-content: center; align-items: center;';
 
   modal.innerHTML = `
-    <div class="manifesto-content" style="max-height: 80vh; overflow-y: auto; position: relative; background-color: #171C2B; color: #ddd; font-family: monospace, monospace; padding: 1rem; white-space: pre-wrap;">
-      <button class="manifesto-close" id="gitbookCloseBtn" style="position: sticky; top: 0; right: 0; float: right; font-size: 28px; color: #00F2B8; background: none; border: none; cursor: pointer; z-index: 10;">&times;</button>
-      <div id="${CONTENT_ID}"></div>
+    <div class="manifesto-content gitbook-shell">
+      <header class="gitbook-head">
+        <span class="gitbook-head-title">FONY <em>Guide</em></span>
+        <button class="manifesto-close" id="gitbookCloseBtn" aria-label="Close">&times;</button>
+        <div class="gitbook-progress"><span id="gitbookProgress"></span></div>
+      </header>
+      <div class="gitbook-body">
+        <nav class="gitbook-toc" id="gitbookToc"></nav>
+        <div class="gitbook-scroll" id="gitbookScroll"><div id="${CONTENT_ID}"></div></div>
+      </div>
     </div>
   `;
 
   document.body.appendChild(modal);
 
-  document.getElementById('gitbookCloseBtn').addEventListener('click', e => {
-    e.preventDefault();
-    modal.style.display = 'none';
-  });
-
-  modal.addEventListener('click', e => {
-    if (e.target === modal) {
-      e.preventDefault();
-      modal.style.display = 'none';
-    }
+  const close = () => { modal.style.display = 'none'; };
+  document.getElementById('gitbookCloseBtn').addEventListener('click', e => { e.preventDefault(); close(); });
+  modal.addEventListener('click', e => { if (e.target === modal) { e.preventDefault(); close(); } });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.style.display !== 'none') close();
   });
 }
 
-function asciiTitle(text) {
-  const line = '═'.repeat(text.length + 4);
-  return `╔${line}╗
-║  ${text}  ║
-╚${line}╝`;
+function esc(t) {
+  return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function asciiSeparator() {
-  return '─'.repeat(50);
-}
-
-function formatBulletItem(item) {
+function bulletHtml(item) {
   const match = item.match(/^([^:]{2,60}):\s(.*)$/s);
-  if (match) {
-    return `→ <strong style="color:#00F2B8;">${match[1]}:</strong> ${match[2]}\n\n`;
-  }
-  return `→ ${item}\n\n`;
+  if (match) return `<li><strong>${esc(match[1])}</strong><span>${esc(match[2])}</span></li>`;
+  return `<li><span>${esc(item)}</span></li>`;
 }
 
 function renderContent(data) {
   const container = document.getElementById(CONTENT_ID);
-  if (!container || !data) return;
+  const toc = document.getElementById('gitbookToc');
+  if (!container || !toc || !data) return;
 
-  container.innerHTML = '';
+  const num = i => String(i + 1).padStart(2, '0');
 
-  container.innerHTML += asciiTitle('TABLE OF CONTENTS') + '\n\n';
+  toc.innerHTML = data.sections.map((sec, i) =>
+    `<a href="#${sec.id}" class="gitbook-link" data-id="${sec.id}"><b>${num(i)}</b>${esc(sec.title)}</a>`
+  ).join('');
 
-  data.sections.forEach(section => {
-    container.innerHTML += `→ [${section.title}](#${section.id})\n`;
-  });
-
-  container.innerHTML += '\n' + asciiSeparator() + '\n\n';
-
-  data.sections.forEach(section => {
-    container.innerHTML += `<a id="${section.id}"></a>`;
-    container.innerHTML += asciiTitle(section.title.toUpperCase()) + '\n\n';
-
-    if (section.content) {
-      container.innerHTML += section.content + '\n\n';
+  container.innerHTML = data.sections.map((sec, i) => {
+    let html = `<section class="gitbook-section" id="${sec.id}">
+      <h2><span class="gitbook-num">${num(i)}</span>${esc(sec.title)}</h2>`;
+    if (sec.content) html += `<p>${esc(sec.content)}</p>`;
+    if (sec.items) html += `<ul class="gitbook-list">${sec.items.map(bulletHtml).join('')}</ul>`;
+    if (sec.commands) {
+      html += `<div class="gitbook-cmds">${sec.commands.map(c =>
+        `<div class="gitbook-cmd"><code>${esc(c.command)}</code><span>${esc(c.description)}</span></div>`).join('')}</div>`;
     }
+    if (sec.tips) html += `<ul class="gitbook-list gitbook-tips">${sec.tips.map(bulletHtml).join('')}</ul>`;
+    return html + '</section>';
+  }).join('');
 
-    if (section.items) {
-      section.items.forEach(item => {
-        container.innerHTML += formatBulletItem(item);
-      });
-    }
+  const scroller = document.getElementById('gitbookScroll');
+  const progress = document.getElementById('gitbookProgress');
+  const links = [...toc.querySelectorAll('.gitbook-link')];
+  const sections = [...container.querySelectorAll('.gitbook-section')];
 
-    if (section.commands) {
-      container.innerHTML += asciiSeparator() + '\n';
-      container.innerHTML += 'CHAT COMMANDS\n\n';
-      section.commands.forEach(cmd => {
-        container.innerHTML += `<strong style="color:#00F2B8;">${cmd.command}</strong> — ${cmd.description}\n\n`;
-      });
-    }
+  links.forEach(link => link.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.getElementById(link.dataset.id);
+    if (target) scroller.scrollTo({ top: target.offsetTop - 8, behavior: 'smooth' });
+  }));
 
-    if (section.tips) {
-      container.innerHTML += asciiSeparator() + '\n';
-      container.innerHTML += 'USAGE TIPS\n\n';
-      section.tips.forEach(tip => {
-        container.innerHTML += formatBulletItem(tip);
-      });
-    }
-  });
-
-  convertMarkdownLinks(container);
-}
-
-function convertMarkdownLinks(container) {
-  container.innerHTML = container.innerHTML.replace(/\[([^\]]+)\]\(#([^)]+)\)/g, (match, text, id) => {
-    return `<a href="#${id}" class="gitbook-link">${text}</a>`;
-  });
-
-  const links = container.querySelectorAll('.gitbook-link');
-  links.forEach(link => {
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      const targetId = link.getAttribute('href').substring(1);
-      const target = document.getElementById(targetId);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  });
+  const onScroll = () => {
+    const max = scroller.scrollHeight - scroller.clientHeight;
+    progress.style.width = (max > 0 ? (scroller.scrollTop / max) * 100 : 0) + '%';
+    let current = sections[0];
+    sections.forEach(sec => { if (sec.offsetTop - 40 <= scroller.scrollTop) current = sec; });
+    links.forEach(l => l.classList.toggle('active', l.dataset.id === current.id));
+  };
+  scroller.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 }
 
 async function initGitbook() {

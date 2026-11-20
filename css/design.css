@@ -919,7 +919,7 @@ body.dark .volume-scale rect {
 .volume-scale rect.on,
 body.dark .volume-scale rect.on {
   fill: var(--accent) !important;
-  filter: drop-shadow(0 0 4px rgba(0, 242, 184, 0.55));
+  filter: none;
 }
 
 .volume-scale #vol {
@@ -946,7 +946,6 @@ body.dark .volume-scale rect.on {
   transform: translateY(-50%);
   border-radius: 3px;
   background: linear-gradient(90deg, rgba(0, 242, 184, 0.55), var(--accent));
-  box-shadow: 0 0 10px rgba(0, 242, 184, 0.4);
   pointer-events: none;
   z-index: 1;
 }
@@ -976,7 +975,7 @@ body.dark .volume-slider .volume-knob {
 .volume-slider .volume-knob:hover,
 .volume-slider.dragging .volume-knob {
   transform: translate(-50%, -50%) scale(1.2);
-  box-shadow: 0 0 0 4px rgba(0, 242, 184, 0.3), 0 6px 16px rgba(0, 242, 184, 0.35);
+  box-shadow: 0 0 0 4px rgba(0, 242, 184, 0.3), 0 4px 10px rgba(0, 0, 0, 0.3);
   filter: none;
 }
 

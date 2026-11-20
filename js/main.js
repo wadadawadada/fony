@@ -1349,10 +1349,10 @@ async function playLocalStation(st, i) {
   audioPlayer.src = prepared.url
   audioPlayer.onloadedmetadata = () => {
     const el = document.getElementById("playTimer")
-    if (el && audioPlayer.duration) el.textContent = formatTime(Math.floor(audioPlayer.duration - audioPlayer.currentTime))
+    if (el && isFinite(audioPlayer.duration) && audioPlayer.duration) el.textContent = formatTime(Math.floor(audioPlayer.duration - audioPlayer.currentTime))
   }
   audioPlayer.ontimeupdate = () => {
-    if (!audioPlayer.duration) return
+    if (!audioPlayer.duration || !isFinite(audioPlayer.duration)) return
     const el = document.getElementById("playTimer")
     if (el) el.textContent = formatTime(Math.floor(audioPlayer.duration - audioPlayer.currentTime))
     setLocalProgress((audioPlayer.currentTime / audioPlayer.duration) * 100)
