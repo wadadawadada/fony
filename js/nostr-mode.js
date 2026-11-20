@@ -1114,6 +1114,7 @@ export function initNostr() {
   wired = true
   Auth.restoreSession().catch(() => {})
   Auth.onAuthChange(() => { if (active) updateWho() })
+  document.addEventListener("fony:nostr-stale", () => toast("Nostr signer is not answering. Open your signer app, or log out and connect again"))
   Pres.initPresence()
   AutoSync.initAutoSync(() => window.fonyGetFavoriteStations())
 }

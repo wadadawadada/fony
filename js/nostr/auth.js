@@ -199,7 +199,46 @@ export async function restoreSession() {
     return null
   }
   emit()
+  checkAndReport(0)
   return getSession()
+}
+
+// Checks that a remote signer still answers (NIP-46 only). Returns "ok", "stale" (no answer even on a
+// fresh connection: the signer app is offline or revoked this client) or "skip" (nothing to check).
+// Never prompts. A failed check only reports; it does not log out, since the signer may be briefly offline.
+let checking = null
+export function checkSession() {
+  if (!session || session.method !== "nip46" || (typeof navigator !== "undefined" && navigator.onLine === false)) return Promise.resolve("skip")
+  if (checking) return checking
+  checking = (async () => {
+    try {
+      if (bunkerSigner) {
+        try { await withTimeout(bunkerSigner.ping(), STALE_TRY_MS, "ping timeout"); bunkerUsedAt = Date.now(); return "ok" } catch (err) {
+          if (!(err && err.timedOut)) { bunkerUsedAt = Date.now(); return "ok" }
+        }
+      }
+      const signer = await liveSigner(true)
+      return (await waitSignerReady(signer)) ? "ok" : "stale"
+    } catch (_) {
+      return "stale"
+    } finally {
+      checking = null
+    }
+  })()
+  return checking
+}
+
+let lastCheck = 0
+function checkAndReport(minGap) {
+  if (!session || Date.now() - lastCheck < minGap) return
+  lastCheck = Date.now()
+  checkSession().then(r => {
+    if (r === "stale") document.dispatchEvent(new CustomEvent("fony:nostr-stale"))
+  }).catch(() => {})
+}
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkAndReport(60000) })
+  window.addEventListener("online", () => checkAndReport(10000))
 }
 
 export async function logout() {
