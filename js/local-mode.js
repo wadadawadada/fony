@@ -353,10 +353,18 @@ function pumpDurations() {
     const li = durationQueue.shift();
     if (!li.isConnected) continue;
     durationActive++;
-    lib.getDuration(li._station).then(seconds => {
+    (async () => {
+      const seconds = await lib.getDuration(li._station).catch(() => null);
+      const meta = await lib.getMeta(li._station).catch(() => null);
+      return [seconds, meta];
+    })().then(([seconds, meta]) => {
       const cell = li.querySelector('.local-dur');
       if (cell && seconds) cell.textContent = lib.formatDuration(seconds);
-    }).catch(() => {}).finally(() => {
+      updateAlbumTotal();
+      // the list shows what the tags say, not the file name
+      const name = li.querySelector('.title-ellipsis');
+      if (name && meta) name.textContent = meta.title;
+    }).finally(() => {
       durationActive--;
       pumpDurations();
     });
@@ -491,7 +499,22 @@ async function dirRows() {
   }
 
   const rows = [head];
-  const dirs = listing.dirs.filter(matches);
+  // "Images", "Art", "Scans"... that hold only pictures are not folders to browse: their
+  // pictures go into the gallery below the tracks
+  const pictures = listing.images.map(n => [n]);
+  const browsable = [];
+  for (const d of listing.dirs) {
+    if (!ART_DIR.test(d)) { browsable.push(d); continue; }
+    try {
+      const inner = await lib.listDir(root, [...view.path, d]);
+      if (inner.images.length && !inner.files.length && !inner.dirs.length) {
+        inner.images.forEach(n => pictures.push([d, n]));
+        continue;
+      }
+    } catch (_) {}
+    browsable.push(d);
+  }
+  const dirs = browsable.filter(matches);
   const files = listing.files.filter(matches);
   for (const d of dirs) {
     const path = [...view.path, d];
@@ -510,7 +533,150 @@ async function dirRows() {
   if (!dirs.length && !files.length) {
     rows.push(noticeRow(query ? 'Nothing found.' : 'No audio files or subfolders here.'));
   }
+  if (!query && pictures.length) rows.splice(1, 0, albumHeadRow(root, view.path, pictures, listing));
   return rows;
+}
+
+// ---- pictures found in the folder (album art, scans), shown below the tracks ----
+
+const ART_DIR = /^(images?|imgs?|pictures?|pics?|photos?|art|artworks?|covers?|scans?|booklets?|extras?)$/i;
+// Thumbnails are kept between renders (a render happens on every favourite toggle etc.),
+// so big scans are not decoded again; only leaving Local mode frees them.
+const THUMB_CACHE_MAX = 80;
+const thumbCache = new Map();
+
+function revokeGallery() {
+  thumbCache.forEach(u => URL.revokeObjectURL(u));
+  thumbCache.clear();
+}
+
+async function cachedThumb(rootId, filePath, file) {
+  const key = `${rootId}/${filePath.join('/')}|${file.size}|${file.lastModified}`;
+  if (thumbCache.has(key)) return thumbCache.get(key);
+  const url = await thumbBlobUrl(file);
+  thumbCache.set(key, url);
+  if (thumbCache.size > THUMB_CACHE_MAX) {
+    const oldest = thumbCache.keys().next().value;
+    URL.revokeObjectURL(thumbCache.get(oldest));
+    thumbCache.delete(oldest);
+  }
+  return url;
+}
+
+// A small JPEG, so a folder of big scans does not keep full-size bitmaps alive.
+async function thumbBlobUrl(file) {
+  try {
+    const bmp = await createImageBitmap(file, { resizeWidth: 240, resizeQuality: 'medium' });
+    const c = document.createElement('canvas');
+    c.width = bmp.width;
+    c.height = bmp.height;
+    c.getContext('2d').drawImage(bmp, 0, 0);
+    bmp.close();
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.82));
+    if (blob) return URL.createObjectURL(blob);
+  } catch (_) {}
+  return URL.createObjectURL(file);
+}
+
+function openLightbox(root, dirPath, names, start) {
+  document.querySelector('.local-lightbox')?.remove();
+  let i = start;
+  let url = null;
+  const box = el('div', 'local-lightbox');
+  const img = el('img', 'local-lightbox-img');
+  const cap = el('div', 'local-lightbox-cap');
+  const prev = el('button', 'local-lightbox-nav prev', '‹');
+  const next = el('button', 'local-lightbox-nav next', '›');
+  const x = el('button', 'local-lightbox-close', '&times;');
+  x.type = 'button';
+  x.title = 'Close';
+  x.setAttribute('aria-label', 'Close');
+  box.append(img, cap, prev, next, x);
+
+  const close = () => {
+    document.removeEventListener('keydown', onKey, true);
+    if (url) URL.revokeObjectURL(url);
+    box.remove();
+  };
+  const show = async n => {
+    i = (n + names.length) % names.length;
+    cap.textContent = `${names[i][names[i].length - 1]}  ·  ${i + 1} / ${names.length}`;
+    try {
+      const file = await lib.getFile(root.id, [...dirPath, ...names[i]]);
+      const fresh = URL.createObjectURL(file);
+      if (url) URL.revokeObjectURL(url);
+      url = fresh;
+      img.src = url;
+    } catch (_) { toast('Could not open this picture'); }
+  };
+  const onKey = e => {
+    if (e.key === 'Escape') { e.stopPropagation(); close(); }
+    else if (e.key === 'ArrowLeft') show(i - 1);
+    else if (e.key === 'ArrowRight') show(i + 1);
+  };
+  x.onclick = e => { e.stopPropagation(); close(); };
+  prev.onclick = e => { e.stopPropagation(); show(i - 1); };
+  next.onclick = e => { e.stopPropagation(); show(i + 1); };
+  if (names.length < 2) { prev.hidden = true; next.hidden = true; }
+  box.onclick = e => { if (e.target !== img) close(); };
+  document.addEventListener('keydown', onKey, true);
+  document.body.appendChild(box);
+  show(i);
+}
+
+// Album header above the track list: cover, folder name, track count and total length.
+// A click on the cover opens the viewer with all the pictures of the folder.
+function albumHeadRow(root, path, names, listing) {
+  const li = el('li', 'local-mode local-albumhead');
+
+  const art = el('button', 'local-albumhead-art');
+  art.type = 'button';
+  art.title = names.length > 1 ? `${names.length} pictures · click to view` : 'Click to view';
+  art.onclick = () => openLightbox(root, path, names, 0);
+
+  const text = el('div', 'local-albumhead-text');
+  const title = el('div', 'local-albumhead-title');
+  title.textContent = path.length ? path[path.length - 1] : root.name;
+  const meta = el('div', 'local-albumhead-meta');
+  const parts = [];
+  if (listing.files.length) parts.push(`${listing.files.length} ${listing.files.length === 1 ? 'track' : 'tracks'}`);
+  if (listing.dirs.length) parts.push(`${listing.dirs.length} ${listing.dirs.length === 1 ? 'folder' : 'folders'}`);
+  const base = parts.join(' · ');
+  meta.textContent = base;
+  text.append(title, meta);
+  li.append(art, text);
+
+  // total length, once every track's duration is known (see updateAlbumTotal)
+  li._setTotal = seconds => { meta.textContent = base ? `${base} · ${lib.formatDuration(seconds)}` : lib.formatDuration(seconds); };
+
+  // called once the row is on screen; a render that was replaced meanwhile loads nothing
+  li._load = async token => {
+    try {
+      const file = await lib.getFile(root.id, [...path, ...names[0]]);
+      const url = await cachedThumb(root.id, [...path, ...names[0]], file);
+      if (token !== renderToken) return;
+      const img = el('img');
+      img.alt = '';
+      img.src = url;
+      art.appendChild(img);
+    } catch (_) {}
+  };
+  return li;
+}
+
+// Sums the cached durations of the tracks on screen; shows nothing until all are known.
+function updateAlbumTotal() {
+  const head = ctx && ctx.list.querySelector('li.local-albumhead');
+  if (!head) return;
+  let sum = 0;
+  const tracks = ctx.list.querySelectorAll('li.local-track');
+  if (!tracks.length) return;
+  for (const li of tracks) {
+    const d = lib.cachedDuration(li._station);
+    if (d == null) return;
+    sum += d;
+  }
+  head._setTotal(sum);
 }
 
 const SEARCH_LIMIT = 300;
@@ -644,6 +810,8 @@ async function render(resetScroll = false, revealActive = false) {
   }
   if (token !== renderToken || !ctx) return;
   ctx.list.replaceChildren(...rows);
+  ctx.list.querySelectorAll('li.local-albumhead').forEach(li => li._load && li._load(token));
+  updateAlbumTotal();
   activeLi = ctx.list.querySelector('li.active[data-url]');
   watchDurations();
   if (resetScroll && ctx.scroller) ctx.scroller.scrollTo({ top: 0 });
@@ -794,6 +962,8 @@ export async function restoreLastTrack() {
 }
 
 export function leaveLocalMode(keepTrack = false) {
+  document.querySelector('.local-lightbox')?.remove();
+  revokeGallery();
   if (durationObserver) durationObserver.disconnect();
   durationObserver = null;
   durationQueue = [];

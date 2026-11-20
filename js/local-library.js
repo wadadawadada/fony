@@ -6,6 +6,8 @@ const DB_NAME = 'fony-local';
 const STORE = 'roots';
 const PLAYLISTS_KEY = 'localPlaylists';
 const AUDIO_EXT = /\.(mp3|flac|ogg|oga|opus|wav|m4a|aac|weba)$/i;
+const IMAGE_EXT = /\.(jpe?g|png|webp|gif|bmp|avif)$/i;
+const COVER_NAME = /^(cover|folder|front|album|art|artwork)/i;
 const TAGS_LIB_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js';
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
@@ -100,14 +102,18 @@ async function dirHandle(root, path) {
 async function readEntries(h) {
   const dirs = [];
   const files = [];
+  const images = [];
   for await (const [name, entry] of h.entries()) {
     if (name.startsWith('.')) continue;
     if (entry.kind === 'directory') dirs.push(name);
     else if (AUDIO_EXT.test(name)) files.push(name);
+    else if (IMAGE_EXT.test(name)) images.push(name);
   }
   dirs.sort(collator.compare);
   files.sort(collator.compare);
-  return { dirs, files };
+  // the usual album-art names first, then the rest in natural order
+  images.sort((a, b) => (COVER_NAME.test(b) - COVER_NAME.test(a)) || collator.compare(a, b));
+  return { dirs, files, images };
 }
 
 export async function listDir(root, path) {
@@ -229,6 +235,12 @@ export async function getDuration(station) {
   return seconds ? Math.round(seconds) : null;
 }
 
+// Seconds from the cache only (no file access), or null when this track was never probed.
+export function cachedDuration(station) {
+  const hit = durations()[station.rootId + '/' + station.path.join('/')];
+  return hit ? hit.d : null;
+}
+
 export function formatDuration(total) {
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
@@ -243,9 +255,15 @@ function stripExt(name) {
   return name.replace(/\.[^.]+$/, '');
 }
 
+// "01Title", "01 - Title", "07. Title" -> "Title" (a bare "1984" or "7 Days" is left alone)
+export function cleanFileName(base) {
+  const m = base.match(/^\d{1,3}\s*[-._)]\s*(.+)$/) || base.match(/^\d{2,3}(?=[^\d\s\-._)])(.+)$/);
+  return (m ? m[1] : base).trim() || base;
+}
+
 export function makeStation(track, rootName = '') {
   const file = track.path[track.path.length - 1];
-  const base = stripExt(file);
+  const base = cleanFileName(stripExt(file));
   return {
     local: true,
     rootId: track.rootId,
@@ -259,7 +277,7 @@ export function makeStation(track, rootName = '') {
 
 // "01 - Artist - Title" -> { artist, title } best effort when tags are empty.
 function parseFileName(base) {
-  const clean = base.replace(/^\d{1,3}\s*[-._)]\s*/, '').replace(/_/g, ' ').trim();
+  const clean = cleanFileName(base).replace(/_/g, ' ').trim();
   const m = clean.match(/^(.+?)\s+[-–]\s+(.+)$/);
   return m ? { artist: m[1].trim(), title: m[2].trim() } : { artist: '', title: clean };
 }
@@ -279,22 +297,83 @@ function loadTagsLib() {
   return tagsLib;
 }
 
-async function readTags(file) {
+// Old ID3v1 / ID3v2 "ISO-8859-1" tags are often really Windows-1251 (Russian) or UTF-8, and
+// jsmediatags reads them as Latin-1, giving "Ãàíãàæà". Detect that and re-decode the bytes.
+function fixTagText(text) {
+  if (typeof text !== 'string' || !text) return text || '';
+  let high = 0;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    if (c > 0xFF) return text;          // real Unicode already
+    if (c >= 0x80) high++;
+  }
+  if (!high) return text;
+  const bytes = Uint8Array.from(text, ch => ch.charCodeAt(0));
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); } catch (_) {}
+  // genuine Latin-1 ("Café") has a few accents among plain letters; Cyrillic read as
+  // Latin-1 is nearly all high characters
+  const letters = (text.match(/[A-Za-zÀ-ÿ]/g) || []).length;
+  if (high < 2 || high / letters < 0.6) return text;
+  const fixed = new TextDecoder('windows-1251').decode(bytes);
+  return /[Ѐ-ӿ]/.test(fixed) ? fixed : text;
+}
+
+async function readTags(file, withCover = true) {
   const lib = await loadTagsLib();
   if (!lib) return {};
   return new Promise(resolve => {
     lib.read(file, {
       onSuccess: ({ tags }) => {
         let cover = null;
-        if (tags.picture && tags.picture.data) {
+        if (withCover && tags.picture && tags.picture.data) {
           const { data, format } = tags.picture;
           cover = URL.createObjectURL(new Blob([new Uint8Array(data)], { type: format || 'image/jpeg' }));
         }
-        resolve({ title: tags.title, artist: tags.artist, album: tags.album, cover });
+        resolve({ title: fixTagText(tags.title), artist: fixTagText(tags.artist), album: fixTagText(tags.album), cover });
       },
       onError: () => resolve({})
     });
   });
+}
+
+// ---- tag info for the list (lazy, cached like the durations) -------------
+
+const META_KEY = 'localMeta';
+const META_MAX = 6000;
+let metaCache = null;
+let metaSaveTimer = null;
+
+function metas() {
+  if (!metaCache) {
+    try { metaCache = JSON.parse(localStorage.getItem(META_KEY) || '{}') || {}; } catch { metaCache = {}; }
+  }
+  return metaCache;
+}
+
+function saveMetaSoon() {
+  clearTimeout(metaSaveTimer);
+  metaSaveTimer = setTimeout(() => {
+    const cache = metas();
+    const keys = Object.keys(cache);
+    if (keys.length > META_MAX) keys.slice(0, keys.length - META_MAX).forEach(k => delete cache[k]);
+    try { localStorage.setItem(META_KEY, JSON.stringify(cache)); } catch {}
+  }, 1000);
+}
+
+// { title, artist } from the file's tags, or null. Never asks for folder permission.
+export async function getMeta(station) {
+  const root = await getRoot(station.rootId);
+  if (!root || !(await hasAccess(root))) return null;
+  let file;
+  try { file = await getFile(station.rootId, station.path); } catch { return null; }
+  const key = station.rootId + '/' + station.path.join('/');
+  const hit = metas()[key];
+  if (hit && hit.s === file.size && hit.m === file.lastModified) return hit.t ? { title: hit.t, artist: hit.a } : null;
+  const tags = await readTags(file, false);
+  const title = (tags.title || '').trim();
+  metas()[key] = { t: title, a: (tags.artist || '').trim(), s: file.size, m: file.lastModified };
+  saveMetaSoon();
+  return title ? { title, artist: metas()[key].a } : null;
 }
 
 let current = null;
