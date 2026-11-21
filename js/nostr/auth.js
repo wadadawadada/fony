@@ -36,21 +36,56 @@ function makeSigner(BunkerSigner, clientKey, bp) {
 // rebuild used to leave its sockets open; relays limit connections per client and eventually refuse).
 async function destroySigner(signer) {
   if (!signer) return
-  try { await signer.close() } catch (_) {}
-  try { if (signer.pool && signer.bp) signer.pool.close(signer.bp.relays) } catch (_) {}
+  // signer.close() would send CLOSE frames over sockets that are often already dead (console spam
+  // "WebSocket is already in CLOSING or CLOSED state"), so the sockets are simply dropped.
+  try { signer.isOpen = false } catch (_) {}
+  try {
+    if (signer.pool && signer.pool.relays) {
+      for (const r of signer.pool.relays.values()) {
+        try { r._connected = false; r.close() } catch (_) {}
+      }
+    }
+  } catch (_) {}
 }
 
 // A fresh connection is only trusted once the signer has answered a ping: the answer to a request is an
 // ephemeral event, so a request sent before the subscription is really open would be lost (a fixed sleep
 // was only a guess). A signer that replies with an error (e.g. "ping" unsupported) is alive too.
 async function waitSignerReady(signer) {
-  for (let i = 0; i < 3; i++) {
+  // let the relay sockets open first: a ping sent before the subscription exists is simply lost
+  for (let w = 0; w < 30; w++) {
+    try { if ([...signer.pool.listConnectionStatus().values()].some(Boolean)) break } catch (_) { break }
+    await new Promise(r => setTimeout(r, 200))
+  }
+  await new Promise(r => setTimeout(r, 700))
+  // short timeouts, more tries: a lost ping costs 4 s instead of 9 s
+  for (let i = 0; i < 5; i++) {
     try {
-      await withTimeout(signer.ping(), 5000, "ping timeout")
+      // A restored session never did the NIP-46 "connect" handshake in this browser session. Signers that forget
+      // their clients after a restart stay silent until it is repeated (a fresh login does exactly that, which is
+      // why logging out and in used to fix it). Any answer, even an error, proves the signer is alive.
+      await withTimeout(i % 2 === 0 ? signer.connect() : signer.ping(), 4000, "ping timeout")
       return true
     } catch (err) {
-      if (!(err && err.timedOut)) return true
+      console.warn("[nostr] signer ping failed:", err && (err.message || err))
+      if (!isTransportError(err)) return true
+      // the relay socket is not usable (yet): give the network a moment
+      await new Promise(r => setTimeout(r, 1500))
     }
+  }
+  return false
+}
+
+// nostr-tools leaves a relay with a poisoned connection promise after a failed connect or a close, so every
+// later send through that pool fails at once (AggregateError / "websocket error" / "connection timed out").
+// That is a dead connection, not an answer from the signer. A real answer from the signer is a plain string.
+function isTransportError(err) {
+  if (!err) return false
+  if (err.timedOut) return true
+  if (typeof AggregateError !== "undefined" && err instanceof AggregateError) return true
+  const msg = String(err && err.message ? err.message : err)
+  if (err instanceof Error || typeof err === "string") {
+    return /websocket|connection|closed|not open|sending on|timed out|network|socket/i.test(msg) && (err instanceof Error || msg.length < 60)
   }
   return false
 }
@@ -70,10 +105,26 @@ async function liveSigner(force = false) {
   return bunkerSigner
 }
 
+// Only one rebuild runs at a time and everyone waiting for a connection shares it. Before, the background
+// health check, presence updates and a user action each rebuilt the signer on their own and destroyed each
+// other's fresh connection ("this signer is not open anymore").
+let rebuilding = null
+function rebuildSigner() {
+  if (!rebuilding) {
+    rebuilding = (async () => {
+      const signer = await liveSigner(true)
+      const ok = await waitSignerReady(signer)
+      return { signer, ok }
+    })().finally(() => { rebuilding = null })
+  }
+  return rebuilding
+}
+
 // Runs one signer request. No answer in time usually means the connection went stale: it is rebuilt and
 // the request is sent once more, so the user does not have to log out and in again. An answer that says
 // "no" (the user denied it, an error) is passed on as it is.
 async function viaSigner(call, message) {
+  if (rebuilding) { try { await rebuilding } catch (_) {} }
   const stale = !bunkerSigner || Date.now() - bunkerUsedAt >= SIGNER_FRESH_MS
   let signer = await liveSigner()
   try {
@@ -81,15 +132,18 @@ async function viaSigner(call, message) {
     bunkerUsedAt = Date.now()
     return out
   } catch (err) {
-    if (!(err && err.timedOut)) { bunkerUsedAt = Date.now(); throw err }
+    if (!isTransportError(err)) { bunkerUsedAt = Date.now(); throw err }
   }
-  signer = await liveSigner(true)
-  await waitSignerReady(signer)
+  signer = (await rebuildSigner()).signer
   try {
     const out = await withTimeout(call(signer), SIGN_TIMEOUT, message)
     bunkerUsedAt = Date.now()
     return out
   } catch (err) {
+    if (isTransportError(err) && !err.timedOut) {
+      bunkerUsedAt = 0
+      throw new Error("Cannot reach the signer's relays right now. Check your internet connection and that the signer app is online, then try again.")
+    }
     bunkerUsedAt = 0   // the next request starts from a clean connection
     throw err
   }
@@ -214,11 +268,10 @@ export function checkSession() {
     try {
       if (bunkerSigner) {
         try { await withTimeout(bunkerSigner.ping(), STALE_TRY_MS, "ping timeout"); bunkerUsedAt = Date.now(); return "ok" } catch (err) {
-          if (!(err && err.timedOut)) { bunkerUsedAt = Date.now(); return "ok" }
+          if (!isTransportError(err)) { bunkerUsedAt = Date.now(); return "ok" }
         }
       }
-      const signer = await liveSigner(true)
-      return (await waitSignerReady(signer)) ? "ok" : "stale"
+      return (await rebuildSigner()).ok ? "ok" : "stale"
     } catch (_) {
       return "stale"
     } finally {
@@ -232,7 +285,9 @@ let lastCheck = 0
 function checkAndReport(minGap) {
   if (!session || Date.now() - lastCheck < minGap) return
   lastCheck = Date.now()
-  checkSession().then(r => {
+  // a signer app that is waking up (or a network that is still coming up after boot) gets a second chance before the user is warned
+  checkSession().then(async r => {
+    if (r === "stale") { await new Promise(res => setTimeout(res, 12000)); r = await checkSession() }
     if (r === "stale") document.dispatchEvent(new CustomEvent("fony:nostr-stale"))
   }).catch(() => {})
 }
