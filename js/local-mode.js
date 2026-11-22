@@ -901,7 +901,8 @@ export function enterLocalMode(context) {
 
   const addBtn = document.getElementById('localAddFolderBtn');
   if (addBtn) {
-    addBtn.onclick = addFolderFromPicker;
+    // the folder icon takes you to the library (folders and playlists); adding a folder is the dashed row in there
+    addBtn.onclick = () => setView({ kind: 'home' });
   }
   document.addEventListener('localFavoritesChanged', onFavoritesChanged);
   if (ctx.scroller) {

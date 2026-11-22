@@ -1253,8 +1253,8 @@ function switchToLocal(opts = {}) {
   const g = document.querySelector(".genre-box")
   if (g) {
     g.innerHTML = `
-      <button id="localAddFolderBtn" title="Add music folder" aria-label="Add music folder">
-        <img src="/img/local.svg" alt="Add folder">
+      <button id="localAddFolderBtn" title="Library" aria-label="Library: your folders and playlists">
+        <img src="/img/local.svg" alt="Library">
       </button>
       <span id="localModeLabel">My music</span>
       <div class="search-wrapper">
