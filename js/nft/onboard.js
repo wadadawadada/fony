@@ -11,7 +11,7 @@ const POLL_MS = 45 * 1000
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]))
 
 // what the musician typed survives a switch of tab (the form is redrawn every time)
-const form = { artist: "", contact: "", genre: "", links: "", bio: "", agree: false }
+const form = { artist: "", genre: "", links: "", bio: "", agree: false }
 
 function loadCss() {
   if (document.querySelector(`link[data-nft][href="${CSS}"]`)) return
@@ -23,7 +23,7 @@ function loadCss() {
 }
 
 async function api(path, options) {
-  const res = await fetch(BACKEND + "/api/label" + path, options)
+  const res = await fetch(BACKEND + "/api/label" + path, { ...options, signal: AbortSignal.timeout(20000) })
   let data = {}
   try { data = await res.json() } catch (_) {}
   if (!res.ok && !data.status) throw new Error(data.error || "The server answered with " + res.status)
@@ -48,12 +48,11 @@ function formHtml(busy) {
   return `
     <form class="ob-form" id="obForm" novalidate>
       <label class="ob-f"><span>Artist or project name</span><input class="nft-input" name="artist" maxlength="80" value="${esc(form.artist)}" required></label>
-      <label class="ob-f"><span>How can we reach you?</span><input class="nft-input" name="contact" maxlength="120" placeholder="Email or Telegram" value="${esc(form.contact)}" required></label>
       <label class="ob-f wide"><span>Genre <i>optional</i></span><input class="nft-input" name="genre" maxlength="60" placeholder="Dub, ambient, techno…" value="${esc(form.genre)}"></label>
       <label class="ob-f wide"><span>Links to your music</span><textarea class="nft-input" name="links" rows="3" maxlength="600" placeholder="Bandcamp, SoundCloud, YouTube, socials: one per line" required>${esc(form.links)}</textarea></label>
       <label class="ob-f wide"><span>About you <i>optional</i></span><textarea class="nft-input" name="bio" rows="3" maxlength="1200" placeholder="A few words about what you make and what you want to release">${esc(form.bio)}</textarea></label>
       <input class="ob-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <label class="ob-agree"><input type="checkbox" name="agree" ${form.agree ? "checked" : ""}><span>The music is mine, and you may contact me about the label.</span></label>
+      <label class="ob-agree"><input type="checkbox" name="agree" ${form.agree ? "checked" : ""}><span>The music is mine.</span></label>
       <div class="ob-send">
         <button type="submit" class="nft-btn" ${busy ? "disabled" : ""}>${ic("rocket")} ${busy ? "Sending…" : "Sign and send"}</button>
         <p class="ob-msg" id="obMsg" role="status"></p>
@@ -64,7 +63,7 @@ function formHtml(busy) {
 function resultHtml(st, go, explorer) {
   if (st.status === "pending") {
     return `<div class="ob-card"><span class="ob-badge">${ic("clock")}</span><h3>Application received</h3>
-      <p>We read every application by hand. You will be contacted once it is reviewed. This page updates by itself when you are approved.</p></div>`
+      <p>We read every application by hand. This page updates by itself once you are approved.</p></div>`
   }
   if (st.status === "approved") {
     return `<div class="ob-card ok"><span class="ob-badge">${ic("check")}</span><h3>You are in</h3>
@@ -82,6 +81,7 @@ export function drawOnboard(pane, { Wallet, connect, go, toast }) {
   let dead = false
   let timer = null
   let busy = false
+  let shown = false   // a form or a status is on screen (not just the loading card)
 
   const shell = (body, active) => {
     pane.innerHTML = `
@@ -110,19 +110,21 @@ export function drawOnboard(pane, { Wallet, connect, go, toast }) {
   }
 
   function drawForm(message) {
+    shown = true
     shell(formHtml(busy), 2)
     const f = pane.querySelector("#obForm")
     const msg = pane.querySelector("#obMsg")
     if (message) { msg.textContent = message; msg.classList.add("err") }
     f.addEventListener("input", () => {
       const d = new FormData(f)
-      for (const k of ["artist", "contact", "genre", "links", "bio"]) form[k] = String(d.get(k) || "")
+      for (const k of ["artist", "genre", "links", "bio"]) form[k] = String(d.get(k) || "")
       form.agree = f.elements.agree.checked
     })
     f.addEventListener("submit", (e) => { e.preventDefault(); submit(f, msg) })
   }
 
   function drawStatus(st) {
+    shown = true
     shell(resultHtml(st, go, "https://tzkt.io"), 3)
     clearTimeout(timer)
     if (st.status === "pending" || st.status === "approved") timer = setTimeout(refresh, POLL_MS)
@@ -138,7 +140,7 @@ export function drawOnboard(pane, { Wallet, connect, go, toast }) {
     } catch (err) {
       if (dead) return
       // keep an application that is already on screen, only retry later
-      if (!pane.querySelector(".ob-card")) shell(`<div class="ob-card"><span class="ob-badge">${ic("info")}</span><h3>Applications are not available right now</h3><p>${esc(err.message)}. Please try again in a moment.</p><div class="ob-actions"><button type="button" class="nft-btn ghost" id="obRetry">${ic("refresh")} Try again</button></div></div>`, 2)
+      if (!shown) shell(`<div class="ob-card"><span class="ob-badge">${ic("info")}</span><h3>Applications are not available right now</h3><p>${esc(String(err.message).replace(/[.]+$/, ""))}. Please try again in a moment.</p><div class="ob-actions"><button type="button" class="nft-btn ghost" id="obRetry">${ic("refresh")} Try again</button></div></div>`, 2)
       const retry = pane.querySelector("#obRetry")
       if (retry) retry.addEventListener("click", () => { drawChecking(); refresh() })
       else timer = setTimeout(refresh, POLL_MS)
@@ -151,7 +153,6 @@ export function drawOnboard(pane, { Wallet, connect, go, toast }) {
     msg.classList.remove("err")
     const d = new FormData(f)
     if (!form.artist.trim()) return fail("Tell us your artist or project name.")
-    if (!form.contact.trim()) return fail("Leave a way to contact you.")
     if (!form.links.trim()) return fail("Add a link to your music.")
     if (!form.agree) return fail("Please tick the box at the end.")
     busy = true
