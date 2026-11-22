@@ -119,7 +119,17 @@ export async function release() {
   wallet = null
   toolkit = null
   address = null
+  // Beacon's destroy() also erases its saved session ("beacon:*" keys), which logged the wallet out on every close:
+  // the keys are put back after it has stopped the connection.
+  const saved = []
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (k && k.startsWith("beacon:")) saved.push([k, localStorage.getItem(k)])
+    }
+  } catch (_) {}
   try { if (w && w.client && typeof w.client.destroy === "function") await w.client.destroy() } catch (_) {}
+  try { for (const [k, v] of saved) localStorage.setItem(k, v) } catch (_) {}
 }
 
 export async function getContract(kt) {

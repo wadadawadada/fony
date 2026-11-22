@@ -1,3 +1,4 @@
+import { frame, unframe } from './gate.js'
 export default function Line({ container, analyser }) {
   const h = 72
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
@@ -37,7 +38,7 @@ export default function Line({ container, analyser }) {
   let lastAlpha = 1
 
   function loop() {
-    raf = requestAnimationFrame(loop)
+    raf = frame(loop)
     analyser.getByteTimeDomainData(time)
     const w = container.clientWidth || 120
     const mid = h / 2
@@ -68,7 +69,7 @@ export default function Line({ container, analyser }) {
     loop()
   }
   function stop() {
-    if (raf) cancelAnimationFrame(raf)
+    if (raf) unframe(raf)
     raf = null
   }
   function destroy() {

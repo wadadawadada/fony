@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sendImg: '/img/send.svg',
       manifestoBtn: '/img/about_icon.svg',
       nostrModeIcon: '/img/nostr.svg',
-      localModeIcon: '/img/local.svg',
+      localModeIcon: '/img/local_library.svg',
       settingsBtnIcon: '/img/gear.svg',
       gamesBtnIcon: '/img/gamepad.svg',
       nftBtnIcon: '/img/nft.svg'
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sendImg: '/img/dark/send.svg',
       manifestoBtn: '/img/dark/about_icon.svg',
       nostrModeIcon: '/img/dark/nostr.svg',
-      localModeIcon: '/img/dark/local.svg',
+      localModeIcon: '/img/dark/local_library.svg',
       settingsBtnIcon: '/img/dark/gear.svg',
       gamesBtnIcon: '/img/dark/gamepad.svg',
       nftBtnIcon: '/img/dark/nft.svg'

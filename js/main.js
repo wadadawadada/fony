@@ -15,7 +15,8 @@ import { initCustomGenreSelect, setSelectedGenre, getSelectedGenre } from './cus
 import { pickPlaylist as pickTastePlaylist, trackListen, stopTracking as stopTasteTracking } from './taste.js';
 import { loadCustomPlaylists,saveCustomPlaylist, deleteCustomPlaylist, normalizePlaylistUrl, suggestNameFromUrl } from './custom-playlists.js';
 import { loadMergedPlaylistFolder as fetchMergedPlaylistFolder } from './merged-playlist-catalog.js'
-import { stationLogosEnabled } from './utils/favLogos.js';
+import { stationLogosEnabled } from './utils/favLogos.js'
+import { isMissing, markMissing } from './utils/missing.js';
 
 let currentMode = "radio"
 let currentParsingUrl = ""
@@ -36,8 +37,6 @@ const CHUNK_SIZE = 30
 const BUFFER_THRESHOLD = 30
 let playCheckTimer = null
 let preloaderInterval = null
-let lastChatUpdate = 0
-let lastMetadataUpdate = 0
 let userPaused = false;
 let radioSearchPool = []
 let radioSearchPoolLoadingPromise = null
@@ -56,6 +55,9 @@ const searchByMode = {
 }
 // const chatUpdateInterval = 15000
 const metadataUpdateInterval = 7000
+// how many answers in a row the current station gave without a track name (the poll slows down while this grows)
+let metaMisses = 0
+let metaMissUrl = null
 const RADIO_SEARCH_POOL_IDLE_TTL = 120000
 
 const audioPlayer = document.getElementById('audioPlayer')
@@ -591,7 +593,9 @@ function applyActiveStationArt() {
       if (li.style.getPropertyValue("--station-logo") !== `url("${logo}")`) {
         li.style.setProperty("--station-logo", `url("${logo}")`)
       }
-      li.classList.add("has-logo")
+      // add() rewrites the attribute even when the class is already there, and the observer below watches class changes:
+      // doing it every time made a loop that never stopped (60+ rewrites a second)
+      if (!li.classList.contains("has-logo")) li.classList.add("has-logo")
     } else if (li.classList.contains("has-logo")) {
       li.classList.remove("has-logo")
       li.style.removeProperty("--station-logo")
@@ -893,10 +897,11 @@ function setStationArt(st) {
     applyActiveStationArt()
   }
   if (stationArtCache.has(key)) { done(stationArtCache.get(key)); return }
+  if (isMissing("logo:" + key)) { stationArtCache.set(key, null); return }   // the server had no logo for it a while ago
   const src = `${FONY_BACKEND_URL}/api/station-logo?kind=logo&name=${encodeURIComponent(st.title)}&url=${encodeURIComponent(st.originalUrl || st.url || "")}`
   const img = new Image()
   img.onload = () => { stationArtCache.set(key, src); done(src) }
-  img.onerror = () => { stationArtCache.set(key, null) }
+  img.onerror = () => { stationArtCache.set(key, null); markMissing("logo:" + key) }
   img.src = src
 }
 
@@ -1254,7 +1259,7 @@ function switchToLocal(opts = {}) {
   if (g) {
     g.innerHTML = `
       <button id="localAddFolderBtn" title="Library" aria-label="Library: your folders and playlists">
-        <img src="/img/local.svg" alt="Library">
+        <img src="/img/local_library.svg" alt="Library">
       </button>
       <span id="localModeLabel">My music</span>
       <div class="search-wrapper">
@@ -1543,6 +1548,7 @@ function checkRealBuffering(durationMs, li, cb) {
 function updateStreamMetadata(u) {
   if (playingMode() === "local" || !u) return
   if (u !== currentParsingUrl) return
+  if (u !== metaMissUrl) { metaMissUrl = u; metaMisses = 0 }   // a new station starts at the normal pace
   const rg = document.querySelector(".right-group")
   if (!rg) return
   rg.style.display = "flex"
@@ -1551,6 +1557,7 @@ function updateStreamMetadata(u) {
   Promise.race([p, t]).then(r => {
     if (u !== currentParsingUrl) return
     if (r && r.trim() && r !== "No Metadata" && r !== "No Track Data") {
+      metaMisses = 0
       const changed = lastValidNowPlaying !== r.trim()
       lastValidNowPlaying = r.trim()
       const su = "https://www.google.com/search?q=" + encodeURIComponent(lastValidNowPlaying)
@@ -1572,6 +1579,7 @@ function updateStreamMetadata(u) {
       }
       if (changed) announceNowPlaying(lastValidNowPlaying)
     } else {
+      metaMisses++
       if (!lastValidNowPlaying) {
         rg.innerHTML = `
           <img src="/img/news_icon.svg" alt="Info Icon" class="track-icon">
@@ -2341,16 +2349,27 @@ if (randomBtn) {
 
 initVolumeControl(audioPlayer, document.querySelector(".volume-slider"), document.querySelector(".volume-knob"), defaultVolume)
 
-function globalUpdater(ts) {
-  if (!lastChatUpdate) lastChatUpdate = ts
-  if (!lastMetadataUpdate) lastMetadataUpdate = ts
-  if (ts - lastMetadataUpdate >= metadataUpdateInterval) {
-    updateStreamMetadata(currentParsingUrl)
-    lastMetadataUpdate = ts
-  }
-  requestAnimationFrame(globalUpdater)
+// The "now playing" poll. It used to ride on a requestAnimationFrame loop (60 wake-ups a second to check a clock); now it
+// is a plain timer: every 7 s while the page is visible. A station that keeps answering with no track name is asked
+// less and less often (7, 14, then every 28 s), and the pace resets on a new station or as soon as a real answer comes.
+let lastMetaPoll = 0
+function metadataDelay() {
+  return metadataUpdateInterval * Math.pow(2, Math.min(metaMisses, 2))
 }
-requestAnimationFrame(globalUpdater)
+function metadataTick() {
+  if (!document.hidden) {
+    lastMetaPoll = Date.now()
+    updateStreamMetadata(currentParsingUrl)
+  }
+  setTimeout(metadataTick, metadataDelay())
+}
+setTimeout(metadataTick, metadataUpdateInterval)
+// coming back to the tab refreshes the track right away, as the old loop did
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden || Date.now() - lastMetaPoll < metadataUpdateInterval) return
+  lastMetaPoll = Date.now()
+  updateStreamMetadata(currentParsingUrl)
+})
 
 function playRandomGenreAndStation() {
   if (!allPlaylists.length) return;

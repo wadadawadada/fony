@@ -1,3 +1,5 @@
+import { isMissing, markMissing } from "./missing.js";
+
 const FONY_BACKEND_URL = window.FONY_BACKEND_URL || "https://fonyserver.up.railway.app";
 
 function sanitizeQuery(str) {
@@ -23,7 +25,11 @@ function plainQuery(str) {
 }
 
 async function searchDiscogs(query) {
-  return fetch(`${FONY_BACKEND_URL}/api/discogs/search?q=${encodeURIComponent(query)}`)
+  // a release that Discogs did not know a short while ago is not asked for again
+  if (isMissing("discogs:" + query)) return new Response(null, { status: 404 })
+  const resp = await fetch(`${FONY_BACKEND_URL}/api/discogs/search?q=${encodeURIComponent(query)}`)
+  if (resp.status === 404) markMissing("discogs:" + query)
+  return resp
 }
 
 function escapeHtml(text) {

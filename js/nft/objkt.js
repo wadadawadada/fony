@@ -3,7 +3,10 @@
 
 import { NETWORKS } from "./wallet.js"
 
-export const FONY_TAG = "fony-nft"
+// Every release made in the studio carries this tag and the attribute below. objkt indexes tags and attributes (it does
+// not index the mintingTool field), so the gallery can filter on them in the query itself.
+export const FONY_TAG = "fony label"
+export const FONY_ATTRIBUTE = { name: "Minted with", value: "FONY" }
 const GQL = "https://data.objkt.com/v3/graphql"
 // objkt's Minting Factory (mainnet): collections made on objkt.com/create live here, and only the factory
 // can mint into them, so the studio talks to the factory instead of to the collection contract.
@@ -30,6 +33,11 @@ export function ipfsVia(gateway, uri) {
   return uri
 }
 
+// A page (HTML) has to come from a gateway that serves HTML: Pinata's public gateway answers 403 for it.
+export function ipfsHtml(uri) {
+  return ipfsVia("https://ipfs.filebase.io/ipfs/", uri)
+}
+
 export function ipfsUrl(uri) {
   if (!uri) return ""
   if (uri.startsWith("ipfs://")) return GATEWAYS[0] + uri.slice(7).replace(/^ipfs\//, "")
@@ -47,7 +55,13 @@ const TOKEN_FIELDS = `
 
 // Tokens carrying the FONY tag. owner/creator filters are optional.
 export async function browseTokens({ creator = null, search = "", limit = 24, offset = 0 } = {}) {
-  const where = { _and: [{ tags: { tag: { name: { _eq: FONY_TAG } } } }] }
+  // supply 0 = every edition was burned (sent to the burn address): such a release is gone and is not listed
+  // the tag AND the "Minted with: FONY" attribute: copying only the tag is not enough to appear in the feed
+  const where = { _and: [
+    { tags: { tag: { name: { _eq: FONY_TAG } } } },
+    { attributes: { attribute: { name: { _eq: FONY_ATTRIBUTE.name }, value: { _eq: FONY_ATTRIBUTE.value } } } },
+    { supply: { _gt: 0 } }
+  ] }
   if (creator) where._and.push({ creators: { creator_address: { _eq: creator } } })
   if (search) where._and.push({ name: { _ilike: "%" + search.replace(/[%_]/g, "") + "%" } })
   const data = await gql(

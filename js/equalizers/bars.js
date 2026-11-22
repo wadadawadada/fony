@@ -1,3 +1,4 @@
+import { frame, unframe } from './gate.js'
 export default function Bars({ container, analyser }) {
   analyser.fftSize = 128; // всегда сбрасывай для режима bars
 
@@ -21,7 +22,7 @@ export default function Bars({ container, analyser }) {
 
   let raf = null;
   function loop() {
-    raf = requestAnimationFrame(loop);
+    raf = frame(loop);
     analyser.getByteFrequencyData(freqData);
     for (let i = 0; i < halfBars; i++) {
       const start = Math.floor(i * bandSize);
@@ -41,7 +42,7 @@ export default function Bars({ container, analyser }) {
     loop();
   }
   function stop() {
-    if (raf) cancelAnimationFrame(raf);
+    if (raf) unframe(raf);
     raf = null;
   }
   function destroy() {

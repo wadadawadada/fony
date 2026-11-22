@@ -1,3 +1,4 @@
+import { frame, unframe } from './gate.js'
 export default function Sheep({ container, analyser }) {
   const SHEEP_SVG_PATH = "/js/equalizers/img/sheep.svg";
   const CLOUD_SVG_PATH = "/js/equalizers/img/cloud.svg";
@@ -901,7 +902,7 @@ export default function Sheep({ container, analyser }) {
     });
   }
   function loop() {
-    raf = requestAnimationFrame(loop);
+    raf = frame(loop);
     const level = getLevel();
     const t = performance.now();
     animateSheep(level, t);
@@ -916,7 +917,7 @@ export default function Sheep({ container, analyser }) {
     loop();
   }
   function stop() {
-    if (raf) cancelAnimationFrame(raf);
+    if (raf) unframe(raf);
     raf = null;
   }
   function destroy() {

@@ -1,3 +1,4 @@
+import { frame, unframe } from './gate.js'
 // Underwater equalizer. Every element is driven by a real part of the spectrum:
 //  - seabed profile + seaweed strands: one frequency band each (bass on the left, treble on the right)
 //  - bubbles: rise from the strand whose band is loud; the bass beat releases a burst of big ones
@@ -317,7 +318,7 @@ export default function Fish({ container, analyser }) {
 
   let lastT = 0
   function loop(now) {
-    raf = requestAnimationFrame(loop)
+    raf = frame(loop)
     const dt = Math.min(48, lastT ? now - lastT : 16)
     lastT = now
     resize()
@@ -346,10 +347,10 @@ export default function Fish({ container, analyser }) {
     analyser.fftSize = 512
     resize()
     fish.x = Math.min(40, W / 2)
-    if (!raf) raf = requestAnimationFrame(loop)
+    if (!raf) raf = frame(loop)
   }
   function stop() {
-    if (raf) cancelAnimationFrame(raf)
+    if (raf) unframe(raf)
     raf = null
     lastT = 0
   }

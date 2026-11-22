@@ -38,15 +38,11 @@ export async function testJwt(jwt = getJwt()) {
   } catch (_) { return "unknown" }
 }
 
-// Uploads a File/Blob, resolves "ipfs://<cid>". onProgress(0..1) when the browser reports it.
-export function pinFile(file, name, onProgress) {
+// One upload request to Pinata. Resolves the root hash of what was pinned (a file, or the folder for a folder upload).
+function send(form, onProgress) {
   const jwt = getJwt()
   if (!jwt) return Promise.reject(new Error("Add your Pinata key in the studio settings first"))
   return new Promise((resolve, reject) => {
-    const form = new FormData()
-    form.append("file", file, name || file.name || "file")
-    form.append("pinataOptions", JSON.stringify({ cidVersion: 1 }))
-    form.append("pinataMetadata", JSON.stringify({ name: name || file.name || "fony" }))
     const xhr = new XMLHttpRequest()
     xhr.open("POST", ENDPOINT)
     xhr.setRequestHeader("Authorization", "Bearer " + jwt)
@@ -64,6 +60,29 @@ export function pinFile(file, name, onProgress) {
     }
     xhr.send(form)
   })
+}
+
+// Uploads a File/Blob, resolves "ipfs://<cid>". onProgress(0..1) when the browser reports it.
+export function pinFile(file, name, onProgress) {
+  const form = new FormData()
+  form.append("file", file, name || file.name || "file")
+  form.append("pinataOptions", JSON.stringify({ cidVersion: 1 }))
+  form.append("pinataMetadata", JSON.stringify({ name: name || file.name || "fony" }))
+  return send(form, onProgress)
+}
+
+// Uploads several files as ONE folder (an IPFS directory), so a release's media is a single item in Pinata instead of
+// loose files. entries: [{ file, path }] with simple names ("cover.jpg", "01-song.mp3"); the folder is called `folder`.
+// Resolves "ipfs://<folder cid>"; a file inside it is then "ipfs://<folder cid>/<path>".
+export function pinFolder(entries, folder, onProgress) {
+  // the folder name is one path segment: slashes and control characters cannot be in it
+  const slash = new Set(["/", String.fromCharCode(92)])
+  const root = Array.from(String(folder || "release")).map(ch => (slash.has(ch) || ch.charCodeAt(0) < 32 ? " " : ch)).join("").replace(/ +/g, " ").trim() || "release"
+  const form = new FormData()
+  for (const { file, path } of entries) form.append("file", file, root + "/" + path)   // a shared first path segment makes the folder
+  form.append("pinataOptions", JSON.stringify({ cidVersion: 1 }))
+  form.append("pinataMetadata", JSON.stringify({ name: root }))
+  return send(form, onProgress)
 }
 
 export function pinJson(obj, name) {

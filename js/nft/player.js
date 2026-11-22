@@ -42,9 +42,9 @@ html,body{height:100%;background:#0b0f1c;color:#fff;font-family:Ruda,system-ui,-
 @media (prefers-reduced-motion:reduce){#art{animation:none}}
 #scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,11,22,.72) 0,rgba(8,11,22,.05) 34%,rgba(8,11,22,.1) 52%,rgba(8,11,22,.92) 100%)}
 header{position:absolute;left:0;right:0;top:0;padding:5cqmin 5.5cqmin 0;display:flex;align-items:flex-start;gap:3cqmin}
-.head{flex:1;min-width:0}
+.head{flex:1;min-width:0;filter:drop-shadow(0 .4cqmin 1.6cqmin rgba(0,0,0,.6))}
 #artist{font-size:2.5cqmin;letter-spacing:.9cqmin;text-transform:uppercase;color:#00F2B8;margin-bottom:1cqmin;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-h1{font-size:6.4cqmin;line-height:1.05;font-weight:800;letter-spacing:-.1cqmin;text-shadow:0 .4cqmin 3cqmin rgba(0,0,0,.6);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+h1{font-size:6.4cqmin;line-height:1.2;padding-bottom:.12em;font-weight:800;letter-spacing:-.1cqmin;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 #lb.on,#mlb.on{color:#00F2B8}
 .sp{flex:none;width:9cqmin;height:9cqmin}
 .dock{position:absolute;left:4cqmin;right:4cqmin;bottom:4cqmin;padding:3.4cqmin 4cqmin 3.6cqmin;border-radius:5cqmin;background:rgba(12,17,32,.55);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:.25cqmin solid rgba(255,255,255,.14);box-shadow:0 2cqmin 6cqmin rgba(0,0,0,.45)}
@@ -137,7 +137,18 @@ var a=$("a"),idx=0,gi=0,T=D.tracks,st=$("stage");
 function src(i,g){var t=T[i];return t.audioUrl||D.gateways[g]+t.audio}
 function cov(g){return D.coverUrl||D.gateways[g]+D.cover}
 $("title").textContent=D.title;$("artist").textContent=D.artist||"FONY";
-if(D.cover||D.coverUrl){var c='url("'+cov(0)+'")';$("art").style.backgroundImage=c;$("fillbg").style.backgroundImage=c}
+function paint(u){var c='url("'+u+'")';$("art").style.backgroundImage=c;$("fillbg").style.backgroundImage=c}
+if(D.coverUrl){paint(D.coverUrl)}else if(D.cover){
+ /* the cover tries the gateways one after another (a slow or refusing one is given 5 s), like the audio does */
+ var cg=0,cgot=false;
+ (function next(){
+  if(cgot||cg>=D.gateways.length)return;
+  var g=cg++,im=new Image(),t=setTimeout(next,5000);
+  im.onload=function(){if(cgot)return;cgot=true;clearTimeout(t);paint(cov(g))};
+  im.onerror=function(){clearTimeout(t);next()};
+  im.src=cov(g)
+ })()
+}
 function fmt(s){if(!isFinite(s))return"0:00";s=Math.floor(s);return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2)}
 var list=$("list");
 T.forEach(function(t,i){var li=document.createElement("li");li.innerHTML='<span class="n"></span><span class="tt"></span><span class="ta"></span>';li.children[0].textContent=i+1;li.children[1].textContent=t.title;li.children[2].textContent=t.artist&&t.artist!==D.artist?t.artist:"";li.onclick=function(){load(i,true);setList(false)};list.appendChild(li)});

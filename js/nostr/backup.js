@@ -18,7 +18,7 @@ const CHUNK_CHARS = 60 * 1024          // each relay event carries at most this 
 const MAX_CHUNKS = 8
 
 // Never part of a backup: sign-in material and re-creatable caches.
-const EXCLUDED = /^(fonyNostrSession|fonyNostrProfiles|fonyNostrFollows|fonyNostrListCache|fonyNftPinataJwt|fonyNftHadWallet)$/
+const EXCLUDED = /^(fonyNostrSession|fonyNostrProfiles|fonyNostrFollows|fonyNostrListCache|fonyNftPinataJwt|fonyNftHadWallet|fonyMissing)$/
 
 export function backupEntries() {
   const data = {}

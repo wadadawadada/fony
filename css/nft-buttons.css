@@ -57,7 +57,10 @@
 .nft-modal .nft-head .nft-tabs button { border-radius: 999px; padding: 8px 17px; color: var(--t1); transition: background-color 0.2s, color 0.2s, transform 0.18s var(--spring); }
 .nft-modal .nft-head .nft-tabs button:hover { background: rgb(var(--ink-rgb) / 0.08); color: var(--t0); }
 .nft-modal .nft-head .nft-tabs button:active { transform: scale(0.95); }
-.nft-modal .nft-head .nft-tabs button.on { background: var(--nft-accent); color: var(--on-accent); font-weight: 700; }
+.nft-modal .nft-head .nft-tabs button { position: relative; }
+.nft-modal .nft-head .nft-tabs button::after { content: ""; position: absolute; left: 17px; right: 17px; bottom: 2px; height: 2px; border-radius: 2px; background: var(--accent-text); transform: scaleX(0); transition: transform 0.25s var(--spring); }
+.nft-modal .nft-head .nft-tabs button.on { background: none; color: var(--accent-text); font-weight: 700; }
+.nft-modal .nft-head .nft-tabs button.on::after { transform: scaleX(1); }
 .nft-modal .nft-head .nft-tabs button .nft-ic { transition: transform 0.3s var(--spring); }
 .nft-modal .nft-head .nft-tabs button:hover .nft-ic { transform: rotate(-8deg) scale(1.12); }
 

@@ -1,3 +1,4 @@
+import { frame, unframe } from './gate.js'
 export default function Lava({ container, analyser }) {
   const h = 72;
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -182,7 +183,7 @@ export default function Lava({ container, analyser }) {
     }
   }
   function loop(t) {
-    raf = requestAnimationFrame(loop);
+    raf = frame(loop);
     const now = t || performance.now();
     const dt = clamp((now - lastT) / 16.6667, 0.5, 2.0);
     lastT = now;
@@ -195,7 +196,7 @@ export default function Lava({ container, analyser }) {
     loop(lastT);
   }
   function stop() {
-    if (raf) cancelAnimationFrame(raf);
+    if (raf) unframe(raf);
     raf = null;
   }
   function destroy() {

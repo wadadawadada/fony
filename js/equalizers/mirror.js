@@ -1,3 +1,4 @@
+import { frame, unframe } from './gate.js'
 // Mirror equalizer: symmetric left/right about the centre of the strip, growing upwards from a baseline.
 // Bass sits in the middle and the spectrum opens towards both edges. Layers (back to front):
 //   1. three flowing "aurora" ribbons with different response speeds (slow violet, medium cyan, fast mint)
@@ -261,7 +262,7 @@ export default function Mirror({ container, analyser }) {
 
   let lastT = 0
   function loop(now) {
-    raf = requestAnimationFrame(loop)
+    raf = frame(loop)
     const dt = Math.min(48, lastT ? now - lastT : 16)
     lastT = now
     resize()
@@ -296,10 +297,10 @@ export default function Mirror({ container, analyser }) {
   function start() {
     analyser.fftSize = 512
     resize()
-    if (!raf) raf = requestAnimationFrame(loop)
+    if (!raf) raf = frame(loop)
   }
   function stop() {
-    if (raf) cancelAnimationFrame(raf)
+    if (raf) unframe(raf)
     raf = null
     lastT = 0
   }

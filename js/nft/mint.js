@@ -1,9 +1,9 @@
 // The minting pipeline: pin audio + cover, build the HTML player, pin it, write the TZIP-21 metadata,
 // pin that, then mint every token from the wallet in batches (one wallet confirmation per batch).
 
-import { pinFile, pinJson, pinHtml } from "./ipfs.js"
+import { pinFile, pinFolder, pinJson, pinHtml } from "./ipfs.js"
 import { buildPlayerHtml } from "./player.js"
-import { FONY_TAG, FACTORY, contractEntrypoints, nextTokenId, newestTokenId } from "./objkt.js"
+import { FONY_TAG, FONY_ATTRIBUTE, FACTORY, contractEntrypoints, nextTokenId, newestTokenId } from "./objkt.js"
 import { getContract, getState } from "./wallet.js"
 
 
@@ -42,6 +42,66 @@ export function mintAdapter(entrypoints) {
 
 const audioMime = (file) => file.type || ({ mp3: "audio/mpeg", wav: "audio/wav", flac: "audio/flac", ogg: "audio/ogg", m4a: "audio/mp4", aac: "audio/aac", opus: "audio/opus" }[(file.name.split(".").pop() || "").toLowerCase()] || "audio/mpeg")
 
+const FOLDER_LIMIT = 90 * 1024 * 1024   // bytes of media in one folder upload
+
+// A cover is only a picture, but a 3 MB PNG is slow to fetch from public gateways and every card and player has to wait
+// for it. A big cover is resized to at most 1600 px and saved as JPEG (as PNG when the picture has transparency); a
+// small one, an animation or a vector image is left alone, and the original is never replaced by something bigger.
+const COVER_MAX = 1600
+const COVER_KEEP = 700 * 1024
+export async function optimizeCover(file) {
+  const type = (file && file.type) || ""
+  if (!file || !type.startsWith("image/") || /gif|svg/.test(type)) return file
+  try {
+    const bmp = await createImageBitmap(file)
+    const scale = Math.min(1, COVER_MAX / Math.max(bmp.width, bmp.height))
+    if (scale === 1 && file.size <= COVER_KEEP) { if (bmp.close) bmp.close(); return file }
+    const w = Math.max(1, Math.round(bmp.width * scale))
+    const h = Math.max(1, Math.round(bmp.height * scale))
+    const canvas = document.createElement("canvas")
+    canvas.width = w
+    canvas.height = h
+    const g = canvas.getContext("2d")
+    g.drawImage(bmp, 0, 0, w, h)
+    if (bmp.close) bmp.close()
+    let alpha = false
+    const px = g.getImageData(0, 0, w, h).data
+    for (let i = 3; i < px.length; i += 4) { if (px[i] < 255) { alpha = true; break } }
+    const out = alpha ? "image/png" : "image/jpeg"
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, out, 0.9))
+    if (!blob || blob.size >= file.size) return file
+    return new File([blob], "cover." + (alpha ? "png" : "jpg"), { type: out })
+  } catch (_) {
+    return file
+  }
+}
+
+// plain ASCII file names inside the folder ("01-low-light.mp3"): they travel in URLs, titles can be in any language
+const asciiSlug = (s) => {
+  const ascii = Array.from(String(s || "").normalize("NFKD")).filter(ch => ch.charCodeAt(0) < 128).join("")
+  return ascii.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40)
+}
+const extOf = (file, fallback) => {
+  const m = /[.]([A-Za-z0-9]{1,5})$/.exec((file && file.name) || "")
+  return (m ? m[1] : fallback).toLowerCase()
+}
+
+// What goes into the release folder: the tracks in order, then the cover.
+export function planFolder(release) {
+  const pad = Math.max(2, String(release.tracks.length).length)
+  const entries = []
+  const audioPaths = []
+  release.tracks.forEach((t, i) => {
+    const path = `${String(i + 1).padStart(pad, "0")}-${asciiSlug(t.title) || "track"}.${extOf(t.audio, "mp3")}`
+    entries.push({ file: t.audio, path })
+    audioPaths.push(path)
+  })
+  const coverPath = `cover.${extOf(release.cover, "png")}`
+  entries.push({ file: release.cover, path: coverPath })
+  const total = entries.reduce((sum, e) => sum + (e.file.size || 0), 0)
+  return { root: String(release.title || "").trim() || "release", entries, audioPaths, coverPath, total }
+}
+
 // One release = ONE token: a single HTML player holding the whole playlist, one cover.
 // release: { title, artist, description, editions, cover: File, tracks: [{ audio: File, title, artist }] }
 // opts: { collection, royaltiesPct, tags: string[], rights, onStep(label, fraction 0..1) }
@@ -51,6 +111,7 @@ export async function mintRelease(release, opts) {
   if (!opts.collection) throw new Error("Choose a collection")
   if (!release.cover) throw new Error("Add a cover")
   if (!release.tracks.length) throw new Error("Add at least one track")
+  release = { ...release, cover: await optimizeCover(release.cover) }   // a lighter cover loads faster everywhere
   const step = opts.onStep || (() => {})
   const n = release.tracks.length
   // progress weights: audio is the heavy part
@@ -73,24 +134,38 @@ export async function mintRelease(release, opts) {
   }
   base += W.read
 
-  const audioUris = []
-  for (let i = 0; i < n; i++) {
-    const t = release.tracks[i]
-    at(W.audio, i / n, `Uploading track ${i + 1} of ${n}: ${t.title}`)
-    audioUris.push(await pinFile(t.audio, t.audio.name, (p) => at(W.audio, (i + p) / n, `Uploading track ${i + 1} of ${n}: ${t.title}`)))
-  }
-  base += W.audio
+  // The media of a release (tracks + cover) goes up as ONE folder, so it is a single tidy item in Pinata. A folder is
+  // one request, which Pinata caps at about 100 MB; a bigger release is uploaded file by file as before.
+  const plan = planFolder(release)
+  let audioUris = []
+  let coverUri
+  let folderUri = null
+  if (plan.total <= FOLDER_LIMIT) {
+    const label = `Uploading the release folder “${plan.root}”…`
+    at(W.audio + W.cover, 0, label)
+    folderUri = await pinFolder(plan.entries, plan.root, (p) => at(W.audio + W.cover, p, label))
+    audioUris = plan.audioPaths.map(p => `${folderUri}/${p}`)
+    coverUri = `${folderUri}/${plan.coverPath}`
+    base += W.audio + W.cover
+  } else {
+    for (let i = 0; i < n; i++) {
+      const t = release.tracks[i]
+      at(W.audio, i / n, `Uploading track ${i + 1} of ${n}: ${t.title}`)
+      audioUris.push(await pinFile(t.audio, t.audio.name, (p) => at(W.audio, (i + p) / n, `Uploading track ${i + 1} of ${n}: ${t.title}`)))
+    }
+    base += W.audio
 
-  at(W.cover, 0, "Uploading the cover…")
-  const coverUri = await pinFile(release.cover, release.cover.name)
-  base += W.cover
+    at(W.cover, 0, "Uploading the cover…")
+    coverUri = await pinFile(release.cover, release.cover.name)
+    base += W.cover
+  }
 
   at(W.player, 0, "Building the player…")
   const html = buildPlayerHtml({
     title: release.title, artist: release.artist, coverCid: coverUri,
     tracks: release.tracks.map((t, i) => ({ title: t.title, artist: t.artist || release.artist, audioCid: audioUris[i] }))
   })
-  const artifactUri = await pinHtml(html, `${release.title}.html`)
+  const artifactUri = await pinHtml(html, `${plan.root} - player.html`)
   base += W.player
 
   at(W.meta, 0, "Pinning the metadata…")
@@ -119,11 +194,12 @@ export async function mintRelease(release, opts) {
     tags,
     attributes: [
       ...(release.artist ? [{ name: "Artist", value: release.artist }] : []),
-      { name: "Tracks", value: String(n) }
+      { name: "Tracks", value: String(n) },
+      { name: FONY_ATTRIBUTE.name, value: FONY_ATTRIBUTE.value }   // what the gallery filters on, next to the tag
     ],
     royalties: { decimals: 3, shares: { [address]: Math.round(royalties * 10) } }
   }
-  const metadataUri = await pinJson(meta, `${release.title}.json`)
+  const metadataUri = await pinJson(meta, `${plan.root} - metadata.json`)
   base += W.meta
 
   at(W.wallet, 0, "Confirm in your wallet…")

@@ -5,9 +5,9 @@
 const STYLES = [
   "/css/nft-theme.css?v=2",
   "/css/nft.css?v=4",
-  "/css/nft-factory.css?v=19",
+  "/css/nft-factory.css?v=24",
   "/css/nft-about.css?v=9",
-  "/css/nft-buttons.css?v=6"
+  "/css/nft-buttons.css?v=7"
 ]
 
 const btn = document.getElementById("nftBtn")

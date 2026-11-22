@@ -197,8 +197,9 @@ function init() {
     if (!modal) return
     const chip = $("#nftChip")
     const { address, network } = Wallet.getState()
+    const alias = address && profiles.get(address) && profiles.get(address).alias
     chip.innerHTML = address
-      ? `<span class="nft-pill">${avatarHtml(address)}<a class="nft-addr" href="${esc(Objkt.profileLink(network, address))}" target="_blank" rel="noopener noreferrer" title="${esc(address)} — open the profile on objkt">${esc(Wallet.short(address))}</a><button type="button" class="nft-chip-x" id="nftChipLogout" title="Disconnect the wallet" aria-label="Disconnect the wallet">${ic("logout")}</button></span>`
+      ? `<span class="nft-pill">${avatarHtml(address)}<a class="nft-addr" href="${esc(Objkt.profileLink(network, address))}" target="_blank" rel="noopener noreferrer" title="${esc(address)} — open the profile on objkt">${esc(alias || Wallet.short(address))}</a><button type="button" class="nft-chip-x" id="nftChipLogout" title="Disconnect the wallet" aria-label="Disconnect the wallet">${ic("logout")}</button></span>`
       : `<button type="button" class="nft-connect" id="nftChipConnect">${ic("wallet")}<span>Connect wallet</span></button>`
     const c = $("#nftChipConnect")
     if (c) c.addEventListener("click", connectWallet)
@@ -239,7 +240,10 @@ function init() {
           <button type="button" data-mine="0" class="${gal.mine ? "" : "on"}">${ic("grid")} All releases</button>
           <button type="button" data-mine="1" class="${gal.mine ? "on" : ""}" ${address ? "" : "disabled title=\"Connect a wallet to see yours\""}>${ic("user")} Mine</button>
         </div>
-        <label class="nft-search">${ic("search")}<input type="search" class="nft-input" id="nftSearch" placeholder="Search by name" value="${esc(gal.search)}"></label>
+        <label class="nft-hsearch${gal.search ? " open" : ""}">
+          <button type="button" class="nft-hs-btn" aria-label="Search releases">${ic("search")}</button>
+          <input type="search" id="nftSearch" placeholder="Search" autocomplete="off" value="${esc(gal.search)}">
+        </label>
       </div>
       <div class="nft-grid" id="nftGrid"></div>
       <div class="nft-more" id="nftMore"></div>`
@@ -248,11 +252,18 @@ function init() {
       gal.mine = b.dataset.mine === "1"
       reloadGallery()
     }))
-    let timer
-    $("#nftSearch").addEventListener("input", (e) => {
-      clearTimeout(timer)
-      timer = setTimeout(() => { gal.search = e.target.value.trim(); reloadGallery() }, 350)
+    const hs = pane.querySelector(".nft-hsearch"), hsIn = $("#nftSearch")
+    let hsTimer
+    hs.querySelector(".nft-hs-btn").addEventListener("click", (e) => { e.preventDefault(); hs.classList.add("open"); hsIn.focus() })
+    hsIn.addEventListener("input", () => {
+      clearTimeout(hsTimer)
+      hsTimer = setTimeout(() => {
+        gal.search = hsIn.value.trim()
+        gal.tokens = []; gal.done = false; gal.error = ""
+        renderGrid(); loadMore()
+      }, 350)
     })
+    hsIn.addEventListener("blur", () => { if (!hsIn.value) hs.classList.remove("open") })
     renderGrid()
     if (!gal.tokens.length && !gal.loading && !gal.done) loadMore()
   }
@@ -437,7 +448,7 @@ function init() {
   }
 
   function preview(token) {
-    const uri = Objkt.ipfsUrl(token.artifact_uri)
+    const uri = Objkt.ipfsHtml(token.artifact_uri)
     const isHtml = /html/i.test(token.mime || "") || !/^(audio|image|video)/i.test(token.mime || "")
     openOverlay(`<div class="nft-viewer">
       ${isHtml ? `<iframe sandbox="allow-scripts" allow="autoplay" src="${esc(uri)}" title="${esc(token.name)}"></iframe>` : `<p class="nft-note">This token is not a FONY player. <a href="${esc(Objkt.tokenLink("mainnet", token.fa_contract, token.token_id))}" target="_blank" rel="noopener noreferrer">Open on objkt ↗</a></p>`}
@@ -689,10 +700,10 @@ function init() {
   }
 
   function refreshNav() {
-    const next = modal && modal.querySelector("#nftNext")
-    if (!next) return
+    if (!modal) return
+    const next = modal.querySelector("#nftNext")   // the last step has no "Continue", but it still has its tip
     const ok = okMap()[wizStep]
-    next.disabled = !ok
+    if (next) next.disabled = !ok
     const hint = modal.querySelector("#nftNavHint")
     if (hint) hint.textContent = ok ? tipFor(wizStep) : "To continue: " + missingHint(wizStep).toLowerCase()
     const tip = modal.querySelector("#nftTip")
@@ -967,28 +978,32 @@ function init() {
     const size = tracks.reduce((s, t) => s + t.audio.size, 0) + (rel.cover ? rel.cover.size : 0)
     const coll = collections.find(c => c.contract === collection.address)
     const title = rel.title.trim() || (tracks[0] && tracks[0].title) || "Untitled"
-    const rows = [
-      [ic("music") + " Tracks", `${tracks.length}${dur ? " · " + fmtTime(dur) : ""}`],
-      [ic("layers") + " Collection", esc((coll && coll.name) || Wallet.short(collection.address))],
-      [ic("disc") + " Editions", rel.editions],
-      [ic("coins") + " Royalties", rel.royalties + "%"],
-      [ic("globe") + " Network", network === "mainnet" ? "Mainnet" : "Ghostnet"],
-      [ic("upload") + " Upload", (size / 1048576).toFixed(1) + " MB"]
+    const facts = [
+      ["music", "Tracks", `${tracks.length}${dur ? " · " + fmtTime(dur) : ""}`],
+      ["disc", "Editions", rel.editions],
+      ["coins", "Royalties", rel.royalties + "%"],
+      ["layers", "Collection", esc((coll && coll.name) || Wallet.short(collection.address))],
+      ["globe", "Network", network === "mainnet" ? "Mainnet" : "Ghostnet"],
+      ["upload", "Upload", (size / 1048576).toFixed(1) + " MB"]
     ]
     return `
-      <div class="nft-review">
-        <div class="nft-review-cover" style="${rel.cover ? `background-image:url('${esc(urlFor(rel.cover))}')` : ""}"></div>
-        <div class="nft-review-info">
-          <h5>${esc(title)}</h5><p>${esc(rel.artist || Wallet.short(address))}</p>
-          <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
+      <div class="nft-rv">
+        <div class="nft-rv-head">
+          <div class="nft-rv-cover" style="${rel.cover ? `background-image:url('${esc(urlFor(rel.cover))}')` : ""}"></div>
+          <div class="nft-rv-title"><h5>${esc(title)}</h5><p>${esc(rel.artist || Wallet.short(address))}</p></div>
+        </div>
+        <div class="nft-facts">
+          ${facts.map(([icon, label, value]) => `<div class="nft-fact"><span>${ic(icon)}${label}</span><b>${value}</b></div>`).join("")}
         </div>
       </div>
-      <button type="button" class="nft-mint" id="nftMint">
-        <span class="nft-mint-label">${ic("rocket")} Mint</span>
-        <span class="nft-mint-sub">${network === "mainnet" ? "network fees in tez" : "free test network"} · one confirmation in your wallet</span>
-      </button>
-      <div class="nft-progress" id="nftProgressBox" hidden><div class="nft-progress-bar"><i id="nftProgressFill"></i></div><span id="nftProgress"></span></div>
-      <div id="nftResult"></div>`
+      <div class="nft-mintbar">
+        <button type="button" class="nft-mint" id="nftMint">
+          <span class="nft-mint-label">${ic("rocket")} Mint</span>
+          <span class="nft-mint-sub">${network === "mainnet" ? "network fees in tez" : "free test network"} · one confirmation in your wallet</span>
+        </button>
+        <div class="nft-progress" id="nftProgressBox" hidden><div class="nft-progress-bar"><i id="nftProgressFill"></i></div><span id="nftProgress"></span></div>
+        <div id="nftResult"></div>
+      </div>`
   }
 
   function wireMint() {
