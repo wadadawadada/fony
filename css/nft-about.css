@@ -1,0 +1,83 @@
+.ab {
+  container-type: inline-size;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 8px 2px 32px;
+  color: var(--t0);
+}
+.ab-hero {
+  display: grid;
+  --hero-pad: clamp(18px, 4cqi, 38px);
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 28%);
+  grid-template-areas: "intro demo" "artists demo";
+  align-items: center;
+  gap: clamp(10px, 1.5cqi, 16px);
+  padding: var(--hero-pad);
+  overflow: hidden;
+  border-radius: 20px;
+  background: radial-gradient(ellipse at 100% 0%, rgba(0,242,184,.1), transparent 56%), var(--surface);
+}
+.ab-intro { grid-area: intro; }
+.ab-demo { grid-area: demo; }
+.ab-artist {
+  grid-area: artists;
+  display: block;
+  align-self: end;
+  width: calc(100% + var(--hero-pad));
+  height: auto;
+  margin-left: calc(-1 * var(--hero-pad));
+  margin-bottom: calc(-1 * var(--hero-pad));
+  pointer-events: none;
+}
+.ab-hero h2 {
+  margin: 0;
+  font-size: clamp(1.85rem, 4.3cqi, 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -.035em;
+  font-weight: 900;
+}
+.ab-lead, .ab-notes dd, .ab-faq p {
+  color: var(--t1);
+  line-height: 1.55;
+}
+.ab-lead { margin: 14px 0 0; max-width: 45ch; }
+.ab-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.ab-actions button { min-height: 42px; }
+.ab :is(button, summary):focus-visible { outline: 2px solid var(--nft-accent); outline-offset: 3px; }
+
+.ab-demo {
+  width: 100%; max-width: 290px; justify-self: center; margin: 0;
+  border-radius: 16px; overflow: hidden; background: var(--surface);
+  box-shadow: 0 8px 22px rgb(var(--well-rgb) / calc(0.27 * var(--well-k)));
+}
+.ab-demo-frame { aspect-ratio: 1; display: grid; place-items: center; background: var(--well-solid); }
+.ab-demo-frame iframe { display: block; width: 100%; height: 100%; min-width: 0; border: 0; }
+.ab-demo-frame > span { padding: 12px; font-size: .85rem; color: var(--t1); }
+.ab-demo figcaption { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+.ab-demo figcaption .nft-ic { color: var(--accent-text); width: 22px; height: 22px; }
+.ab-demo figcaption strong, .ab-demo figcaption span { display: block; }
+.ab-demo figcaption span { margin-top: 2px; color: var(--t1); font-size: .8rem; }
+
+.ab-section { margin-top: 26px; }
+.ab-section h3 { margin: 0 0 12px; font-size: 1.17rem; line-height: 1.3; }
+.ab-notes { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin: 0; }
+.ab-notes > div, .ab-faq { background: var(--nft-panel); border-radius: 14px; }
+.ab-notes > div { padding: 16px; }
+.ab-notes dt { display: flex; align-items: center; gap: 9px; font-weight: 700; }
+.ab-notes .nft-ic, .ab-faq .nft-ic { color: var(--accent-text); }
+.ab-notes dd, .ab-faq p { margin: 8px 0 0; font-size: .9rem; }
+.ab-faq { padding: 0 16px; }
+.ab-faq details + details { border-top: 1px solid rgb(var(--ink-rgb) / .12); }
+.ab-faq summary { display: flex; justify-content: space-between; align-items: center; gap: 14px; min-height: 46px; padding: 4px 0; cursor: pointer; font-weight: 700; }
+.ab-faq summary:hover { color: var(--accent-text); }
+.ab-faq summary::-webkit-details-marker { display: none; }
+.ab-faq details[open] .nft-ic { transform: rotate(45deg); }
+.ab-faq p { max-width: 70ch; margin: 0; padding-bottom: 16px; }
+
+@container (max-width: 640px) {
+  .ab-notes { grid-template-columns: minmax(0, 1fr); }
+  .ab-hero { grid-template-columns: minmax(0, 1fr); grid-template-areas: "intro" "demo" "artists"; gap: 20px; }
+  .ab-artist { width: calc(100% + 2 * var(--hero-pad)); justify-self: start; }
+  .ab-actions { margin-top: 16px; }
+  .ab-demo { max-width: 260px; }
+}

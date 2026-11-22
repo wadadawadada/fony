@@ -32,7 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
     nostrModeIcon: document.getElementById('nostrModeIcon'),
     localModeIcon: document.getElementById('localModeIcon'),
     settingsBtnIcon: document.getElementById('settingsBtnIcon'),
-    gamesBtnIcon: document.getElementById('gamesBtnIcon')
+    gamesBtnIcon: document.getElementById('gamesBtnIcon'),
+    nftBtnIcon: document.getElementById('nftBtnIcon')
   };
   const glassTheme = {
     // liquid glass -> dark (moon)
@@ -54,7 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
       nostrModeIcon: '/img/nostr.svg',
       localModeIcon: '/img/local.svg',
       settingsBtnIcon: '/img/gear.svg',
-      gamesBtnIcon: '/img/gamepad.svg'
+      gamesBtnIcon: '/img/gamepad.svg',
+      nftBtnIcon: '/img/nft.svg'
     },
     dark: {
       playPauseBtn: '/img/dark/play_button.svg',
@@ -70,7 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
       nostrModeIcon: '/img/dark/nostr.svg',
       localModeIcon: '/img/dark/local.svg',
       settingsBtnIcon: '/img/dark/gear.svg',
-      gamesBtnIcon: '/img/dark/gamepad.svg'
+      gamesBtnIcon: '/img/dark/gamepad.svg',
+      nftBtnIcon: '/img/dark/nft.svg'
     }
   };
   function applyThemeIcons(theme) {

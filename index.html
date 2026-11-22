@@ -61,7 +61,7 @@
   <link rel="stylesheet" href="/css/mobile.css?v=20261115d">
   <link rel="stylesheet" href="/css/glass.css?v=20261029">
   <link rel="stylesheet" href="/css/glass-gl.css?v=20261029">
-  <link rel="stylesheet" href="/css/games.css?v=1">
+  <link rel="stylesheet" href="/css/games.css?v=3">
   <link rel="stylesheet" href="/css/nostr.css?v=1">
   <link rel="stylesheet" href="/css/settings.css?v=8">
   <link rel="stylesheet" href="/css/topmenu.css?v=1">
@@ -82,7 +82,11 @@
           <button id="localModeBtn" class="local-mode-button" title="Local files" aria-label="Local files">
             <img src="/img/local.svg" alt="Local files" id="localModeIcon">
           </button>
-          <button id="gamesBtn" class="games-button" title="Games" aria-label="Games">
+          <button id="nftBtn" class="nft-button" title="Music Label" aria-label="Music Label: release your music on Tezos">
+            <img src="/img/nft.svg" alt="Music Label" id="nftBtnIcon">
+          </button>
+          <!-- games are parked: the button is hidden, js/games.js is still loaded and works if it is shown again -->
+          <button id="gamesBtn" class="games-button" title="Games" aria-label="Games" hidden>
             <img src="/img/gamepad.svg" alt="Games" id="gamesBtnIcon">
           </button>
           <button id="manifestoBtn" class="manifesto-button">
@@ -372,6 +376,7 @@
   <script type="module" src="/js/utils/favbutton.js"></script>
   <script type="module" src="/js/donate-modal.js"></script>
   <script type="module" src="/js/games.js"></script>
+  <script type="module" src="/js/nft-loader.js"></script>
   <script type="module" src="/js/top-menu.js"></script>
 
   <div id="addPlaylistModal" class="add-playlist-modal" style="display:none;">

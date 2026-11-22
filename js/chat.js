@@ -365,6 +365,8 @@ function consoleIsFree() {
   if (typing) return false;
   const games = document.getElementById("gamesModal");
   if (games && !games.hidden) return false;
+  const nft = document.getElementById("nftModal");
+  if (nft && !nft.hidden) return false;
   return true;
 }
 

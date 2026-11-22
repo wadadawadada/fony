@@ -184,7 +184,7 @@ function init() {
 
   // ---- tooltip ----
 
-  const NAMES = { manifestoBtn: "About FONY", themeToggle: "Switch theme", gamesBtn: "Games", settingsBtn: "Settings" }
+  const NAMES = { manifestoBtn: "About FONY", themeToggle: "Switch theme", gamesBtn: "Games", nftBtn: "Music Label", settingsBtn: "Settings" }
 
   function tipText(btn) {
     return NAMES[btn.id] || btn.dataset.tip || btn.getAttribute("title") || btn.getAttribute("aria-label") || btn.querySelector("img")?.alt || ""

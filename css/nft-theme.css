@@ -1,0 +1,84 @@
+/* Music Label follows the app theme: light, dark and liquid glass.
+   Every colour in the studio styles comes from the variables below, so a theme only has to set them here. */
+
+/* ---- dark (the base; also the tint under glass) ---- */
+.nft-modal {
+  --ink-rgb: 255 255 255;        /* tint for lines and soft surfaces: white on dark */
+  --well-rgb: 0 0 0;             /* inset wells and shadows */
+  --well-k: 1;                   /* how strong those are (lighter on a light panel) */
+  --t0: #ffffff;                 /* text: primary, secondary, muted, faint */
+  --t1: #cfd8ee;
+  --t2: #8f9ab8;
+  --t3: #6f7a96;
+  --nft-bg: #171C2B;             /* the window */
+  --surface: #1b2236;            /* dialogs and menus that sit above it */
+  --well-solid: #0e1220;         /* empty cover slots, image placeholders */
+  --accent-text: #00F2B8;        /* accent used as a text or icon colour */
+  --on-accent: #0e1220;          /* ink on a teal button */
+  --danger-text: #ff9b9b;
+  --warn-text: #ffd08a;
+  --modal-border: rgba(0, 242, 184, 0.4);
+  --modal-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
+  color-scheme: dark;
+}
+
+/* ---- light: the panel of the light theme, dark ink ---- */
+body:not(.dark) .nft-modal {
+  --ink-rgb: 23 28 43;
+  --well-rgb: 23 28 43;
+  --well-k: 0.3;
+  --t0: #171C2B;
+  --t1: #364059;
+  --t2: #5b6783;
+  --t3: #8993a9;
+  --nft-bg: #f2f2f2;
+  --surface: #ffffff;
+  --well-solid: #e2e5ec;
+  --accent-text: #007a63;
+  --on-accent: #0e1220;
+  --danger-text: #c23a55;
+  --warn-text: #94580a;
+  --modal-border: rgba(23, 28, 43, 0.12);
+  --modal-shadow: 0 14px 34px rgba(23, 28, 43, 0.18);
+  color-scheme: light;
+}
+
+/* ---- liquid glass: the same recipe as the app's glass windows ---- */
+body.glass .nft-modal {
+  --surface: rgba(24, 30, 86, 0.9);
+  --well-solid: rgba(8, 12, 44, 0.55);
+  --modal-border: rgba(255, 255, 255, 0.28);
+  --modal-shadow: 0 18px 48px rgba(6, 8, 40, 0.45);
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.14) 100%),
+    rgba(16, 20, 64, 0.42);
+  -webkit-backdrop-filter: blur(34px) saturate(200%);
+  backdrop-filter: blur(34px) saturate(200%);
+}
+
+/* the window itself */
+.nft-modal { background: var(--nft-bg); border: 1px solid var(--modal-border); color: var(--t0); box-shadow: var(--modal-shadow); }
+body.glass .nft-modal { background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.14) 100%),
+    rgba(16, 20, 64, 0.42); }
+
+/* things that sit on top of cover art keep white-on-dark in every theme */
+.nft-modal .nft-play { color: #fff; background: rgba(0, 0, 0, 0.35); }
+.nft-modal .nft-thumb.playing .nft-play { background: rgba(0, 0, 0, 0.3); }
+.nft-modal .nft-avatar { color: #fff; }
+.nft-modal .nft-thumb-bar { background: rgba(255, 255, 255, 0.25); }
+
+/* native controls inside the window follow the theme too */
+.nft-modal select.nft-input option { background: var(--surface); color: var(--t0); }
+.nft-modal ::placeholder { color: var(--t3); }
+.nft-modal input:-webkit-autofill { -webkit-text-fill-color: var(--t0); transition: background-color 9999s; }
+
+/* the light theme needs a few softer surfaces than "white at 4%" */
+body:not(.dark) .nft-modal .nft-stage .nft-frame,
+body:not(.dark) .nft-modal .nft-preview { box-shadow: 0 14px 34px rgba(23, 28, 43, 0.22); }
+
+/* a solid face for the big panels (step card, dock), so the background pattern does not show through them */
+.nft-modal { --panel: color-mix(in srgb, rgb(var(--ink-rgb)) 5%, var(--nft-bg)); }
+body.glass .nft-modal { --panel: rgba(20, 26, 84, 0.78); }
+.nft-modal .nft-wstep, .nft-modal .nft-dock { background: var(--panel); }
+body.glass .nft-modal .nft-wstep, body.glass .nft-modal .nft-dock { -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }

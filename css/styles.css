@@ -731,6 +731,7 @@ label.settings-row:hover {
 .top-bar-actions .nostr-mode-button,
 .top-bar-actions .settings-button,
 .top-bar-actions .games-button,
+.top-bar-actions .nft-button,
 .top-bar-actions #themeToggle {
   width: 22px;
   height: 22px;

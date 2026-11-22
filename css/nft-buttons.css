@@ -1,0 +1,143 @@
+/* Music Label buttons: full pills like the rest of FONY. Flat: no shadows, no glow, no gradients.
+   Solid pills for the main action, outlined pills for the quiet ones, a springy press, and small details on the icons.
+   Colours come from the theme variables (nft-theme.css), so these work in light, dark and glass. */
+
+.nft-modal {
+  --spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ghost-line: color-mix(in srgb, var(--accent-text) 55%, transparent);
+  --ghost-hover: color-mix(in srgb, var(--accent-text) 13%, transparent);
+  --ghost-press: color-mix(in srgb, var(--accent-text) 22%, transparent);
+}
+
+/* ---- the main pill ---- */
+
+.nft-modal .nft-btn {
+  border: 1px solid transparent; border-radius: 999px; padding: 9px 20px; font-weight: 700; letter-spacing: 0.1px; box-shadow: none;
+  background: var(--nft-accent); color: var(--on-accent);
+  transition: transform 0.18s var(--spring), filter 0.2s, background-color 0.2s, color 0.2s, border-color 0.2s, opacity 0.2s;
+}
+.nft-modal .nft-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.07); box-shadow: none; }
+.nft-modal .nft-btn:active:not(:disabled) { transform: scale(0.96); filter: brightness(0.96); transition-duration: 0.08s; }
+.nft-modal .nft-btn.small { padding: 5px 15px; font-size: 0.8rem; }
+.nft-modal .nft-btn.big { padding: 12px 28px; font-size: 0.98rem; }
+.nft-modal .nft-btn:disabled { opacity: 0.45; transform: none; filter: none; cursor: not-allowed; }
+
+/* the quiet one: an outline, like the settings buttons of the main app */
+.nft-modal .nft-btn.ghost { background: transparent; color: var(--accent-text); border-color: var(--ghost-line); }
+.nft-modal .nft-btn.ghost:hover:not(:disabled) { background: var(--ghost-hover); filter: none; border-color: var(--accent-text); }
+.nft-modal .nft-btn.ghost:active:not(:disabled) { background: var(--ghost-press); filter: none; }
+
+.nft-modal .nft-btn.danger { background: #ff5f7c; color: #2a0a12; }
+
+/* icons have a little life of their own */
+.nft-modal .nft-btn .nft-ic { transition: transform 0.3s var(--spring); }
+.nft-modal .nft-btn:hover:not(:disabled) .nft-ic { transform: rotate(-9deg) scale(1.12); }
+
+/* ---- Mint: the big one ---- */
+
+.nft-modal .nft-mint {
+  border-radius: 999px; padding: 16px 30px; background: var(--nft-accent); background-image: none; animation: none; color: var(--on-accent); box-shadow: none;
+  transition: transform 0.18s var(--spring), filter 0.2s;
+}
+.nft-modal .nft-mint::after { display: none; }
+.nft-modal .nft-mint:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.07); box-shadow: none; }
+.nft-modal .nft-mint:active:not(:disabled) { transform: scale(0.98); filter: brightness(0.96); transition-duration: 0.08s; }
+.nft-modal .nft-mint .nft-mint-label .nft-ic { transition: transform 0.35s var(--spring); }
+.nft-modal .nft-mint:hover:not(:disabled) .nft-mint-label .nft-ic { transform: translate(3px, -4px) rotate(10deg); }
+/* while it works a barber-pole slides across the button */
+.nft-modal .nft-mint:disabled {
+  filter: none; cursor: progress; box-shadow: none; transform: none;
+  background-image: repeating-linear-gradient(-45deg, rgb(var(--well-rgb) / 0.12) 0 12px, transparent 12px 24px);
+  background-size: 34px 34px; animation: nft-stripes 0.9s linear infinite;
+}
+@keyframes nft-stripes { to { background-position: 34px 0; } }
+
+/* ---- tabs and the segmented switch ---- */
+
+.nft-modal .nft-head .nft-tabs button { border-radius: 999px; padding: 8px 17px; color: var(--t1); transition: background-color 0.2s, color 0.2s, transform 0.18s var(--spring); }
+.nft-modal .nft-head .nft-tabs button:hover { background: rgb(var(--ink-rgb) / 0.08); color: var(--t0); }
+.nft-modal .nft-head .nft-tabs button:active { transform: scale(0.95); }
+.nft-modal .nft-head .nft-tabs button.on { background: var(--nft-accent); color: var(--on-accent); font-weight: 700; }
+.nft-modal .nft-head .nft-tabs button .nft-ic { transition: transform 0.3s var(--spring); }
+.nft-modal .nft-head .nft-tabs button:hover .nft-ic { transform: rotate(-8deg) scale(1.12); }
+
+.nft-modal .nft-seg { border: 0; border-radius: 999px; padding: 3px; background: rgb(var(--ink-rgb) / 0.07); gap: 2px; }
+.nft-modal .nft-seg button { border-radius: 999px; padding: 7px 16px; color: var(--t1); transition: background-color 0.2s, color 0.2s, transform 0.18s var(--spring); }
+.nft-modal .nft-seg button:hover:not(:disabled):not(.on) { background: rgb(var(--ink-rgb) / 0.08); color: var(--t0); }
+.nft-modal .nft-seg button:active:not(:disabled) { transform: scale(0.95); }
+.nft-modal .nft-seg button.on { background: var(--nft-accent); color: var(--on-accent); font-weight: 700; }
+
+/* ---- the dock under the wizard ---- */
+
+.nft-modal .nft-dock { border-radius: 999px; padding: 7px 8px; }
+.nft-modal .nft-dock-btn {
+  width: 42px; height: 42px; border: 0; border-radius: 999px; background: rgb(var(--ink-rgb) / 0.08); color: var(--t0);
+  transition: background-color 0.2s, color 0.2s, transform 0.18s var(--spring);
+}
+.nft-modal .nft-dock-btn:hover:not(:disabled) { background: rgb(var(--ink-rgb) / 0.14); transform: translateX(-2px); }
+.nft-modal .nft-dock-btn:active:not(:disabled) { transform: scale(0.9); }
+
+.nft-modal .nft-dock-next {
+  border-radius: 999px; padding: 11px 22px; background: var(--nft-accent); color: var(--on-accent); box-shadow: none; filter: none;
+  transition: transform 0.18s var(--spring), filter 0.2s, background-color 0.2s, color 0.2s;
+}
+.nft-modal .nft-dock-next:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.07); box-shadow: none; }
+.nft-modal .nft-dock-next:active:not(:disabled) { transform: scale(0.96); filter: brightness(0.96); transition-duration: 0.08s; }
+.nft-modal .nft-dock-next:disabled { background: rgb(var(--ink-rgb) / 0.09); color: var(--t3); box-shadow: none; transform: none; }
+
+.nft-modal .nft-dock .nft-stepper button { border-radius: 999px; padding: 7px 12px 7px 8px; transition: background-color 0.2s, color 0.2s, transform 0.18s var(--spring); }
+.nft-modal .nft-dock .nft-stepper button:active:not(:disabled) { transform: scale(0.96); }
+.nft-modal .nft-dock .nft-stepper li.cur button { background: color-mix(in srgb, var(--accent-text) 16%, transparent); border-color: transparent; box-shadow: none; color: var(--t0); }
+.nft-modal .nft-dock .nft-stepper li.cur i { background: var(--nft-accent); color: var(--on-accent); box-shadow: none; }
+.nft-modal .nft-dock .nft-stepper li.done i { background: var(--nft-accent); color: var(--on-accent); box-shadow: none; }
+
+/* ---- round little ones ---- */
+
+.nft-modal .nft-icon { border: 0; background: rgb(var(--ink-rgb) / 0.08); color: var(--t1); transition: background-color 0.2s, color 0.2s, transform 0.18s var(--spring); }
+.nft-modal .nft-icon:hover:not(:disabled) { background: var(--ghost-hover); color: var(--accent-text); transform: scale(1.1); }
+.nft-modal .nft-icon:active:not(:disabled) { transform: scale(0.88); }
+
+.nft-modal .nft-close, .nft-modal .nft-pill .nft-chip-x { transition: background-color 0.2s, color 0.2s, transform 0.18s var(--spring); }
+.nft-modal .nft-close:hover { transform: rotate(90deg); }
+.nft-modal .nft-close:active, .nft-modal .nft-pill .nft-chip-x:active { transform: scale(0.88); }
+
+.nft-modal .nft-reset { transition: background-color 0.2s, color 0.2s, transform 0.18s var(--spring); }
+.nft-modal .nft-reset:active { transform: scale(0.94); }
+.nft-modal .nft-reset:hover .nft-ic { transform: rotate(-180deg); }
+.nft-modal .nft-reset .nft-ic { transition: transform 0.45s var(--spring); }
+
+.nft-modal .nft-np-btn { transition: background-color 0.2s, color 0.2s, transform 0.18s var(--spring); }
+.nft-modal .nft-np-btn:hover { background: rgb(var(--ink-rgb) / 0.1); }
+.nft-modal .nft-np-btn:active { transform: scale(0.9); }
+.nft-modal .nft-np-btn.main { background: var(--nft-accent); color: var(--on-accent); box-shadow: none; }
+.nft-modal .nft-np-btn.main:hover { background: var(--nft-accent); transform: translateY(-1px); filter: brightness(1.07); box-shadow: none; }
+.nft-modal .nft-np-btn.main:active { transform: scale(0.92); }
+
+/* links that look like buttons */
+.nft-modal .nft-ext, .nft-modal .nft-done .nft-done-link {
+  border-radius: 999px; background: var(--nft-accent); color: var(--on-accent); box-shadow: none; text-decoration: none;
+  transition: transform 0.18s var(--spring), filter 0.2s;
+}
+.nft-modal .nft-ext:hover, .nft-modal .nft-done .nft-done-link:hover { transform: translateY(-1px); filter: brightness(1.07); box-shadow: none; }
+.nft-modal .nft-ext:active, .nft-modal .nft-done .nft-done-link:active { transform: scale(0.96); }
+
+/* the confirmation dialog */
+.nft-modal .nft-ask-btns .nft-btn { padding: 11px 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nft-modal .nft-mint:disabled { animation: none; }
+  .nft-modal .nft-btn, .nft-modal .nft-mint, .nft-modal .nft-dock-next, .nft-modal .nft-icon, .nft-modal .nft-reset .nft-ic { transition: none; }
+}
+
+/* ---- "Connect wallet" in the header: a soft tinted pill, no outline ---- */
+
+.nft-modal .nft-connect {
+  display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+  background: color-mix(in srgb, var(--accent-text) 13%, transparent); color: var(--accent-text); border: 0;
+  font: inherit; font-size: 0.82rem; font-weight: 600; white-space: nowrap;
+  transition: background-color 0.2s, transform 0.18s var(--spring);
+}
+.nft-modal .nft-connect .nft-ic { width: 15px; height: 15px; vertical-align: 0; }
+.nft-modal .nft-connect:hover { background: color-mix(in srgb, var(--accent-text) 22%, transparent); }
+.nft-modal .nft-connect:active { transform: scale(0.96); background: color-mix(in srgb, var(--accent-text) 30%, transparent); transition-duration: 0.08s; }
+.nft-modal .nft-connect:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
