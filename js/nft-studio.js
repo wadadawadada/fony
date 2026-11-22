@@ -131,6 +131,7 @@ function init() {
         <nav class="nft-tabs" role="tablist">
           <button type="button" role="tab" data-tab="gallery">${ic("disc")}<span>Music Label</span></button>
           <button type="button" role="tab" data-tab="factory">${ic("sparkles")}<span>Mint factory</span></button>
+          <button type="button" role="tab" data-tab="onboard">${ic("rocket")}<span>Onboard</span></button>
           <button type="button" role="tab" data-tab="about">${ic("sleeve")}<span>About</span></button>
         </nav>
         <div class="nft-wallet-chip" id="nftChip"></div>
@@ -168,6 +169,7 @@ function init() {
   }
 
   let aboutCleanup = null
+  let onboardToken = 0
 
   function drawPane() {
     if (aboutCleanup) { aboutCleanup(); aboutCleanup = null }
@@ -178,6 +180,14 @@ function init() {
     pane.classList.toggle("fill", tab === "factory")
     if (tab === "gallery") drawGallery(pane)
     else if (tab === "about") aboutCleanup = drawAbout(pane, { go: (t) => setTab(t) })
+    else if (tab === "onboard") {
+      // the application form is its own module, fetched the first time the tab is opened
+      const mine = ++onboardToken
+      import("./nft/onboard.js").then(m => {
+        if (mine !== onboardToken || tab !== "onboard" || !modal) return
+        aboutCleanup = m.drawOnboard(pane, { Wallet, connect: connectWallet, go: (t) => setTab(t), toast })
+      }).catch(() => { if (mine === onboardToken) pane.textContent = "Could not load the form. Check your connection and reopen the tab." })
+    }
     else drawFactory(pane)
     pane.scrollTop = scroll
     persist()
@@ -1263,6 +1273,7 @@ function init() {
     }
     if (aboutCleanup) { aboutCleanup(); aboutCleanup = null }
     clearTimeout(previewTimer)
+    onboardToken++
     label.audio.pause()
     label.audio.removeAttribute("src")
     label.audio.load()

@@ -1,0 +1,44 @@
+/* Music Label: the Onboard tab (apply to the label). Loaded by js/nft/onboard.js. */
+.ob { container-type: inline-size; display: flex; flex-direction: column; gap: 22px; padding: 6px 4px 20px; max-width: 980px; margin: 0 auto; color: var(--t1); }
+.ob-hero h2 { margin: 0 0 8px; font-size: 1.5rem; letter-spacing: 0.5px; color: var(--t0); }
+.ob-lead { margin: 0; max-width: 60ch; line-height: 1.55; font-size: 0.95rem; color: var(--t2); }
+
+.ob-body { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 28px; align-items: start; }
+@container (max-width: 640px) { .ob-body { grid-template-columns: 1fr; gap: 20px; } }
+
+.ob-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+.ob-steps li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; opacity: 0.6; transition: opacity 0.2s; }
+.ob-steps li.cur, .ob-steps li.done { opacity: 1; }
+.ob-n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 0.85rem; font-weight: 700; background: rgb(var(--ink-rgb) / 0.08); color: var(--t1); }
+.ob-steps li.cur .ob-n { background: var(--nft-accent); color: var(--on-accent); }
+.ob-steps li.done .ob-n { background: rgb(var(--ink-rgb) / 0.08); color: var(--accent-text); }
+.ob-n .nft-ic { width: 16px; height: 16px; }
+.ob-steps h4 { margin: 4px 0 4px; font-size: 0.95rem; color: var(--t0); }
+.ob-steps p { margin: 0; font-size: 0.82rem; line-height: 1.5; color: var(--t2); }
+.ob-steps a { color: var(--accent-text); text-decoration: underline; text-underline-offset: 3px; }
+
+.ob-main { min-width: 0; }
+.ob-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; padding: 22px; border-radius: 22px; background: rgb(var(--well-rgb) / calc(0.18 * var(--well-k))); }
+@container (max-width: 520px) { .ob-form { grid-template-columns: 1fr; padding: 16px; } }
+.ob-f { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ob-f.wide, .ob-agree, .ob-send { grid-column: 1 / -1; }
+.ob-f > span { font-size: 0.78rem; letter-spacing: 0.3px; color: var(--t2); }
+.ob-f > span i { font-style: normal; color: var(--t3); margin-left: 4px; }
+.ob-form .nft-input { width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: 0.92rem; text-transform: none; letter-spacing: 0; resize: vertical; font-family: inherit; }
+.ob-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.ob-agree { display: flex; align-items: flex-start; gap: 10px; font-size: 0.85rem; line-height: 1.4; color: var(--t1); cursor: pointer; }
+.ob-agree input { margin-top: 2px; accent-color: var(--nft-accent); }
+.ob-send { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
+.ob-msg { margin: 0; font-size: 0.85rem; color: var(--t2); min-height: 1.2em; }
+.ob-msg.err { color: #ff8a80; }
+
+.ob-card { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 34px 24px; border-radius: 22px; background: rgb(var(--well-rgb) / calc(0.18 * var(--well-k))); }
+.ob-card h3 { margin: 0; font-size: 1.25rem; color: var(--t0); }
+.ob-card p { margin: 0; max-width: 46ch; font-size: 0.9rem; line-height: 1.55; color: var(--t2); }
+.ob-badge { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--ink-rgb) / 0.08); color: var(--accent-text); }
+.ob-card.ok .ob-badge { background: var(--nft-accent); color: var(--on-accent); }
+.ob-badge .nft-ic { width: 26px; height: 26px; }
+.ob-badge.spin .nft-ic { animation: ob-spin 1s linear infinite; }
+@keyframes ob-spin { to { transform: rotate(360deg); } }
+.ob-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.ob a.nft-btn { text-decoration: none; }

@@ -139,4 +139,14 @@ export async function getContract(kt) {
 
 export function getToolkit() { return toolkit }
 
+// Asks the wallet to sign a short text (nothing is sent to the chain, it only proves the wallet is yours).
+// The text goes out as a Micheline string, the way Beacon's "micheline" signing expects it.
+export async function signText(text) {
+  if (!address || !wallet) throw new Error("Connect a wallet first")
+  const hex = Array.from(new TextEncoder().encode(text), b => b.toString(16).padStart(2, "0")).join("")
+  const payload = "0501" + (hex.length / 2).toString(16).padStart(8, "0") + hex
+  const res = await wallet.client.requestSignPayload({ signingType: "micheline", payload, sourceAddress: address })
+  return { signature: res.signature, publicKey: await wallet.getPK() }
+}
+
 export const short = (a) => (a ? a.slice(0, 5) + "…" + a.slice(-4) : "")
