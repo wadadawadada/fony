@@ -151,6 +151,7 @@ async function viaSigner(call, message) {
 const listeners = new Set()
 
 function emit() {
+  staleReported = false   // a new login or a logout starts the count again
   for (const fn of listeners) { try { fn(getSession()) } catch (_) {} }
   document.dispatchEvent(new CustomEvent("fony:nostr-auth", { detail: getSession() }))
 }
@@ -281,6 +282,8 @@ export function checkSession() {
   return checking
 }
 
+// the warning is shown once per connection, not on every tab focus or reconnect while the signer stays silent
+let staleReported = false
 let lastCheck = 0
 function checkAndReport(minGap) {
   if (!session || Date.now() - lastCheck < minGap) return
@@ -288,7 +291,12 @@ function checkAndReport(minGap) {
   // a signer app that is waking up (or a network that is still coming up after boot) gets a second chance before the user is warned
   checkSession().then(async r => {
     if (r === "stale") { await new Promise(res => setTimeout(res, 12000)); r = await checkSession() }
-    if (r === "stale") document.dispatchEvent(new CustomEvent("fony:nostr-stale"))
+    if (r === "ok") staleReported = false
+    // only for someone who is connected to Nostr (a saved signer session), and only the first time
+    if (r === "stale" && session && !staleReported) {
+      staleReported = true
+      document.dispatchEvent(new CustomEvent("fony:nostr-stale"))
+    }
   }).catch(() => {})
 }
 if (typeof document !== "undefined") {
