@@ -1244,7 +1244,9 @@ function init() {
     }
     // the studio has its own previews: pause the main player (through its button, so it stays paused)
     const mainAudio = document.getElementById("audioPlayer")
-    if (mainAudio && !mainAudio.paused) document.getElementById("playPauseBtn")?.click()
+    // the radio pauses while the studio is open and carries on when it is closed
+    resumeMain = !!(mainAudio && !mainAudio.paused)
+    if (resumeMain) document.getElementById("playPauseBtn")?.click()
     setLogo(true)
     window.addEventListener("resize", onResizeLogo)
     modal.hidden = false
@@ -1255,6 +1257,8 @@ function init() {
     refreshMembers().then(changed => { if (changed && modal && !modal.hidden) { drawChip(); if (tab === "gallery") renderGrid() } })
   }
 
+  let resumeMain = false
+
   function close() {
     label.audio.pause()
     setLogo(false)
@@ -1264,6 +1268,11 @@ function init() {
     if (consoleWasOpen) document.getElementById("chatToggleBtn")?.click()
     consoleWasOpen = false
     teardown()
+    if (resumeMain) {
+      resumeMain = false
+      const main = document.getElementById("audioPlayer")
+      if (main && main.paused) document.getElementById("playPauseBtn")?.click()
+    }
   }
 
   // Closing the studio frees what it held: the draft is saved to the browser's storage first, then the audio, the

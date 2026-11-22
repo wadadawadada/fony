@@ -21,6 +21,7 @@
   - [Favorites & Collection](#favorites--collection)
   - [Theming & Skins](#theming--skins)
   - [Games](#games)
+  - [FONY Music](#fony-music)
   - [Settings & Data Backup](#settings--data-backup)
   - [Fonypedia](#fonypedia)
 - [Architecture](#architecture)
@@ -144,6 +145,17 @@ A small NES-style game console, desktop only: click the gamepad icon next to the
 - **FONY Flappy** — a bouncing vinyl flies through columns of spectrum bars; you have lives.
 - **FONY Breaker** — a brick breaker with shaped levels, special bricks and power-ups; progress is saved locally.
 
+### FONY Music
+
+A release studio for independent musicians (the disc icon in the top bar, desktop). A release is one **square HTML player NFT on Tezos**: the cover fills the player, the tracks form a playlist, and everything is minted as a single token through objkt's Minting Factory, so it shows up on objkt.com like any other NFT.
+
+- **FONY Music tab** — the gallery of releases made with FONY, playable in place; search, "All releases / Mine". Approved musicians are marked **FONY artist**.
+- **Mint factory** — a step-by-step wizard: connect a Tezos wallet (Beacon; Kukai works as a browser wallet), add your own [Pinata](https://pinata.cloud) key, pick or create an objkt collection, add the cover and tracks (drag and drop, or Local files), set editions, royalties and tags, then mint. The tracks and cover are pinned to IPFS as one folder; a draft is kept in the browser for up to seven days.
+- **Onboard** — musicians apply to FONY Music: connect a wallet, sign a short text to prove it is theirs, fill in a short form. Once the application is approved, you get a one-time grant of tez for network fees.
+- **About** — what the studio does and answers to common questions.
+
+FONY never sees a private key: the wallet signs every transaction. The studio, its styles and the wallet libraries are loaded only when the button is pressed and are released again when the window is closed.
+
 ### Settings & Data Backup
 
 Open it from the settings icon. Options are grouped into Playback, Interface and Data:
@@ -168,7 +180,8 @@ FONY is a **static, vanilla JavaScript web app** — no framework, no bundler, n
 - **Data:** genre stations are plain `.m3u` playlists in [genres/](genres/), indexed by [json/playlists.json](json/playlists.json).
 - **Backend:** dynamic functionality (AI chat, stream proxying for mixed-content/iOS HLS relay, Discogs lookups) is handled by an external API service, not included in this repository. The one Netlify serverless function in this repo ([netlify/functions/get-config.js](netlify/functions/get-config.js)) is currently a stub.
 - **Nostr:** plain WebSocket connections to user-configurable relays (`js/nostr/client.js`), no backend required. [`nostr-tools`](https://github.com/nbd-wtf/nostr-tools) is pinned and loaded from a CDN **only when Nostr mode is opened**, so people who never use Nostr download nothing extra. The pure format/validation logic in `js/nostr/format.js` is unit-tested: `node --test tests/`.
-- **External services used:** Discogs (via backend proxy), public Nostr relays (only when Nostr is used), GitHub's API (for the community playlist browser), and Google Analytics (for basic usage stats).
+- **FONY Music:** `js/nft-loader.js` fetches the studio (`js/nft-studio.js`, `js/nft/*`) only on the first click. Tezos access uses Taquito and Beacon (loaded from esm.sh), release data comes from objkt's public GraphQL API and TzKT, files go to IPFS through the musician's own Pinata key.
+- **External services used:** Discogs (via backend proxy), public Nostr relays (only when Nostr is used), objkt, TzKT, Pinata and a Tezos RPC node (only when FONY Music is used), GitHub's API (for the community playlist browser), and Google Analytics (for basic usage stats).
 
 ## Running Locally
 
