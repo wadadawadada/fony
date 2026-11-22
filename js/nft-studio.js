@@ -10,6 +10,7 @@ import { createCollection } from "./nft/collection.js"
 import { pickLocal, localAvailable } from "./nft/local-picker.js"
 import { ic } from "./nft/icons.js"
 import { drawAbout } from "./nft/about.js"
+import { isMember, refreshMembers } from "./nft/members.js"
 import { loadDraft, saveDraft, clearDraft, DRAFT_TTL_MS } from "./nft/draft.js"
 
 // The studio is loaded on demand (js/nft-loader.js) and unloaded again when it is closed, so the other modes
@@ -124,18 +125,18 @@ function init() {
     modal.className = "nft-modal"
     modal.setAttribute("role", "dialog")
     modal.setAttribute("aria-modal", "true")
-    modal.setAttribute("aria-label", "Music Label")
+    modal.setAttribute("aria-label", "FONY Music")
     modal.hidden = true
     modal.innerHTML = `
       <header class="nft-head">
         <nav class="nft-tabs" role="tablist">
-          <button type="button" role="tab" data-tab="gallery">${ic("disc")}<span>Music Label</span></button>
+          <button type="button" role="tab" data-tab="gallery">${ic("disc")}<span>FONY Music</span></button>
           <button type="button" role="tab" data-tab="factory">${ic("sparkles")}<span>Mint factory</span></button>
           <button type="button" role="tab" data-tab="onboard">${ic("rocket")}<span>Onboard</span></button>
           <button type="button" role="tab" data-tab="about">${ic("sleeve")}<span>About</span></button>
         </nav>
         <div class="nft-wallet-chip" id="nftChip"></div>
-        <button type="button" class="nft-close" aria-label="Close Music Label">${ic("close")}</button>
+        <button type="button" class="nft-close" aria-label="Close FONY Music">${ic("close")}</button>
       </header>
       <section class="nft-pane" id="nftPane"></section>
       <div class="nft-np" id="nftNp" hidden></div>`
@@ -148,7 +149,7 @@ function init() {
     })
     unsubWallet = Wallet.onWalletChange(() => {
       drawChip()
-      // the wallet is restored a moment after the studio opens: every tab (the Music Label too) has to notice
+      // the wallet is restored a moment after the studio opens: every tab (the FONY Music too) has to notice
       if (!Wallet.getState().address && gal.mine) { gal.mine = false; gal.tokens = []; gal.done = false }
       if (modal && !modal.hidden) drawPane()
       loadCollections()
@@ -209,7 +210,7 @@ function init() {
     const { address, network } = Wallet.getState()
     const alias = address && profiles.get(address) && profiles.get(address).alias
     chip.innerHTML = address
-      ? `<span class="nft-pill">${avatarHtml(address)}<a class="nft-addr" href="${esc(Objkt.profileLink(network, address))}" target="_blank" rel="noopener noreferrer" title="${esc(address)} — open the profile on objkt">${esc(alias || Wallet.short(address))}</a><button type="button" class="nft-chip-x" id="nftChipLogout" title="Disconnect the wallet" aria-label="Disconnect the wallet">${ic("logout")}</button></span>`
+      ? `<span class="nft-pill">${avatarHtml(address)}${isMember(address) ? `<span class="nft-member" title="FONY artist">${ic("check")}<span>FONY artist</span></span>` : ""}<a class="nft-addr" href="${esc(Objkt.profileLink(network, address))}" target="_blank" rel="noopener noreferrer" title="${esc(address)} — open the profile on objkt">${esc(alias || Wallet.short(address))}</a><button type="button" class="nft-chip-x" id="nftChipLogout" title="Disconnect the wallet" aria-label="Disconnect the wallet">${ic("logout")}</button></span>`
       : `<button type="button" class="nft-connect" id="nftChipConnect">${ic("wallet")}<span>Connect wallet</span></button>`
     const c = $("#nftChipConnect")
     if (c) c.addEventListener("click", connectWallet)
@@ -310,11 +311,13 @@ function init() {
     grid.innerHTML = gal.tokens.map((t, i) => {
       const thumb = Objkt.ipfsUrl(t.thumbnail_uri || t.display_uri)
       const artist = (t.creators && t.creators[0] && Wallet.short(t.creators[0].creator_address)) || ""
+      const member = !!(t.creators && t.creators[0] && isMember(t.creators[0].creator_address))
       return `<article class="nft-card">
         <button type="button" class="nft-thumb" data-play="${i}" data-pk="${t.pk}" aria-label="Play ${esc(t.name)}" style="${thumb ? `background-image:url('${esc(thumb)}')` : ""}"><span class="nft-play"><span class="i-play">${ic("play")}</span><span class="i-pause">${ic("pause")}</span><span class="i-load">${ic("refresh", "spin")}</span></span><span class="nft-thumb-bar"><i></i></span></button>
         <div class="nft-card-body">
           <b title="${esc(t.name)}">${esc(t.name || "Untitled")}</b>
           <small>${esc((t.fa && t.fa.name) || Wallet.short(t.fa_contract))}${artist ? " · " + esc(artist) : ""}</small>
+          ${member ? `<span class="nft-member">${ic("check")}<span>FONY artist</span></span>` : ""}
           <a href="${esc(Objkt.tokenLink("mainnet", t.fa_contract, t.token_id))}" target="_blank" rel="noopener noreferrer">objkt ${ic("external")}</a>
         </div>
       </article>`
@@ -328,7 +331,7 @@ function init() {
     updateLabelUi()
   }
 
-  // ---- play straight from the Music Label (no dialog): the card plays, a small player bar follows ----
+  // ---- play straight from the FONY Music (no dialog): the card plays, a small player bar follows ----
 
   const label = { audio: new Audio(), token: null, tracks: [], idx: 0, gi: 0, loading: null, cover: "" }
   label.audio.preload = "none"
@@ -651,7 +654,7 @@ function init() {
         box.innerHTML = ""
         frame = document.createElement("iframe")
         // this is our own generated page (every user string is escaped), and it has to read the blob: URLs of the
-        // local files, which a sandboxed opaque origin cannot; remote NFTs in the Music Label stay fully sandboxed
+        // local files, which a sandboxed opaque origin cannot; remote NFTs in the FONY Music stay fully sandboxed
         frame.setAttribute("sandbox", "allow-scripts allow-same-origin")
         frame.setAttribute("allow", "autoplay")
         frame.title = "Live preview of the player"
@@ -1173,16 +1176,16 @@ function init() {
 
   // ------------------------------------------------------------ open / close
 
-  // inside the studio the header logo reads FONY MUSIC LABEL; it goes back to FONY on close
+  // inside the studio the header logo reads FONY MUSIC; it goes back to FONY on close
   function setLogo(on) {
     const logo = document.querySelector(".top-bar .logo")
     if (!logo) return
-    // "FONY" stays; " MUSIC LABEL" slides out of it on open and slides back in on close
+    // "FONY" stays; " MUSIC" slides out of it on open and slides back in on close
     let ext = logo.querySelector(".logo-ext")
     if (!ext) {
       ext = document.createElement("span")
       ext.className = "logo-ext"
-      ext.textContent = " MUSIC LABEL"
+      ext.textContent = " MUSIC"
       logo.appendChild(ext)
       void ext.offsetWidth   // start the transition from the collapsed state
     }
@@ -1249,6 +1252,7 @@ function init() {
     setTab(tab)
     document.addEventListener("keydown", onKey, true)
     Wallet.restore().then(a => { if (a) loadCollections() }).catch(() => {})
+    refreshMembers().then(changed => { if (changed && modal && !modal.hidden) { drawChip(); if (tab === "gallery") renderGrid() } })
   }
 
   function close() {

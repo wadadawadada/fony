@@ -71,7 +71,7 @@ async function build() {
   const [{ TezosToolkit }, { BeaconWallet }] = await loadLibs()
   const net = NETWORKS[network]
   toolkit = new TezosToolkit(await pickRpc(net.rpcs))
-  wallet = new BeaconWallet({ name: "FONY Music Label", network: { type: network }, preferredNetwork: network })
+  wallet = new BeaconWallet({ name: "FONY Music", network: { type: network }, preferredNetwork: network })
   toolkit.setWalletProvider(wallet)
 }
 

@@ -5,7 +5,8 @@ import { NETWORKS } from "./wallet.js"
 
 // Every release made in the studio carries this tag and the attribute below. objkt indexes tags and attributes (it does
 // not index the mintingTool field), so the gallery can filter on them in the query itself.
-export const FONY_TAG = "fony label"
+export const FONY_TAG = "fony music"
+const LEGACY_TAG = "fony label"   // the first releases carry this older tag: still listed, never written again
 export const FONY_ATTRIBUTE = { name: "Minted with", value: "FONY" }
 const GQL = "https://data.objkt.com/v3/graphql"
 // objkt's Minting Factory (mainnet): collections made on objkt.com/create live here, and only the factory
@@ -58,7 +59,7 @@ export async function browseTokens({ creator = null, search = "", limit = 24, of
   // supply 0 = every edition was burned (sent to the burn address): such a release is gone and is not listed
   // the tag AND the "Minted with: FONY" attribute: copying only the tag is not enough to appear in the feed
   const where = { _and: [
-    { tags: { tag: { name: { _eq: FONY_TAG } } } },
+    { tags: { tag: { name: { _in: [FONY_TAG, LEGACY_TAG] } } } },
     { attributes: { attribute: { name: { _eq: FONY_ATTRIBUTE.name }, value: { _eq: FONY_ATTRIBUTE.value } } } },
     { supply: { _gt: 0 } }
   ] }

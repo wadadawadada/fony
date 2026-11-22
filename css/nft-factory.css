@@ -667,7 +667,7 @@ a.nft-addr:hover { color: var(--accent-text); text-decoration: underline; text-u
 .nft-btn.danger { background: #ff6b6b; color: #1b0d10; }
 .nft-btn.danger:hover:not(:disabled) { filter: brightness(1.08); }
 
-/* ---- Music Label: cards play in place, a small player bar follows ---- */
+/* ---- FONY Music: cards play in place, a small player bar follows ---- */
 
 .nft-thumb { overflow: hidden; }
 .nft-play { opacity: 0; transition: opacity 0.2s, background 0.2s; }
@@ -734,7 +734,7 @@ a.nft-addr:hover { color: var(--accent-text); text-decoration: underline; text-u
 .nft-avatar .nft-ic { width: 14px; height: 14px; vertical-align: 0; }
 .nft-pill { padding-left: 4px; gap: 8px; }
 
-/* header logo: FONY grows into FONY MUSIC LABEL while the studio is open */
+/* header logo: FONY grows into FONY MUSIC while the studio is open */
 .top-bar .logo { transition: font-size 0.6s ease, letter-spacing 0.6s ease; }
 .top-bar .logo .logo-ext {
   display: inline-block; overflow: hidden; white-space: pre; vertical-align: bottom; max-width: 0; opacity: 0;
@@ -927,3 +927,12 @@ a.nft-addr:hover { color: var(--accent-text); text-decoration: underline; text-u
 .nft-bar .nft-hsearch .nft-hs-btn, .nft-bar .nft-hsearch .nft-hs-btn:hover { background: none; }
 .nft-bar .nft-hsearch .nft-hs-btn:hover { color: var(--accent-text); }
 .nft-bar .nft-hsearch.open input { width: 170px; padding: 0 4px; border-bottom: 1px solid rgb(var(--ink-rgb) / 0.25); height: 26px; border-radius: 0; }
+
+/* "FONY artist": an approved musician of FONY Music */
+.nft-member { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px 2px 6px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; background: rgb(var(--ink-rgb) / 0.07); color: var(--accent-text); width: fit-content; }
+.nft-member .nft-ic { width: 12px; height: 12px; stroke-width: 3; }
+.nft-pill .nft-member { margin-right: 2px; }
+@media (max-width: 640px) { .nft-pill .nft-member span { display: none; } .nft-pill .nft-member { padding: 3px; } }
+.nft-pill .nft-member span { display: none; }
+.nft-pill .nft-member { padding: 3px; }
+.nft-head .nft-tabs button { white-space: nowrap; }

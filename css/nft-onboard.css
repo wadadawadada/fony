@@ -1,6 +1,10 @@
-/* Music Label: the Onboard tab (apply to the label). Loaded by js/nft/onboard.js. */
+/* FONY Music: the Onboard tab (apply to FONY Music). Loaded by js/nft/onboard.js. */
 .ob { container-type: inline-size; display: flex; flex-direction: column; gap: 22px; padding: 6px 4px 20px; max-width: 980px; margin: 0 auto; color: var(--t1); }
+.ob-hero { min-height: 112px; padding-right: 184px; }
 .ob-hero h2 { margin: 0 0 8px; font-size: 1.5rem; letter-spacing: 0.5px; color: var(--t0); }
+@container (max-width: 640px) {
+  .ob-hero { min-height: 0; padding-right: 0; }
+}
 .ob-lead { margin: 0; max-width: 60ch; line-height: 1.55; font-size: 0.95rem; color: var(--t2); }
 
 .ob-body { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 28px; align-items: start; }
@@ -17,7 +21,20 @@
 .ob-steps p { margin: 0; font-size: 0.82rem; line-height: 1.5; color: var(--t2); }
 .ob-steps a { color: var(--accent-text); text-decoration: underline; text-underline-offset: 3px; }
 
-.ob-main { min-width: 0; }
+.ob-main { position: relative; min-width: 0; }
+.ob-mascot { position: absolute; z-index: 1; bottom: calc(100% - 34px); right: 4px; width: 172px; pointer-events: none; }
+.ob-mascot img { display: block; width: 100%; height: auto; transform-origin: 65% 92%; transform: rotate(-8deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .ob-mascot img { animation: ob-nod 4s ease-in-out infinite; }
+  @keyframes ob-nod {
+    0%, 60%, 74%, 88%, 100% { transform: rotate(-8deg); }
+    67%, 81% { transform: translateY(3px) rotate(-13deg); }
+  }
+}
+@container (max-width: 640px) {
+  .ob-main { margin-top: 58px; }
+  .ob-mascot { width: 100px; right: 4px; bottom: calc(100% - 20px); }
+}
 .ob-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; padding: 22px; border-radius: 22px; background: rgb(var(--well-rgb) / calc(0.18 * var(--well-k))); }
 @container (max-width: 520px) { .ob-form { grid-template-columns: 1fr; padding: 16px; } }
 .ob-f { display: flex; flex-direction: column; gap: 6px; min-width: 0; }

@@ -11,11 +11,13 @@ export function drawAbout(pane, { go }) {
     <article class="ab">
       <header class="ab-hero">
         <div class="ab-intro">
-          <h2>Playable releases</h2>
+          <span class="ab-eyebrow">${ic("disc")} FONY Music on Tezos</span>
+          <h2>Playable <em>releases</em></h2>
           <p class="ab-lead">Listen to independent releases, or publish your own. Each release pairs the original artwork with a tracklist in a player collectors can own on Tezos.</p>
           <div class="ab-actions">
             <button type="button" class="nft-btn" data-go="gallery">Explore releases ${ic("right")}</button>
             <button type="button" class="nft-btn ghost" data-go="factory">Create a release</button>
+            <button type="button" class="nft-btn ghost" data-go="onboard">${ic("rocket")} Join FONY Music</button>
           </div>
         </div>
         <img class="ab-artist" src="/img/about/dino-band-flat.webp" width="1200" height="600" alt="">

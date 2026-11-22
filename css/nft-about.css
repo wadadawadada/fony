@@ -17,7 +17,10 @@
   border-radius: 20px;
   background: radial-gradient(ellipse at 100% 0%, rgba(0,242,184,.1), transparent 56%), var(--surface);
 }
-.ab-intro { grid-area: intro; }
+.ab-intro { grid-area: intro; position: relative; z-index: 1; }
+.ab-eyebrow { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 14px; padding: 5px 13px 5px 10px; border-radius: 999px; font-size: .78rem; font-weight: 700; letter-spacing: .4px; color: var(--accent-text); background: rgb(var(--ink-rgb) / .07); }
+.ab-eyebrow .nft-ic { width: 15px; height: 15px; }
+.ab-hero h2 em { font-style: normal; color: var(--accent-text); }
 .ab-artist {
   grid-area: artists;
   display: block;
@@ -25,7 +28,10 @@
   width: calc(100% + var(--hero-pad));
   height: auto;
   margin-left: calc(-1 * var(--hero-pad));
-  margin-bottom: calc(-1 * var(--hero-pad));
+  /* the picture has 15.5% of empty space under the feet (7.75% of the width, as it is twice as wide as tall):
+     pulled down so the dinosaurs stand on the bottom edge of the card */
+  margin-bottom: calc(-1 * var(--hero-pad) - 7.75% - 0.0775 * var(--hero-pad));
+  margin-top: -10cqi;   /* the top of the picture is empty: tuck it under the text */
   pointer-events: none;
 }
 .ab-hero h2 {
@@ -64,6 +70,6 @@
 @container (max-width: 640px) {
   .ab-notes { grid-template-columns: minmax(0, 1fr); }
   .ab-hero { gap: 20px; }
-  .ab-artist { width: calc(100% + 2 * var(--hero-pad)); justify-self: start; }
+  .ab-artist { width: calc(100% + 2 * var(--hero-pad)); justify-self: start; margin-bottom: calc(-1 * var(--hero-pad) - 7.75% - 0.155 * var(--hero-pad)); }
   .ab-actions { margin-top: 16px; }
 }

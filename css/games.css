@@ -437,7 +437,7 @@ body .games-modal:not(.is-playing) .games-close {
 
 .cart-desc { color: #cfd3e4; }
 
-/* The Music Label button lives in the top bar, so its look is here (always loaded); the studio's own styles
+/* The FONY Music button lives in the top bar, so its look is here (always loaded); the studio's own styles
    are fetched on the first click (js/nft-loader.js). */
 .nft-button {
   background: none;

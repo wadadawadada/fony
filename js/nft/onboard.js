@@ -1,11 +1,11 @@
-// "Onboard" tab: a musician applies to the label. Connect a Tezos wallet, sign a short text to prove it is yours,
+// "Onboard" tab: a musician applies to FONY Music. Connect a Tezos wallet, sign a short text to prove it is yours,
 // fill in the form. The application is stored on the FONY server; once it is approved the server sends a one-time
 // grant of tez for network fees. Loaded lazily, only when the tab is opened.
 
 import { ic } from "./icons.js"
 
 const BACKEND = window.FONY_BACKEND_URL || "https://fonyserver.up.railway.app"
-const CSS = "/css/nft-onboard.css?v=1"
+const CSS = "/css/nft-onboard.css?v=4"
 const POLL_MS = 45 * 1000
 
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]))
@@ -70,7 +70,7 @@ function resultHtml(st, go, explorer) {
       <p>Your application is approved. ${esc(st.amount || 1.5)} tez for network fees are on the way to your wallet.</p></div>`
   }
   const link = st.hash ? `<a class="nft-btn ghost" href="${esc(explorer + "/" + st.hash)}" target="_blank" rel="noopener noreferrer">View the transfer ${ic("external")}</a>` : ""
-  return `<div class="ob-card ok"><span class="ob-badge">${ic("check")}</span><h3>Welcome to the label</h3>
+  return `<div class="ob-card ok"><span class="ob-badge">${ic("check")}</span><h3>Welcome to FONY Music</h3>
     <p>${esc(st.amount || 1.5)} tez for network fees have been sent to your wallet. That is enough to publish your first releases.</p>
     <div class="ob-actions"><button type="button" class="nft-btn" data-go="factory">Create a release ${ic("right")}</button>${link}</div></div>`
 }
@@ -87,12 +87,15 @@ export function drawOnboard(pane, { Wallet, connect, go, toast }) {
     pane.innerHTML = `
       <article class="ob">
         <header class="ob-hero">
-          <h2>Join the label</h2>
+          <h2>Join FONY Music</h2>
           <p class="ob-lead">Release your music as a playable NFT on Tezos. Apply here: approved musicians get a one-time grant of tez to cover their first network fees.</p>
         </header>
         <div class="ob-body">
           <aside>${stepsHtml(active)}</aside>
-          <section class="ob-main">${body}</section>
+          <section class="ob-main">
+            <span class="ob-mascot" aria-hidden="true"><img src="/img/onboard/headphone-dino.webp" alt=""></span>
+            ${body}
+          </section>
         </div>
       </article>`
     pane.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => go(b.dataset.go)))
@@ -160,7 +163,7 @@ export function drawOnboard(pane, { Wallet, connect, go, toast }) {
     msg.textContent = "Confirm the signature in your wallet…"
     try {
       const ts = new Date().toISOString()
-      const { signature, publicKey } = await Wallet.signText(`FONY Music Label application\n${address}\n${ts}`)
+      const { signature, publicKey } = await Wallet.signText(`FONY Music application\n${address}\n${ts}`)
       msg.textContent = "Sending…"
       const { data } = await api("/apply", {
         method: "POST",

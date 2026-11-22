@@ -1,12 +1,12 @@
-// Loads the Music Label (the NFT studio) only when its button is pressed. The code and the styles are fetched on the
+// Loads the FONY Music (the NFT studio) only when its button is pressed. The code and the styles are fetched on the
 // first click; until then the other modes of the app carry none of it. When the window is closed the studio lets go of
 // its data again (see teardown() in nft-studio.js).
 
 const STYLES = [
   "/css/nft-theme.css?v=2",
   "/css/nft.css?v=4",
-  "/css/nft-factory.css?v=24",
-  "/css/nft-about.css?v=9",
+  "/css/nft-factory.css?v=27",
+  "/css/nft-about.css?v=12",
   "/css/nft-buttons.css?v=7"
 ]
 
@@ -43,7 +43,7 @@ if (btn) {
       const mod = await ensure()
       mod.toggleStudio()
     } catch (err) {
-      console.error("Music Label could not be loaded", err)
+      console.error("FONY Music could not be loaded", err)
     } finally {
       btn.classList.remove("is-loading")
     }
