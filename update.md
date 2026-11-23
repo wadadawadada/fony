@@ -7,3 +7,4 @@
 [UPD Nov 14, 2026] New Nostr mode: share your Favorites, follow other lists, tune in to what friends listen to, back up your data (Nostr icon in the top bar)
 [UPD Nov 14, 2026] Header menu (desktop): tooltips slide out of the icons, drag the menu by its dots and dock it to the left or right wall; the search is a magnifier that slides open
 [UPD Nov 22, 2026] New FONY Music: release your music as a playable NFT on Tezos, browse releases from other musicians, apply to join (disc icon in the top bar, desktop)
+[UPD Nov 22, 2026] Collection recommendations got smarter: genres from your collection, deep cuts or well-known picks, tracks checked on Discogs with cover and year

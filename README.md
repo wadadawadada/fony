@@ -132,6 +132,7 @@ Every 8–10 minutes (first one after ~2 minutes) a small animated "Did you know
 
 - **Favorites** — heart any station to pin it; sort favorites by custom drag order, date added, genre, or alphabetically, with full drag-and-drop reordering.
 - **Collection** — a separate, chat-driven list of manually saved tracks (by artist/title, not stream URL), used to power AI recommendations.
+  - **Recommendations** work as a short pipeline in one console card: the AI sorts the collection into genres, you pick a genre and the kind of picks (deep cuts, well known, or a mix), and you get tracks that are checked against Discogs (unknown ones are dropped) and shown with cover, year and a one-line reason, ready to listen to or add to the collection.
 
 ### Theming & Skins
 

@@ -1,6 +1,7 @@
 ﻿import { fetchDiscogsTrackInfo } from './utils/discogs.js';
 import { handleSkinsCommand, reapplySkin } from './utils/skins.js';
 import { addTrackToCollection, createMainCollectMenuHtml, setupCollectionMenuHandlers, setupMobileCollectionHandlers, getCollection } from './utils/collection.js';
+import { startCollectionRecommendations } from './utils/recommend.js';
 import { handleMoodCommand, runMoodSearch } from './utils/mood.js';
 import { playPodcastOverRadio, fetchPodcastAudio, stopPodcast } from './utils/podcast.js';
 
@@ -567,31 +568,12 @@ async function getSimilarTracksResponse(nowPlayingText) {
   }
 }
 
+// Collection recommendations are a small pipeline (genres, then the kind of picks, then Discogs-checked tracks): utils/recommend.js
 async function getCollectionRecommendations(collection = getCollection()) {
   if (!collection.length) {
     return { type: "text", content: "Collection is empty. Add tracks first, then request recommendations." };
   }
-  const sourceList = collection.map((item, index) => `${index + 1}. ${item.artist} - ${item.track}`).join("\n");
-  const messages = [
-    {
-      role: "system",
-      content:
-        "You are FONY's collection recommendation engine. Infer the shared style from the supplied collection and recommend exactly 5 real tracks that fit it. " +
-        "Do not recommend stations, playlists, albums or generic advice. Reply with exactly five numbered lines: Artist - Title. No summary or explanations."
-    },
-    { role: "user", content: `Collection:\n${sourceList}` }
-  ];
-
-  try {
-    const data = await requestChatCompletion(messages, { maxTokens: 256, reasoningEffort: "minimal" });
-    const reply = data.choices?.[0]?.message?.content?.trim();
-    const tracks = reply ? parseRecommendedTracks(reply) : [];
-    return tracks.length >= 3
-      ? { type: "html", content: createTrackSearchListHtml("Collection recommendations", tracks) }
-      : { type: "text", content: "No verified collection recommendations found. Try again." };
-  } catch (error) {
-    return { type: "text", content: error.message || "Unable to create collection recommendations right now." };
-  }
+  return startCollectionRecommendations(collection);
 }
 
 async function getTrackFactsResponse(nowPlayingText) {

@@ -2,6 +2,9 @@
   if (!window.__collectionListStyleInjected) {
     const style = document.createElement('style');
     style.textContent = `
+      .collect-link, .collect-link:hover, .collect-link:focus { color: #00F2B8 !important; text-decoration: none !important; cursor: pointer; }
+      .collect-link > span { border-bottom: 1px dashed rgba(0, 242, 184, 0.35); transition: border-color 0.18s; }
+      .collect-link:hover > span { border-bottom-style: solid; border-bottom-color: #00F2B8; }
       .collection-list .collection-remove-btn, 
       .collection-list .collection-view-link {
         display: none !important;
@@ -75,10 +78,10 @@ export function createMainCollectMenuHtml() {
       Collect your Now Playing tracks and get AI-powered recommendations.
     </div>
     <div style="display:flex; flex-direction: row; gap: 16px; margin-top: 10px;">
-      <a href="#" class="collect-track" style="color:#00F2B8; text-decoration:none;">➕ collect track</a>
-      <a href="#" class="collect-view" style="color:#00F2B8; text-decoration:none;">📂 view collection</a>
-      <a href="#" class="collect-recommend" style="color:#00F2B8; text-decoration:none;">🎵 recommendations</a>
-      <a href="#" class="collect-clear" style="color:#00F2B8; text-decoration:none;">🗑️ clear collection</a>
+      <a href="#" class="collect-link collect-track">➕ <span>collect track</span></a>
+      <a href="#" class="collect-link collect-view">📂 <span>view collection</span></a>
+      <a href="#" class="collect-link collect-recommend">🎵 <span>recommendations</span></a>
+      <a href="#" class="collect-link collect-clear">🗑️ <span>clear collection</span></a>
     </div><br><br>
   `;
 }

@@ -451,3 +451,8 @@ body .games-modal:not(.is-playing) .games-close {
 
 .nft-button img { width: 21px; height: 21px; }
 .nft-button.is-loading { opacity: 0.5; cursor: progress; }
+
+/* FONY Music is a desktop studio: no button in the mobile menu */
+@media (max-width: 768px) {
+  #nftBtn { display: none !important; }
+}
