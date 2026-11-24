@@ -1,3 +1,4 @@
+import './utils/collect-icon.js'
 import { fadeAudioOut, fadeAudioIn } from './player.js'
 import { renderPlaylist, loadPlaylist, getGenreIcon } from './playlist.js'
 import { initVolumeControl, updatePlayPauseButton, updateShuffleButton } from './controls.js'
