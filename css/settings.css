@@ -149,7 +149,6 @@
   .manifesto-content.settings-view {
     box-sizing: border-box;
     width: min(460px, calc(100vw - 24px));
-    min-height: min(580px, 90vh);
   }
 }
 
@@ -191,14 +190,28 @@
   margin: 0;
   box-sizing: border-box;
   flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr auto;
+}
+
+/* all sections share one grid cell: the window is as tall as the tallest tab, never taller,
+ * and switching tabs does not resize it; the card fills the cell */
+.manifesto-content.settings-view .settings-section,
+.manifesto-content.settings-view .settings-section[hidden] {
+  grid-row: 3;
+  grid-column: 1;
+  display: block !important;
+}
+.manifesto-content.settings-view .settings-section[hidden] {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .manifesto-content.settings-view .settings-save {
   position: sticky;
   bottom: 0;
-  margin-top: auto;
+  margin-top: 16px;
   z-index: 7;
 }
 
@@ -329,3 +342,48 @@
   stroke-linejoin: round;
 }
 .settings-ico + .settings-text { flex: 1 1 auto; }
+
+/* segmented icon switcher, top-left, with the section as a separate card below */
+.settings-panel .settings-tabs {
+  grid-row: 2;
+  grid-column: 1;
+  justify-self: start;
+  flex-direction: row;
+  gap: 2px;
+  margin: 0 0 12px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  position: relative;
+  top: auto;
+}
+
+.settings-panel .settings-tab,
+.settings-panel .settings-tab.active {
+  flex: none;
+  width: 46px;
+  height: 36px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+}
+.settings-panel .settings-tab:hover { color: #fff; background: rgba(255, 255, 255, 0.07); }
+.settings-panel .settings-tab.active {
+  color: #00F2B8;
+  background: rgba(0, 242, 184, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(0, 242, 184, 0.35);
+}
+.settings-panel .settings-tab span { display: none; }
+.settings-panel .settings-tab svg { width: 20px; height: 20px; }
+
+.manifesto-content.settings-view .settings-title { grid-column: 1 / -1; }
+.manifesto-content.settings-view .settings-save { grid-column: 1 / -1; grid-row: 4; }
+
+.settings-panel .settings-section,
+.settings-panel .settings-section:hover {
+  border-radius: var(--tab-r);
+}
