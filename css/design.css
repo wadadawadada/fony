@@ -1810,3 +1810,7 @@ body.glass .center-circle.has-cover::after {
     text-align: left;
   }
 }
+
+/* Favorites: the sort select had a 140px minimum, which left the search field less room than in radio */
+.favorites-sort select { min-width: 0; }
+.favorites-sort { margin-left: 4px; }
