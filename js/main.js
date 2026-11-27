@@ -287,7 +287,7 @@ function getEffectiveMode() {
 }
 
 function getStationSearchText(station = {}) {
-  return `${station.title || ""} ${station.playlistTitle || ""} ${station.artist || ""}`.toLowerCase()
+  return `${station.title || ""} ${station.playlistTitle || ""} ${station.artist || ""} ${station.favGenre || ""}`.toLowerCase()
 }
 
 function updateSearchInputByMode() {
