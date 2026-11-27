@@ -1,5 +1,7 @@
 import { secureUrl } from './parsing.js';
 import { buildTuneLink } from './nostr/format.js';
+import { buildStationLink } from './share-link.js';
+import { loadCustomPlaylists } from './custom-playlists.js';
 import { getFavLogo, ensureFavLogo, applyAvatarLogo, pruneFavLogos, removeFavLogo, stationLogosEnabled } from './utils/favLogos.js';
 
 // Migration: old code had inverted checkbox logic — "Hide http stations" checked
@@ -437,9 +439,18 @@ export function renderPlaylist(playlistElement, stations, startIndex = 0, endInd
           const hash = generateStationHash(station.url);
           const genre = favGenre || (window.currentGenre || "");
           // stations that came from Nostr are not in the genre catalog: share a tune-in link instead
+          // a station of a custom playlist (e.g. from the community catalog) is not in the recipient's
+          // app: the link carries the station and the playlist it came from
+          const customPlaylist = loadCustomPlaylists().find(p => p.name === genre);
           const link = station.nostr
             ? buildTuneLink(window.location.origin, { url: station.originalUrl || station.url, name: station.title, genre: station.genre })
-            : window.location.origin + window.location.pathname + "#" + encodeURIComponent(genre) + "/" + hash;
+            : buildStationLink({
+                base: window.location.origin + window.location.pathname,
+                genre,
+                stationHash: hash,
+                station: customPlaylist ? { url: station.originalUrl || station.url, name: station.title, genre } : null,
+                playlistFile: customPlaylist ? customPlaylist.file : ""
+              });
           navigator.clipboard.writeText(link).then(() => {
             copiedSpan.style.display = "inline";
             setTimeout(() => { copiedSpan.style.display = "none"; }, 2000);

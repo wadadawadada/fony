@@ -905,8 +905,18 @@ body.dark .logo {
   letter-spacing: 0;
 }
 
-/* buffering: colons filled from the centre outwards by a gradient that follows --tp */
+/* loading: colons filled from the centre outwards by a gradient that follows --tp. --tp loops on its own,
+   so the animation does not depend on how the stream is buffering: it simply plays until the station is ready */
+@property --tp { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+/* fades in while it fills from the centre, then fades away before the next round: no hard restart */
+@keyframes timerLoad {
+  0%   { --tp: 0%;   opacity: 0; }
+  15%  {             opacity: 0.7; }
+  55%  { --tp: 100%; opacity: 1; }
+  100% { --tp: 100%; opacity: 0; }
+}
 .play-timer.buffering {
+  animation: timerLoad 1.7s ease-in-out infinite;
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0.25) calc(50% - var(--tp, 0%) / 2 - 3%),
@@ -918,6 +928,9 @@ body.dark .logo {
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  .play-timer.buffering { animation: none; --tp: 100%; opacity: 1; }
 }
 
 .diods-row {

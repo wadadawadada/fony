@@ -15,7 +15,8 @@ import { enterLocalMode, leaveLocalMode, restoreLastTrack as restoreLastLocalTra
 import { initCustomGenreSelect, setSelectedGenre, getSelectedGenre } from './custom-genre-select.js';
 import { pickPlaylist as pickTastePlaylist, trackListen, stopTracking as stopTasteTracking } from './taste.js';
 import { loadCustomPlaylists,saveCustomPlaylist, deleteCustomPlaylist, normalizePlaylistUrl, suggestNameFromUrl } from './custom-playlists.js';
-import { loadMergedPlaylistFolder as fetchMergedPlaylistFolder, searchMergedPlaylists } from './merged-playlist-catalog.js'
+import { loadMergedPlaylistFolder as fetchMergedPlaylistFolder, searchMergedPlaylists, resetMergedPlaylistCatalog } from './merged-playlist-catalog.js'
+import { parseStationHash } from './share-link.js'
 import { stationLogosEnabled } from './utils/favLogos.js'
 import { isMissing, markMissing } from './utils/missing.js';
 
@@ -1404,7 +1405,7 @@ function defaultPlaylist() {
   })
 }
 
-function loadAndRenderPlaylist(url, genreName = null, cb, scTop = false) {
+function loadAndRenderPlaylist(url, genreName = null, cb, scTop = false, onError = null) {
   // Handle old API where genreName was not passed
   if (typeof genreName === 'function') {
     scTop = cb;
@@ -1425,6 +1426,7 @@ function loadAndRenderPlaylist(url, genreName = null, cb, scTop = false) {
     })
     .catch(() => {
       playlistLoader.classList.add("hidden")
+      if (typeof onError === "function") onError()
     })
 }
 
@@ -1535,8 +1537,7 @@ function checkRealBuffering(audio, li, cb) {
   li.style.setProperty("--buffer-percent", "0%")
   if (p) {
     p.textContent = ":::::::::::"
-    p.style.setProperty("--tp", "0%")
-    p.classList.add("buffering")
+    p.classList.add("buffering")   // the colons loop on their own (CSS); only the list row shows real progress
   }
   const start = performance.now()
   let shown = 0
@@ -1564,9 +1565,7 @@ function checkRealBuffering(audio, li, cb) {
     // ease towards the target (about 250 ms time constant), monotonic
     shown = Math.max(shown, shown + (target - shown) * (1 - Math.exp(-dt / 250)))
     if (target >= 1 && shown > 0.995) shown = 1
-    const pct = (shown * 100).toFixed(1) + "%"
-    if (p) p.style.setProperty("--tp", pct)
-    li.style.setProperty("--buffer-percent", pct)
+    li.style.setProperty("--buffer-percent", (shown * 100).toFixed(1) + "%")
     if (shown < 1) { requestAnimationFrame(frame); return }
     if (p) {
       p.classList.remove("buffering")
@@ -2081,13 +2080,29 @@ function positionAddPlaylistPopover() {
   box.style.top = top + 'px';
 }
 
+// The community catalog lives only while the window is open: lists, search state and cached answers
+// are dropped on close (the server keeps the index; the browser re-fetches on the next open).
+function unloadAddPlaylistCatalog() {
+  mergedSearchSeq++;
+  resetMergedPlaylistCatalog();
+  for (const id of ['mergedPlaylistSearchList', 'mergedPlaylistCatalogList']) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  }
+  setMergedSearchOpen(false);
+  const search = document.getElementById('mergedPlaylistSearch');
+  if (search) search.value = '';
+  const status = document.getElementById('mergedPlaylistStatus');
+  if (status) status.textContent = '';
+}
+
 function closeAddPlaylistModal() {
   const modal = document.getElementById('addPlaylistModal');
   if (!modal || modal.style.display === 'none' || modal.classList.contains('closing')) return;
   document.body.classList.remove('add-playlist-open');
   const box = modal.querySelector('.add-playlist-content');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!box || reduce) { modal.style.display = 'none'; return; }
+  if (!box || reduce) { modal.style.display = 'none'; unloadAddPlaylistCatalog(); return; }
   modal.classList.add('closing');
   let done = false;
   const finish = () => {
@@ -2095,6 +2110,7 @@ function closeAddPlaylistModal() {
     done = true;
     modal.classList.remove('closing');
     modal.style.display = 'none';
+    unloadAddPlaylistCatalog();
   };
   box.addEventListener('animationend', finish, { once: true });
   setTimeout(finish, 300);
@@ -2540,6 +2556,52 @@ function playRandomGenreAndStation() {
   });
 }
 
+// A station link made by the share button: #<genre>/<hash>[?s=<station>&p=<playlist source>].
+// Built-in playlists are found by name. For a custom playlist the link carries the playlist (p), which is
+// added here, and the station itself (s), which plays on its own if the playlist cannot be loaded.
+// Returns false when the hash is not a station link or nothing could be played.
+function openSharedStation(link) {
+  // the address goes back to the clean site URL once the link has been read
+  try { history.replaceState(null, "", location.pathname + location.search) } catch (_) {}
+
+  switchToRadio(false)
+
+  const playSingle = () => {
+    const sh = link.station
+    if (!sh) return false
+    const st = { title: sh.name || "Station", bitrate: "", url: secureUrl(sh.url), originalUrl: sh.url, cover: null, genre: sh.genre || link.genre }
+    window.currentGenre = st.genre
+    initChat()
+    allStations = [st]
+    applyModeSearch("radio")
+    onStationSelect(0)
+    return true
+  }
+  const fallback = () => { if (!playSingle()) defaultPlaylist() }
+
+  let entry = allPlaylists.find(pl => pl.name === link.genre || pl.file === link.genre)
+  if (!entry && link.playlistUrl) {
+    entry = allPlaylists.find(pl => pl.file === link.playlistUrl)
+    if (!entry) {
+      entry = saveCustomPlaylist(link.genre || suggestNameFromUrl(link.playlistUrl), link.playlistUrl)
+      allPlaylists.unshift(entry)
+      fillPlaylistSelect(false)
+      if (window.addPlaylistToFavCache) window.addPlaylistToFavCache(entry)
+    }
+  }
+  if (!entry) return playSingle()
+
+  setSelectedGenre(entry.file, entry.name)
+  window.currentGenre = entry.name
+  initChat()
+  loadAndRenderPlaylist(entry.file, entry.name, () => {
+    const i = currentPlaylist.findIndex(x => generateStationHash(x.url) === link.stationHash)
+    if (i !== -1) onStationSelect(i)
+    else fallback()
+  }, false, fallback)
+  return true
+}
+
 async function restoreRadioPlayback() {
   if (window.location.hash) {
     let hashGenre = "";
@@ -2647,6 +2709,13 @@ fetch("../json/playlists.json")
     // a Nostr link (#nostr/…) opens straight in Nostr mode
     if (isNostrHash() && window.innerWidth > 768) {
       switchToNostr({ input: location.hash.replace(/^#\/?nostr\//, "") });
+      markFirstLaunchDone();
+      return;
+    }
+
+    // a shared station link wins over whatever mode was open last time
+    const stationLink = parseStationHash(location.hash)
+    if (stationLink && openSharedStation(stationLink)) {
       markFirstLaunchDone();
       return;
     }
