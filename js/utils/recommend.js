@@ -21,10 +21,10 @@ let counter = 0
 // the "rare ... famous" slider, left to right
 const MODES = [
   { name: "Deep cuts", ask: "very obscure, underground, cult or overlooked tracks. Avoid the best-known hits and the genre's usual staples; prefer lesser-known artists, small labels and B-sides" },
-  { name: "Rather rare", ask: "mostly lesser-known tracks and artists, with at most one or two well-known ones" },
-  { name: "A bit of both", ask: "a mix: about half landmark tracks of the genre and half deeper cuts" },
-  { name: "Mostly known", ask: "mostly well-known tracks of the genre, with one or two lesser-known gems" },
-  { name: "Famous", ask: "essential, widely recognised classics and landmark tracks of the genre that every fan should know" }
+  { name: "Rare", ask: "mostly lesser-known tracks and artists, with at most one or two well-known ones" },
+  { name: "Mixed", ask: "a mix: about half landmark tracks of the genre and half deeper cuts" },
+  { name: "Known", ask: "mostly well-known tracks of the genre, with one or two lesser-known gems" },
+  { name: "Hits", ask: "essential, widely recognised classics and landmark tracks of the genre that every fan should know" }
 ]
 
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]))
@@ -161,13 +161,13 @@ const css = `
 .rec-mode { font: inherit; color: #00F2B8; cursor: pointer; padding: 2px 0; background: none; border: 0; border-bottom: 1px dashed rgba(0, 242, 184, 0.35); transition: border-color 0.18s, transform 0.12s; }
 .rec-mode:hover { border-bottom-color: #00F2B8; border-bottom-style: solid; }
 .rec-mode:active { transform: scale(0.97); }
-.rec-panel { max-width: 440px; margin: 2px 0 10px; padding: 0; }
-.rec-row + .rec-row { margin-top: 12px; }
+.rec-panel { display: flex; flex-wrap: wrap; gap: 8px 22px; max-width: 520px; margin: 2px 0 10px; padding: 0; }
+.rec-row { flex: 1 1 170px; min-width: 0; }
 .rec-row-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; font-size: 0.78em; letter-spacing: 0.08em; text-transform: uppercase; }
 .rec-row-val { color: #0a0e16; background: #00F2B8; font-weight: 700; letter-spacing: 0; text-transform: none; padding: 1px 9px; border-radius: 999px; }
 .rec-range { position: relative; height: 22px; }
 .rec-range::before, .rec-fill { content: ""; position: absolute; top: 9px; height: 4px; border-radius: 2px; }
-.rec-range::before { left: 0; right: 0; background: rgba(120, 130, 140, 0.28); }
+.rec-range::before { left: 8px; right: 8px; background: rgba(120, 130, 140, 0.28); }
 .rec-fill { background: linear-gradient(90deg, rgba(0, 242, 184, 0.5), #00F2B8); box-shadow: 0 0 8px rgba(0, 242, 184, 0.5); }
 .rec-range input { position: absolute; left: 0; top: 0; width: 100%; height: 22px; margin: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; outline: none; }
 .rec-range input::-webkit-slider-runnable-track { background: none; height: 22px; }
@@ -185,6 +185,7 @@ const css = `
 .rec-chip i { font-style: normal; opacity: 0.6; margin-left: 5px; }
 .rec-chip:hover i { opacity: 0.8; }
 .rec-foot { margin-top: 10px; display: flex; gap: 16px; }
+.rec-foot-modes { max-width: 520px; align-items: center; justify-content: space-between; }
 .rec-link { font: inherit; color: #00F2B8; opacity: 0.85; cursor: pointer; background: none; border: 0; padding: 0; text-decoration: none; }
 .rec-link:hover { opacity: 1; text-decoration: underline; }
 .rec-loading { display: flex; align-items: center; gap: 9px; opacity: 0.75; }
@@ -245,7 +246,9 @@ function eraFill(card, root) {
   const row = root.querySelector('[data-row="era"]')
   setFill(row, eraPct(card.lo), eraPct(card.hi))
   row.querySelector(".rec-row-val").textContent = eraLabel(card)
-  row.querySelectorAll(".rec-ticks span").forEach((t, i) => t.classList.toggle("on", i >= card.lo && i <= card.hi))
+  const ends = row.querySelectorAll(".rec-ticks span")
+  ends[0].classList.toggle("on", card.lo === 0)
+  ends[1].classList.toggle("on", card.hi === DECADES - 1)
 }
 
 function popFill(card, root) {
@@ -256,21 +259,20 @@ function popFill(card, root) {
 
 function modesHtml(card) {
   const range = (attr, val, max, label) => `<input type="range" min="0" max="${max}" step="1" value="${val}" data-rec-range="${attr}" aria-label="${label}">`
-  const decadeTicks = Array.from({ length: DECADES }, (_, i) => `<span style="left:${at(eraPct(i))}">${String(FIRST + i * 10).slice(2)}s</span>`).join("")
   return `<div class="rec-head"><b>${esc(card.genre.name)}</b> <span class="rec-dim">· tune your picks</span></div>
     <div class="rec-panel">
       <div class="rec-row" data-row="era">
         <div class="rec-row-top"><span class="rec-dim">🕰 Years</span><span class="rec-row-val">${eraLabel(card)}</span></div>
         <div class="rec-range"><div class="rec-fill"></div>${range("lo", card.lo, DECADES - 1, "From decade")}${range("hi", card.hi, DECADES - 1, "To decade")}</div>
-        <div class="rec-ticks">${decadeTicks}</div>
+        <div class="rec-ticks ends"><span>${FIRST}s</span><span>${FIRST + (DECADES - 1) * 10}s</span></div>
       </div>
       <div class="rec-row" data-row="pop">
-        <div class="rec-row-top"><span class="rec-dim">🎚 Picks</span><span class="rec-row-val">${MODES[card.mode].name}</span></div>
-        <div class="rec-range"><div class="rec-fill"></div>${range("pop", card.mode, MODES.length - 1, "Rare to famous")}</div>
-        <div class="rec-ticks ends"><span>💎 rare</span><span>famous ⭐</span></div>
+        <div class="rec-row-top"><span class="rec-dim">🎚 Popularity</span><span class="rec-row-val">${MODES[card.mode].name}</span></div>
+        <div class="rec-range"><div class="rec-fill"></div>${range("pop", card.mode, MODES.length - 1, "Rare to hits")}</div>
+        <div class="rec-ticks ends"><span>💎 rare</span><span>hits ⭐</span></div>
       </div>
     </div>
-    <div class="rec-foot" style="align-items:center"><button type="button" class="rec-link" data-rec-act="genres">← genres</button><button type="button" class="rec-mode" data-rec-act="mode">Find tracks →</button></div>`
+    <div class="rec-foot rec-foot-modes"><button type="button" class="rec-link" data-rec-act="genres">← genres</button><button type="button" class="rec-mode" data-rec-act="mode">Find tracks →</button></div>`
 }
 
 function trackHtml(t, i) {

@@ -15,7 +15,7 @@ import { enterLocalMode, leaveLocalMode, restoreLastTrack as restoreLastLocalTra
 import { initCustomGenreSelect, setSelectedGenre, getSelectedGenre } from './custom-genre-select.js';
 import { pickPlaylist as pickTastePlaylist, trackListen, stopTracking as stopTasteTracking } from './taste.js';
 import { loadCustomPlaylists,saveCustomPlaylist, deleteCustomPlaylist, normalizePlaylistUrl, suggestNameFromUrl } from './custom-playlists.js';
-import { loadMergedPlaylistFolder as fetchMergedPlaylistFolder } from './merged-playlist-catalog.js'
+import { loadMergedPlaylistFolder as fetchMergedPlaylistFolder, searchMergedPlaylists } from './merged-playlist-catalog.js'
 import { stationLogosEnabled } from './utils/favLogos.js'
 import { isMissing, markMissing } from './utils/missing.js';
 
@@ -1505,7 +1505,26 @@ let bufferingRun = 0
     }
   }).observe(el, { childList: true, characterData: true, subtree: true })
 })()
-function checkRealBuffering(durationMs, li, cb) {
+// Real load progress, read from the <audio> element: network started -> metadata -> first data ->
+// seconds buffered ahead of the playhead. The shown value eases towards that target and never goes back.
+function streamLoadTarget(a, readySince, now) {
+  const rs = a.readyState
+  let t = a.networkState === 2 ? 0.08 : 0.02 // NETWORK_LOADING
+  if (rs >= 1) t = 0.35
+  if (rs >= 2) t = 0.6
+  if (rs >= 3) {
+    let ahead = 0
+    try {
+      const b = a.buffered
+      if (b.length) ahead = b.end(b.length - 1) - a.currentTime
+    } catch {}
+    t = 0.6 + 0.4 * Math.min(1, ahead / 2)
+    if (rs >= 4 || now - readySince > 1500) t = 1
+  }
+  return t
+}
+
+function checkRealBuffering(audio, li, cb) {
   if (!li) {
     cb()
     return
@@ -1513,7 +1532,6 @@ function checkRealBuffering(durationMs, li, cb) {
   const run = ++bufferingRun
   li.classList.remove("buffer-complete")
   const p = document.getElementById("playTimer")
-  const maxSteps = durationMs / 100
   li.style.setProperty("--buffer-percent", "0%")
   if (p) {
     p.textContent = ":::::::::::"
@@ -1521,25 +1539,43 @@ function checkRealBuffering(durationMs, li, cb) {
     p.classList.add("buffering")
   }
   const start = performance.now()
-  let lastStep = -1
+  let shown = 0
+  let readySince = 0
+  let last = start
+  const reset = () => {
+    li.style.setProperty("--buffer-percent", "0%")
+    li.classList.remove("buffer-complete")
+  }
   const frame = now => {
-    const prog = Math.min(1, (now - start) / durationMs)
-    if (run === bufferingRun && p) p.style.setProperty("--tp", (prog * 100).toFixed(1) + "%")
-    const step = Math.floor(prog * maxSteps)
-    if (step !== lastStep) {
-      lastStep = step
-      li.style.setProperty("--buffer-percent", (step / maxSteps) * 100 + "%")
+    if (run !== bufferingRun) { reset(); return }        // another station was picked
+    if (audio.error || now - start > 20000) {            // failed or stalled: drop the bar
+      reset()
+      if (p) {
+        p.classList.remove("buffering")
+        p.style.removeProperty("--tp")
+        p.textContent = formatTime(0)
+      }
+      return
     }
-    if (prog < 1) { requestAnimationFrame(frame); return }
-    if (run === bufferingRun && p) {
+    if (audio.readyState >= 3 && !readySince) readySince = now
+    const target = streamLoadTarget(audio, readySince || now, now)
+    const dt = Math.min(100, now - last)
+    last = now
+    // ease towards the target (about 250 ms time constant), monotonic
+    shown = Math.max(shown, shown + (target - shown) * (1 - Math.exp(-dt / 250)))
+    if (target >= 1 && shown > 0.995) shown = 1
+    const pct = (shown * 100).toFixed(1) + "%"
+    if (p) p.style.setProperty("--tp", pct)
+    li.style.setProperty("--buffer-percent", pct)
+    if (shown < 1) { requestAnimationFrame(frame); return }
+    if (p) {
       p.classList.remove("buffering")
       p.style.removeProperty("--tp")
       p.textContent = formatTime(0)
     }
     li.classList.add("buffer-complete")
     setTimeout(() => {
-      li.style.setProperty("--buffer-percent", "0%")
-      li.classList.remove("buffer-complete")
+      reset()
       cb()
     }, 300)
   }
@@ -1694,7 +1730,7 @@ function onStationSelect(i) {
     const pt = document.getElementById("playTimer")
     if (pt) pt.textContent = formatTime(0)
 
-    checkRealBuffering(3000, li, () => {
+    checkRealBuffering(audioPlayer, li, () => {
       if (li) li.classList.add("active")
       if (stationLabel) {
         const t = stationLabel.querySelector(".scrolling-text")
@@ -1924,6 +1960,56 @@ function setRadioListeners() {
 
 const MERGED_PLAYLIST_FOLDERS = ['0-9', ...'abcdefghijklmnopqrstuvwxyz'];
 
+function renderMergedPlaylistOptions(list, playlists) {
+  const fragment = document.createDocumentFragment();
+  for (const playlist of playlists) {
+    const item = document.createElement('li');
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.className = 'merged-playlist-catalog-option';
+    option.dataset.url = playlist.url;
+    option.dataset.name = playlist.name;
+    option.setAttribute('role', 'option');
+    option.textContent = playlist.name;
+    item.appendChild(option);
+    fragment.appendChild(item);
+  }
+  list.innerHTML = '';
+  list.appendChild(fragment);
+}
+
+// Search across the whole community catalog (server side); results drop down right under the search field.
+let mergedSearchSeq = 0;
+function setMergedSearchOpen(open) {
+  const box = document.getElementById('mergedPlaylistSearchBox');
+  const input = document.getElementById('mergedPlaylistSearch');
+  if (box) box.classList.toggle('open', open);
+  if (input) input.setAttribute('aria-expanded', String(open));
+}
+async function searchMergedCatalog(query) {
+  const list = document.getElementById('mergedPlaylistSearchList');
+  const status = document.getElementById('mergedPlaylistStatus');
+  if (!list || !status) return;
+  const seq = ++mergedSearchSeq;
+  status.textContent = 'Searching…';
+  try {
+    const { total, items } = await searchMergedPlaylists(query);
+    if (seq !== mergedSearchSeq) return; // a newer query is already running
+    renderMergedPlaylistOptions(list, items);
+    setMergedSearchOpen(items.length > 0);
+    status.textContent = items.length === 0
+      ? 'No matches.'
+      : total > items.length
+        ? `Showing ${items.length} of ${total} matches. Refine the search to narrow it.`
+        : `${total} ${total === 1 ? 'match' : 'matches'}.`;
+  } catch (error) {
+    if (seq !== mergedSearchSeq) return;
+    console.warn('Could not search the M3U catalog:', error);
+    setMergedSearchOpen(false);
+    status.textContent = error.message || 'Search failed. Please try again.';
+  }
+}
+
 async function loadMergedPlaylistFolder(folder) {
   const toggle = document.getElementById('mergedPlaylistCatalogToggle');
   const text = document.getElementById('mergedPlaylistCatalogText');
@@ -1938,20 +2024,7 @@ async function loadMergedPlaylistFolder(folder) {
 
   try {
     const playlists = await fetchMergedPlaylistFolder(folder);
-    const fragment = document.createDocumentFragment();
-    for (const playlist of playlists) {
-      const item = document.createElement('li');
-      const option = document.createElement('button');
-      option.type = 'button';
-      option.className = 'merged-playlist-catalog-option';
-      option.dataset.url = playlist.url;
-      option.dataset.name = playlist.name;
-      option.setAttribute('role', 'option');
-      option.textContent = playlist.name;
-      item.appendChild(option);
-      fragment.appendChild(item);
-    }
-    list.appendChild(fragment);
+    renderMergedPlaylistOptions(list, playlists);
     text.textContent = 'Choose playlist';
     status.textContent = `${playlists.length} playlists in “${folder}”.`;
   } catch (error) {
@@ -1967,9 +2040,19 @@ function openAddPlaylistModal() {
   const modal = document.getElementById('addPlaylistModal');
   if (!modal) return;
   document.getElementById('addPlaylistUrl').value = '';
+  const manual = document.getElementById('addPlaylistManual');
+  if (manual) manual.open = false;
   document.getElementById('addPlaylistName').value = '';
   document.getElementById('addPlaylistError').textContent = '';
   document.getElementById('mergedPlaylistFolderText').textContent = 'Folder';
+  const searchInput = document.getElementById('mergedPlaylistSearch');
+  if (searchInput) searchInput.value = '';
+  mergedSearchSeq++;
+  setMergedSearchOpen(false);
+  const searchList = document.getElementById('mergedPlaylistSearchList');
+  if (searchList) searchList.innerHTML = '';
+  const folders = document.getElementById('addPlaylistFolders');
+  if (folders) folders.open = false;
   document.getElementById('mergedPlaylistCatalogText').textContent = 'Choose a folder first';
   document.getElementById('mergedPlaylistCatalogToggle').disabled = true;
   document.getElementById('mergedPlaylistCatalogList').innerHTML = '';
@@ -1978,7 +2061,7 @@ function openAddPlaylistModal() {
   document.body.classList.add('add-playlist-open');
   modal.style.display = 'block';
   positionAddPlaylistPopover();
-  document.getElementById('addPlaylistUrl').focus({ preventScroll: true });
+  (document.getElementById('mergedPlaylistSearch') || document.getElementById('addPlaylistUrl')).focus({ preventScroll: true });
 }
 
 // The form opens as a popover centred over the station list; the rest of the page stays untouched.
@@ -2080,8 +2163,74 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('mergedPlaylistFolderText').textContent = folder.toUpperCase();
       mergedFolderCatalog.classList.remove('open');
       mergedFolderToggle.setAttribute('aria-expanded', 'false');
+      const search = document.getElementById('mergedPlaylistSearch');
+      if (search) search.value = '';
+      mergedSearchSeq++;
+      setMergedSearchOpen(false);
       loadMergedPlaylistFolder(folder);
     });
+  }
+
+  const mergedSearch = document.getElementById('mergedPlaylistSearch');
+  if (mergedSearch) {
+    let searchTimer = null;
+    const searchList = document.getElementById('mergedPlaylistSearchList');
+    mergedSearch.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      const query = mergedSearch.value.trim();
+      if (query.length < 2) {
+        mergedSearchSeq++;
+        setMergedSearchOpen(false);
+        document.getElementById('mergedPlaylistStatus').textContent = '';
+        return;
+      }
+      searchTimer = setTimeout(() => searchMergedCatalog(query), 250);
+    });
+    // coming back to the field shows the last results again
+    mergedSearch.addEventListener('focus', () => {
+      if (searchList && searchList.children.length && mergedSearch.value.trim().length >= 2) setMergedSearchOpen(true);
+    });
+    mergedSearch.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && document.getElementById('mergedPlaylistSearchBox').classList.contains('open')) {
+        event.stopPropagation();
+        setMergedSearchOpen(false);
+      }
+    });
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('#mergedPlaylistSearchBox')) setMergedSearchOpen(false);
+    });
+    let pickedUrl = '';
+    const clearBtn = document.getElementById('mergedPlaylistSearchClear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        mergedSearch.value = '';
+        mergedSearchSeq++;
+        setMergedSearchOpen(false);
+        if (searchList) searchList.innerHTML = '';
+        document.getElementById('mergedPlaylistStatus').textContent = '';
+        // the playlist chosen from the search goes away with the text
+        if (pickedUrl && urlInput && urlInput.value === pickedUrl) {
+          urlInput.value = '';
+          if (nameInput) nameInput.value = '';
+        }
+        pickedUrl = '';
+        mergedSearch.focus();
+      });
+    }
+    if (searchList && nameInput && urlInput) {
+      searchList.addEventListener('click', (event) => {
+        const option = event.target.closest('.merged-playlist-catalog-option');
+        if (!option) return;
+        pickedUrl = option.dataset.url;
+        urlInput.value = option.dataset.url;
+        nameInput.value = option.dataset.name || option.textContent;
+        mergedSearch.value = nameInput.value;
+        document.getElementById('addPlaylistError').textContent = '';
+        document.getElementById('mergedPlaylistStatus').textContent = '';
+        mergedSearchSeq++;
+        setMergedSearchOpen(false);
+      });
+    }
   }
 
   if (mergedCatalog && mergedCatalogToggle && mergedCatalogList && nameInput && urlInput) {
@@ -2102,6 +2251,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   if (urlInput && nameInput) {
+    // a hand-typed URL no longer matches the catalog name picked before
+    urlInput.addEventListener('input', () => { nameInput.value = ''; });
     urlInput.addEventListener('blur', () => {
       const url = urlInput.value.trim();
       if (url && !nameInput.value.trim()) {
@@ -2114,14 +2265,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if (saveBtn) {
     saveBtn.addEventListener('click', async () => {
       const rawUrl = (document.getElementById('addPlaylistUrl').value || '').trim();
-      const name = (document.getElementById('addPlaylistName').value || '').trim();
       const errEl = document.getElementById('addPlaylistError');
       errEl.textContent = '';
 
-      if (!rawUrl) { errEl.textContent = 'Please enter a URL.'; return; }
-      if (!name) { errEl.textContent = 'Please enter a name.'; return; }
+      if (!rawUrl) { errEl.textContent = 'Pick a playlist from the catalog or add an M3U URL manually.'; return; }
 
       const url = normalizePlaylistUrl(rawUrl);
+      // the name comes from the catalog entry, or is derived from the URL for a manual link
+      const name = (document.getElementById('addPlaylistName').value || '').trim() || suggestNameFromUrl(url) || 'My Playlist';
 
       saveBtn.disabled = true;
       saveBtn.textContent = 'Loading…';

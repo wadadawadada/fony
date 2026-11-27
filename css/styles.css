@@ -2539,3 +2539,62 @@ body.glass .dino-limb { stroke: #242846; }
 @media (prefers-reduced-motion: reduce) {
   .dino-mascot svg * { animation: none !important; }
 }
+
+/* Add playlist: search with icon, manual URL tucked into a disclosure */
+#addPlaylistModal .add-playlist-search { position: relative; }
+#addPlaylistModal .add-playlist-search input { width: 100%; padding-left: 46px; }
+#addPlaylistModal .add-playlist-search-ico {
+  position: absolute; left: 17px; top: 50%; transform: translateY(-50%);
+  opacity: 0.55; pointer-events: none;
+}
+#addPlaylistModal .add-playlist-search input:focus + .add-playlist-search-ico,
+#addPlaylistModal .add-playlist-search:focus-within .add-playlist-search-ico { opacity: 1; color: #00F2B8; }
+body:not(.dark) #addPlaylistModal .add-playlist-search:focus-within .add-playlist-search-ico { color: #171C2B; }
+#addPlaylistModal .add-playlist-manual { margin: -6px 0 18px; }
+#addPlaylistModal .add-playlist-manual summary {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer; list-style: none;
+  font-size: 0.74rem; padding-left: 4px; color: #00F2B8; user-select: none;
+}
+body:not(.dark) #addPlaylistModal .add-playlist-manual summary { color: #171C2B; }
+#addPlaylistModal .add-playlist-manual summary::-webkit-details-marker { display: none; }
+#addPlaylistModal .add-playlist-manual summary::after {
+  content: ""; width: 6px; height: 6px; flex: none;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg); transition: transform 0.15s;
+}
+#addPlaylistModal .add-playlist-manual[open] summary::after { transform: translateY(1px) rotate(-135deg); }
+#addPlaylistModal .add-playlist-manual .add-playlist-field { margin: 10px 0 0; }
+
+/* Add playlist: folder + playlist selectors share one box model */
+#addPlaylistModal .merged-playlist-catalog-row { gap: 8px; }
+#addPlaylistModal .merged-playlist-folder-catalog { flex: 0 0 104px; }
+#addPlaylistModal .merged-playlist-catalog-toggle {
+  box-sizing: border-box; height: 46px; min-height: 46px; padding: 0 16px; gap: 8px;
+}
+#addPlaylistModal .merged-playlist-catalog-toggle:disabled {
+  opacity: 1; border-style: solid; border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04); color: rgba(255, 255, 255, 0.4);
+}
+body:not(.dark) #addPlaylistModal .merged-playlist-catalog-toggle:disabled {
+  border-color: rgba(23, 28, 43, 0.18); background: rgba(23, 28, 43, 0.04); color: rgba(23, 28, 43, 0.4);
+}
+
+/* search results hang directly under the search field */
+#addPlaylistModal .add-playlist-search .merged-playlist-catalog-dropdown {
+  border-radius: 20px; max-height: 260px; top: calc(100% + 6px); z-index: 5;
+}
+#addPlaylistModal .add-playlist-search .merged-playlist-catalog-option { padding: 9px 20px; }
+#addPlaylistModal #addPlaylistFolders { margin-bottom: 10px; }
+
+/* clear (×) button inside the search field, shown only while there is text */
+#addPlaylistModal .add-playlist-search input { padding-right: 46px; }
+#addPlaylistModal .add-playlist-search input::-webkit-search-cancel-button { display: none; }
+#addPlaylistModal .add-playlist-search-clear {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  width: 26px; height: 26px; padding: 0; display: none; align-items: center; justify-content: center;
+  border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.1); color: inherit; opacity: 0.7; cursor: pointer;
+}
+#addPlaylistModal .add-playlist-search-clear:hover { opacity: 1; background: rgba(255, 255, 255, 0.18); }
+#addPlaylistModal .add-playlist-search input:not(:placeholder-shown) ~ .add-playlist-search-clear { display: inline-flex; }
+body:not(.dark) #addPlaylistModal .add-playlist-search-clear { background: rgba(23, 28, 43, 0.08); }
+body:not(.dark) #addPlaylistModal .add-playlist-search-clear:hover { background: rgba(23, 28, 43, 0.16); }
