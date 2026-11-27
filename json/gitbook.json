@@ -23,7 +23,7 @@
       "content": "FONY's feature set blends internet radio streaming with an optional Nostr social layer and a set of discovery tools.",
       "items": [
         "Radio Streaming: 24/7 internet radio across dozens of genre-based stations, with live ICY now-playing metadata, automatic stall detection and recovery, global search, shuffle, a Random button, shareable deep links, and session persistence across reloads.",
-        "Genres & Playlists: dozens of built-in genre stations, each backed by a plain M3U playlist. Add your own playlist by pasting an M3U URL, or browse a large third-party community M3U catalog directly from the app.",
+        "Genres & Playlists: dozens of built-in genre stations, each backed by a plain M3U playlist. Add your own playlist by pasting an M3U URL, or search the community M3U catalog from the app (all folders at once, or browse by letter).",
         "Nostr Social Radio (optional): share your Favorites as a public list on Nostr, browse other people's favorites, import stations without duplicates, follow a playlist to get its updates, and tune in to the station a person you follow is listening to. Sign in with a NIP-07 browser extension or a NIP-46 remote signer; public lists can be browsed without any account. Nothing is published unless you press Share, and the Now Listening status is off by default.", "AI Console: an in-app chat console with slash-commands for track discovery, facts, mood-based station matching, and more, backed by an external API — see Chat Commands below.",
         "Now Playing & Metadata: Discogs-derived album info (year, country, label, genre) and cover art shown automatically as the track changes, with an animated rotating record/CD/reel visual and Media Session API support for lock-screen and OS-level media controls.",
         "Equalizer & Visualizers: five selectable real-time frequency visualizer styles (bars, line, fish, lava, sheep) driven by the Web Audio API, plus a separate 3-band audio equalizer (low/mid/high) with per-genre presets.",
@@ -82,8 +82,8 @@
       "tips": [
         "Shuffle and Random: use the shuffle button to cycle through stations in a genre, or hit Random to jump to a random genre and station entirely.",
         "Favorites: heart a station to pin it, then sort your favorites by drag order, date added, genre, or alphabetically.",
-        "Custom playlists: paste any M3U URL (including GitHub blob links) to add your own station list, or pick one from the community catalog.",
-        "Deep links: share a specific station with `#Genre/<hash>` links, or visit a genre URL directly (e.g. `/techno`) to auto-play it.",
+        "Custom playlists: search the community catalog, or open \"Add by M3U URL manually\" and paste any M3U URL (including GitHub blob links) to add your own station list.",
+        "Deep links: share a specific station with the share icon, or visit a genre URL directly (e.g. `/techno`) to auto-play it. Links to stations of custom playlists carry the station and its playlist, so they work for people who do not have it.",
         "Nostr: press the Nostr icon, open any shared list (or paste a link, npub or naddr) and hit Tune In on a station, Import to copy it into your Favorites, or Follow playlist to get its updates.", "Settings: back up your local data to a file before clearing browser storage, so favorites and custom playlists aren't lost."
       ]
     },
@@ -96,7 +96,7 @@
         "Data: genre stations are plain .m3u playlists, indexed by json/playlists.json.",
         "Backend: dynamic functionality (AI chat, stream proxying for mixed-content/iOS HLS relay, Discogs lookups) is handled by an external API service, not included in this repository.",
         "Nostr: relay connections are plain WebSockets; nostr-tools is loaded from a CDN only when the Nostr mode is opened. Event formats are documented in docs/nostr-events.md.",
-        "External services: Discogs (via backend proxy), public Nostr relays (only if Nostr is used), GitHub's API (for the community playlist browser), and Google Analytics for basic usage stats."
+        "External services: Discogs (via backend proxy), public Nostr relays (only if Nostr is used), GitHub's API (used by the backend for the community playlist catalog), and Google Analytics for basic usage stats."
       ]
     },
     {

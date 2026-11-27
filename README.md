@@ -36,11 +36,11 @@
 ### Radio Streaming
 
 - 24/7 internet radio across dozens of genre-based stations, streamed directly in the browser — no account, no subscription.
-- Live ICY now-playing metadata (artist/track) polled for the active station, with a buffering indicator while a stream connects.
+- Live ICY now-playing metadata (artist/track) polled for the active station, with a loading indicator while a stream connects: the station's row in the list fills with the real load progress (read from the audio element), and the timer shows a looping fade animation until the station is ready.
 - Automatic stall detection and recovery: the player monitors real audio output (not just playback time) and auto-skips to the next station if a stream goes dead, hiding stations that repeatedly fail.
 - A dedicated iOS playback path relays streams through an HLS proxy, since Safari on iOS doesn't handle some ICY/AAC streams directly.
 - Global search across every genre's station list, shuffle, next/previous, and a "Random" button that jumps to a random genre and station — see [Random picks](#random-picks).
-- Shareable deep links to a specific station (`#Genre/<hash>`) and URL-based genre entry (e.g. visiting `/techno` auto-plays that genre).
+- Shareable deep links to a specific station (`#Genre/<hash>`) and URL-based genre entry (e.g. visiting `/techno` auto-plays that genre). A station from a **custom playlist** (for example one picked from the community catalog) is not in the recipient's app, so its link also carries the station and the playlist it came from (`#Genre/<hash>?s=<station>&p=<source>`): the recipient gets the playlist added and the station plays, and if the playlist cannot be loaded the embedded station plays on its own. A station link wins over the mode that was open last time, and the address bar goes back to the plain site URL once the link has been read. Nostr links (`#nostr/…`) are not touched.
 - Session persistence — the last-played station, genre, and mode are restored on reload.
 
 ### Random picks
@@ -56,7 +56,7 @@ The Random button learns your taste locally, per genre, without making the pick 
 ### Genres & Playlists
 
 - Dozens of built-in genre stations (electronic, house, techno, jazz, hip-hop, reggae, classical, world, and more), each backed by a plain M3U playlist.
-- **Add your own playlist:** paste any M3U URL (including GitHub blob links, auto-converted to raw URLs), or browse a large third-party community M3U catalog directly from the app.
+- **Add your own playlist:** paste any M3U URL (including GitHub blob links, auto-converted to raw URLs), or find one in the community M3U catalog: type in the search field (it searches every folder at once and drops the results right under the field), or open *Browse by folder* to pick a letter. The M3U URL field is tucked under *Add by M3U URL manually*; the playlist is named after the catalog entry (or derived from the URL). The window drops its lists and cache when it is closed.
 - Custom playlists are saved locally in your browser and appear alongside built-in genres, with their own delete controls.
 
 ### Nostr — Social Radio
@@ -130,9 +130,9 @@ Every 8–10 minutes (first one after ~2 minutes) a small animated "Did you know
 
 ### Favorites & Collection
 
-- **Favorites** — heart any station to pin it; sort favorites by custom drag order, date added, genre, or alphabetically, with full drag-and-drop reordering.
+- **Favorites** — heart any station to pin it; sort favorites by custom drag order, date added, genre, or alphabetically, with full drag-and-drop reordering. The search field also works inside Favorites and matches the station name, playlist, artist and genre.
 - **Collection** — a separate, chat-driven list of manually saved tracks (by artist/title, not stream URL), used to power AI recommendations.
-  - **Recommendations** work as a short pipeline in one console card: the AI sorts the collection into genres, you pick a genre and the kind of picks (deep cuts, well known, or a mix), and you get tracks that are checked against Discogs (unknown ones are dropped) and shown with cover, year and a one-line reason, ready to listen to or add to the collection.
+  - **Recommendations** work as a short pipeline in one console card: the AI sorts the collection into genres, you pick a genre, an era (a decade range slider) and how popular the picks should be (a slider from deep cuts to hits), and you get tracks that are checked against Discogs (unknown ones are dropped) and shown with cover, year and a one-line reason, ready to listen to or add to the collection.
 
 ### Theming & Skins
 
@@ -179,10 +179,10 @@ FONY is a **static, vanilla JavaScript web app** — no framework, no bundler, n
 
 - **Hosting:** deployed on Netlify as a static site; `_redirects` provides SPA-style catch-all routing so deep links like `/techno` resolve to the app.
 - **Data:** genre stations are plain `.m3u` playlists in [genres/](genres/), indexed by [json/playlists.json](json/playlists.json).
-- **Backend:** dynamic functionality (AI chat, stream proxying for mixed-content/iOS HLS relay, Discogs lookups) is handled by an external API service, not included in this repository. The one Netlify serverless function in this repo ([netlify/functions/get-config.js](netlify/functions/get-config.js)) is currently a stub.
-- **Nostr:** plain WebSocket connections to user-configurable relays (`js/nostr/client.js`), no backend required. [`nostr-tools`](https://github.com/nbd-wtf/nostr-tools) is pinned and loaded from a CDN **only when Nostr mode is opened**, so people who never use Nostr download nothing extra. The pure format/validation logic in `js/nostr/format.js` is unit-tested: `node --test tests/`.
+- **Backend:** dynamic functionality (AI chat, stream proxying for mixed-content/iOS HLS relay, Discogs lookups, the community playlist catalog index and search at `/api/catalog/playlists`) is handled by an external API service, not included in this repository. The one Netlify serverless function in this repo ([netlify/functions/get-config.js](netlify/functions/get-config.js)) is currently a stub.
+- **Nostr:** plain WebSocket connections to user-configurable relays (`js/nostr/client.js`), no backend required. [`nostr-tools`](https://github.com/nbd-wtf/nostr-tools) is pinned and loaded from a CDN **only when Nostr mode is opened**, so people who never use Nostr download nothing extra. The pure format/validation logic in `js/nostr/format.js` is unit-tested, as is the station share-link format in `js/share-link.js`: `node --test tests/*.test.mjs`.
 - **FONY Music:** `js/nft-loader.js` fetches the studio (`js/nft-studio.js`, `js/nft/*`) only on the first click. Tezos access uses Taquito and Beacon (loaded from esm.sh), release data comes from objkt's public GraphQL API and TzKT, files go to IPFS through the musician's own Pinata key.
-- **External services used:** Discogs (via backend proxy), public Nostr relays (only when Nostr is used), objkt, TzKT, Pinata and a Tezos RPC node (only when FONY Music is used), GitHub's API (for the community playlist browser), and Google Analytics (for basic usage stats).
+- **External services used:** Discogs (via backend proxy), public Nostr relays (only when Nostr is used), objkt, TzKT, Pinata and a Tezos RPC node (only when FONY Music is used), GitHub's API (called by the backend, not the browser, for the community playlist catalog; the browser only loads the chosen playlist from raw.githubusercontent.com), and Google Analytics (for basic usage stats).
 
 ## Running Locally
 
