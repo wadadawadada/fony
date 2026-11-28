@@ -2775,14 +2775,26 @@ body.playlist-search-mode #addPlaylistBtn { color: #00F2B8; }
 @media (prefers-reduced-motion: reduce) { .pl-search-drop { animation: none; } }
 
 /* The search field shows only a magnifier while closed (its placeholder is transparent in design.css/glass.css).
-   Once it is open (hover or focus) the hint text appears: "Search across all genres", "Search favorites",
-   "Search playlists…" in playlist-add mode. Small font on the placeholder only; the field keeps 16px so iOS does not zoom. */
-.genre-box .search-wrapper:is(:focus-within, :hover) .genre-search[placeholder^="Search"]::placeholder,
-body.glass .genre-box .search-wrapper:is(:focus-within, :hover) .genre-search[placeholder^="Search"]::placeholder {
+   Once it is open the hint text appears: "Search across all genres", "Search favorites", "Search playlists…" in
+   playlist-add mode. Small font on the placeholder only; the field keeps 16px so iOS does not zoom.
+   "Open" follows the layout rules: on phones (mobile.css) the field is open only while focused, on wide screens
+   (design.css) also while hovered. Using :hover on phones left the hint showing on the folded field, because a
+   touch leaves :hover stuck on the last thing touched. */
+.genre-box .search-wrapper:focus-within .genre-search[placeholder^="Search"]::placeholder,
+body.glass .genre-box .search-wrapper:focus-within .genre-search[placeholder^="Search"]::placeholder {
   color: rgba(255, 255, 255, 0.62);
   font-size: 11.5px;
   letter-spacing: -0.01em;
   text-overflow: ellipsis;
+}
+@media (min-width: 769px) {
+  .genre-box .search-wrapper:hover .genre-search[placeholder^="Search"]::placeholder,
+  body.glass .genre-box .search-wrapper:hover .genre-search[placeholder^="Search"]::placeholder {
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 11.5px;
+    letter-spacing: -0.01em;
+    text-overflow: ellipsis;
+  }
 }
 
 /* phones: shorter lists (JS also caps the results to the space above the keyboard) */
