@@ -3,7 +3,7 @@
 // The card draws a placeholder at once and fills itself in; "another angle" asks for a new article about the same track.
 
 import { isMissing, markMissing } from "./missing.js"
-import { withLanguage } from "./ai-language.js"
+import { withLanguage, getAiLanguage } from "./ai-language.js"
 
 const BACKEND = window.FONY_BACKEND_URL || "https://fonyserver.up.railway.app"
 const cards = new Map()
@@ -34,12 +34,20 @@ async function discogsInfo(artist, track) {
     if (!resp.ok) return null
     const rel = await resp.json()
     const img = rel.images && rel.images[0]
+    // Discogs notes carry markup like [a=Name] or [url=...]: keep only the words
+    const notes = String(rel.notes || "").replace(/\[[a-z]+=?([^\]]*)\]/gi, "$1").replace(/\[\/?[a-z]+\]/gi, "").replace(/\s+/g, " ").trim()
+    const credits = (rel.extraartists || []).filter(x => x && x.name && x.role).slice(0, 6).map(x => `${x.role}: ${String(x.name).replace(/\s*\(\d+\)$/, "")}`)
+    const tn = norm(track)
+    const tr = (rel.tracklist || []).find(x => x && x.title && (norm(x.title).includes(tn) || tn.includes(norm(x.title))))
     return {
       album: rel.title || "",
       year: Number(rel.year) || 0,
       label: (rel.labels && rel.labels[0] && rel.labels[0].name) || "",
       country: rel.country || "",
       styles: [...(rel.styles || []), ...(rel.genres || [])].filter((v, i, a) => a.indexOf(v) === i).slice(0, 3),
+      notes: notes.slice(0, 1500),
+      credits,
+      position: tr ? [tr.position, tr.duration].filter(Boolean).join(" · ") : "",
       cover: img ? (img.uri || img.uri150 || "") : "",
       link: rel.uri || (rel.id ? `https://www.discogs.com/release/${rel.id}` : "")
     }
@@ -98,7 +106,19 @@ async function wikiFind(artist, track) {
     }
   }
   await Promise.all([findSong(), findArtist()])
+  // the longer intro of each page: the real material the article is written from
+  await Promise.all([out.song, out.artist].filter(Boolean).map(async (p) => { p.full = (await wikiIntro(p.title)) || p.extract }))
   return out
+}
+
+async function wikiIntro(title) {
+  try {
+    const r = await fetch(`${WIKI}/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&redirects=1&titles=${encodeURIComponent(title)}&format=json&origin=*`, { signal: AbortSignal.timeout(8000) })
+    if (!r.ok) return ""
+    const d = await r.json()
+    const page = Object.values((d.query && d.query.pages) || {})[0]
+    return String((page && page.extract) || "").replace(/\s+/g, " ").trim().slice(0, 2000)
+  } catch (_) { return "" }
 }
 
 async function ask(system, user) {
@@ -136,32 +156,65 @@ function parseArticle(text) {
   return art.headline && art.body.length ? art : null
 }
 
+// What is actually known about the track: Discogs release data, the notes and credits on it, and the intro of
+// the Wikipedia pages for the song and the artist. The article is written ONLY from this text.
+function sourcesOf(card) {
+  const info = card.info, w = card.wiki || {}
+  const blocks = []
+  if (info) {
+    const rel = [info.album && `release: ${info.album}`, info.year && `year: ${info.year}`, info.label && `label: ${info.label}`, info.country && `country: ${info.country}`, info.styles.length && `styles: ${info.styles.join(", ")}`, info.position && `track on the release: ${info.position}`].filter(Boolean).join("; ")
+    if (rel) blocks.push(`DISCOGS RELEASE: ${rel}`)
+    if (info.credits.length) blocks.push(`DISCOGS CREDITS: ${info.credits.join("; ")}`)
+    if (info.notes) blocks.push(`DISCOGS NOTES: ${info.notes}`)
+  }
+  if (w.song) blocks.push(`WIKIPEDIA (the song "${w.song.title}"): ${w.song.full || w.song.extract}`)
+  if (w.artist) blocks.push(`WIKIPEDIA (the artist "${w.artist.title}"): ${w.artist.full || w.artist.extract}`)
+  return blocks
+}
+
+// Enough real text to write something worth reading? Release data alone (a year, a label) is not.
+function hasStory(card) {
+  const w = card.wiki || {}, info = card.info
+  return !!((w.song && (w.song.full || w.song.extract || "").length >= 200) ||
+    (w.artist && (w.artist.full || w.artist.extract || "").length >= 300) ||
+    (info && info.notes.length >= 200))
+}
+
 async function writeArticle(card) {
-  const info = card.info
-  const known = info
-    ? [info.album && `release: ${info.album}`, info.year && `year: ${info.year}`, info.label && `label: ${info.label}`, info.country && `country: ${info.country}`, info.styles.length && `styles: ${info.styles.join(", ")}`].filter(Boolean).join("; ")
-    : "nothing confirmed"
+  const blocks = sourcesOf(card)
   const system =
-    "You are a gifted music writer with a warm, curious voice, writing one short piece about a single song for a music app, the kind of thing a person reads in a minute and tells a friend about. " +
-    `Take this angle: ${ANGLES[card.angle % ANGLES.length]}. ` +
-    "Facts: use only what you are sure about. Never invent dates, awards, chart positions, collaborators, quotes or anecdotes; if little is known about this exact track, write about the artist or the release instead and say so plainly. A true, specific detail (a place, a year, an instrument, a name, a number) is worth more than any adjective. " +
-    "Voice: talk to the reader like a friend who knows the story. Open with a concrete image, scene or surprising detail, not with the artist's name and not with 'In <year>'. Vary the rhythm: some short sentences, some longer. Be specific and a little playful; allow one gentle opinion or turn of phrase. " +
-    "Avoid cliches and filler: no 'iconic', 'timeless', 'masterpiece', 'testament', 'legacy of', 'delve', 'tapestry', 'journey', 'rich history', no 'not only... but also', no rhetorical questions in a row, no summing-up sentence at the end. Do not just list the release data (it is shown next to the text already). " +
+    "You write a short, readable piece about one song for a music app, in the voice of a warm, curious music writer. " +
+    "THE ONE RULE: write ONLY from the SOURCES the user message contains. Every sentence must be something the sources say. " +
+    "Do not add anything from your own memory about this song, this artist or this release: no extra dates, places, people, chart positions, awards, quotes, anecdotes or opinions about what it 'means'. " +
+    "You may reword, order and connect what the sources say, and explain a term in plain words. " +
+    "If the sources are thin, write less: fewer paragraphs, shorter ones. A short true piece beats a long vague one. " +
+    "If the sources contain nothing interesting about this track or artist, reply with the single word NOTHING. " +
+    `Emphasis, as far as the sources allow: ${ANGLES[card.angle % ANGLES.length]}. ` +
+    "Voice: plain and specific, like a friend who read up on it. Open with a concrete detail from the sources, not with the artist's name and not with 'In <year>'. Vary the rhythm. " +
+    "Avoid cliches and filler: no 'iconic', 'timeless', 'masterpiece', 'testament', 'legacy of', 'delve', 'tapestry', 'journey', 'rich history', no summing-up sentence. Do not just list the release data (it is shown next to the text already). " +
     "Format: plain text, no markdown, no emoji, no lists. Reply with exactly these lines and nothing else: " +
-    "HEADLINE | a short, intriguing title, at most 8 words, not a label like 'The story of...' " +
+    "HEADLINE | a short, intriguing title, at most 8 words, built from words in the sources " +
     "LEAD | one sentence that makes the reader want to go on, at most 26 words " +
-    "BODY | a paragraph of 3 or 4 sentences " +
-    "BODY | a second paragraph of 3 or 4 sentences " +
-    "BODY | a short closing paragraph of 1 or 2 sentences that lands on a detail, not on a moral " +
-    "DID YOU KNOW | one surprising, verifiable detail that is not already in the paragraphs, at most 30 words"
-  const w = card.wiki || {}
-  const wikiCtx = [w.song && `Wikipedia on the song: ${w.song.extract.slice(0, 600)}`, w.artist && `Wikipedia on the artist: ${w.artist.extract.slice(0, 600)}`].filter(Boolean).join("\n")
-  const prev = card.headlines.length ? `\nAlready written, do not repeat: ${card.headlines.join(" / ")}` : ""
+    "BODY | a paragraph of 2 to 4 sentences " +
+    "BODY | optional second paragraph " +
+    "BODY | optional short third paragraph " +
+    "DID YOU KNOW | optional: one detail from the sources that is not in the paragraphs, at most 30 words. Leave the line out if there is none"
+  const prev = card.headlines.length ? `\nAlready written (use other material from the sources, do not repeat): ${card.headlines.join(" / ")}` : ""
+  const user = `Artist: ${card.artist}\nTrack: ${card.track}\n\nSOURCES:\n${blocks.join("\n\n")}${prev}`
   for (let attempt = 0; attempt < 2; attempt++) {
-    const art = parseArticle(await ask(system, `Artist: ${card.artist}\nTrack: ${card.track}\nDiscogs says: ${known}${wikiCtx ? "\n" + wikiCtx : ""}${prev}`))
+    const reply = await ask(system, user)
+    if (/^\s*NOTHING\b/i.test(reply)) return null
+    const art = parseArticle(reply)
     if (art) return art
   }
   throw new Error("Could not write the article. Try again.")
+}
+
+// Faithful translation of text we only quote (the genre guide), when the console language is not English.
+async function inUserLanguage(text) {
+  const lang = getAiLanguage()
+  if (!text || lang === "auto" || lang === "English") return text
+  try { return (await ask("Translate the user's text faithfully, sentence by sentence, adding and removing nothing. Output only the translation.", text)).trim() || text } catch (_) { return text }
 }
 
 // ---------------------------------------------------------------- rendering
@@ -178,10 +231,14 @@ const css = `
 .facts-chips { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 8px; }
 .facts-chip { font-size: 0.78em; color: #00F2B8; white-space: nowrap; }
 .facts-lead { margin: 14px 0 8px; font-size: 1.04em; font-style: italic; opacity: 0.95; padding-left: 12px; border-left: 3px solid #00F2B8; }
-.facts-body p { margin: 0 0 9px; }
-.facts-body p:first-child::first-letter { font-size: 1.9em; line-height: 0.9; float: left; padding: 3px 6px 0 0; color: #00F2B8; font-weight: 700; }
+.facts-body p { margin: 0 0 9px; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; text-wrap: pretty; }
 .facts-did { margin: 12px 0 4px; font-style: italic; }
 .facts-did b { display: block; font-style: normal; font-size: 0.74em; letter-spacing: 0.1em; text-transform: uppercase; color: #00F2B8; margin-bottom: 2px; }
+.facts-rows { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; margin: 12px 0 4px; }
+.facts-rows dt { font-size: 0.74em; letter-spacing: 0.1em; text-transform: uppercase; color: #00F2B8; padding-top: 2px; }
+.facts-rows dd { margin: 0; min-width: 0; }
+.facts-genre { margin: 12px 0 4px; }
+.facts-genre b { display: block; font-size: 0.74em; letter-spacing: 0.1em; text-transform: uppercase; color: #00F2B8; margin-bottom: 2px; }
 .facts-foot { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
 .facts-link { font: inherit; color: #00F2B8; opacity: 0.85; cursor: pointer; background: none; border: 0; padding: 0; text-decoration: none; }
 .facts-link:hover { opacity: 1; text-decoration: underline; }
@@ -218,6 +275,14 @@ function topHtml(card, art) {
   </div>`
 }
 
+// The text is justified with hyphenation, which needs the language of the text to break words correctly.
+const LANG_CODES = { English: "en", Russian: "ru", Ukrainian: "uk", Spanish: "es", Portuguese: "pt", French: "fr", German: "de", Italian: "it", Dutch: "nl", Polish: "pl", Czech: "cs", Turkish: "tr", Arabic: "ar", Hebrew: "he", Hindi: "hi", Indonesian: "id", "Chinese (Simplified)": "zh", Japanese: "ja", Korean: "ko" }
+function langOf(text) {
+  const chosen = LANG_CODES[getAiLanguage()]
+  if (chosen) return chosen
+  return /[Ѐ-ӿ]/.test(text) ? "ru" : "en"
+}
+
 function articleHtml(card, art) {
   const q = encodeURIComponent(`${card.artist} ${card.track}`)
   const link = card.info && card.info.link
@@ -225,7 +290,7 @@ function articleHtml(card, art) {
   return `${topHtml(card, art)}
     <div class="facts-in">
       ${art.lead ? `<div class="facts-lead">${esc(art.lead)}</div>` : ""}
-      <div class="facts-body">${art.body.map(p => `<p>${esc(p)}</p>`).join("")}</div>
+      <div class="facts-body" lang="${langOf(art.body.join(" "))}">${art.body.map(p => `<p>${esc(p)}</p>`).join("")}</div>
       ${art.fact ? `<div class="facts-did"><b>Did you know</b>${esc(art.fact)}</div>` : ""}
       <div class="facts-foot">
         <button type="button" class="facts-link" data-facts-act="again">↻ another angle</button>
@@ -235,6 +300,45 @@ function articleHtml(card, art) {
         ${wiki.artist ? `<a class="facts-link" href="${esc(wiki.artist.url)}" target="_blank" rel="noopener noreferrer" title="${esc(wiki.artist.title)}">Wikipedia · ${esc(wiki.artist.title.length > 26 ? "artist" : wiki.artist.title)} ↗</a>` : ""}
       </div>
     </div>`
+}
+
+// No story to tell: say so plainly and give what is really known, plus ways to dig further. No AI writing here.
+function infoHtml(card, genre) {
+  const info = card.info
+  const q = encodeURIComponent(`${card.artist} ${card.track}`)
+  const rows = []
+  if (info) {
+    if (info.album) rows.push(["Release", info.album])
+    if (info.year || info.country) rows.push(["Released", [info.year || "", info.country].filter(Boolean).join(" · ")])
+    if (info.label) rows.push(["Label", info.label])
+    if (info.styles.length) rows.push(["Style", info.styles.join(", ")])
+    if (info.position) rows.push(["On the release", info.position])
+    if (info.credits.length) rows.push(["Credits", info.credits.join(" · ")])
+  }
+  return `${topHtml(card, null)}
+    <div class="facts-in">
+      <div class="facts-lead">Not much has been written about this track yet${rows.length ? ", so here is what is known" : ""}.</div>
+      ${rows.length ? `<dl class="facts-rows">${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>` : ""}
+      ${genre ? `<div class="facts-genre"><b>About ${esc(genre.title)}</b>${esc(genre.text)}</div>` : ""}
+      <div class="facts-foot">
+        <a class="facts-link" href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener noreferrer">▶ listen</a>
+        <a class="facts-link" href="#" data-chat-command="/similar">♫ similar tracks</a>
+        ${info && info.link ? `<a class="facts-link" href="${esc(info.link)}" target="_blank" rel="noopener noreferrer">Discogs ↗</a>` : `<a class="facts-link" href="https://www.discogs.com/search/?q=${q}&type=all" target="_blank" rel="noopener noreferrer">Discogs search ↗</a>`}
+        <a class="facts-link" href="https://en.wikipedia.org/w/index.php?search=${q}" target="_blank" rel="noopener noreferrer">Wikipedia search ↗</a>
+        ${genre && genre.url ? `<a class="facts-link" href="${esc(genre.url)}" target="_blank" rel="noopener noreferrer">Fonypedia ↗</a>` : ""}
+      </div>
+    </div>`
+}
+
+async function genreBlurb(card) {
+  if (typeof card.genreCtx !== "function") return null
+  try {
+    const g = await card.genreCtx()
+    if (!g || !g.desc) return null
+    // the first few sentences, as written in Fonypedia
+    const text = (g.desc.match(/[^.!?]+[.!?]+/g) || [g.desc]).slice(0, 3).join(" ").trim()
+    return { title: g.title, text: await inUserLanguage(text), url: g.slug ? `/fonypedia/${g.slug}.html` : "" }
+  } catch (_) { return null }
 }
 
 function draw(root, html) {
@@ -255,8 +359,15 @@ async function run(root, card) {
       card.wiki = wiki
       root.innerHTML = topHtml(card, null) + `<div class="facts-loading"><i></i><span>Writing the story…</span></div>`
     }
-    const art = await writeArticle(card)
+    // no real material, or the writer found nothing in it: an honest info card instead of a made-up story
+    const art = hasStory(card) ? await writeArticle(card) : null
+    if (!art) {
+      if (card.last) { draw(root, articleHtml(card, card.last)); return }   // "another angle" ran dry: keep the last article
+      draw(root, infoHtml(card, await genreBlurb(card)))
+      return
+    }
     card.headlines.push(art.headline)
+    card.last = art
     card.angle++
     draw(root, articleHtml(card, art))
   } catch (err) {
@@ -278,10 +389,10 @@ document.addEventListener("click", (e) => {
 })
 
 // Entry point: returns the card at once; it fills itself in when the release is looked up and the story written.
-export function startTrackFacts(artist, track) {
+export function startTrackFacts(artist, track, genreCtx) {
   ensureCss()
   const id = "facts" + (++counter)
-  const card = { artist: plain(artist) || artist, track: plain(track) || track, info: undefined, angle: 0, headlines: [], busy: false }
+  const card = { artist: plain(artist) || artist, track: plain(track) || track, info: undefined, angle: 0, headlines: [], last: null, genreCtx, busy: false }
   cards.set(id, card)
   if (cards.size > 6) cards.delete(cards.keys().next().value)
   let tries = 0

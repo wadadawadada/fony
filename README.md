@@ -37,6 +37,7 @@
 
 - 24/7 internet radio across dozens of genre-based stations, streamed directly in the browser — no account, no subscription.
 - Live ICY now-playing metadata (artist/track) polled for the active station, with a loading indicator while a stream connects: the station's row in the list fills with the real load progress (read from the audio element), and the timer shows a looping fade animation until the station is ready.
+- On phones the player screen is one pill that cross-fades between the station and the track; a long title runs all the way through before the station returns, and a small badge on the right shows the country flag and the stream format / bitrate. The top search field is a magnifier that opens on tap, and its "+" button adds playlists from the community catalog.
 - Automatic stall detection and recovery: the player monitors real audio output (not just playback time) and auto-skips to the next station if a stream goes dead, hiding stations that repeatedly fail.
 - A dedicated iOS playback path relays streams through an HLS proxy, since Safari on iOS doesn't handle some ICY/AAC streams directly.
 - Global search across every genre's station list, shuffle, next/previous, and a "Random" button that jumps to a random genre and station — see [Random picks](#random-picks).
@@ -104,14 +105,16 @@ An in-app chat console offers several slash-commands, backed by an external API:
 
 | Command | What it does |
 |---|---|
-| `/similar` | Suggests similar tracks to what's currently playing |
-| `/facts` | Shares quick facts about the current artist/track |
+| `/similar` | Interactive tiles of tracks similar to what's playing: cover, year and style, each checked on Discogs; ▶ listen, + add to your collection, ↻ more for the next batch |
+| `/facts` | A short magazine-style story about the current track: cover, headline, lead, a few paragraphs and a "Did you know" line, with links to Discogs and Wikipedia when there is a page for the song or the artist; *another angle* writes a new one (story, sound, artist, legacy) |
 | `/discogs [query]` | Looks up album/year/label/genre info via Discogs, with cover art and streaming search links |
 | `/mood` | Describe a mood or vibe (e.g. "90s rock", "something chill") and get matched to a live station currently playing something that fits |
 | `/collection` | Save the currently playing track to a personal list, and get AI recommendations based on it |
 | `/equalizer [genre]` | Apply a genre-tuned EQ preset, or toggle an "Analog FX" mode that simulates old-radio warmth |
 | `/skins` | Generate a random procedural background pattern for the player, or use the current track's album art as a skin |
 | `/donate` | Shows crypto donation addresses |
+
+The console answers in the language chosen in *Settings → Interface → AI language* (Auto follows the language you write in). Artist, track and station names are never translated.
 
 The console also runs a rotating "tips" walkthrough of app features on first use.
 
@@ -164,6 +167,7 @@ Open it from the settings icon. Options are grouped into Playback, Interface and
 - Hide non-HTTPS stations.
 - Reset Random taste (see [Random picks](#random-picks)).
 - Left-handed layout (mirrors the UI on wide viewports), station icons on/off, glass ripple effect.
+- AI language: the language the console answers in (20 languages, or Auto).
 - Backup the app's local data to a JSON file, restore from a backup, or fully reset the app (asks for confirmation).
 - The backup covers everything stored in the browser's `localStorage`: favorites, custom and local playlists, collection, skins, Random taste, game progress and all settings. Folder access granted for Local mode lives in the browser itself and can't be exported, so on another browser or device you'll need to add those folders again.
 

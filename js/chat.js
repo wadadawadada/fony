@@ -410,6 +410,29 @@ async function buildGenreFact() {
   } catch { return null; }
 }
 
+// The Fonypedia text of the genre that is playing: what /facts falls back on when nothing is written about a track.
+async function genreGuide() {
+  const slug = await currentGenreSlug();
+  if (!slug) return null;
+  try {
+    const res = await fetch(`/fonypedia/${slug}.html`);
+    if (!res.ok) return null;
+    const doc = new DOMParser().parseFromString(await res.text(), "text/html");
+    const title = (doc.querySelector("h1")?.textContent || "").trim();
+    const desc = (doc.querySelector('[itemprop="description"]')?.textContent || "").replace(/\s+/g, " ").trim();
+    return title && desc ? { title, desc, slug } : null;
+  } catch { return null; }
+}
+
+// links inside console cards that run a command, e.g. "similar tracks" in the /facts card
+document.addEventListener("click", e => {
+  const link = e.target.closest && e.target.closest(".facts [data-chat-command]");
+  if (!link) return;
+  e.preventDefault();
+  chatInput.value = link.dataset.chatCommand;
+  sendMessage();
+});
+
 async function maybeShowTip(force = false, mode = null) {
   if (!force && !tipsAutoOn()) return;
   if (!force && !consoleIsFree()) { scheduleTip(TIP_RETRY_MS); return; }
@@ -541,7 +564,7 @@ async function getTrackFactsResponse(nowPlayingText) {
   if (!source?.artist || !source?.track) {
     return { type: "text", content: "Play a track with Artist - Title metadata first, then try /facts again." };
   }
-  return startTrackFacts(source.artist, source.track);
+  return startTrackFacts(source.artist, source.track, genreGuide);
 }
 
 async function fetchCoverArt(artist, track) {

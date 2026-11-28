@@ -8,3 +8,7 @@
 [UPD Nov 14, 2026] Header menu (desktop): tooltips slide out of the icons, drag the menu by its dots and dock it to the left or right wall; the search is a magnifier that slides open
 [UPD Nov 22, 2026] New FONY Music: release your music as a playable NFT on Tezos, browse releases from other musicians, apply to join (disc icon in the top bar, desktop)
 [UPD Nov 22, 2026] Collection recommendations got smarter: genres from your collection, deep cuts or well-known picks, tracks checked on Discogs with cover and year
+[UPD Nov 28, 2026] Add playlists straight from the top search: tap + next to the genre, search the whole community catalog and pick one, it is added at once
+[UPD Nov 28, 2026] /similar now shows interactive tiles with covers (checked on Discogs); /facts is a short illustrated story about the track with Wikipedia and Discogs links
+[UPD Nov 28, 2026] New Settings → Interface → AI language: the console can answer in your language
+[UPD Nov 28, 2026] Phones: the player screen alternates station and track and lets a long title finish, with a flag and bitrate badge for the station
