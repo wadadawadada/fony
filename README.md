@@ -56,7 +56,7 @@ The Random button learns your taste locally, per genre, without making the pick 
 ### Genres & Playlists
 
 - Dozens of built-in genre stations (electronic, house, techno, jazz, hip-hop, reggae, classical, world, and more), each backed by a plain M3U playlist.
-- **Add your own playlist:** paste any M3U URL (including GitHub blob links, auto-converted to raw URLs), or find one in the community M3U catalog: type in the search field (it searches every folder at once and drops the results right under the field), or open *Browse by folder* to pick a letter. The M3U URL field is tucked under *Add by M3U URL manually*; the playlist is named after the catalog entry (or derived from the URL). The window drops its lists and cache when it is closed.
+- **Add your own playlist:** the **+** button next to the genre turns the top search field into a community-catalog search (*Search playlists to add…*; it searches every folder at once). Pick a result and the playlist is added and opened right away, no extra buttons. Esc, a tap outside or **+** again leaves this mode. (The older Add Playlist form with folder browsing and manual M3U URL is still in the page but is switched off.)
 - Custom playlists are saved locally in your browser and appear alongside built-in genres, with their own delete controls.
 
 ### Nostr — Social Radio

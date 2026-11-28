@@ -1952,7 +1952,7 @@ function setRadioListeners() {
 
   const addBtn = document.getElementById('addPlaylistBtn');
   if (addBtn) {
-    addBtn.onclick = openAddPlaylistModal;
+    addBtn.onclick = () => (isAddPlaylistOpen() ? closeAddPlaylistModal() : openAddPlaylistModal());
   }
 
 }
@@ -2056,28 +2056,21 @@ function openAddPlaylistModal() {
   document.getElementById('mergedPlaylistCatalogToggle').disabled = true;
   document.getElementById('mergedPlaylistCatalogList').innerHTML = '';
   document.getElementById('mergedPlaylistStatus').textContent = '';
-  modal.classList.remove('closing');
+  if (addPlaylistCloseCleanup) addPlaylistCloseCleanup();
+  markAddPlaylistAnimating();
+  modal.classList.remove('settled');
+  modal.style.display = 'grid';
+  void modal.offsetHeight; // commit the collapsed state so the slide-down animates
+  modal.classList.add('open');
   document.body.classList.add('add-playlist-open');
-  modal.style.display = 'block';
-  positionAddPlaylistPopover();
-  (document.getElementById('mergedPlaylistSearch') || document.getElementById('addPlaylistUrl')).focus({ preventScroll: true });
-}
-
-// The form opens as a popover centred over the station list; the rest of the page stays untouched.
-function positionAddPlaylistPopover() {
-  const box = document.querySelector('#addPlaylistModal .add-playlist-content');
-  if (!box) return;
-  const margin = 8;
-  const w = box.offsetWidth;
-  const h = box.offsetHeight;
-  const area = (document.getElementById('playlistContent') || document.body).getBoundingClientRect();
-  const cx = area.left + area.width / 2;
-  // sit a bit above the middle of the list
-  const cy = area.top + Math.min(area.height, window.innerHeight - area.top) * 0.38;
-  const left = Math.max(margin, Math.min(cx - w / 2, window.innerWidth - w - margin));
-  const top = Math.max(margin, Math.min(cy - h / 2, window.innerHeight - h - margin));
-  box.style.left = left + 'px';
-  box.style.top = top + 'px';
+  const addBtn = document.getElementById('addPlaylistBtn');
+  if (addBtn) addBtn.setAttribute('aria-expanded', 'true');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setTimeout(() => { if (modal.classList.contains('open')) modal.classList.add('settled'); }, reduce ? 0 : 400);
+  // on phones the drawer sits under the genre bar: bring it into view, but don't pop the keyboard up over it
+  const coarse = window.matchMedia('(pointer: coarse)').matches;
+  if (!coarse) (document.getElementById('mergedPlaylistSearch') || document.getElementById('addPlaylistUrl')).focus({ preventScroll: true });
+  modal.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
 }
 
 // The community catalog lives only while the window is open: lists, search state and cached answers
@@ -2096,53 +2089,85 @@ function unloadAddPlaylistCatalog() {
   if (status) status.textContent = '';
 }
 
-function closeAddPlaylistModal() {
-  const modal = document.getElementById('addPlaylistModal');
-  if (!modal || modal.style.display === 'none' || modal.classList.contains('closing')) return;
-  document.body.classList.remove('add-playlist-open');
-  const box = modal.querySelector('.add-playlist-content');
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!box || reduce) { modal.style.display = 'none'; unloadAddPlaylistCatalog(); return; }
-  modal.classList.add('closing');
-  let done = false;
-  const finish = () => {
-    if (done) return;
-    done = true;
-    modal.classList.remove('closing');
-    modal.style.display = 'none';
-    unloadAddPlaylistCatalog();
-  };
-  box.addEventListener('animationend', finish, { once: true });
-  setTimeout(finish, 300);
+// While the drawer slides, the station list resizes every frame; its glass blur/refraction filter is
+// what makes that stutter, so it is switched off for the duration of the slide.
+let addPlaylistAnimTimer = 0;
+function markAddPlaylistAnimating() {
+  document.body.classList.add('add-playlist-animating');
+  clearTimeout(addPlaylistAnimTimer);
+  addPlaylistAnimTimer = setTimeout(() => document.body.classList.remove('add-playlist-animating'), 460);
 }
 
-document.addEventListener('mousedown', (e) => {
+function isAddPlaylistOpen() {
   const modal = document.getElementById('addPlaylistModal');
-  if (!modal || modal.style.display === 'none') return;
-  if (e.target.closest('.add-playlist-content') || e.target.closest('#addPlaylistBtn')) return;
-  closeAddPlaylistModal();
-});
+  return !!modal && modal.classList.contains('open');
+}
+
+// Closing is a transform-only animation (cheap, no per-frame layout of the long station list):
+// the list snaps to its final size and is slid up from where it was, while the form slides up
+// inside a fixed, clipped box that stays under the genre bar.
+let addPlaylistCloseCleanup = null;
+
+function closeAddPlaylistModal() {
+  const modal = document.getElementById('addPlaylistModal');
+  if (!modal || !modal.classList.contains('open')) return;
+  const box = modal.querySelector('.add-playlist-content');
+  const list = document.getElementById('playlistContent');
+  const panel = modal.closest('.right-panel');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const addBtn = document.getElementById('addPlaylistBtn');
+  if (addBtn) addBtn.setAttribute('aria-expanded', 'false');
+  document.body.classList.remove('add-playlist-open');
+
+  const finish = () => {
+    if (!addPlaylistCloseCleanup) return;
+    addPlaylistCloseCleanup = null;
+    modal.classList.remove('closing', 'slide-out');
+    modal.removeAttribute('style');
+    modal.style.display = 'none';
+    if (list) { list.style.transition = ''; list.style.transform = ''; }
+    if (panel) panel.classList.remove('add-playlist-closing');
+    document.body.classList.remove('add-playlist-animating');
+    unloadAddPlaylistCatalog();
+  };
+
+  if (!box || !list || reduce) {
+    modal.classList.remove('open', 'settled');
+    modal.style.display = 'none';
+    unloadAddPlaylistModalSafe();
+    return;
+  }
+
+  const r = modal.getBoundingClientRect();
+  const gap = parseFloat(getComputedStyle(modal).marginBottom) || 0;
+  const shift = r.height + gap;
+  document.body.classList.add('add-playlist-animating');
+  if (panel) panel.classList.add('add-playlist-closing');
+  Object.assign(modal.style, { top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', height: r.height + 'px' });
+  modal.classList.add('closing');
+  modal.classList.remove('open', 'settled');
+  list.style.transition = 'none';
+  list.style.transform = `translateY(${shift}px)`;
+  void list.offsetHeight;
+  list.style.transition = 'transform 0.38s cubic-bezier(0.22, 0.9, 0.3, 1)';
+  list.style.transform = 'translateY(0)';
+  modal.classList.add('slide-out');
+  addPlaylistCloseCleanup = finish;
+  setTimeout(finish, 420);
+}
+
+function unloadAddPlaylistModalSafe() { unloadAddPlaylistCatalog(); }
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeAddPlaylistModal();
-});
-window.addEventListener('resize', () => {
-  const modal = document.getElementById('addPlaylistModal');
-  if (modal && modal.style.display !== 'none') positionAddPlaylistPopover();
 });
 
 document.addEventListener('DOMContentLoaded', () => {
   const initialAddBtn = document.getElementById('addPlaylistBtn');
-  if (initialAddBtn) initialAddBtn.onclick = openAddPlaylistModal;
+  if (initialAddBtn) initialAddBtn.onclick = () => (isAddPlaylistOpen() ? closeAddPlaylistModal() : openAddPlaylistModal());
 
   const closeBtn = document.getElementById('addPlaylistClose');
   if (closeBtn) closeBtn.addEventListener('click', closeAddPlaylistModal);
-
-  const modal = document.getElementById('addPlaylistModal');
-  if (modal) {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeAddPlaylistModal();
-    });
-  }
 
   const urlInput = document.getElementById('addPlaylistUrl');
   const nameInput = document.getElementById('addPlaylistName');
@@ -3219,3 +3244,209 @@ window.playStationDirect = function(st) {
   updateStreamMetadata(currentParsingUrl);
   updateMediaSessionMetadata(st);
 };
+
+// ---------------------------------------------------------------------------
+// Add a playlist straight from the top search field.
+// The "+" button turns the search field into a catalog search ("Search playlists…");
+// picking a result adds the playlist right away. (The old Add Playlist form is kept
+// in the page but is no longer opened by anything.)
+// ---------------------------------------------------------------------------
+let plSearchMode = false;
+let plSearchSeq = 0;
+let plSearchTimer = 0;
+let plSearchAdding = false;
+
+function plEls() {
+  return {
+    input: document.getElementById('searchInput'),
+    drop: document.getElementById('plSearchDrop'),
+    list: document.getElementById('plSearchList'),
+    status: document.getElementById('plSearchStatus'),
+    btn: document.getElementById('addPlaylistBtn')
+  };
+}
+
+function plShowDrop(statusText, items) {
+  const { drop, list, status } = plEls();
+  if (!drop) return;
+  status.textContent = statusText || '';
+  status.hidden = !statusText;
+  list.innerHTML = '';
+  if (items && items.length) {
+    const frag = document.createDocumentFragment();
+    for (const p of items) {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pl-search-option';
+      b.dataset.url = p.url;
+      b.dataset.name = p.name;
+      b.setAttribute('role', 'option');
+      b.textContent = p.name;
+      li.appendChild(b);
+      frag.appendChild(li);
+    }
+    list.appendChild(frag);
+  }
+  drop.hidden = !statusText && !(items && items.length);
+  if (!drop.hidden) fitPlaylistDrop();
+}
+
+// The results list never grows past the visible part of the screen: on phones the on-screen keyboard
+// shrinks the visual viewport, so the room under the field is measured against that.
+function fitPlaylistDrop() {
+  const drop = document.getElementById('plSearchDrop');
+  if (!drop || drop.hidden) return;
+  const vv = window.visualViewport;
+  const bottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+  const top = drop.getBoundingClientRect().top;
+  const room = Math.floor(bottom - top - 12);
+  drop.style.maxHeight = Math.max(110, Math.min(room, window.matchMedia('(max-width: 768px)').matches ? 280 : 420)) + 'px';
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => { if (plSearchMode) fitPlaylistDrop(); });
+  window.visualViewport.addEventListener('scroll', () => { if (plSearchMode) fitPlaylistDrop(); });
+}
+window.addEventListener('resize', () => { if (plSearchMode) fitPlaylistDrop(); });
+
+function enterPlaylistSearchMode() {
+  const { input, btn } = plEls();
+  if (!input || plSearchMode) return;
+  plSearchMode = true;
+  document.body.classList.add('playlist-search-mode');
+  if (btn) { btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); }
+  input.value = '';
+  input.placeholder = 'Search playlists…';
+  const clear = document.getElementById('clearSearch');
+  if (clear) clear.style.display = 'none';
+  plShowDrop('', []);
+  input.focus();
+}
+
+function exitPlaylistSearchMode() {
+  if (!plSearchMode) return;
+  plSearchMode = false;
+  plSearchSeq++;
+  clearTimeout(plSearchTimer);
+  document.body.classList.remove('playlist-search-mode');
+  const { btn, drop, list } = plEls();
+  if (btn) { btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); }
+  if (drop) drop.hidden = true;
+  if (list) list.innerHTML = '';
+  resetMergedPlaylistCatalog(); // the catalog only lives while it is being used
+  updateSearchInputByMode();    // restores the station-search placeholder and text
+  const input = plEls().input;
+  const clear = document.getElementById('clearSearch');
+  if (clear) clear.style.display = input && input.value ? 'block' : 'none';
+  if (input) input.blur();
+}
+
+async function runPlaylistSearch(query) {
+  const seq = ++plSearchSeq;
+  plShowDrop('Searching…', []);
+  try {
+    const { total, items } = await searchMergedPlaylists(query);
+    if (seq !== plSearchSeq || !plSearchMode) return;
+    plShowDrop(
+      items.length === 0 ? 'No matches.' : total > items.length ? `Showing ${items.length} of ${total}. Refine the search to narrow it.` : '',
+      items
+    );
+  } catch (error) {
+    if (seq !== plSearchSeq || !plSearchMode) return;
+    console.warn('Could not search the M3U catalog:', error);
+    plShowDrop(error.message || 'Search failed. Please try again.', []);
+  }
+}
+
+async function addPlaylistFromCatalog(rawUrl, rawName, optionEl) {
+  if (plSearchAdding) return;
+  plSearchAdding = true;
+  if (optionEl) { optionEl.disabled = true; optionEl.classList.add('adding'); }
+  const url = normalizePlaylistUrl(rawUrl);
+  const name = (rawName || '').trim() || suggestNameFromUrl(url) || 'My Playlist';
+  try {
+    try {
+      const r = await fetch(url, { method: 'HEAD' });
+      if (!r.ok) throw new Error('not ok');
+    } catch {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('fetch failed');
+    }
+  } catch {
+    plSearchAdding = false;
+    if (optionEl) { optionEl.disabled = false; optionEl.classList.remove('adding'); }
+    const st = document.getElementById('plSearchStatus');
+    if (st) { st.hidden = false; st.textContent = 'Could not load that playlist. Pick another one.'; }
+    return;
+  }
+  const entry = saveCustomPlaylist(name, url);
+  allPlaylists.unshift(entry);
+  fillPlaylistSelect(false);
+  if (window.addPlaylistToFavCache) window.addPlaylistToFavCache(entry);
+  plSearchAdding = false;
+  exitPlaylistSearchMode();
+  setTimeout(() => {
+    window.currentGenre = name;
+    loadAndRenderPlaylist(url, name);
+    setSelectedGenre(url, name);
+  }, 100);
+}
+
+// Capture phase on the document: the genre bar is rebuilt on mode changes, so nothing is bound to it directly.
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest && e.target.closest('#addPlaylistBtn');
+  if (btn) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (plSearchMode) exitPlaylistSearchMode(); else enterPlaylistSearchMode();
+    return;
+  }
+  if (!plSearchMode) return;
+  const clear = e.target.closest && e.target.closest('#clearSearch');
+  if (clear) {
+    e.stopImmediatePropagation();
+    const { input } = plEls();
+    if (input) { input.value = ''; input.focus(); }
+    plSearchSeq++;
+    plShowDrop('', []);
+    clear.style.display = 'none';
+  }
+}, true);
+
+document.addEventListener('input', (e) => {
+  if (!plSearchMode || !e.target || e.target.id !== 'searchInput') return;
+  e.stopImmediatePropagation(); // not a station filter while in playlist-search mode
+  const query = e.target.value.trim();
+  const clear = document.getElementById('clearSearch');
+  if (clear) clear.style.display = e.target.value ? 'block' : 'none';
+  clearTimeout(plSearchTimer);
+  if (query.length < 2) {
+    plSearchSeq++;
+    plShowDrop('', []);
+    return;
+  }
+  plSearchTimer = setTimeout(() => runPlaylistSearch(query), 250);
+}, true);
+
+document.addEventListener('keydown', (e) => {
+  if (!plSearchMode) return;
+  if (e.key === 'Escape') { e.stopImmediatePropagation(); exitPlaylistSearchMode(); return; }
+  if (e.target && e.target.id === 'searchInput' && e.key === 'Enter') {
+    e.preventDefault();
+    const first = document.querySelector('#plSearchList .pl-search-option');
+    if (first) addPlaylistFromCatalog(first.dataset.url, first.dataset.name, first);
+  }
+}, true);
+
+// keep focus in the field while a result is pressed (otherwise the field collapses on phones before the tap lands)
+document.addEventListener('mousedown', (e) => {
+  if (plSearchMode && e.target.closest && e.target.closest('#plSearchDrop')) e.preventDefault();
+}, true);
+
+document.addEventListener('click', (e) => {
+  if (!plSearchMode) return;
+  const opt = e.target.closest && e.target.closest('.pl-search-option');
+  if (opt) { addPlaylistFromCatalog(opt.dataset.url, opt.dataset.name, opt); return; }
+  // a tap anywhere outside the search field, the results and the + button ends the mode
+  if (!e.target.closest('.search-wrapper, #plSearchDrop, #addPlaylistBtn')) exitPlaylistSearchMode();
+});
