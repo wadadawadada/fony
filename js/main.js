@@ -2483,7 +2483,30 @@ playlistContainer.addEventListener("scroll", () => {
   if (scrollTop + clientHeight >= scrollHeight - 50) renderMoreStations()
 })
 
+// A tap on a row selects it. Rows reveal things on :hover (the remove cross, the hover colour), and on iOS
+// the first tap on such an element is spent on "hovering" it and the click only comes with the second tap.
+// So touches are handled on pointerup (that always fires) and the click that may follow is ignored.
+let suppressRowClickUntil = 0
+let rowTouch = null
+playlistElement.addEventListener("pointerdown", e => {
+  rowTouch = e.pointerType === "touch" ? { x: e.clientX, y: e.clientY, t: Date.now(), target: e.target } : null
+})
+playlistElement.addEventListener("pointerup", e => {
+  const tap = rowTouch
+  rowTouch = null
+  if (!tap || e.pointerType !== "touch") return
+  if (Math.abs(e.clientX - tap.x) > 10 || Math.abs(e.clientY - tap.y) > 10 || Date.now() - tap.t > 600) return
+  // the little controls inside a row keep their own click
+  if (tap.target.closest && tap.target.closest(".remove-btn, img[alt='Share station'], .station-favorite-icon, button, a, input, select")) return
+  const li = tap.target.closest && tap.target.closest("li")
+  if (!li || li.dataset.index === undefined) return
+  suppressRowClickUntil = Date.now() + 700
+  onStationSelect(parseInt(li.dataset.index))
+})
+playlistElement.addEventListener("pointercancel", () => { rowTouch = null })
+
 playlistElement.addEventListener("click", e => {
+  if (Date.now() < suppressRowClickUntil) return // already handled on pointerup
   const li = e.target.closest("li")
   if (!li || li.dataset.index === undefined) return
   const index = parseInt(li.dataset.index)
