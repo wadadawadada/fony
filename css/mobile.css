@@ -509,3 +509,96 @@
 
   .genre-box .search-wrapper:not(:focus-within) #clearSearch { display: none !important; }
 }
+
+/* ---------- phones: the now-playing screen ----------
+ * On phones the screen is one pill that cross-fades between the station and the track every few seconds
+ * (js/player.js puts both groups on top of each other, absolutely positioned, with inline left/width/opacity).
+ * The pill has a fixed height; each group sits centred in it with its icon on the left and its own clipped,
+ * edge-faded marquee. The inline left/width of the groups are overridden to give the icons room. */
+@media (max-width: 768px) {
+  .screen {
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    width: 94%;
+    height: 52px !important;
+    min-height: 0;
+    padding: 0 !important;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .screen .left-group,
+  .screen .right-group {
+    position: absolute !important;
+    top: 50% !important;
+    left: 26px !important;
+    width: calc(100% - 52px) !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    justify-content: flex-start !important;
+    gap: 10px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .screen .stream-icon { width: 22px; height: 22px; flex: none; }
+  .screen .track-icon { order: 0; width: 18px; height: 18px; flex: none; margin: 0 2px; }
+
+  .screen .station-label,
+  .screen .track-name {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    max-width: none;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* station info on the right of the station row: flag + format/bitrate (hidden on wide screens) */
+  .screen .station-badge {
+    display: none;
+    flex: none;
+    align-items: center;
+    gap: 7px;
+    margin-left: auto;
+    padding-left: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+  }
+  .screen .left-group.has-badge .station-badge { display: flex; }
+  .screen .station-badge .badge-flag { display: block; width: 20px; height: 14px; object-fit: contain; border-radius: 2px; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18); }
+  .screen .station-badge .badge-text { padding: 1px 8px; border-radius: 999px; background: rgba(0, 242, 184, 0.14); color: #00F2B8; }
+
+  .screen .station-label { font-size: 1.1rem; }
+  .screen .track-name { font-size: 0.95rem; }
+
+  /* running text fades out at the edges instead of being cut by the pill's rounded corner */
+  .screen .station-label:has(.marquee),
+  .screen .track-name:has(.marquee) {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 16px), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 16px), transparent 100%);
+  }
+
+  .screen .scrolling-text { display: inline-block; max-width: none; }
+  .screen .scrolling-text.marquee {
+    will-change: transform;
+    backface-visibility: hidden;
+    animation: scrollText var(--mq-dur, 10s) linear infinite;
+  }
+  /* text that fits stays still and keeps an ellipsis as a safety net */
+  .screen .scrolling-text:not(.marquee) { overflow: hidden; text-overflow: ellipsis; max-width: 100%; vertical-align: bottom; }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .screen .scrolling-text.marquee { animation: none; transform: none; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .screen .left-group, .screen .right-group { transition: none !important; }
+}
+
+/* the badge is a phone-only element */
+@media (min-width: 769px) { .station-badge { display: none !important; } }

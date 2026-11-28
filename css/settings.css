@@ -387,3 +387,28 @@
 .settings-panel .settings-section:hover {
   border-radius: var(--tab-r);
 }
+
+/* AI language picker */
+.settings-select {
+  flex: 0 0 auto;
+  max-width: 48%;
+  min-width: 0;
+  padding: 6px 30px 6px 12px;
+  font: inherit;
+  font-size: 0.84rem;
+  color: inherit;
+  background-color: rgba(255, 255, 255, 0.08);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%2300F2B8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.500 4.500 6 8l3.500-3.500'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  text-overflow: ellipsis;
+}
+.settings-select:focus-visible { border-color: #00F2B8; box-shadow: 0 0 0 3px rgba(0, 242, 184, 0.2); }
+.settings-select option { color: #171C2B; background: #f2f2f2; }
+body:not(.dark) .settings-select { background-color: rgba(23, 28, 43, 0.06); border-color: rgba(23, 28, 43, 0.25); }

@@ -705,7 +705,38 @@ function renderFact(entry) {
   return wrap
 }
 
+// Phones: the rotating facts are hidden (no room), so the screen shows a small static badge at the right end of
+// the station row instead: country flag and the stream format / bitrate.
+const stationBadgeEl = document.getElementById("stationBadge")
+function setStationBadge(facts) {
+  if (!stationBadgeEl) return
+  stationBadgeEl.textContent = ""
+  const left = stationBadgeEl.parentElement
+  if (!facts) { if (left) left.classList.remove("has-badge"); return }
+  if (facts.countrycode) {
+    const cc = String(facts.countrycode).toLowerCase()
+    const img = document.createElement("img")
+    img.className = "badge-flag"
+    img.src = `https://flagcdn.com/h40/${cc}.png`
+    img.srcset = `https://flagcdn.com/h20/${cc}.png 1x, https://flagcdn.com/h40/${cc}.png 2x`
+    img.alt = facts.country || ""
+    img.title = facts.country || ""
+    img.onerror = () => { img.remove(); if (left && !stationBadgeEl.firstChild) left.classList.remove("has-badge") }
+    stationBadgeEl.appendChild(img)
+  }
+  const fmt = String(facts.format || "").replace(/\s*kbps/i, "k").replace(/\s+/g, " ").trim()
+  if (fmt) {
+    const t = document.createElement("span")
+    t.className = "badge-text"
+    t.textContent = fmt
+    t.title = "Stream format"
+    stationBadgeEl.appendChild(t)
+  }
+  if (left) left.classList.toggle("has-badge", !!stationBadgeEl.firstChild)
+}
+
 function stopStationFacts() {
+  setStationBadge(null)
   if (factsTimer) { clearInterval(factsTimer); factsTimer = null }
   factsList = []
   if (stationFactsEl) { stationFactsEl.classList.remove("on"); stationFactsEl.textContent = ""; setFactsLayout(false) }
@@ -785,6 +816,7 @@ function stepFacts(startIdx, animate, onlyIfNeeded) {
 
 function startStationFacts(facts) {
   stopStationFacts()
+  setStationBadge(facts)
   if (!stationFactsEl || !facts) return
   factsList = FACT_LABELS.filter(([k]) => facts[k]).map(([k, label]) => [label, facts[k], k === "country" ? facts.countrycode : ""])
   if (!factsList.length) return

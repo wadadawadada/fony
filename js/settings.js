@@ -1,6 +1,7 @@
 import { resetTaste } from "./taste.js";
 import { confirmDialog, toast } from "./local-mode.js";
 import { bindBackup } from "./nostr/backup-ui.js";
+import { AI_LANGUAGES, getAiLanguage, setAiLanguage } from "./utils/ai-language.js";
 
 var defaultModalContent = "";
 
@@ -106,6 +107,11 @@ function openSettingsModal() {
           '<span class="settings-hint">Ripple effect in the glass skin</span></span>' +
           '<input type="checkbox" class="settings-switch" id="glassRippleCheckbox">' +
         '</label>' +
+        '<div class="settings-row">' +
+          '<span class="settings-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.500 2.700 3.800 5.700 3.800 9s-1.300 6.300-3.800 9c-2.500-2.700-3.800-5.700-3.800-9S9.500 5.700 12 3z"/></svg></span><span class="settings-text"><span class="settings-name">AI language</span>' +
+          '<span class="settings-hint">The language the console answers in</span></span>' +
+          '<select id="aiLanguageSelect" class="settings-select" aria-label="AI language">' + AI_LANGUAGES.map(function(l) { return '<option value="' + l[0] + '">' + l[1] + '</option>'; }).join("") + '</select>' +
+        '</div>' +
       '</section>' +
 
       '<section class="settings-section" data-tab="data">' +
@@ -144,6 +150,7 @@ function openSettingsModal() {
   document.getElementById("stationLogosCheckbox").checked = localStorage.getItem("stationLogos") !== "false";
   document.getElementById("glassRippleCheckbox").checked = localStorage.getItem("glassRipple") === "true";
   document.getElementById("consoleTipsCheckbox").checked = localStorage.getItem("tipsAuto") !== "false";
+  document.getElementById("aiLanguageSelect").value = getAiLanguage();
 
   // folder tabs: one section at a time; the last tab is remembered
   (function() {
@@ -189,6 +196,7 @@ function openSettingsModal() {
   }
 
   document.getElementById("consoleTipsCheckbox").addEventListener("change", applyConsoleTips);
+  document.getElementById("aiLanguageSelect").addEventListener("change", function() { setAiLanguage(this.value); });
   document.getElementById("httpStationsCheckbox").addEventListener("change", applyHttps);
   document.getElementById("leftHandedCheckbox").addEventListener("change", applyLeftHanded);
   document.getElementById("stationLogosCheckbox").addEventListener("change", applyLogos);

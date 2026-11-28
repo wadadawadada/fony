@@ -1,7 +1,9 @@
 ﻿import { fetchDiscogsTrackInfo } from './utils/discogs.js';
 import { handleSkinsCommand, reapplySkin } from './utils/skins.js';
 import { addTrackToCollection, createMainCollectMenuHtml, setupCollectionMenuHandlers, setupMobileCollectionHandlers, getCollection } from './utils/collection.js';
-import { startCollectionRecommendations } from './utils/recommend.js';
+import { startCollectionRecommendations, startSimilarRecommendations } from './utils/recommend.js';
+import { startTrackFacts } from './utils/facts.js';
+import { withLanguage } from './utils/ai-language.js';
 import { handleMoodCommand, runMoodSearch } from './utils/mood.js';
 import { playPodcastOverRadio, fetchPodcastAudio, stopPodcast } from './utils/podcast.js';
 
@@ -485,7 +487,7 @@ async function requestChatCompletion(messages, options = {}) {
     },
     body: JSON.stringify({
       model: "gpt-5-mini",
-      messages,
+      messages: withLanguage(messages),
       temperature: options.temperature ?? 0.7,
       max_tokens: options.maxTokens ?? 512,
       reasoning_effort: options.reasoningEffort
@@ -516,56 +518,13 @@ function parseArtistTrack(text) {
   return { artist: match[1].trim(), track: match[2].trim() };
 }
 
-function createTrackSearchListHtml(title, tracks) {
-  const items = tracks.map(({ artist, track }) => {
-    const query = encodeURIComponent(`${artist} ${track}`);
-    return `<li><a href="https://www.google.com/search?q=${query}" target="_blank" rel="noopener">${escapeHtml(artist)} — ${escapeHtml(track)} ↗</a></li>`;
-  }).join("");
-  return `<strong>${escapeHtml(title)}</strong><ul style="padding-left:18px; margin:8px 0;">${items}</ul>`;
-}
-
-function parseRecommendedTracks(reply, excludedArtist = "") {
-  const excluded = excludedArtist.toLowerCase();
-  return reply.split(/\r?\n/)
-    .map(line => line.replace(/^\s*\d+[.)]\s*/, "").trim())
-    .map(parseArtistTrack)
-    .filter(Boolean)
-    .filter(item => !excluded || !item.artist.toLowerCase().includes(excluded))
-    .slice(0, 5);
-}
-
+// /similar: tiles with covers and Discogs-checked info, same card as the collection recommendations (utils/recommend.js)
 async function getSimilarTracksResponse(nowPlayingText) {
   const source = parseArtistTrack(nowPlayingText);
   if (!source?.artist || !source?.track) {
     return { type: "text", content: "Play a track with Artist - Title metadata first, then try /similar again." };
   }
-
-  const messages = [
-    {
-      role: "system",
-      content:
-        "You are FONY's track-similarity engine. Recommend exactly 5 real songs similar to the source track. " +
-        "Match musical style, genre, era, mood, tempo and production; do not recommend radio stations, playlists, albums or generic advice. " +
-        "Every recommendation must be by a different artist than the source artist. Reply with exactly five numbered lines in this format: Artist - Title. No introduction or explanations."
-    },
-    {
-      role: "user",
-      content: `Source track: ${source.artist} - ${source.track}`
-    }
-  ];
-
-  try {
-    const data = await requestChatCompletion(messages, { maxTokens: 256, reasoningEffort: "minimal" });
-    const reply = data.choices?.[0]?.message?.content?.trim();
-    if (!reply) return { type: "text", content: "No similar tracks found. Try again when the track metadata updates." };
-    const tracks = parseRecommendedTracks(reply, source.artist);
-
-    return tracks.length >= 3
-      ? { type: "html", content: createTrackSearchListHtml("Similar tracks", tracks) }
-      : { type: "text", content: "No verified set of similar tracks found. Try /similar again." };
-  } catch (error) {
-    return { type: "text", content: error.message || "Unable to find similar tracks right now." };
-  }
+  return startSimilarRecommendations(source.artist, source.track);
 }
 
 // Collection recommendations are a small pipeline (genres, then the kind of picks, then Discogs-checked tracks): utils/recommend.js
@@ -576,41 +535,13 @@ async function getCollectionRecommendations(collection = getCollection()) {
   return startCollectionRecommendations(collection);
 }
 
+// /facts: a mini article with cover, headline and story (utils/facts.js)
 async function getTrackFactsResponse(nowPlayingText) {
   const source = parseArtistTrack(nowPlayingText);
   if (!source?.artist || !source?.track) {
     return { type: "text", content: "Play a track with Artist - Title metadata first, then try /facts again." };
   }
-
-  const messages = [
-    {
-      role: "system",
-      content:
-        "You are FONY's music-facts engine. Give exactly 4 concise, useful facts about the supplied artist and track. " +
-        "Prioritize verified facts: release era, album or context, genre/style, chart/cultural relevance or production details. " +
-        "Never invent facts, dates, awards, chart positions or collaborators. If a fact is uncertain, omit it. " +
-        "Reply only as four bullet points, with no introduction and no recommendations."
-    },
-    {
-      role: "user",
-      content: `Artist: ${source.artist}\nTrack: ${source.track}`
-    }
-  ];
-
-  try {
-    const data = await requestChatCompletion(messages, { maxTokens: 256, reasoningEffort: "minimal" });
-    const reply = data.choices?.[0]?.message?.content?.trim();
-    if (!reply) return { type: "text", content: "No facts found for the current track." };
-    const facts = reply.split(/\r?\n/)
-      .map(line => line.trim())
-      .filter(line => /^(?:[-•*]|\d+[.)])\s+/.test(line))
-      .slice(0, 4);
-    return facts.length >= 2
-      ? { type: "text", content: facts.join("\n") }
-      : { type: "text", content: "No verified facts found for the current track." };
-  } catch (error) {
-    return { type: "text", content: error.message || "Unable to get track facts right now." };
-  }
+  return startTrackFacts(source.artist, source.track);
 }
 
 async function fetchCoverArt(artist, track) {
@@ -986,7 +917,7 @@ function renderQuickLinks() {
     },
     {
       text: "/facts",
-      description: "List facts about the current track or artist",
+      description: "A short story about the current track or artist",
       command: () => "/facts"
     },
     // {
@@ -1349,7 +1280,7 @@ export function initChat() {
       const nowPlayingText = getNowPlayingText();
       const commands = [
         { text: "/similar", description: "Recommend 3 tracks similar to the current track", command: () => "/similar" },
-        { text: "/facts", description: "List facts about the current track or artist", command: () => "/facts" },
+        { text: "/facts", description: "A short story about the current track or artist", command: () => "/facts" },
         // { text: "/img", description: "Show album cover of the playing track", command: () => "/img" },
         { text: "/discogs", description: "Get detailed info from Discogs about a track", command: () => "/discogs " },
         { text: "/skins", description: "Generate a new background", command: () => "/skins"},

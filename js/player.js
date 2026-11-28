@@ -219,16 +219,52 @@ document.addEventListener("DOMContentLoaded", () => {
     show(leftGroup);
     hide(rightGroup);
 
+    // A group stays up for at least 5 s, and, when its text is running, until the run has gone all the way
+    // through. This is checked live every 250 ms (not planned once), so a title that changes or starts
+    // running while the group is up is still given its whole pass.
+    const HOLD_MS = 5000, MAX_HOLD_MS = 40000;
+    let shownAt = Date.now();
+
+    function runOf(el) {
+      const st = el.querySelector('.scrolling-text');
+      return st && st.classList.contains('marquee') ? st : null;
+    }
+    // restart the run from the edge so it always makes a whole pass
+    function restartRun(el) {
+      const st = runOf(el);
+      if (!st) return;
+      st.style.animation = 'none';
+      void st.offsetWidth;
+      st.style.animation = '';
+    }
+    function needFor(el) {
+      const st = runOf(el);
+      if (!st) return HOLD_MS;
+      const dur = parseFloat(st.style.getPropertyValue('--mq-dur')) || 0;
+      return Math.min(MAX_HOLD_MS, Math.max(HOLD_MS, dur * 1000 + 600));
+    }
+    function currentGroup() { return current === 'left' ? leftGroup : rightGroup; }
+
+    // new text (or a text that just began to run) in the group on show: its pass starts again from the edge
+    let restartTimer = 0;
+    const onTextChange = (group) => () => {
+      if (group !== currentGroup()) return;
+      clearTimeout(restartTimer);
+      restartTimer = setTimeout(() => { shownAt = Date.now(); restartRun(group); }, 150);
+    };
+    [leftGroup, rightGroup].forEach(g => {
+      new MutationObserver(onTextChange(g)).observe(g, { childList: true, subtree: true, characterData: true });
+    });
+
+    function swap() {
+      if (current === 'left') { hide(leftGroup); show(rightGroup); current = 'right'; }
+      else { hide(rightGroup); show(leftGroup); current = 'left'; }
+      shownAt = Date.now();
+      restartRun(currentGroup());
+    }
+    restartRun(leftGroup);
     setInterval(() => {
-      if (current === 'left') {
-        hide(leftGroup);
-        show(rightGroup);
-        current = 'right';
-      } else {
-        hide(rightGroup);
-        show(leftGroup);
-        current = 'left';
-      }
-    }, 5000);
+      if (Date.now() - shownAt >= needFor(currentGroup())) swap();
+    }, 250);
   }
 });

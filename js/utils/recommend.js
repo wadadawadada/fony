@@ -8,11 +8,12 @@
 
 import { addTrackToCollection, getCollection } from "./collection.js"
 import { isMissing, markMissing } from "./missing.js"
+import { withLanguage } from "./ai-language.js"
 
 const BACKEND = window.FONY_BACKEND_URL || "https://fonyserver.up.railway.app"
 const MAX_COLLECTION = 80       // tracks sent to the AI
-const ASK = 12                  // tracks requested per round (a few will not survive the check)
-const SHOW = 6                  // tracks shown per round
+const ASK = 5                   // tracks requested per round (a couple may not survive the check); each one costs a Discogs request
+const SHOW = 3                  // tracks shown per round
 const FIRST = 1950              // first decade on the years slider
 const DECADES = 8               // 1950s ... 2020s
 const cards = new Map()
@@ -37,7 +38,7 @@ async function ask(system, user, maxTokens) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "gpt-5-mini",
-      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+      messages: withLanguage([{ role: "system", content: system }, { role: "user", content: user }]),
       max_tokens: maxTokens,
       reasoning_effort: "minimal"
     })
@@ -77,6 +78,7 @@ async function groupGenres(collection) {
 const yearRange = (card) => [FIRST + card.lo * 10, FIRST + card.hi * 10 + 9]
 
 async function suggest(card) {
+  if (card.similar) return suggestSimilar(card)
   const mode = MODES[card.mode]
   const list = card.collection.slice(0, MAX_COLLECTION).map(t => `${t.artist} - ${t.track}`).join("\n")
   const seen = card.shown.map(t => `${t.artist} - ${t.title}`).join("\n")
@@ -96,26 +98,74 @@ async function suggest(card) {
   return []
 }
 
+// "Similar tracks" for the track that is playing: same card, same tiles, a different question to the AI
+async function suggestSimilar(card) {
+  const src = card.similar
+  const seen = card.shown.map(t => `${t.artist} - ${t.title}`).join("\n")
+  const system =
+    "You are a music expert recommending real, existing tracks similar to a source track. " +
+    "Match musical style, genre, era, mood, tempo and production; no radio stations, playlists, albums or generic advice. " +
+    `Suggest exactly ${ASK} tracks, each by a different artist, none by the source artist and none from the 'already suggested' list. ` +
+    "Only tracks you are sure exist, with the exact artist and title as released. " +
+    "Reply with one track per line, exactly in this format and nothing else: artist | title | year | why it is similar, at most 14 words"
+  const srcArtist = norm(src.artist)
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const tracks = lines(await ask(system, `Source track: ${src.artist} - ${src.track}\n\nAlready suggested:\n${seen || "none"}`, 1500))
+      .map(([artist, title, year, why]) => ({ artist: artist || "", title: title || "", aiYear: Number(year) || 0, why: why || "" }))
+      .filter(t => t.artist && t.title && !(srcArtist && norm(t.artist).includes(srcArtist)))
+    if (tracks.length) return tracks
+  }
+  return []
+}
+
 // ---------------------------------------------------------------- Discogs check
 
 const norm = (s) => String(s || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase()
   .replace(/\(.*?\)|\[.*?\]/g, " ").replace(/\b(feat|ft|featuring)\b.*$/, " ").replace(/^the\s+/, "").replace(/[^a-z0-9]+/g, "")
 
 // "ok" with the release, "miss" when Discogs has nothing that matches, "error" when Discogs cannot be reached
+// Discogs allows only a few requests a minute. After a 429 nothing more is sent for a while (the console
+// would otherwise fire a dozen doomed requests per round), and answers already received are kept for the session.
+let discogsBlockedUntil = 0
+let discogsNextSlot = 0
+const DISCOGS_GAP = 1200   // ms between two Discogs requests (the limit is about one a second)
+const lookupCache = new Map()
+const sleep = (ms) => new Promise(res => setTimeout(res, ms))
+// every request takes the next free slot, so rounds started back to back queue up instead of colliding
+async function discogsSlot() {
+  const at = Math.max(Date.now(), discogsNextSlot)
+  discogsNextSlot = at + DISCOGS_GAP
+  if (at > Date.now()) await sleep(at - Date.now())
+}
 async function lookup(artist, title) {
   const q = `${artist} ${title}`.replace(/["'‘’“”]/g, "").replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim()
   const key = "discogs:" + q
   if (isMissing(key)) return { status: "miss" }
+  if (lookupCache.has(key)) return lookupCache.get(key)
   try {
-    const resp = await fetch(`${BACKEND}/api/discogs/search?q=${encodeURIComponent(q)}`, { signal: AbortSignal.timeout(15000) })
+    let resp
+    for (let attempt = 0; attempt < 2; attempt++) {
+      // a short block is waited out; a long one gives up (the card then shows the unchecked list)
+      const blocked = discogsBlockedUntil - Date.now()
+      if (blocked > 20000) return { status: "error" }
+      if (blocked > 0) await sleep(blocked)
+      await discogsSlot()
+      resp = await fetch(`${BACKEND}/api/discogs/search?q=${encodeURIComponent(q)}`, { signal: AbortSignal.timeout(15000) })
+      if (resp.status !== 429) break
+      const wait = Number(resp.headers.get("Retry-After"))
+      discogsBlockedUntil = Date.now() + (wait > 0 ? Math.min(wait, 120) * 1000 : 8000)
+    }
     if (resp.status === 404) { markMissing(key); return { status: "miss" } }
+    if (resp.status === 429) return { status: "error" }
     if (!resp.ok) return { status: "error" }
     const rel = await resp.json()
     const a = norm(artist), t = norm(title)
     const artistOk = (rel.artists || []).some(x => { const n = norm(x.name); return n && (n.includes(a) || a.includes(n)) })
     const titleOk = (rel.tracklist || []).some(x => { const n = norm(x.title); return n && (n.includes(t) || t.includes(n)) }) || norm(rel.title).includes(t)
     // ok: this very track is on the release. partial: the artist is on Discogs, the track just is not on the release found
-    return artistOk && titleOk ? { status: "ok", rel } : artistOk ? { status: "partial", rel } : { status: "miss" }
+    const result = artistOk && titleOk ? { status: "ok", rel } : artistOk ? { status: "partial", rel } : { status: "miss" }
+    lookupCache.set(key, result)
+    return result
   } catch (_) {
     return { status: "error" }
   }
@@ -131,7 +181,7 @@ async function verify(tracks) {
       out[i] = { ...tracks[i], status: r.status, rel: r.rel || null }
     }
   }
-  await Promise.all([worker(), worker(), worker()])
+  await worker()
   return out
 }
 
@@ -295,22 +345,32 @@ function trackHtml(t, i) {
   </div>`
 }
 
+function headHtml(card) {
+  if (card.similar) return `<div class="rec-head">Similar to <b>${esc(card.similar.artist)} — ${esc(card.similar.track)}</b></div>`
+  return `<div class="rec-head"><b>${esc(card.genre.name)}</b> <span class="rec-dim">· ${MODES[card.mode].name.toLowerCase()}</span></div>`
+}
+
 function resultsHtml(card) {
-  const m = MODES[card.mode]
-  return `<div class="rec-head"><b>${esc(card.genre.name)}</b> <span class="rec-dim">· ${m.name.toLowerCase()}</span></div>
+  return `${headHtml(card)}
     <div class="rec-grid">${card.page.map(trackHtml).join("")}</div>
     <div class="rec-foot">
-      <button type="button" class="rec-link" data-rec-act="more">↻ more</button>
+      <button type="button" class="rec-link" data-rec-act="more">↻ more</button>${card.similar ? "" : `
       <button type="button" class="rec-link" data-rec-act="modes">⇄ kind</button>
-      <button type="button" class="rec-link" data-rec-act="genres">← genres</button>
+      <button type="button" class="rec-link" data-rec-act="genres">← genres</button>`}
     </div>`
 }
 
 // ---------------------------------------------------------------- flow
 
-function draw(root, html) {
+// alignTop: bring the top of the card to the top of the console (used for the finished results, so the
+// person starts reading at the heading instead of at the bottom of the tiles)
+function draw(root, html, alignTop = false) {
   root.innerHTML = html
   const box = root.closest("#chatMessages, #mobileChatMessages")
+  if (box && alignTop) {
+    requestAnimationFrame(() => { box.scrollTop += root.getBoundingClientRect().top - box.getBoundingClientRect().top - 8 })
+    return
+  }
   if (box) requestAnimationFrame(() => { box.scrollTop = Math.min(box.scrollHeight, box.scrollTop + Math.max(0, root.getBoundingClientRect().bottom - box.getBoundingClientRect().bottom + 12)) })
 }
 
@@ -321,7 +381,13 @@ function showModes(root, card) {
 }
 
 async function runRound(root, card) {
-  draw(root, `<div class="rec-head"><b>${esc(card.genre.name)}</b> <span class="rec-dim">· ${MODES[card.mode].name.toLowerCase()}</span></div>` + loading("Finding tracks…"))
+  if (card.busy) return
+  card.busy = true
+  try { await runRoundInner(root, card) } finally { card.busy = false }
+}
+
+async function runRoundInner(root, card) {
+  draw(root, headHtml(card) + loading("Finding tracks…"))
   try {
     const suggested = await suggest(card)
     if (!suggested.length) throw new Error("The AI had no suggestions. Try again.")
@@ -340,10 +406,10 @@ async function runRound(root, card) {
     if (!keep.length) throw new Error("None of the suggestions could be confirmed. Try again.")
     card.page = keep
     card.shown.push(...keep)
-    draw(root, resultsHtml(card))
+    draw(root, resultsHtml(card), true)
   } catch (err) {
     draw(root, `<div>${esc(err.message || "Something went wrong.")}</div>
-      <div class="rec-foot"><button type="button" class="rec-link" data-rec-act="retry">↻ try again</button><button type="button" class="rec-link" data-rec-act="genres">← genres</button></div>`)
+      <div class="rec-foot"><button type="button" class="rec-link" data-rec-act="retry">↻ try again</button>${card.similar ? "" : '<button type="button" class="rec-link" data-rec-act="genres">← genres</button>'}</div>`)
   }
 }
 
@@ -393,4 +459,25 @@ export async function startCollectionRecommendations(collection = getCollection(
   cards.set(id, { collection, genres, genre: null, mode: 2, lo: 0, hi: DECADES - 1, shown: [], page: [] })
   if (cards.size > 6) cards.delete(cards.keys().next().value)
   return { type: "html", content: `<div class="rec" data-rec="${id}">${genresHtml(cards.get(id))}</div>` }
+}
+
+// Entry point for /similar: the same card as the collection picks, but for the track that is playing.
+// The card shows a spinner at once and fills itself in when the tracks are found and checked.
+export function startSimilarRecommendations(artist, track) {
+  ensureCss()
+  const id = "rec" + (++counter)
+  // stream titles often carry tags like "[start of dj set]" or "(live)": the AI and the heading get the plain title
+  track = String(track).replace(/\s*[\[(].*?[\])]/g, "").replace(/\s+/g, " ").trim() || track
+  const card = { collection: [], genres: [], genre: null, similar: { artist, track }, mode: 2, lo: 0, hi: DECADES - 1, shown: [], page: [] }
+  cards.set(id, card)
+  if (cards.size > 6) cards.delete(cards.keys().next().value)
+  // the message is added to the chat after this returns: wait for the card to appear, then start
+  let tries = 0
+  const start = () => {
+    const root = document.querySelector(`[data-rec="${id}"]`)
+    if (root) { runRound(root, card); return }
+    if (++tries < 40) setTimeout(start, 50)
+  }
+  setTimeout(start, 0)
+  return { type: "html", content: `<div class="rec" data-rec="${id}">${headHtml(card)}${loading("Finding tracks…")}</div>` }
 }
