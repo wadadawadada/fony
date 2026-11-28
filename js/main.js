@@ -3326,7 +3326,13 @@ function plShowDrop(statusText, items) {
 
 // The results list never grows past the visible part of the screen: on phones the on-screen keyboard
 // shrinks the visual viewport, so the room under the field is measured against that.
+let fitDropFrame = 0;
 function fitPlaylistDrop() {
+  // at most once per frame: the keyboard animation fires a burst of viewport events
+  if (fitDropFrame) return;
+  fitDropFrame = requestAnimationFrame(() => { fitDropFrame = 0; fitPlaylistDropNow(); });
+}
+function fitPlaylistDropNow() {
   const drop = document.getElementById('plSearchDrop');
   if (!drop || drop.hidden) return;
   const vv = window.visualViewport;
@@ -3361,16 +3367,16 @@ function exitPlaylistSearchMode() {
   plSearchSeq++;
   clearTimeout(plSearchTimer);
   document.body.classList.remove('playlist-search-mode');
-  const { btn, drop, list } = plEls();
+  const { btn, drop, list, input } = plEls();
   if (btn) { btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); }
   if (drop) drop.hidden = true;
   if (list) list.innerHTML = '';
   resetMergedPlaylistCatalog(); // the catalog only lives while it is being used
-  updateSearchInputByMode();    // restores the station-search placeholder and text
-  const input = plEls().input;
+  if (input) input.value = ''; // whatever was typed for the catalog search goes away
+  updateSearchInputByMode();    // restores the station-search placeholder and its own text
   const clear = document.getElementById('clearSearch');
   if (clear) clear.style.display = input && input.value ? 'block' : 'none';
-  if (input) input.blur();
+  if (input) input.blur(); // the field folds back (it only stays open while focused or hovered)
 }
 
 async function runPlaylistSearch(query) {
@@ -3390,25 +3396,25 @@ async function runPlaylistSearch(query) {
   }
 }
 
-async function addPlaylistFromCatalog(rawUrl, rawName, optionEl) {
+async function addPlaylistFromCatalog(rawUrl, rawName) {
   if (plSearchAdding) return;
   plSearchAdding = true;
-  if (optionEl) { optionEl.disabled = true; optionEl.classList.add('adding'); }
   const url = normalizePlaylistUrl(rawUrl);
   const name = (rawName || '').trim() || suggestNameFromUrl(url) || 'My Playlist';
+  // The pick is final: the search text goes, the results close and the field folds back at once.
+  // The check of the playlist (and any problem with it) is reported in a toast, not inside the field.
+  exitPlaylistSearchMode();
   try {
     try {
-      const r = await fetch(url, { method: 'HEAD' });
+      const r = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(10000) });
       if (!r.ok) throw new Error('not ok');
     } catch {
-      const r = await fetch(url);
+      const r = await fetch(url, { signal: AbortSignal.timeout(15000) });
       if (!r.ok) throw new Error('fetch failed');
     }
   } catch {
     plSearchAdding = false;
-    if (optionEl) { optionEl.disabled = false; optionEl.classList.remove('adding'); }
-    const st = document.getElementById('plSearchStatus');
-    if (st) { st.hidden = false; st.textContent = 'Could not load that playlist. Pick another one.'; }
+    toastLocal('Could not load that playlist. Try another one.');
     return;
   }
   const entry = saveCustomPlaylist(name, url);
@@ -3416,7 +3422,6 @@ async function addPlaylistFromCatalog(rawUrl, rawName, optionEl) {
   fillPlaylistSelect(false);
   if (window.addPlaylistToFavCache) window.addPlaylistToFavCache(entry);
   plSearchAdding = false;
-  exitPlaylistSearchMode();
   setTimeout(() => {
     window.currentGenre = name;
     loadAndRenderPlaylist(url, name);
@@ -3466,7 +3471,7 @@ document.addEventListener('keydown', (e) => {
   if (e.target && e.target.id === 'searchInput' && e.key === 'Enter') {
     e.preventDefault();
     const first = document.querySelector('#plSearchList .pl-search-option');
-    if (first) addPlaylistFromCatalog(first.dataset.url, first.dataset.name, first);
+    if (first) addPlaylistFromCatalog(first.dataset.url, first.dataset.name);
   }
 }, true);
 
@@ -3478,7 +3483,7 @@ document.addEventListener('mousedown', (e) => {
 document.addEventListener('click', (e) => {
   if (!plSearchMode) return;
   const opt = e.target.closest && e.target.closest('.pl-search-option');
-  if (opt) { addPlaylistFromCatalog(opt.dataset.url, opt.dataset.name, opt); return; }
+  if (opt) { addPlaylistFromCatalog(opt.dataset.url, opt.dataset.name); return; }
   // a tap anywhere outside the search field, the results and the + button ends the mode
   if (!e.target.closest('.search-wrapper, #plSearchDrop, #addPlaylistBtn')) exitPlaylistSearchMode();
 });
